@@ -13,4 +13,4 @@ export {
   updateProfile,
 } from './auth-service';
 export { useAuthInit } from './use-auth-init';
-export { useCanMutate, useIsAdmin } from './use-permissions';
+export { useCanMutate, useCanMutateKeywords, useCanMutateReplacements, useIsAdmin } from './use-permissions';

@@ -44,12 +44,14 @@ export function Navbar() {
 	const { routes, current } = useRoutes();
 	const canGoBack = routes.length > 1;
 	const isOnProfile = current === "profile";
+	const isOnSettings = current === "settings";
 
-	const pinnedAction = canGoBack ? (
-		<BackButton t={t} dir={dir} />
-	) : isAdmin ? (
-		<SettingsButton t={t} />
-	) : null;
+	const pinnedAction =
+		canGoBack || isOnProfile || isOnSettings ? (
+			<BackButton t={t} dir={dir} />
+		) : isAdmin ? (
+			<SettingsButton t={t} />
+		) : null;
 
 	return (
 		<Group
@@ -74,7 +76,7 @@ export function Navbar() {
 				<RefreshContentButton t={t} />
 				<ToggleColorScheme t={t} />
 				{!isAdmin && <ToggleLanguage t={t} />}
-				{!isOnProfile && <ProfileButton t={t} />}
+				{!isOnProfile && !isOnSettings && <ProfileButton t={t} />}
 			</NavbarActionsScroll>
 		</Group>
 	);

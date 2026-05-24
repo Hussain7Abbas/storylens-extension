@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetKeywords200DataItem } from "@/api/schemas";
 import { SearchInput } from "@/components/search-input";
-import { useCanMutate } from "@/lib/auth";
+import { useCanMutateKeywords } from "@/lib/auth";
 import { ColoringCards } from "./coloring-cards";
 import type { ColoringFormModesType } from "./coloring-form";
 import { ColoringForm } from "./coloring-form";
 
 export function ColoringTab({ selectedNovelId }: { selectedNovelId: string }) {
 	const { t } = useTranslation();
-	const canMutate = useCanMutate();
+	const canMutate = useCanMutateKeywords();
 	const [coloringFormMode, setColoringFormMode] =
 		useState<ColoringFormModesType>(undefined);
 	const [keyword, setKeyword] = useState<GetKeywords200DataItem | undefined>(

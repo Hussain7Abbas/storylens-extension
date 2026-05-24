@@ -3,14 +3,14 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetReplacements200DataItem } from "@/api/schemas";
 import { SearchInput } from "@/components/search-input";
-import { useCanMutate } from "@/lib/auth";
+import { useCanMutateReplacements } from "@/lib/auth";
 import { ReplacingCards } from "./replacing-cards";
 import type { ReplacingFormModesType } from "./replacing-form";
 import { ReplacingForm } from "./replacing-form";
 
 export function ReplacingTab({ selectedNovelId }: { selectedNovelId: string }) {
 	const { t } = useTranslation();
-	const canMutate = useCanMutate();
+	const canMutate = useCanMutateReplacements();
 	const [replacingFormMode, setReplacingFormMode] =
 		useState<ReplacingFormModesType>(undefined);
 	const [replacement, setReplacement] = useState<
