@@ -6,7 +6,13 @@ import type {
 	GetReplacements200DataItem,
 } from "@/api/schemas";
 
-export type SyncEntity = "keyword" | "replacement";
+export type SyncEntity =
+	| "keyword"
+	| "replacement"
+	| "keywordCategory"
+	| "keywordNature";
+
+export const GLOBAL_LOOKUP_SCOPE = "global";
 
 export type SyncAction = "create" | "update" | "delete";
 

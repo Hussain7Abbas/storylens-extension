@@ -1,5 +1,15 @@
-import { getKeywordCategories } from "@/api/endpoints/keyword-categories.js";
-import { getKeywordNatures } from "@/api/endpoints/keyword-natures.js";
+import {
+	deleteKeywordCategoriesById,
+	getKeywordCategories,
+	postKeywordCategories,
+	putKeywordCategoriesById,
+} from "@/api/endpoints/keyword-categories.js";
+import {
+	deleteKeywordNaturesById,
+	getKeywordNatures,
+	postKeywordNatures,
+	putKeywordNaturesById,
+} from "@/api/endpoints/keyword-natures.js";
 import {
 	deleteKeywordsById,
 	getKeywords,
@@ -13,14 +23,24 @@ import {
 	putReplacementsById,
 } from "@/api/endpoints/replacements.js";
 import type {
+	GetKeywordCategories200DataItem,
+	GetKeywordNatures200DataItem,
 	GetKeywords200DataItem,
+	PostKeywordCategoriesBodyOne,
+	PostKeywordNaturesBodyOne,
 	PostKeywordsBodyOne,
 	PostReplacementsBodyOne,
+	PutKeywordCategoriesByIdBodyOne,
+	PutKeywordNaturesByIdBodyOne,
 	PutKeywordsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
 } from "@/api/schemas";
 import {
+	bulkPutKeywordCategories,
+	bulkPutKeywordNatures,
+	replaceKeywordCategoryId,
 	replaceKeywordId,
+	replaceKeywordNatureId,
 	replaceReplacementId,
 	writeNovelOfflineBundle,
 } from "@/lib/offline/db";
@@ -55,8 +75,12 @@ async function pushOperation(operation: SyncOperation): Promise<void> {
 	try {
 		if (operation.entity === "keyword") {
 			await pushKeywordOperation(operation);
-		} else {
+		} else if (operation.entity === "replacement") {
 			await pushReplacementOperation(operation);
+		} else if (operation.entity === "keywordCategory") {
+			await pushKeywordCategoryOperation(operation);
+		} else {
+			await pushKeywordNatureOperation(operation);
 		}
 
 		await removePendingOp(operation.id);
@@ -122,6 +146,80 @@ async function pushReplacementOperation(
 	}
 
 	await deleteReplacementsById(operation.entityId);
+}
+
+async function pushKeywordCategoryOperation(
+	operation: SyncOperation,
+): Promise<void> {
+	if (operation.action === "create") {
+		const response = await postKeywordCategories(
+			operation.payload as PostKeywordCategoriesBodyOne,
+		);
+		const serverCategory = response.data as GetKeywordCategories200DataItem;
+
+		if (isTempId(operation.entityId)) {
+			await replaceKeywordCategoryId(operation.entityId, serverCategory.id);
+			await replacePendingEntityId(operation.entityId, serverCategory.id);
+		}
+		return;
+	}
+
+	if (operation.action === "update") {
+		await putKeywordCategoriesById(
+			operation.entityId,
+			operation.payload as PutKeywordCategoriesByIdBodyOne,
+		);
+		return;
+	}
+
+	await deleteKeywordCategoriesById(operation.entityId);
+}
+
+async function pushKeywordNatureOperation(
+	operation: SyncOperation,
+): Promise<void> {
+	if (operation.action === "create") {
+		const response = await postKeywordNatures(
+			operation.payload as PostKeywordNaturesBodyOne,
+		);
+		const serverNature = response.data as GetKeywordNatures200DataItem;
+
+		if (isTempId(operation.entityId)) {
+			await replaceKeywordNatureId(operation.entityId, serverNature.id);
+			await replacePendingEntityId(operation.entityId, serverNature.id);
+		}
+		return;
+	}
+
+	if (operation.action === "update") {
+		await putKeywordNaturesById(
+			operation.entityId,
+			operation.payload as PutKeywordNaturesByIdBodyOne,
+		);
+		return;
+	}
+
+	await deleteKeywordNaturesById(operation.entityId);
+}
+
+export async function pullLookupData(): Promise<void> {
+	const [categoriesResponse, naturesResponse] = await Promise.all([
+		getKeywordCategories(
+			withListQueryParams({
+				pagination: { page: 1, pageSize: 500 },
+				sorting: { column: "name", direction: "asc" },
+			}),
+		),
+		getKeywordNatures(
+			withListQueryParams({
+				pagination: { page: 1, pageSize: 500 },
+				sorting: { column: "name", direction: "asc" },
+			}),
+		),
+	]);
+
+	await bulkPutKeywordCategories(categoriesResponse.data.data);
+	await bulkPutKeywordNatures(naturesResponse.data.data);
 }
 
 export async function syncPendingOperations(): Promise<SyncResult> {
@@ -212,6 +310,13 @@ export async function fullSync(): Promise<SyncResult> {
 	}
 
 	const pushResult = await syncPendingOperations();
+
+	try {
+		await pullLookupData();
+	} catch {
+		// Lookup pull failed; continue with novel pulls.
+	}
+
 	const downloadedNovelIds = await getDownloadedNovelIds();
 	let pulled = 0;
 

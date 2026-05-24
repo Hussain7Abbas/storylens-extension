@@ -8,15 +8,10 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconTrash } from "@tabler/icons-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import {
-	useDeleteKeywordNaturesById,
-	usePostKeywordNatures,
-	usePutKeywordNaturesById,
-} from "@/api/endpoints/keyword-natures.js";
 import type { PostKeywordNaturesBodyOne } from "@/api/schemas";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { useOfflineNatureMutations } from "@/lib/offline/hooks";
 import type { KeywordNature } from "@/types/models";
 
 export type NatureFormModesType = "add" | "edit" | undefined;
@@ -46,56 +41,45 @@ export function NatureForm({
 		},
 	});
 
-	const queryClient = useQueryClient();
 	const refreshContent = useRefreshContentScript();
-
-	const createMutation = usePostKeywordNatures({
-		mutation: {
-			onSuccess: async () => {
-				queryClient.invalidateQueries({ queryKey: ["keyword-natures"] });
-				await refreshContent();
-				form.reset();
-				onClose();
-			},
-		},
-	});
-
-	const updateMutation = usePutKeywordNaturesById({
-		mutation: {
-			onSuccess: async () => {
-				queryClient.invalidateQueries({ queryKey: ["keyword-natures"] });
-				await refreshContent();
-				form.reset();
-				onClose();
-			},
-		},
-	});
-
-	const deleteMutation = useDeleteKeywordNaturesById({
-		mutation: {
-			onSuccess: async () => {
-				queryClient.invalidateQueries({ queryKey: ["keyword-natures"] });
-				await refreshContent();
-				form.reset();
-				onClose();
-			},
-		},
-	});
+	const { createMutation, updateMutation, deleteMutation } =
+		useOfflineNatureMutations();
 
 	const handleSubmit = (values: typeof form.values) => {
 		if (mode === "add") {
-			createMutation.mutate({ data: values });
+			createMutation.mutate(values, {
+				onSuccess: async () => {
+					await refreshContent();
+					form.reset();
+					onClose();
+				},
+			});
 			return;
 		}
 
 		if (mode === "edit" && nature?.id) {
-			updateMutation.mutate({ id: nature.id, data: values });
+			updateMutation.mutate(
+				{ id: nature.id, data: values },
+				{
+					onSuccess: async () => {
+						await refreshContent();
+						form.reset();
+						onClose();
+					},
+				},
+			);
 		}
 	};
 
 	const handleDelete = () => {
 		if (nature?.id) {
-			deleteMutation.mutate({ id: nature.id });
+			deleteMutation.mutate(nature.id, {
+				onSuccess: async () => {
+					await refreshContent();
+					form.reset();
+					onClose();
+				},
+			});
 		}
 	};
 

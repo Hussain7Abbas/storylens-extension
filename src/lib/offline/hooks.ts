@@ -1,8 +1,18 @@
 import { useDebouncedValue } from "@mantine/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getKeywordCategories } from "@/api/endpoints/keyword-categories.js";
-import { getKeywordNatures } from "@/api/endpoints/keyword-natures.js";
+import {
+	deleteKeywordCategoriesById,
+	getKeywordCategories,
+	postKeywordCategories,
+	putKeywordCategoriesById,
+} from "@/api/endpoints/keyword-categories.js";
+import {
+	deleteKeywordNaturesById,
+	getKeywordNatures,
+	postKeywordNatures,
+	putKeywordNaturesById,
+} from "@/api/endpoints/keyword-natures.js";
 import {
 	deleteKeywordsById,
 	postKeywords,
@@ -14,15 +24,25 @@ import {
 	putReplacementsById,
 } from "@/api/endpoints/replacements.js";
 import type {
+	GetKeywordCategories200DataItem,
+	GetKeywordNatures200DataItem,
 	GetKeywords200DataItem,
 	GetReplacements200DataItem,
+	PostKeywordCategoriesBodyOne,
+	PostKeywordNaturesBodyOne,
 	PostKeywordsBodyOne,
 	PostReplacementsBodyOne,
+	PutKeywordCategoriesByIdBodyOne,
+	PutKeywordNaturesByIdBodyOne,
 	PutKeywordsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
 } from "@/api/schemas";
 import {
+	bulkPutKeywordCategories,
+	bulkPutKeywordNatures,
 	deleteKeywordById,
+	deleteKeywordCategoryById,
+	deleteKeywordNatureById,
 	deleteReplacementById,
 	getAllKeywordCategories,
 	getAllKeywordNatures,
@@ -30,7 +50,11 @@ import {
 	getReplacementsByNovelId,
 	isNovelDownloaded,
 	saveKeyword,
+	saveKeywordCategory,
+	saveKeywordNature,
 	saveReplacement,
+	updateKeywordCategoryReferences,
+	updateKeywordNatureReferences,
 } from "@/lib/offline/db";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import {
@@ -41,6 +65,7 @@ import {
 } from "@/lib/offline/sync-storage";
 import {
 	createTempId,
+	GLOBAL_LOOKUP_SCOPE,
 	type SyncAction,
 	type SyncEntity,
 	type SyncOperation,
@@ -72,6 +97,44 @@ function sortReplacements(
 	items: GetReplacements200DataItem[],
 ): GetReplacements200DataItem[] {
 	return [...items].sort((left, right) => left.from.localeCompare(right.from));
+}
+
+function sortLookupByName<
+	T extends { name: string },
+>(items: T[]): T[] {
+	return [...items].sort((left, right) => left.name.localeCompare(right.name));
+}
+
+async function seedKeywordCategoriesCache(): Promise<KeywordCategory[]> {
+	const response = await getKeywordCategories(
+		withListQueryParams({
+			pagination: { page: 1, pageSize: 500 },
+			sorting: { column: "name", direction: "asc" },
+		}),
+	);
+	const data = response.data.data as KeywordCategory[];
+	await bulkPutKeywordCategories(data);
+	return data;
+}
+
+async function seedKeywordNaturesCache(): Promise<KeywordNature[]> {
+	const response = await getKeywordNatures(
+		withListQueryParams({
+			pagination: { page: 1, pageSize: 500 },
+			sorting: { column: "name", direction: "asc" },
+		}),
+	);
+	const data = response.data.data as KeywordNature[];
+	await bulkPutKeywordNatures(data);
+	return data;
+}
+
+async function hasKeywordCategoriesCache(): Promise<boolean> {
+	return (await getAllKeywordCategories()).length > 0;
+}
+
+async function hasKeywordNaturesCache(): Promise<boolean> {
+	return (await getAllKeywordNatures()).length > 0;
 }
 
 export function useOnlineStatus(): boolean {
@@ -184,63 +247,73 @@ export function useOfflineReplacements(novelId: string, search: string) {
 	};
 }
 
-export function useOfflineKeywordCategories() {
+export function useOfflineKeywordCategories(search = "") {
+	const [debouncedSearch] = useDebouncedValue(search.trim(), 300);
 	const online = useOnlineStatus();
+	const queryClient = useQueryClient();
 
 	const offlineQuery = useQuery({
 		queryKey: ["offline", "keyword-categories"],
 		queryFn: getAllKeywordCategories,
 	});
 
-	const onlineQuery = useQuery({
-		queryKey: ["keyword-categories", "offline-fallback"],
+	const seedQuery = useQuery({
+		queryKey: ["keyword-categories", "cache-seed"],
 		queryFn: async () => {
-			const response = await getKeywordCategories(
-				withListQueryParams({
-					pagination: { page: 1, pageSize: 500 },
-					sorting: { column: "name", direction: "asc" },
-				}),
-			);
-			return response.data.data as KeywordCategory[];
+			const data = await seedKeywordCategoriesCache();
+			await queryClient.invalidateQueries({
+				queryKey: ["offline", "keyword-categories"],
+			});
+			return data;
 		},
-		enabled: online && offlineQuery.data?.length === 0,
+		enabled: online && (offlineQuery.data?.length ?? 0) === 0,
 	});
 
-	return {
-		data: offlineQuery.data?.length
+	const data = useMemo(() => {
+		const source = offlineQuery.data?.length
 			? offlineQuery.data
-			: (onlineQuery.data ?? []),
-		isLoading: offlineQuery.isLoading || onlineQuery.isLoading,
+			: (seedQuery.data ?? []);
+		return sortLookupByName(filterBySearch(source, debouncedSearch));
+	}, [offlineQuery.data, seedQuery.data, debouncedSearch]);
+
+	return {
+		data,
+		isLoading: offlineQuery.isLoading || seedQuery.isLoading,
 	};
 }
 
-export function useOfflineKeywordNatures() {
+export function useOfflineKeywordNatures(search = "") {
+	const [debouncedSearch] = useDebouncedValue(search.trim(), 300);
 	const online = useOnlineStatus();
+	const queryClient = useQueryClient();
 
 	const offlineQuery = useQuery({
 		queryKey: ["offline", "keyword-natures"],
 		queryFn: getAllKeywordNatures,
 	});
 
-	const onlineQuery = useQuery({
-		queryKey: ["keyword-natures", "offline-fallback"],
+	const seedQuery = useQuery({
+		queryKey: ["keyword-natures", "cache-seed"],
 		queryFn: async () => {
-			const response = await getKeywordNatures(
-				withListQueryParams({
-					pagination: { page: 1, pageSize: 500 },
-					sorting: { column: "name", direction: "asc" },
-				}),
-			);
-			return response.data.data as KeywordNature[];
+			const data = await seedKeywordNaturesCache();
+			await queryClient.invalidateQueries({
+				queryKey: ["offline", "keyword-natures"],
+			});
+			return data;
 		},
-		enabled: online && offlineQuery.data?.length === 0,
+		enabled: online && (offlineQuery.data?.length ?? 0) === 0,
 	});
 
-	return {
-		data: offlineQuery.data?.length
+	const data = useMemo(() => {
+		const source = offlineQuery.data?.length
 			? offlineQuery.data
-			: (onlineQuery.data ?? []),
-		isLoading: offlineQuery.isLoading || onlineQuery.isLoading,
+			: (seedQuery.data ?? []);
+		return sortLookupByName(filterBySearch(source, debouncedSearch));
+	}, [offlineQuery.data, seedQuery.data, debouncedSearch]);
+
+	return {
+		data,
+		isLoading: offlineQuery.isLoading || seedQuery.isLoading,
 	};
 }
 
@@ -269,18 +342,28 @@ async function queueOfflineOperation(
 function invalidateOfflineQueries(
 	queryClient: ReturnType<typeof useQueryClient>,
 	entity: SyncEntity,
-	novelId: string,
+	scopeId: string,
 ): void {
 	if (entity === "keyword") {
 		queryClient.invalidateQueries({
-			queryKey: ["offline", "keywords", novelId],
+			queryKey: ["offline", "keywords", scopeId],
 		});
 		queryClient.invalidateQueries({ queryKey: ["keywords"] });
-	} else {
+	} else if (entity === "replacement") {
 		queryClient.invalidateQueries({
-			queryKey: ["offline", "replacements", novelId],
+			queryKey: ["offline", "replacements", scopeId],
 		});
 		queryClient.invalidateQueries({ queryKey: ["replacements"] });
+	} else if (entity === "keywordCategory") {
+		queryClient.invalidateQueries({
+			queryKey: ["offline", "keyword-categories"],
+		});
+		queryClient.invalidateQueries({ queryKey: ["keyword-categories"] });
+	} else {
+		queryClient.invalidateQueries({
+			queryKey: ["offline", "keyword-natures"],
+		});
+		queryClient.invalidateQueries({ queryKey: ["keyword-natures"] });
 	}
 
 	queryClient.invalidateQueries({
@@ -560,6 +643,340 @@ export function useOfflineReplacementMutations(novelId: string) {
 				}
 			} else {
 				await queueOfflineOperation("replacement", "delete", id, novelId, {});
+			}
+		},
+		onSuccess: () => invalidate(),
+	});
+
+	return { createMutation, updateMutation, deleteMutation };
+}
+
+export function useOfflineCategoryMutations() {
+	const queryClient = useQueryClient();
+	const online = useOnlineStatus();
+
+	const invalidate = useCallback(() => {
+		invalidateOfflineQueries(
+			queryClient,
+			"keywordCategory",
+			GLOBAL_LOOKUP_SCOPE,
+		);
+	}, [queryClient]);
+
+	const createMutation = useMutation({
+		mutationFn: async (values: PostKeywordCategoriesBodyOne) => {
+			const cached = await hasKeywordCategoriesCache();
+			if (!cached && online) {
+				const response = await postKeywordCategories(values);
+				await saveKeywordCategory(
+					response.data as GetKeywordCategories200DataItem,
+				);
+				return response.data;
+			}
+
+			const tempId = createTempId();
+			const category: GetKeywordCategories200DataItem = {
+				id: tempId,
+				name: values.name,
+				color: values.color,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+
+			await saveKeywordCategory(category);
+
+			if (online) {
+				try {
+					const response = await postKeywordCategories(values);
+					await deleteKeywordCategoryById(tempId);
+					await saveKeywordCategory(
+						response.data as GetKeywordCategories200DataItem,
+					);
+					return response.data;
+				} catch {
+					await queueOfflineOperation(
+						"keywordCategory",
+						"create",
+						tempId,
+						GLOBAL_LOOKUP_SCOPE,
+						values,
+					);
+					return category;
+				}
+			}
+
+			await queueOfflineOperation(
+				"keywordCategory",
+				"create",
+				tempId,
+				GLOBAL_LOOKUP_SCOPE,
+				values,
+			);
+			return category;
+		},
+		onSuccess: () => invalidate(),
+	});
+
+	const updateMutation = useMutation({
+		mutationFn: async ({
+			id,
+			data,
+		}: {
+			id: string;
+			data: PutKeywordCategoriesByIdBodyOne;
+		}) => {
+			const cached = await hasKeywordCategoriesCache();
+			if (!cached && online) {
+				const response = await putKeywordCategoriesById(id, data);
+				await saveKeywordCategory(
+					response.data as GetKeywordCategories200DataItem,
+				);
+				return response.data;
+			}
+
+			const existing = (await getAllKeywordCategories()).find(
+				(entry) => entry.id === id,
+			);
+			if (!existing) {
+				throw new Error("Category not found offline");
+			}
+
+			const updated: GetKeywordCategories200DataItem = {
+				...existing,
+				...data,
+				updatedAt: new Date().toISOString(),
+			};
+			await saveKeywordCategory(updated);
+			await updateKeywordCategoryReferences(updated);
+
+			if (online) {
+				try {
+					const response = await putKeywordCategoriesById(id, data);
+					await saveKeywordCategory(
+						response.data as GetKeywordCategories200DataItem,
+					);
+					await updateKeywordCategoryReferences(
+						response.data as GetKeywordCategories200DataItem,
+					);
+					return response.data;
+				} catch {
+					await queueOfflineOperation(
+						"keywordCategory",
+						"update",
+						id,
+						GLOBAL_LOOKUP_SCOPE,
+						data,
+					);
+					return updated;
+				}
+			}
+
+			await queueOfflineOperation(
+				"keywordCategory",
+				"update",
+				id,
+				GLOBAL_LOOKUP_SCOPE,
+				data,
+			);
+			return updated;
+		},
+		onSuccess: () => invalidate(),
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: async (id: string) => {
+			const cached = await hasKeywordCategoriesCache();
+			if (!cached && online) {
+				return deleteKeywordCategoriesById(id);
+			}
+
+			await deleteKeywordCategoryById(id);
+
+			if (online) {
+				try {
+					return await deleteKeywordCategoriesById(id);
+				} catch {
+					await queueOfflineOperation(
+						"keywordCategory",
+						"delete",
+						id,
+						GLOBAL_LOOKUP_SCOPE,
+						{},
+					);
+				}
+			} else {
+				await queueOfflineOperation(
+					"keywordCategory",
+					"delete",
+					id,
+					GLOBAL_LOOKUP_SCOPE,
+					{},
+				);
+			}
+		},
+		onSuccess: () => invalidate(),
+	});
+
+	return { createMutation, updateMutation, deleteMutation };
+}
+
+export function useOfflineNatureMutations() {
+	const queryClient = useQueryClient();
+	const online = useOnlineStatus();
+
+	const invalidate = useCallback(() => {
+		invalidateOfflineQueries(
+			queryClient,
+			"keywordNature",
+			GLOBAL_LOOKUP_SCOPE,
+		);
+	}, [queryClient]);
+
+	const createMutation = useMutation({
+		mutationFn: async (values: PostKeywordNaturesBodyOne) => {
+			const cached = await hasKeywordNaturesCache();
+			if (!cached && online) {
+				const response = await postKeywordNatures(values);
+				await saveKeywordNature(response.data as GetKeywordNatures200DataItem);
+				return response.data;
+			}
+
+			const tempId = createTempId();
+			const nature: GetKeywordNatures200DataItem = {
+				id: tempId,
+				name: values.name,
+				color: values.color,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+
+			await saveKeywordNature(nature);
+
+			if (online) {
+				try {
+					const response = await postKeywordNatures(values);
+					await deleteKeywordNatureById(tempId);
+					await saveKeywordNature(
+						response.data as GetKeywordNatures200DataItem,
+					);
+					return response.data;
+				} catch {
+					await queueOfflineOperation(
+						"keywordNature",
+						"create",
+						tempId,
+						GLOBAL_LOOKUP_SCOPE,
+						values,
+					);
+					return nature;
+				}
+			}
+
+			await queueOfflineOperation(
+				"keywordNature",
+				"create",
+				tempId,
+				GLOBAL_LOOKUP_SCOPE,
+				values,
+			);
+			return nature;
+		},
+		onSuccess: () => invalidate(),
+	});
+
+	const updateMutation = useMutation({
+		mutationFn: async ({
+			id,
+			data,
+		}: {
+			id: string;
+			data: PutKeywordNaturesByIdBodyOne;
+		}) => {
+			const cached = await hasKeywordNaturesCache();
+			if (!cached && online) {
+				const response = await putKeywordNaturesById(id, data);
+				await saveKeywordNature(response.data as GetKeywordNatures200DataItem);
+				return response.data;
+			}
+
+			const existing = (await getAllKeywordNatures()).find(
+				(entry) => entry.id === id,
+			);
+			if (!existing) {
+				throw new Error("Nature not found offline");
+			}
+
+			const updated: GetKeywordNatures200DataItem = {
+				...existing,
+				...data,
+				updatedAt: new Date().toISOString(),
+			};
+			await saveKeywordNature(updated);
+			await updateKeywordNatureReferences(updated);
+
+			if (online) {
+				try {
+					const response = await putKeywordNaturesById(id, data);
+					await saveKeywordNature(
+						response.data as GetKeywordNatures200DataItem,
+					);
+					await updateKeywordNatureReferences(
+						response.data as GetKeywordNatures200DataItem,
+					);
+					return response.data;
+				} catch {
+					await queueOfflineOperation(
+						"keywordNature",
+						"update",
+						id,
+						GLOBAL_LOOKUP_SCOPE,
+						data,
+					);
+					return updated;
+				}
+			}
+
+			await queueOfflineOperation(
+				"keywordNature",
+				"update",
+				id,
+				GLOBAL_LOOKUP_SCOPE,
+				data,
+			);
+			return updated;
+		},
+		onSuccess: () => invalidate(),
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: async (id: string) => {
+			const cached = await hasKeywordNaturesCache();
+			if (!cached && online) {
+				return deleteKeywordNaturesById(id);
+			}
+
+			await deleteKeywordNatureById(id);
+
+			if (online) {
+				try {
+					return await deleteKeywordNaturesById(id);
+				} catch {
+					await queueOfflineOperation(
+						"keywordNature",
+						"delete",
+						id,
+						GLOBAL_LOOKUP_SCOPE,
+						{},
+					);
+				}
+			} else {
+				await queueOfflineOperation(
+					"keywordNature",
+					"delete",
+					id,
+					GLOBAL_LOOKUP_SCOPE,
+					{},
+				);
 			}
 		},
 		onSuccess: () => invalidate(),

@@ -94,6 +94,124 @@ export async function deleteReplacementById(id: string): Promise<void> {
 	await offlineDb.replacements.delete(id);
 }
 
+export async function saveKeywordCategory(
+	category: OfflineKeywordCategory,
+): Promise<void> {
+	await offlineDb.keywordCategories.put(category);
+}
+
+export async function saveKeywordNature(
+	nature: OfflineKeywordNature,
+): Promise<void> {
+	await offlineDb.keywordNatures.put(nature);
+}
+
+export async function deleteKeywordCategoryById(id: string): Promise<void> {
+	await offlineDb.keywordCategories.delete(id);
+}
+
+export async function deleteKeywordNatureById(id: string): Promise<void> {
+	await offlineDb.keywordNatures.delete(id);
+}
+
+export async function bulkPutKeywordCategories(
+	categories: OfflineKeywordCategory[],
+): Promise<void> {
+	await offlineDb.keywordCategories.bulkPut(categories);
+}
+
+export async function bulkPutKeywordNatures(
+	natures: OfflineKeywordNature[],
+): Promise<void> {
+	await offlineDb.keywordNatures.bulkPut(natures);
+}
+
+export async function replaceKeywordCategoryId(
+	tempId: string,
+	serverId: string,
+): Promise<void> {
+	const category = await offlineDb.keywordCategories.get(tempId);
+	if (!category) {
+		return;
+	}
+
+	const serverCategory = { ...category, id: serverId };
+	const keywords = await offlineDb.keywords
+		.filter((keyword) => keyword.categoryId === tempId)
+		.toArray();
+
+	await offlineDb.transaction(
+		"rw",
+		[offlineDb.keywordCategories, offlineDb.keywords],
+		async () => {
+			await offlineDb.keywordCategories.delete(tempId);
+			await offlineDb.keywordCategories.put(serverCategory);
+			await offlineDb.keywords.bulkPut(
+				keywords.map((keyword) => ({
+					...keyword,
+					categoryId: serverId,
+					category: serverCategory,
+				})),
+			);
+		},
+	);
+}
+
+export async function replaceKeywordNatureId(
+	tempId: string,
+	serverId: string,
+): Promise<void> {
+	const nature = await offlineDb.keywordNatures.get(tempId);
+	if (!nature) {
+		return;
+	}
+
+	const serverNature = { ...nature, id: serverId };
+	const keywords = await offlineDb.keywords
+		.filter((keyword) => keyword.natureId === tempId)
+		.toArray();
+
+	await offlineDb.transaction(
+		"rw",
+		[offlineDb.keywordNatures, offlineDb.keywords],
+		async () => {
+			await offlineDb.keywordNatures.delete(tempId);
+			await offlineDb.keywordNatures.put(serverNature);
+			await offlineDb.keywords.bulkPut(
+				keywords.map((keyword) => ({
+					...keyword,
+					natureId: serverId,
+					nature: serverNature,
+				})),
+			);
+		},
+	);
+}
+
+export async function updateKeywordCategoryReferences(
+	category: OfflineKeywordCategory,
+): Promise<void> {
+	const keywords = await offlineDb.keywords
+		.filter((keyword) => keyword.categoryId === category.id)
+		.toArray();
+
+	await offlineDb.keywords.bulkPut(
+		keywords.map((keyword) => ({ ...keyword, category })),
+	);
+}
+
+export async function updateKeywordNatureReferences(
+	nature: OfflineKeywordNature,
+): Promise<void> {
+	const keywords = await offlineDb.keywords
+		.filter((keyword) => keyword.natureId === nature.id)
+		.toArray();
+
+	await offlineDb.keywords.bulkPut(
+		keywords.map((keyword) => ({ ...keyword, nature })),
+	);
+}
+
 export async function replaceKeywordId(
 	tempId: string,
 	serverId: string,

@@ -8,15 +8,10 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconTrash } from "@tabler/icons-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import {
-	useDeleteKeywordCategoriesById,
-	usePostKeywordCategories,
-	usePutKeywordCategoriesById,
-} from "@/api/endpoints/keyword-categories.js";
 import type { PostKeywordCategoriesBodyOne } from "@/api/schemas";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { useOfflineCategoryMutations } from "@/lib/offline/hooks";
 import type { KeywordCategory } from "@/types/models";
 
 export type CategoryFormModesType = "add" | "edit" | undefined;
@@ -46,56 +41,45 @@ export function CategoryForm({
 		},
 	});
 
-	const queryClient = useQueryClient();
 	const refreshContent = useRefreshContentScript();
-
-	const createMutation = usePostKeywordCategories({
-		mutation: {
-			onSuccess: async () => {
-				queryClient.invalidateQueries({ queryKey: ["keyword-categories"] });
-				await refreshContent();
-				form.reset();
-				onClose();
-			},
-		},
-	});
-
-	const updateMutation = usePutKeywordCategoriesById({
-		mutation: {
-			onSuccess: async () => {
-				queryClient.invalidateQueries({ queryKey: ["keyword-categories"] });
-				await refreshContent();
-				form.reset();
-				onClose();
-			},
-		},
-	});
-
-	const deleteMutation = useDeleteKeywordCategoriesById({
-		mutation: {
-			onSuccess: async () => {
-				queryClient.invalidateQueries({ queryKey: ["keyword-categories"] });
-				await refreshContent();
-				form.reset();
-				onClose();
-			},
-		},
-	});
+	const { createMutation, updateMutation, deleteMutation } =
+		useOfflineCategoryMutations();
 
 	const handleSubmit = (values: typeof form.values) => {
 		if (mode === "add") {
-			createMutation.mutate({ data: values });
+			createMutation.mutate(values, {
+				onSuccess: async () => {
+					await refreshContent();
+					form.reset();
+					onClose();
+				},
+			});
 			return;
 		}
 
 		if (mode === "edit" && category?.id) {
-			updateMutation.mutate({ id: category.id, data: values });
+			updateMutation.mutate(
+				{ id: category.id, data: values },
+				{
+					onSuccess: async () => {
+						await refreshContent();
+						form.reset();
+						onClose();
+					},
+				},
+			);
 		}
 	};
 
 	const handleDelete = () => {
 		if (category?.id) {
-			deleteMutation.mutate({ id: category.id });
+			deleteMutation.mutate(category.id, {
+				onSuccess: async () => {
+					await refreshContent();
+					form.reset();
+					onClose();
+				},
+			});
 		}
 	};
 

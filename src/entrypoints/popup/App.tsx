@@ -63,7 +63,7 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 				dir={locale === "ar" ? "rtl" : "ltr"}
 			>
 				<Navbar />
-				<ScrollArea>
+				<ScrollArea flex={1} type="auto">
 					<Router />
 				</ScrollArea>
 			</Stack>
