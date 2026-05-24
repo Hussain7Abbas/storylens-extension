@@ -44,4 +44,10 @@ Run from `apps/extension/` or use the root Makefile aliases (`make dev-extension
 | `make i18n-parse` | Extract i18n keys from source files |
 | `make help` | Show all extension Make targets |
 
-From the monorepo root, `make i18n-parse` and `make zip` / `make zip-firefox` delegate to this Makefile.
+From the umbrella repo root, `make i18n-parse` and `make zip` / `make zip-firefox` delegate to this Makefile.
+
+## License
+
+This project is source available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
+
+You may use, modify, and share it for **non-commercial purposes** only. Commercial use requires separate permission from the author.
