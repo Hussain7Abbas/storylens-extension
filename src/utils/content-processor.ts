@@ -109,12 +109,16 @@ function createKeywordElement(
 ): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = 'tooltip1 keyword-tooltip storylens-keyword';
-  span.style.color = keyword.category.color;
+  span.style.setProperty('color', keyword.category.color, 'important');
   span.dataset.keywordId = keyword.id;
 
   const natureIndicator = document.createElement('span');
   natureIndicator.className = 'nature-indicator';
-  natureIndicator.style.backgroundColor = keyword.nature.color;
+  natureIndicator.style.setProperty(
+    'background-color',
+    keyword.nature.color,
+    'important',
+  );
   natureIndicator.setAttribute('aria-hidden', 'true');
   span.append(natureIndicator);
   span.append(document.createTextNode(matchedText));
@@ -138,13 +142,13 @@ function createKeywordElement(
   const category = document.createElement('span');
   category.className = 'category';
   category.textContent = keyword.category.name;
-  category.style.color = keyword.category.color;
+  category.style.setProperty('color', keyword.category.color, 'important');
   meta.append(category);
 
   const nature = document.createElement('span');
   nature.className = 'nature';
   nature.textContent = keyword.nature.name;
-  nature.style.color = keyword.nature.color;
+  nature.style.setProperty('color', keyword.nature.color, 'important');
   meta.append(nature);
 
   tooltip.append(meta);
