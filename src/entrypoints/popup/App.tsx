@@ -15,7 +15,13 @@ import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/navbar";
 import { localeAtom } from "@/store/locale";
+import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
 import { Router } from "./routers";
+
+function PopupAutoSync({ enabled }: { enabled: boolean }) {
+	usePopupAutoSync(enabled);
+	return null;
+}
 
 function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const { i18n } = useTranslation();
@@ -33,6 +39,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 			<ColorSchemeScript defaultColorScheme="auto" />
 			<MantineProvider defaultColorScheme="auto">
 				<QueryClientProvider client={queryClient}>
+					<PopupAutoSync enabled={type === "popup"} />
 					<Stack
 						h={type === "popup" ? "32rem" : "100vh"}
 						w={type === "popup" ? "24rem" : "100vw"}
