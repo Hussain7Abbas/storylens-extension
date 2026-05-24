@@ -1,0 +1,45 @@
+=== STORE LISTING (English) ===
+
+NAME
+StoryLens
+
+SUMMARY (132 characters max — 131 chars)
+Colorize, rename, and track characters, places, and techniques in web novels. Your personal glossary while you read.
+
+DETAILED DESCRIPTION
+StoryLens is a browser extension for web novel readers who want to keep track of characters, places, techniques, and other story terms without breaking their reading flow.
+
+While you read on supported novel websites, StoryLens detects the current novel and chapter, highlights your saved keywords directly on the page, and can replace terms with names you prefer. Manage everything from a clean popup: add keywords, assign colors and categories, create text replacements, and organize your glossary as the story grows.
+
+Features
+• Automatic novel and chapter detection on supported sites
+• In-page keyword highlighting with custom colors
+• Categories and natures to group characters, places, skills, and more
+• Text replacements for preferred spellings or translated names
+• Popup tools to add, edit, and search your glossary
+• Options page for broader settings management
+• English and Arabic UI support
+
+Who it is for
+StoryLens is built for people who read long-form web novels and serial fiction online and want a consistent way to remember who is who, where places are, and what important terms mean from chapter to chapter.
+
+How it works
+1. Open a supported web novel chapter in Chrome.
+2. Click the StoryLens icon to open the popup.
+3. Add or manage keywords, colors, categories, and replacements.
+4. StoryLens applies your settings to the page you are reading.
+
+Privacy
+StoryLens syncs your glossary data with the StoryLens API so your keywords and settings are available across reading sessions. See the privacy policy URL in the developer dashboard for details.
+
+Support
+For questions or feedback, contact hussain@iscoded.com or visit https://github.com/Hussain7Abbas/storylens
+
+CATEGORY
+Productivity
+
+LANGUAGE
+English
+
+SINGLE PURPOSE
+Enhance web novel reading by highlighting and managing story glossary terms on novel websites.

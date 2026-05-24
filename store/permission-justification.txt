@@ -1,0 +1,10 @@
+=== PERMISSION JUSTIFICATIONS ===
+
+HOST PERMISSION — Read and change all your data on all websites (<all_urls>)
+StoryLens injects a content script on the web novel page the user is reading so it can locate chapter text and apply keyword highlights and text replacements configured by the user. Novel sites use different domains and URL structures, so the extension must be able to run on the page the user is actively reading. StoryLens does not collect or transmit full page content to third parties; it reads the visible chapter content only to apply the user's own glossary settings on that page.
+
+HOST PERMISSION — https://storylens-api.iscoded.com/*
+StoryLens stores and retrieves the user's novels, keywords, categories, replacements, and related settings from the StoryLens backend API. This permission allows the extension background service worker to sync glossary data over HTTPS with the StoryLens server.
+
+PERMISSION — Tabs
+The tabs permission is used to associate detected novel and chapter metadata with the active browser tab, and to refresh the content script when the user updates settings from the popup so highlights and replacements update on the current page.

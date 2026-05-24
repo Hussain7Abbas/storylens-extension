@@ -1,5 +1,21 @@
 import { defineConfig } from 'wxt';
 
+const defaultDevApiUrl = 'http://localhost:7001';
+const productionApiUrl = 'https://storylens-api.iscoded.com';
+const isProductionBuild = process.env.NODE_ENV === 'production';
+const apiUrl = isProductionBuild
+  ? productionApiUrl
+  : (process.env.WXT_API_URL ?? defaultDevApiUrl);
+
+function apiHostPermission(url: string): string {
+  const { protocol, hostname, port } = new URL(url);
+  const host = port ? `${hostname}:${port}` : hostname;
+  return `${protocol}//${host}/*`;
+}
+
+const devHostPermissions = ['http://localhost/*', 'http://127.0.0.1/*'];
+const productionHostPermissions = [apiHostPermission(apiUrl)];
+
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   imports: false,
@@ -30,7 +46,10 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     permissions: ['tabs'],
-    host_permissions: ['http://localhost/*', 'http://127.0.0.1/*'],
+    host_permissions:
+      process.env.NODE_ENV === 'development'
+        ? [...devHostPermissions, ...productionHostPermissions]
+        : productionHostPermissions,
   },
 
   webExt: {
