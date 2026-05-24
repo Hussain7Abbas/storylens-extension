@@ -1,6 +1,5 @@
 import {
 	ActionIcon,
-	Alert,
 	Container,
 	Group,
 	Menu,
@@ -92,12 +91,6 @@ export function HomePage() {
 
 	return (
 		<Container p="md">
-			{!online && (
-				<Alert color="gray" mb="xs" variant="light">
-					{t("offline.banner")}
-				</Alert>
-			)}
-
 			{mode !== undefined ? (
 				<NovelForm
 					refetchNovels={refetchNovels}

@@ -1,6 +1,5 @@
 import {
 	ActionIcon,
-	Alert,
 	Box,
 	Group,
 	Image,
@@ -57,12 +56,9 @@ export function Navbar() {
 			{!isLoggedIn && <LoginButton t={t} />}
 			{isLoggedIn && (
 				<Group>
-					{!online && (
-						<Alert color="gray" py={4} px="xs" variant="light">
-							{t("offline.offlineShort")}
-						</Alert>
+					{!online && pendingCount > 0 && (
+						<SyncButton t={t} pendingCount={pendingCount} online={online} />
 					)}
-					<SyncButton t={t} pendingCount={pendingCount} online={online} />
 					<RefreshContentButton t={t} />
 					<ToggleColorScheme t={t} />
 					<ActionsMenu t={t} dir={dir} />
