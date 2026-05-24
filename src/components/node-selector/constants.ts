@@ -1,1 +1,1 @@
-export const WEBSITES_SELECTORS_KEY = 'websitesSelectors';
+export const WEBSITES_SELECTORS_KEY = "websitesSelectors";

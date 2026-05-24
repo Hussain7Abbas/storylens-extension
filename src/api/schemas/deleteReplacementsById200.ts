@@ -5,16 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteReplacementsById200KeywordId } from './deleteReplacementsById200KeywordId';
-import type { DeleteReplacementsById200CreatedAt } from './deleteReplacementsById200CreatedAt';
-import type { DeleteReplacementsById200UpdatedAt } from './deleteReplacementsById200UpdatedAt';
+
+import type { DeleteReplacementsById200CreatedAt } from "./deleteReplacementsById200CreatedAt";
+import type { DeleteReplacementsById200KeywordId } from "./deleteReplacementsById200KeywordId";
+import type { DeleteReplacementsById200UpdatedAt } from "./deleteReplacementsById200UpdatedAt";
 
 export type DeleteReplacementsById200 = {
-  id: string;
-  from: string;
-  to: string;
-  novelId: string;
-  keywordId: DeleteReplacementsById200KeywordId;
-  createdAt: DeleteReplacementsById200CreatedAt;
-  updatedAt: DeleteReplacementsById200UpdatedAt;
+	id: string;
+	from: string;
+	to: string;
+	novelId: string;
+	keywordId: DeleteReplacementsById200KeywordId;
+	createdAt: DeleteReplacementsById200CreatedAt;
+	updatedAt: DeleteReplacementsById200UpdatedAt;
 };

@@ -5,23 +5,23 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import { useQuery } from '@tanstack/react-query';
+
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query';
+	DataTag,
+	DefinedInitialDataOptions,
+	DefinedUseQueryResult,
+	QueryClient,
+	QueryFunction,
+	QueryKey,
+	UndefinedInitialDataOptions,
+	UseQueryOptions,
+	UseQueryResult,
+} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import type { ErrorType } from "../axios-instance";
 
-import type { GetIndex404, GetIndex500 } from '../schemas';
-
-import { customInstance } from '../axios-instance';
-import type { ErrorType } from '../axios-instance';
+import { customInstance } from "../axios-instance";
+import type { GetIndex404, GetIndex500 } from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -30,120 +30,129 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getIndex = (
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<unknown>(
-    { url: 'http://localhost:7001/', method: 'GET', signal },
-    options,
-  );
+	return customInstance<unknown>(
+		{ url: "http://localhost:7001/", method: "GET", signal },
+		options,
+	);
 };
 
 export const getGetIndexQueryKey = () => {
-  return ['http://localhost:7001/'] as const;
+	return ["http://localhost:7001/"] as const;
 };
 
 export const getGetIndexQueryOptions = <
-  TData = Awaited<ReturnType<typeof getIndex>>,
-  TError = ErrorType<GetIndex404 | GetIndex500>,
+	TData = Awaited<ReturnType<typeof getIndex>>,
+	TError = ErrorType<GetIndex404 | GetIndex500>,
 >(options?: {
-  query?: Partial<
-    UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	query?: Partial<
+		UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetIndexQueryKey();
+	const queryKey = queryOptions?.queryKey ?? getGetIndexQueryKey();
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getIndex>>> = ({ signal }) =>
-    getIndex(requestOptions, signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getIndex>>> = ({
+		signal,
+	}) => getIndex(requestOptions, signal);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getIndex>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+		Awaited<ReturnType<typeof getIndex>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetIndexQueryResult = NonNullable<Awaited<ReturnType<typeof getIndex>>>;
+export type GetIndexQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getIndex>>
+>;
 export type GetIndexQueryError = ErrorType<GetIndex404 | GetIndex500>;
 
 export function useGetIndex<
-  TData = Awaited<ReturnType<typeof getIndex>>,
-  TError = ErrorType<GetIndex404 | GetIndex500>,
+	TData = Awaited<ReturnType<typeof getIndex>>,
+	TError = ErrorType<GetIndex404 | GetIndex500>,
 >(
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getIndex>>,
-          TError,
-          Awaited<ReturnType<typeof getIndex>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options: {
+		query: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getIndex>>,
+					TError,
+					Awaited<ReturnType<typeof getIndex>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetIndex<
-  TData = Awaited<ReturnType<typeof getIndex>>,
-  TError = ErrorType<GetIndex404 | GetIndex500>,
+	TData = Awaited<ReturnType<typeof getIndex>>,
+	TError = ErrorType<GetIndex404 | GetIndex500>,
 >(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getIndex>>,
-          TError,
-          Awaited<ReturnType<typeof getIndex>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getIndex>>,
+					TError,
+					Awaited<ReturnType<typeof getIndex>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetIndex<
-  TData = Awaited<ReturnType<typeof getIndex>>,
-  TError = ErrorType<GetIndex404 | GetIndex500>,
+	TData = Awaited<ReturnType<typeof getIndex>>,
+	TError = ErrorType<GetIndex404 | GetIndex500>,
 >(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetIndex<
-  TData = Awaited<ReturnType<typeof getIndex>>,
-  TError = ErrorType<GetIndex404 | GetIndex500>,
+	TData = Awaited<ReturnType<typeof getIndex>>,
+	TError = ErrorType<GetIndex404 | GetIndex500>,
 >(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetIndexQueryOptions(options);
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getIndex>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetIndexQueryOptions(options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }

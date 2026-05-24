@@ -1,18 +1,18 @@
 #root {
-  width: 20rem;
-  min-width: 20rem;
-  max-width: 1280px;
+	width: 20rem;
+	min-width: 20rem;
+	max-width: 1280px;
 }
 
 html,
 body {
-  margin: 0;
-  width: 20rem;
-  min-width: 20rem;
-  min-height: 30rem;
+	margin: 0;
+	width: 20rem;
+	min-width: 20rem;
+	min-height: 30rem;
 }
 
 body {
-  display: flex;
-  place-items: center;
+	display: flex;
+	place-items: center;
 }

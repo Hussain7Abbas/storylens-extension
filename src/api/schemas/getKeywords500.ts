@@ -7,5 +7,5 @@
  */
 
 export type GetKeywords500 = {
-  message: string;
+	message: string;
 };

@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsChaptersById200KeywordImageAnyOfCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

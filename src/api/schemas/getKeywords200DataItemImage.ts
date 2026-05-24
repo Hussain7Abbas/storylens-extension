@@ -5,10 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywords200DataItemImageAnyOf } from './getKeywords200DataItemImageAnyOf';
+import type { GetKeywords200DataItemImageAnyOf } from "./getKeywords200DataItemImageAnyOf";
 
 /**
  * @nullable
  */
 export type GetKeywords200DataItemImage =
-  GetKeywords200DataItemImageAnyOf | null | null;
+	GetKeywords200DataItemImageAnyOf | null | null;

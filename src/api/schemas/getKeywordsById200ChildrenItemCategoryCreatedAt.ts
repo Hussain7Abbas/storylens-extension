@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsById200ChildrenItemCategoryCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

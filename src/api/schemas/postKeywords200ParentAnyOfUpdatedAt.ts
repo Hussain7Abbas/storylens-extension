@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostKeywords200ParentAnyOfUpdatedAt = unknown | string | string | number;
+export type PostKeywords200ParentAnyOfUpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

@@ -7,5 +7,5 @@
  */
 
 export type _GetKeywords200DataItemCount = {
-  KeywordsChapters: number;
+	KeywordsChapters: number;
 };

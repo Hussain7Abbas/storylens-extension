@@ -5,10 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutReplacementsById200KeywordAnyOf } from './putReplacementsById200KeywordAnyOf';
+import type { PutReplacementsById200KeywordAnyOf } from "./putReplacementsById200KeywordAnyOf";
 
 /**
  * @nullable
  */
 export type PutReplacementsById200Keyword =
-  PutReplacementsById200KeywordAnyOf | null | null;
+	PutReplacementsById200KeywordAnyOf | null | null;

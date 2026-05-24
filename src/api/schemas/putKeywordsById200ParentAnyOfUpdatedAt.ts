@@ -7,7 +7,7 @@
  */
 
 export type PutKeywordsById200ParentAnyOfUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

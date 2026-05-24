@@ -5,19 +5,20 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostReplacements200KeywordId } from './postReplacements200KeywordId';
-import type { PostReplacements200CreatedAt } from './postReplacements200CreatedAt';
-import type { PostReplacements200UpdatedAt } from './postReplacements200UpdatedAt';
-import type { PostReplacements200Keyword } from './postReplacements200Keyword';
+
+import type { PostReplacements200CreatedAt } from "./postReplacements200CreatedAt";
+import type { PostReplacements200Keyword } from "./postReplacements200Keyword";
+import type { PostReplacements200KeywordId } from "./postReplacements200KeywordId";
+import type { PostReplacements200UpdatedAt } from "./postReplacements200UpdatedAt";
 
 export type PostReplacements200 = {
-  id: string;
-  from: string;
-  to: string;
-  novelId: string;
-  keywordId: PostReplacements200KeywordId;
-  createdAt: PostReplacements200CreatedAt;
-  updatedAt: PostReplacements200UpdatedAt;
-  /** @nullable */
-  keyword: PostReplacements200Keyword;
+	id: string;
+	from: string;
+	to: string;
+	novelId: string;
+	keywordId: PostReplacements200KeywordId;
+	createdAt: PostReplacements200CreatedAt;
+	updatedAt: PostReplacements200UpdatedAt;
+	/** @nullable */
+	keyword: PostReplacements200Keyword;
 };

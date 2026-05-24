@@ -7,5 +7,5 @@
  */
 
 export type PostChapters500 = {
-  message: string;
+	message: string;
 };

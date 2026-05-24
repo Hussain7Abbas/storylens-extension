@@ -5,17 +5,18 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywordsChapters200CreatedAt } from './postKeywordsChapters200CreatedAt';
-import type { PostKeywordsChapters200UpdatedAt } from './postKeywordsChapters200UpdatedAt';
-import type { PostKeywordsChapters200Keyword } from './postKeywordsChapters200Keyword';
-import type { PostKeywordsChapters200Chapter } from './postKeywordsChapters200Chapter';
+
+import type { PostKeywordsChapters200Chapter } from "./postKeywordsChapters200Chapter";
+import type { PostKeywordsChapters200CreatedAt } from "./postKeywordsChapters200CreatedAt";
+import type { PostKeywordsChapters200Keyword } from "./postKeywordsChapters200Keyword";
+import type { PostKeywordsChapters200UpdatedAt } from "./postKeywordsChapters200UpdatedAt";
 
 export type PostKeywordsChapters200 = {
-  id: string;
-  keywordId: string;
-  chapterId: string;
-  createdAt: PostKeywordsChapters200CreatedAt;
-  updatedAt: PostKeywordsChapters200UpdatedAt;
-  keyword: PostKeywordsChapters200Keyword;
-  chapter: PostKeywordsChapters200Chapter;
+	id: string;
+	keywordId: string;
+	chapterId: string;
+	createdAt: PostKeywordsChapters200CreatedAt;
+	updatedAt: PostKeywordsChapters200UpdatedAt;
+	keyword: PostKeywordsChapters200Keyword;
+	chapter: PostKeywordsChapters200Chapter;
 };

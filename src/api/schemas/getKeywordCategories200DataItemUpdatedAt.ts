@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordCategories200DataItemUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

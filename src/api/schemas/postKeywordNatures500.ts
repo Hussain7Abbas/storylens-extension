@@ -7,5 +7,5 @@
  */
 
 export type PostKeywordNatures500 = {
-  message: string;
+	message: string;
 };

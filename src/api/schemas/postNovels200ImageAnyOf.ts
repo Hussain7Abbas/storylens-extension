@@ -5,20 +5,21 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostNovels200ImageAnyOfType } from './postNovels200ImageAnyOfType';
-import type { PostNovels200ImageAnyOfUserId } from './postNovels200ImageAnyOfUserId';
-import type { PostNovels200ImageAnyOfAdminId } from './postNovels200ImageAnyOfAdminId';
-import type { PostNovels200ImageAnyOfCreatedAt } from './postNovels200ImageAnyOfCreatedAt';
-import type { PostNovels200ImageAnyOfUpdatedAt } from './postNovels200ImageAnyOfUpdatedAt';
+
+import type { PostNovels200ImageAnyOfAdminId } from "./postNovels200ImageAnyOfAdminId";
+import type { PostNovels200ImageAnyOfCreatedAt } from "./postNovels200ImageAnyOfCreatedAt";
+import type { PostNovels200ImageAnyOfType } from "./postNovels200ImageAnyOfType";
+import type { PostNovels200ImageAnyOfUpdatedAt } from "./postNovels200ImageAnyOfUpdatedAt";
+import type { PostNovels200ImageAnyOfUserId } from "./postNovels200ImageAnyOfUserId";
 
 export type PostNovels200ImageAnyOf = {
-  id: string;
-  url: string;
-  type: PostNovels200ImageAnyOfType;
-  provider_image_id: string;
-  delete_url: string;
-  userId: PostNovels200ImageAnyOfUserId;
-  adminId: PostNovels200ImageAnyOfAdminId;
-  createdAt: PostNovels200ImageAnyOfCreatedAt;
-  updatedAt: PostNovels200ImageAnyOfUpdatedAt;
+	id: string;
+	url: string;
+	type: PostNovels200ImageAnyOfType;
+	provider_image_id: string;
+	delete_url: string;
+	userId: PostNovels200ImageAnyOfUserId;
+	adminId: PostNovels200ImageAnyOfAdminId;
+	createdAt: PostNovels200ImageAnyOfCreatedAt;
+	updatedAt: PostNovels200ImageAnyOfUpdatedAt;
 };

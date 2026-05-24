@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetConfigs200DataItemCreatedAt } from './getConfigs200DataItemCreatedAt';
-import type { GetConfigs200DataItemUpdatedAt } from './getConfigs200DataItemUpdatedAt';
+import type { GetConfigs200DataItemCreatedAt } from "./getConfigs200DataItemCreatedAt";
+import type { GetConfigs200DataItemUpdatedAt } from "./getConfigs200DataItemUpdatedAt";
 
 export type GetConfigs200DataItem = {
-  id: string;
-  key: string;
-  value: string;
-  createdAt: GetConfigs200DataItemCreatedAt;
-  updatedAt: GetConfigs200DataItemUpdatedAt;
+	id: string;
+	key: string;
+	value: string;
+	createdAt: GetConfigs200DataItemCreatedAt;
+	updatedAt: GetConfigs200DataItemUpdatedAt;
 };

@@ -7,7 +7,7 @@
  */
 
 export type GetReplacementsById200KeywordAnyOfCategoryCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

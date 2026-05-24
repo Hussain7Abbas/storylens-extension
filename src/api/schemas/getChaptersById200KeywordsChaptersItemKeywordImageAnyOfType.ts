@@ -7,5 +7,5 @@
  */
 
 export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType =
-  | 'Image'
-  | 'Video';
+	| "Image"
+	| "Video";

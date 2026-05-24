@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordNatures200DataItemCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

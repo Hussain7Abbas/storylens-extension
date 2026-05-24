@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordsById404 = {
-  message: string;
+	message: string;
 };

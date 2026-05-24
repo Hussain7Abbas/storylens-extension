@@ -7,7 +7,7 @@
  */
 
 export type GetKeywords200DataItemImageAnyOfCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

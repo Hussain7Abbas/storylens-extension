@@ -7,5 +7,5 @@
  */
 
 export type PutKeywordNaturesById404 = {
-  message: string;
+	message: string;
 };

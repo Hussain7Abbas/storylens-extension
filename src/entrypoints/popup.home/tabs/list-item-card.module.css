@@ -1,14 +1,14 @@
 .root {
-  cursor: pointer;
-  transition: background-color 100ms ease;
+	cursor: pointer;
+	transition: background-color 100ms ease;
 
-  @mixin hover {
-    background-color: var(--mantine-color-gray-1);
-  }
+	@mixin hover {
+		background-color: var(--mantine-color-gray-1);
+	}
 
-  @mixin dark {
-    @mixin hover {
-      background-color: var(--mantine-color-dark-6);
-    }
-  }
+	@mixin dark {
+		@mixin hover {
+			background-color: var(--mantine-color-dark-6);
+		}
+	}
 }

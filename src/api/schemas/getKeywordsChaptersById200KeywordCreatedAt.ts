@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsChaptersById200KeywordCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

@@ -5,22 +5,23 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordCategoriesById200KeywordsItemImageId } from './getKeywordCategoriesById200KeywordsItemImageId';
-import type { GetKeywordCategoriesById200KeywordsItemParentId } from './getKeywordCategoriesById200KeywordsItemParentId';
-import type { GetKeywordCategoriesById200KeywordsItemCreatedAt } from './getKeywordCategoriesById200KeywordsItemCreatedAt';
-import type { GetKeywordCategoriesById200KeywordsItemUpdatedAt } from './getKeywordCategoriesById200KeywordsItemUpdatedAt';
-import type { GetKeywordCategoriesById200KeywordsItemNature } from './getKeywordCategoriesById200KeywordsItemNature';
+
+import type { GetKeywordCategoriesById200KeywordsItemCreatedAt } from "./getKeywordCategoriesById200KeywordsItemCreatedAt";
+import type { GetKeywordCategoriesById200KeywordsItemImageId } from "./getKeywordCategoriesById200KeywordsItemImageId";
+import type { GetKeywordCategoriesById200KeywordsItemNature } from "./getKeywordCategoriesById200KeywordsItemNature";
+import type { GetKeywordCategoriesById200KeywordsItemParentId } from "./getKeywordCategoriesById200KeywordsItemParentId";
+import type { GetKeywordCategoriesById200KeywordsItemUpdatedAt } from "./getKeywordCategoriesById200KeywordsItemUpdatedAt";
 
 export type GetKeywordCategoriesById200KeywordsItem = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: GetKeywordCategoriesById200KeywordsItemImageId;
-  parentId: GetKeywordCategoriesById200KeywordsItemParentId;
-  novelId: string;
-  createdAt: GetKeywordCategoriesById200KeywordsItemCreatedAt;
-  updatedAt: GetKeywordCategoriesById200KeywordsItemUpdatedAt;
-  nature: GetKeywordCategoriesById200KeywordsItemNature;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: GetKeywordCategoriesById200KeywordsItemImageId;
+	parentId: GetKeywordCategoriesById200KeywordsItemParentId;
+	novelId: string;
+	createdAt: GetKeywordCategoriesById200KeywordsItemCreatedAt;
+	updatedAt: GetKeywordCategoriesById200KeywordsItemUpdatedAt;
+	nature: GetKeywordCategoriesById200KeywordsItemNature;
 };

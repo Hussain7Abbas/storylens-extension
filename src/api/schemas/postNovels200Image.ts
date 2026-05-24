@@ -5,7 +5,7 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostNovels200ImageAnyOf } from './postNovels200ImageAnyOf';
+import type { PostNovels200ImageAnyOf } from "./postNovels200ImageAnyOf";
 
 /**
  * @nullable

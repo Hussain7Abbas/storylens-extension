@@ -5,24 +5,25 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsById200KeywordAnyOfImageId } from './getReplacementsById200KeywordAnyOfImageId';
-import type { GetReplacementsById200KeywordAnyOfParentId } from './getReplacementsById200KeywordAnyOfParentId';
-import type { GetReplacementsById200KeywordAnyOfCreatedAt } from './getReplacementsById200KeywordAnyOfCreatedAt';
-import type { GetReplacementsById200KeywordAnyOfUpdatedAt } from './getReplacementsById200KeywordAnyOfUpdatedAt';
-import type { GetReplacementsById200KeywordAnyOfCategory } from './getReplacementsById200KeywordAnyOfCategory';
-import type { GetReplacementsById200KeywordAnyOfNature } from './getReplacementsById200KeywordAnyOfNature';
+
+import type { GetReplacementsById200KeywordAnyOfCategory } from "./getReplacementsById200KeywordAnyOfCategory";
+import type { GetReplacementsById200KeywordAnyOfCreatedAt } from "./getReplacementsById200KeywordAnyOfCreatedAt";
+import type { GetReplacementsById200KeywordAnyOfImageId } from "./getReplacementsById200KeywordAnyOfImageId";
+import type { GetReplacementsById200KeywordAnyOfNature } from "./getReplacementsById200KeywordAnyOfNature";
+import type { GetReplacementsById200KeywordAnyOfParentId } from "./getReplacementsById200KeywordAnyOfParentId";
+import type { GetReplacementsById200KeywordAnyOfUpdatedAt } from "./getReplacementsById200KeywordAnyOfUpdatedAt";
 
 export type GetReplacementsById200KeywordAnyOf = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: GetReplacementsById200KeywordAnyOfImageId;
-  parentId: GetReplacementsById200KeywordAnyOfParentId;
-  novelId: string;
-  createdAt: GetReplacementsById200KeywordAnyOfCreatedAt;
-  updatedAt: GetReplacementsById200KeywordAnyOfUpdatedAt;
-  category: GetReplacementsById200KeywordAnyOfCategory;
-  nature: GetReplacementsById200KeywordAnyOfNature;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: GetReplacementsById200KeywordAnyOfImageId;
+	parentId: GetReplacementsById200KeywordAnyOfParentId;
+	novelId: string;
+	createdAt: GetReplacementsById200KeywordAnyOfCreatedAt;
+	updatedAt: GetReplacementsById200KeywordAnyOfUpdatedAt;
+	category: GetReplacementsById200KeywordAnyOfCategory;
+	nature: GetReplacementsById200KeywordAnyOfNature;
 };

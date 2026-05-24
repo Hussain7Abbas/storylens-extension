@@ -7,5 +7,5 @@
  */
 
 export type GetIndex404 = {
-  message: string;
+	message: string;
 };

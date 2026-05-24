@@ -7,5 +7,5 @@
  */
 
 export type GetReplacementsKeywordByKeywordId404 = {
-  message: string;
+	message: string;
 };

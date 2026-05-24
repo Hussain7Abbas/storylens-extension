@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywordCategories200CreatedAt } from './postKeywordCategories200CreatedAt';
-import type { PostKeywordCategories200UpdatedAt } from './postKeywordCategories200UpdatedAt';
+import type { PostKeywordCategories200CreatedAt } from "./postKeywordCategories200CreatedAt";
+import type { PostKeywordCategories200UpdatedAt } from "./postKeywordCategories200UpdatedAt";
 
 export type PostKeywordCategories200 = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: PostKeywordCategories200CreatedAt;
-  updatedAt: PostKeywordCategories200UpdatedAt;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: PostKeywordCategories200CreatedAt;
+	updatedAt: PostKeywordCategories200UpdatedAt;
 };

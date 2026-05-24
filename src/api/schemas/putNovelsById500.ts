@@ -7,5 +7,5 @@
  */
 
 export type PutNovelsById500 = {
-  message: string;
+	message: string;
 };

@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywords200NatureCreatedAt } from './postKeywords200NatureCreatedAt';
-import type { PostKeywords200NatureUpdatedAt } from './postKeywords200NatureUpdatedAt';
+import type { PostKeywords200NatureCreatedAt } from "./postKeywords200NatureCreatedAt";
+import type { PostKeywords200NatureUpdatedAt } from "./postKeywords200NatureUpdatedAt";
 
 export type PostKeywords200Nature = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: PostKeywords200NatureCreatedAt;
-  updatedAt: PostKeywords200NatureUpdatedAt;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: PostKeywords200NatureCreatedAt;
+	updatedAt: PostKeywords200NatureUpdatedAt;
 };

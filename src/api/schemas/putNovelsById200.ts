@@ -5,20 +5,21 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutNovelsById200Description } from './putNovelsById200Description';
-import type { PutNovelsById200ImageId } from './putNovelsById200ImageId';
-import type { PutNovelsById200CreatedAt } from './putNovelsById200CreatedAt';
-import type { PutNovelsById200UpdatedAt } from './putNovelsById200UpdatedAt';
-import type { PutNovelsById200Image } from './putNovelsById200Image';
+
+import type { PutNovelsById200CreatedAt } from "./putNovelsById200CreatedAt";
+import type { PutNovelsById200Description } from "./putNovelsById200Description";
+import type { PutNovelsById200Image } from "./putNovelsById200Image";
+import type { PutNovelsById200ImageId } from "./putNovelsById200ImageId";
+import type { PutNovelsById200UpdatedAt } from "./putNovelsById200UpdatedAt";
 
 export type PutNovelsById200 = {
-  id: string;
-  name: string;
-  description: PutNovelsById200Description;
-  slugs: string[];
-  imageId: PutNovelsById200ImageId;
-  createdAt: PutNovelsById200CreatedAt;
-  updatedAt: PutNovelsById200UpdatedAt;
-  /** @nullable */
-  image: PutNovelsById200Image;
+	id: string;
+	name: string;
+	description: PutNovelsById200Description;
+	slugs: string[];
+	imageId: PutNovelsById200ImageId;
+	createdAt: PutNovelsById200CreatedAt;
+	updatedAt: PutNovelsById200UpdatedAt;
+	/** @nullable */
+	image: PutNovelsById200Image;
 };

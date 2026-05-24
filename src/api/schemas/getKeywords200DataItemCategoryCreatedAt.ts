@@ -7,7 +7,7 @@
  */
 
 export type GetKeywords200DataItemCategoryCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

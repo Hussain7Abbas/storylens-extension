@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsChaptersChapterByChapterIdSortingDirection = 'asc' | 'desc';
+export type GetKeywordsChaptersChapterByChapterIdSortingDirection =
+	| "asc"
+	| "desc";

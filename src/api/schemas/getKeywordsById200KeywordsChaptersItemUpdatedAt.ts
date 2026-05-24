@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsById200KeywordsChaptersItemUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

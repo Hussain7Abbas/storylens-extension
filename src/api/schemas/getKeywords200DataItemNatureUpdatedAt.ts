@@ -7,7 +7,7 @@
  */
 
 export type GetKeywords200DataItemNatureUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

@@ -7,8 +7,8 @@
  */
 
 export type PutKeywordCategoriesByIdBodyTwo = {
-  /** @minLength 1 */
-  name: string;
-  /** @pattern ^#[0-9A-Fa-f]{6}$ */
-  color: string;
+	/** @minLength 1 */
+	name: string;
+	/** @pattern ^#[0-9A-Fa-f]{6}$ */
+	color: string;
 };

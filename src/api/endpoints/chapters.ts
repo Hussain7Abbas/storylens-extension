@@ -5,49 +5,49 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  MutationFunction,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseMutationOptions,
-  UseMutationResult,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query';
 
 import type {
-  DeleteChaptersById200,
-  DeleteChaptersById404,
-  DeleteChaptersById500,
-  GetChaptersById200,
-  GetChaptersById404,
-  GetChaptersById500,
-  GetChaptersNovelByNovelId200,
-  GetChaptersNovelByNovelId404,
-  GetChaptersNovelByNovelId500,
-  GetChaptersNovelByNovelIdParams,
-  PostChapters200,
-  PostChapters404,
-  PostChapters500,
-  PostChaptersBodyOne,
-  PostChaptersBodyThree,
-  PostChaptersBodyTwo,
-  PutChaptersById200,
-  PutChaptersById404,
-  PutChaptersById500,
-  PutChaptersByIdBodyOne,
-  PutChaptersByIdBodyThree,
-  PutChaptersByIdBodyTwo,
-} from '../schemas';
+	DataTag,
+	DefinedInitialDataOptions,
+	DefinedUseQueryResult,
+	MutationFunction,
+	QueryClient,
+	QueryFunction,
+	QueryKey,
+	UndefinedInitialDataOptions,
+	UseMutationOptions,
+	UseMutationResult,
+	UseQueryOptions,
+	UseQueryResult,
+} from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { ErrorType } from "../axios-instance";
 
-import { customInstance } from '../axios-instance';
-import type { ErrorType } from '../axios-instance';
+import { customInstance } from "../axios-instance";
+import type {
+	DeleteChaptersById200,
+	DeleteChaptersById404,
+	DeleteChaptersById500,
+	GetChaptersById200,
+	GetChaptersById404,
+	GetChaptersById500,
+	GetChaptersNovelByNovelId200,
+	GetChaptersNovelByNovelId404,
+	GetChaptersNovelByNovelId500,
+	GetChaptersNovelByNovelIdParams,
+	PostChapters200,
+	PostChapters404,
+	PostChapters500,
+	PostChaptersBodyOne,
+	PostChaptersBodyThree,
+	PostChaptersBodyTwo,
+	PutChaptersById200,
+	PutChaptersById404,
+	PutChaptersById500,
+	PutChaptersByIdBodyOne,
+	PutChaptersByIdBodyThree,
+	PutChaptersByIdBodyTwo,
+} from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -56,596 +56,657 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getChaptersNovelByNovelId = (
-  novelId: string,
-  params: GetChaptersNovelByNovelIdParams,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	novelId: string,
+	params: GetChaptersNovelByNovelIdParams,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetChaptersNovelByNovelId200>(
-    {
-      url: `http://localhost:7001/chapters/novel/${novelId}`,
-      method: 'GET',
-      params,
-      signal,
-    },
-    options,
-  );
+	return customInstance<GetChaptersNovelByNovelId200>(
+		{
+			url: `http://localhost:7001/chapters/novel/${novelId}`,
+			method: "GET",
+			params,
+			signal,
+		},
+		options,
+	);
 };
 
 export const getGetChaptersNovelByNovelIdQueryKey = (
-  novelId?: string,
-  params?: GetChaptersNovelByNovelIdParams,
+	novelId?: string,
+	params?: GetChaptersNovelByNovelIdParams,
 ) => {
-  return [
-    `http://localhost:7001/chapters/novel/${novelId}`,
-    ...(params ? [params] : []),
-  ] as const;
+	return [
+		`http://localhost:7001/chapters/novel/${novelId}`,
+		...(params ? [params] : []),
+	] as const;
 };
 
 export const getGetChaptersNovelByNovelIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-  TError = ErrorType<GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500>,
+	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+	TError = ErrorType<
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
+	>,
 >(
-  novelId: string,
-  params: GetChaptersNovelByNovelIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	novelId: string,
+	params: GetChaptersNovelByNovelIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getGetChaptersNovelByNovelIdQueryKey(novelId, params);
+	const queryKey =
+		queryOptions?.queryKey ??
+		getGetChaptersNovelByNovelIdQueryKey(novelId, params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
-  > = ({ signal }) =>
-    getChaptersNovelByNovelId(novelId, params, requestOptions, signal);
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
+	> = ({ signal }) =>
+		getChaptersNovelByNovelId(novelId, params, requestOptions, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!novelId,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!novelId,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetChaptersNovelByNovelIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
+	Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
 >;
 export type GetChaptersNovelByNovelIdQueryError = ErrorType<
-  GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
+	GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 >;
 
 export function useGetChaptersNovelByNovelId<
-  TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-  TError = ErrorType<GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500>,
+	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+	TError = ErrorType<
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
+	>,
 >(
-  novelId: string,
-  params: GetChaptersNovelByNovelIdParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-          TError,
-          Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	novelId: string,
+	params: GetChaptersNovelByNovelIdParams,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+					TError,
+					Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetChaptersNovelByNovelId<
-  TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-  TError = ErrorType<GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500>,
+	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+	TError = ErrorType<
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
+	>,
 >(
-  novelId: string,
-  params: GetChaptersNovelByNovelIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-          TError,
-          Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	novelId: string,
+	params: GetChaptersNovelByNovelIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+					TError,
+					Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetChaptersNovelByNovelId<
-  TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-  TError = ErrorType<GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500>,
+	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+	TError = ErrorType<
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
+	>,
 >(
-  novelId: string,
-  params: GetChaptersNovelByNovelIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	novelId: string,
+	params: GetChaptersNovelByNovelIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetChaptersNovelByNovelId<
-  TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-  TError = ErrorType<GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500>,
+	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+	TError = ErrorType<
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
+	>,
 >(
-  novelId: string,
-  params: GetChaptersNovelByNovelIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetChaptersNovelByNovelIdQueryOptions(
-    novelId,
-    params,
-    options,
-  );
+	novelId: string,
+	params: GetChaptersNovelByNovelIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetChaptersNovelByNovelIdQueryOptions(
+		novelId,
+		params,
+		options,
+	);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const getChaptersById = (
-  id: string,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetChaptersById200>(
-    { url: `http://localhost:7001/chapters/${id}`, method: 'GET', signal },
-    options,
-  );
+	return customInstance<GetChaptersById200>(
+		{ url: `http://localhost:7001/chapters/${id}`, method: "GET", signal },
+		options,
+	);
 };
 
 export const getGetChaptersByIdQueryKey = (id?: string) => {
-  return [`http://localhost:7001/chapters/${id}`] as const;
+	return [`http://localhost:7001/chapters/${id}`] as const;
 };
 
 export const getGetChaptersByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getChaptersById>>,
-  TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
+	TData = Awaited<ReturnType<typeof getChaptersById>>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getChaptersById>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetChaptersByIdQueryKey(id);
+	const queryKey = queryOptions?.queryKey ?? getGetChaptersByIdQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getChaptersById>>> = ({
-    signal,
-  }) => getChaptersById(id, requestOptions, signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getChaptersById>>> = ({
+		signal,
+	}) => getChaptersById(id, requestOptions, signal);
 
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getChaptersById>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!id,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getChaptersById>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetChaptersByIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getChaptersById>>
+	Awaited<ReturnType<typeof getChaptersById>>
 >;
 export type GetChaptersByIdQueryError = ErrorType<
-  GetChaptersById404 | GetChaptersById500
+	GetChaptersById404 | GetChaptersById500
 >;
 
 export function useGetChaptersById<
-  TData = Awaited<ReturnType<typeof getChaptersById>>,
-  TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
+	TData = Awaited<ReturnType<typeof getChaptersById>>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getChaptersById>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getChaptersById>>,
-          TError,
-          Awaited<ReturnType<typeof getChaptersById>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	id: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersById>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getChaptersById>>,
+					TError,
+					Awaited<ReturnType<typeof getChaptersById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetChaptersById<
-  TData = Awaited<ReturnType<typeof getChaptersById>>,
-  TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
+	TData = Awaited<ReturnType<typeof getChaptersById>>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getChaptersById>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getChaptersById>>,
-          TError,
-          Awaited<ReturnType<typeof getChaptersById>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersById>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getChaptersById>>,
+					TError,
+					Awaited<ReturnType<typeof getChaptersById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetChaptersById<
-  TData = Awaited<ReturnType<typeof getChaptersById>>,
-  TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
+	TData = Awaited<ReturnType<typeof getChaptersById>>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getChaptersById>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetChaptersById<
-  TData = Awaited<ReturnType<typeof getChaptersById>>,
-  TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
+	TData = Awaited<ReturnType<typeof getChaptersById>>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getChaptersById>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetChaptersByIdQueryOptions(id, options);
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChaptersById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetChaptersByIdQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const putChaptersById = (
-  id: string,
-  putChaptersByIdBody:
-    | PutChaptersByIdBodyOne
-    | PutChaptersByIdBodyTwo
-    | PutChaptersByIdBodyThree,
-  options?: SecondParameter<typeof customInstance>,
+	id: string,
+	putChaptersByIdBody:
+		| PutChaptersByIdBodyOne
+		| PutChaptersByIdBodyTwo
+		| PutChaptersByIdBodyThree,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutChaptersById200>(
-    {
-      url: `http://localhost:7001/chapters/${id}`,
-      method: 'PUT',
-      data: putChaptersByIdBody,
-    },
-    options,
-  );
+	return customInstance<PutChaptersById200>(
+		{
+			url: `http://localhost:7001/chapters/${id}`,
+			method: "PUT",
+			data: putChaptersByIdBody,
+		},
+		options,
+	);
 };
 
 export const getPutChaptersByIdMutationOptions = <
-  TError = ErrorType<PutChaptersById404 | PutChaptersById500>,
-  TContext = unknown,
+	TError = ErrorType<PutChaptersById404 | PutChaptersById500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof putChaptersById>>,
-    TError,
-    {
-      id: string;
-      data:
-        | PutChaptersByIdBodyOne
-        | PutChaptersByIdBodyTwo
-        | PutChaptersByIdBodyThree;
-    },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof putChaptersById>>,
+		TError,
+		{
+			id: string;
+			data:
+				| PutChaptersByIdBodyOne
+				| PutChaptersByIdBodyTwo
+				| PutChaptersByIdBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof putChaptersById>>,
-  TError,
-  {
-    id: string;
-    data: PutChaptersByIdBodyOne | PutChaptersByIdBodyTwo | PutChaptersByIdBodyThree;
-  },
-  TContext
+	Awaited<ReturnType<typeof putChaptersById>>,
+	TError,
+	{
+		id: string;
+		data:
+			| PutChaptersByIdBodyOne
+			| PutChaptersByIdBodyTwo
+			| PutChaptersByIdBodyThree;
+	},
+	TContext
 > => {
-  const mutationKey = ['putChaptersById'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["putChaptersById"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof putChaptersById>>,
-    {
-      id: string;
-      data:
-        | PutChaptersByIdBodyOne
-        | PutChaptersByIdBodyTwo
-        | PutChaptersByIdBodyThree;
-    }
-  > = (props) => {
-    const { id, data } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putChaptersById>>,
+		{
+			id: string;
+			data:
+				| PutChaptersByIdBodyOne
+				| PutChaptersByIdBodyTwo
+				| PutChaptersByIdBodyThree;
+		}
+	> = (props) => {
+		const { id, data } = props ?? {};
 
-    return putChaptersById(id, data, requestOptions);
-  };
+		return putChaptersById(id, data, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type PutChaptersByIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof putChaptersById>>
+	Awaited<ReturnType<typeof putChaptersById>>
 >;
 export type PutChaptersByIdMutationBody =
-  | PutChaptersByIdBodyOne
-  | PutChaptersByIdBodyTwo
-  | PutChaptersByIdBodyThree;
+	| PutChaptersByIdBodyOne
+	| PutChaptersByIdBodyTwo
+	| PutChaptersByIdBodyThree;
 export type PutChaptersByIdMutationError = ErrorType<
-  PutChaptersById404 | PutChaptersById500
+	PutChaptersById404 | PutChaptersById500
 >;
 
 export const usePutChaptersById = <
-  TError = ErrorType<PutChaptersById404 | PutChaptersById500>,
-  TContext = unknown,
+	TError = ErrorType<PutChaptersById404 | PutChaptersById500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof putChaptersById>>,
-      TError,
-      {
-        id: string;
-        data:
-          | PutChaptersByIdBodyOne
-          | PutChaptersByIdBodyTwo
-          | PutChaptersByIdBodyThree;
-      },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof putChaptersById>>,
+			TError,
+			{
+				id: string;
+				data:
+					| PutChaptersByIdBodyOne
+					| PutChaptersByIdBodyTwo
+					| PutChaptersByIdBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof putChaptersById>>,
-  TError,
-  {
-    id: string;
-    data: PutChaptersByIdBodyOne | PutChaptersByIdBodyTwo | PutChaptersByIdBodyThree;
-  },
-  TContext
+	Awaited<ReturnType<typeof putChaptersById>>,
+	TError,
+	{
+		id: string;
+		data:
+			| PutChaptersByIdBodyOne
+			| PutChaptersByIdBodyTwo
+			| PutChaptersByIdBodyThree;
+	},
+	TContext
 > => {
-  const mutationOptions = getPutChaptersByIdMutationOptions(options);
+	const mutationOptions = getPutChaptersByIdMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };
 export const deleteChaptersById = (
-  id: string,
-  options?: SecondParameter<typeof customInstance>,
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<DeleteChaptersById200>(
-    { url: `http://localhost:7001/chapters/${id}`, method: 'DELETE' },
-    options,
-  );
+	return customInstance<DeleteChaptersById200>(
+		{ url: `http://localhost:7001/chapters/${id}`, method: "DELETE" },
+		options,
+	);
 };
 
 export const getDeleteChaptersByIdMutationOptions = <
-  TError = ErrorType<DeleteChaptersById404 | DeleteChaptersById500>,
-  TContext = unknown,
+	TError = ErrorType<DeleteChaptersById404 | DeleteChaptersById500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof deleteChaptersById>>,
-    TError,
-    { id: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof deleteChaptersById>>,
+		TError,
+		{ id: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof deleteChaptersById>>,
-  TError,
-  { id: string },
-  TContext
+	Awaited<ReturnType<typeof deleteChaptersById>>,
+	TError,
+	{ id: string },
+	TContext
 > => {
-  const mutationKey = ['deleteChaptersById'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["deleteChaptersById"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof deleteChaptersById>>,
-    { id: string }
-  > = (props) => {
-    const { id } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteChaptersById>>,
+		{ id: string }
+	> = (props) => {
+		const { id } = props ?? {};
 
-    return deleteChaptersById(id, requestOptions);
-  };
+		return deleteChaptersById(id, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type DeleteChaptersByIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deleteChaptersById>>
+	Awaited<ReturnType<typeof deleteChaptersById>>
 >;
 
 export type DeleteChaptersByIdMutationError = ErrorType<
-  DeleteChaptersById404 | DeleteChaptersById500
+	DeleteChaptersById404 | DeleteChaptersById500
 >;
 
 export const useDeleteChaptersById = <
-  TError = ErrorType<DeleteChaptersById404 | DeleteChaptersById500>,
-  TContext = unknown,
+	TError = ErrorType<DeleteChaptersById404 | DeleteChaptersById500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof deleteChaptersById>>,
-      TError,
-      { id: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof deleteChaptersById>>,
+			TError,
+			{ id: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof deleteChaptersById>>,
-  TError,
-  { id: string },
-  TContext
+	Awaited<ReturnType<typeof deleteChaptersById>>,
+	TError,
+	{ id: string },
+	TContext
 > => {
-  const mutationOptions = getDeleteChaptersByIdMutationOptions(options);
+	const mutationOptions = getDeleteChaptersByIdMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };
 export const postChapters = (
-  postChaptersBody: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	postChaptersBody:
+		| PostChaptersBodyOne
+		| PostChaptersBodyTwo
+		| PostChaptersBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<PostChapters200>(
-    {
-      url: 'http://localhost:7001/chapters/',
-      method: 'POST',
-      data: postChaptersBody,
-      signal,
-    },
-    options,
-  );
+	return customInstance<PostChapters200>(
+		{
+			url: "http://localhost:7001/chapters/",
+			method: "POST",
+			data: postChaptersBody,
+			signal,
+		},
+		options,
+	);
 };
 
 export const getPostChaptersMutationOptions = <
-  TError = ErrorType<PostChapters404 | PostChapters500>,
-  TContext = unknown,
+	TError = ErrorType<PostChapters404 | PostChapters500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postChapters>>,
-    TError,
-    { data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postChapters>>,
+		TError,
+		{ data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof postChapters>>,
-  TError,
-  { data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
-  TContext
+	Awaited<ReturnType<typeof postChapters>>,
+	TError,
+	{ data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
+	TContext
 > => {
-  const mutationKey = ['postChapters'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["postChapters"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postChapters>>,
-    { data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree }
-  > = (props) => {
-    const { data } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postChapters>>,
+		{ data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree }
+	> = (props) => {
+		const { data } = props ?? {};
 
-    return postChapters(data, requestOptions);
-  };
+		return postChapters(data, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type PostChaptersMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postChapters>>
+	Awaited<ReturnType<typeof postChapters>>
 >;
 export type PostChaptersMutationBody =
-  | PostChaptersBodyOne
-  | PostChaptersBodyTwo
-  | PostChaptersBodyThree;
-export type PostChaptersMutationError = ErrorType<PostChapters404 | PostChapters500>;
+	| PostChaptersBodyOne
+	| PostChaptersBodyTwo
+	| PostChaptersBodyThree;
+export type PostChaptersMutationError = ErrorType<
+	PostChapters404 | PostChapters500
+>;
 
 export const usePostChapters = <
-  TError = ErrorType<PostChapters404 | PostChapters500>,
-  TContext = unknown,
+	TError = ErrorType<PostChapters404 | PostChapters500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postChapters>>,
-      TError,
-      { data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postChapters>>,
+			TError,
+			{
+				data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof postChapters>>,
-  TError,
-  { data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
-  TContext
+	Awaited<ReturnType<typeof postChapters>>,
+	TError,
+	{ data: PostChaptersBodyOne | PostChaptersBodyTwo | PostChaptersBodyThree },
+	TContext
 > => {
-  const mutationOptions = getPostChaptersMutationOptions(options);
+	const mutationOptions = getPostChaptersMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };

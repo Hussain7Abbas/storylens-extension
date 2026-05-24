@@ -7,5 +7,5 @@
  */
 
 export type PutChaptersById404 = {
-  message: string;
+	message: string;
 };

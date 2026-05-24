@@ -5,17 +5,18 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteNovelsById200Description } from './deleteNovelsById200Description';
-import type { DeleteNovelsById200ImageId } from './deleteNovelsById200ImageId';
-import type { DeleteNovelsById200CreatedAt } from './deleteNovelsById200CreatedAt';
-import type { DeleteNovelsById200UpdatedAt } from './deleteNovelsById200UpdatedAt';
+
+import type { DeleteNovelsById200CreatedAt } from "./deleteNovelsById200CreatedAt";
+import type { DeleteNovelsById200Description } from "./deleteNovelsById200Description";
+import type { DeleteNovelsById200ImageId } from "./deleteNovelsById200ImageId";
+import type { DeleteNovelsById200UpdatedAt } from "./deleteNovelsById200UpdatedAt";
 
 export type DeleteNovelsById200 = {
-  id: string;
-  name: string;
-  description: DeleteNovelsById200Description;
-  slugs: string[];
-  imageId: DeleteNovelsById200ImageId;
-  createdAt: DeleteNovelsById200CreatedAt;
-  updatedAt: DeleteNovelsById200UpdatedAt;
+	id: string;
+	name: string;
+	description: DeleteNovelsById200Description;
+	slugs: string[];
+	imageId: DeleteNovelsById200ImageId;
+	createdAt: DeleteNovelsById200CreatedAt;
+	updatedAt: DeleteNovelsById200UpdatedAt;
 };

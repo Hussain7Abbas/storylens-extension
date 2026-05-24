@@ -5,49 +5,49 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  MutationFunction,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseMutationOptions,
-  UseMutationResult,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query';
 
 import type {
-  DeleteNovelsById200,
-  DeleteNovelsById404,
-  DeleteNovelsById500,
-  GetNovels200,
-  GetNovels404,
-  GetNovels500,
-  GetNovelsById200,
-  GetNovelsById404,
-  GetNovelsById500,
-  GetNovelsParams,
-  PostNovels200,
-  PostNovels404,
-  PostNovels500,
-  PostNovelsBodyOne,
-  PostNovelsBodyThree,
-  PostNovelsBodyTwo,
-  PutNovelsById200,
-  PutNovelsById404,
-  PutNovelsById500,
-  PutNovelsByIdBodyOne,
-  PutNovelsByIdBodyThree,
-  PutNovelsByIdBodyTwo,
-} from '../schemas';
+	DataTag,
+	DefinedInitialDataOptions,
+	DefinedUseQueryResult,
+	MutationFunction,
+	QueryClient,
+	QueryFunction,
+	QueryKey,
+	UndefinedInitialDataOptions,
+	UseMutationOptions,
+	UseMutationResult,
+	UseQueryOptions,
+	UseQueryResult,
+} from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { ErrorType } from "../axios-instance";
 
-import { customInstance } from '../axios-instance';
-import type { ErrorType } from '../axios-instance';
+import { customInstance } from "../axios-instance";
+import type {
+	DeleteNovelsById200,
+	DeleteNovelsById404,
+	DeleteNovelsById500,
+	GetNovels200,
+	GetNovels404,
+	GetNovels500,
+	GetNovelsById200,
+	GetNovelsById404,
+	GetNovelsById500,
+	GetNovelsParams,
+	PostNovels200,
+	PostNovels404,
+	PostNovels500,
+	PostNovelsBodyOne,
+	PostNovelsBodyThree,
+	PostNovelsBodyTwo,
+	PutNovelsById200,
+	PutNovelsById404,
+	PutNovelsById500,
+	PutNovelsByIdBodyOne,
+	PutNovelsByIdBodyThree,
+	PutNovelsByIdBodyTwo,
+} from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -56,533 +56,566 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getNovels = (
-  params: GetNovelsParams,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	params: GetNovelsParams,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetNovels200>(
-    { url: 'http://localhost:7001/novels/', method: 'GET', params, signal },
-    options,
-  );
+	return customInstance<GetNovels200>(
+		{ url: "http://localhost:7001/novels/", method: "GET", params, signal },
+		options,
+	);
 };
 
 export const getGetNovelsQueryKey = (params?: GetNovelsParams) => {
-  return ['http://localhost:7001/novels/', ...(params ? [params] : [])] as const;
+	return [
+		"http://localhost:7001/novels/",
+		...(params ? [params] : []),
+	] as const;
 };
 
 export const getGetNovelsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getNovels>>,
-  TError = ErrorType<GetNovels404 | GetNovels500>,
+	TData = Awaited<ReturnType<typeof getNovels>>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
-  params: GetNovelsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	params: GetNovelsParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetNovelsQueryKey(params);
+	const queryKey = queryOptions?.queryKey ?? getGetNovelsQueryKey(params);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNovels>>> = ({
-    signal,
-  }) => getNovels(params, requestOptions, signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getNovels>>> = ({
+		signal,
+	}) => getNovels(params, requestOptions, signal);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getNovels>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+		Awaited<ReturnType<typeof getNovels>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetNovelsQueryResult = NonNullable<Awaited<ReturnType<typeof getNovels>>>;
+export type GetNovelsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getNovels>>
+>;
 export type GetNovelsQueryError = ErrorType<GetNovels404 | GetNovels500>;
 
 export function useGetNovels<
-  TData = Awaited<ReturnType<typeof getNovels>>,
-  TError = ErrorType<GetNovels404 | GetNovels500>,
+	TData = Awaited<ReturnType<typeof getNovels>>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
-  params: GetNovelsParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getNovels>>,
-          TError,
-          Awaited<ReturnType<typeof getNovels>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	params: GetNovelsParams,
+	options: {
+		query: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getNovels>>,
+					TError,
+					Awaited<ReturnType<typeof getNovels>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetNovels<
-  TData = Awaited<ReturnType<typeof getNovels>>,
-  TError = ErrorType<GetNovels404 | GetNovels500>,
+	TData = Awaited<ReturnType<typeof getNovels>>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
-  params: GetNovelsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getNovels>>,
-          TError,
-          Awaited<ReturnType<typeof getNovels>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	params: GetNovelsParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getNovels>>,
+					TError,
+					Awaited<ReturnType<typeof getNovels>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetNovels<
-  TData = Awaited<ReturnType<typeof getNovels>>,
-  TError = ErrorType<GetNovels404 | GetNovels500>,
+	TData = Awaited<ReturnType<typeof getNovels>>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
-  params: GetNovelsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	params: GetNovelsParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetNovels<
-  TData = Awaited<ReturnType<typeof getNovels>>,
-  TError = ErrorType<GetNovels404 | GetNovels500>,
+	TData = Awaited<ReturnType<typeof getNovels>>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
-  params: GetNovelsParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetNovelsQueryOptions(params, options);
+	params: GetNovelsParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovels>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetNovelsQueryOptions(params, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const postNovels = (
-  postNovelsBody: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	postNovelsBody: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<PostNovels200>(
-    {
-      url: 'http://localhost:7001/novels/',
-      method: 'POST',
-      data: postNovelsBody,
-      signal,
-    },
-    options,
-  );
+	return customInstance<PostNovels200>(
+		{
+			url: "http://localhost:7001/novels/",
+			method: "POST",
+			data: postNovelsBody,
+			signal,
+		},
+		options,
+	);
 };
 
 export const getPostNovelsMutationOptions = <
-  TError = ErrorType<PostNovels404 | PostNovels500>,
-  TContext = unknown,
+	TError = ErrorType<PostNovels404 | PostNovels500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postNovels>>,
-    TError,
-    { data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postNovels>>,
+		TError,
+		{ data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof postNovels>>,
-  TError,
-  { data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
-  TContext
+	Awaited<ReturnType<typeof postNovels>>,
+	TError,
+	{ data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
+	TContext
 > => {
-  const mutationKey = ['postNovels'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["postNovels"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postNovels>>,
-    { data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree }
-  > = (props) => {
-    const { data } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postNovels>>,
+		{ data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree }
+	> = (props) => {
+		const { data } = props ?? {};
 
-    return postNovels(data, requestOptions);
-  };
+		return postNovels(data, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type PostNovelsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postNovels>>
+	Awaited<ReturnType<typeof postNovels>>
 >;
 export type PostNovelsMutationBody =
-  | PostNovelsBodyOne
-  | PostNovelsBodyTwo
-  | PostNovelsBodyThree;
+	| PostNovelsBodyOne
+	| PostNovelsBodyTwo
+	| PostNovelsBodyThree;
 export type PostNovelsMutationError = ErrorType<PostNovels404 | PostNovels500>;
 
 export const usePostNovels = <
-  TError = ErrorType<PostNovels404 | PostNovels500>,
-  TContext = unknown,
+	TError = ErrorType<PostNovels404 | PostNovels500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postNovels>>,
-      TError,
-      { data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postNovels>>,
+			TError,
+			{ data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof postNovels>>,
-  TError,
-  { data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
-  TContext
+	Awaited<ReturnType<typeof postNovels>>,
+	TError,
+	{ data: PostNovelsBodyOne | PostNovelsBodyTwo | PostNovelsBodyThree },
+	TContext
 > => {
-  const mutationOptions = getPostNovelsMutationOptions(options);
+	const mutationOptions = getPostNovelsMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };
 export const getNovelsById = (
-  id: string,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetNovelsById200>(
-    { url: `http://localhost:7001/novels/${id}`, method: 'GET', signal },
-    options,
-  );
+	return customInstance<GetNovelsById200>(
+		{ url: `http://localhost:7001/novels/${id}`, method: "GET", signal },
+		options,
+	);
 };
 
 export const getGetNovelsByIdQueryKey = (id?: string) => {
-  return [`http://localhost:7001/novels/${id}`] as const;
+	return [`http://localhost:7001/novels/${id}`] as const;
 };
 
 export const getGetNovelsByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getNovelsById>>,
-  TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
+	TData = Awaited<ReturnType<typeof getNovelsById>>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetNovelsByIdQueryKey(id);
+	const queryKey = queryOptions?.queryKey ?? getGetNovelsByIdQueryKey(id);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNovelsById>>> = ({
-    signal,
-  }) => getNovelsById(id, requestOptions, signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getNovelsById>>> = ({
+		signal,
+	}) => getNovelsById(id, requestOptions, signal);
 
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getNovelsById>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!id,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getNovelsById>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetNovelsByIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getNovelsById>>
+	Awaited<ReturnType<typeof getNovelsById>>
 >;
-export type GetNovelsByIdQueryError = ErrorType<GetNovelsById404 | GetNovelsById500>;
+export type GetNovelsByIdQueryError = ErrorType<
+	GetNovelsById404 | GetNovelsById500
+>;
 
 export function useGetNovelsById<
-  TData = Awaited<ReturnType<typeof getNovelsById>>,
-  TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
+	TData = Awaited<ReturnType<typeof getNovelsById>>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getNovelsById>>,
-          TError,
-          Awaited<ReturnType<typeof getNovelsById>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	id: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getNovelsById>>,
+					TError,
+					Awaited<ReturnType<typeof getNovelsById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetNovelsById<
-  TData = Awaited<ReturnType<typeof getNovelsById>>,
-  TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
+	TData = Awaited<ReturnType<typeof getNovelsById>>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getNovelsById>>,
-          TError,
-          Awaited<ReturnType<typeof getNovelsById>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getNovelsById>>,
+					TError,
+					Awaited<ReturnType<typeof getNovelsById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetNovelsById<
-  TData = Awaited<ReturnType<typeof getNovelsById>>,
-  TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
+	TData = Awaited<ReturnType<typeof getNovelsById>>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetNovelsById<
-  TData = Awaited<ReturnType<typeof getNovelsById>>,
-  TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
+	TData = Awaited<ReturnType<typeof getNovelsById>>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetNovelsByIdQueryOptions(id, options);
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getNovelsById>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetNovelsByIdQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const putNovelsById = (
-  id: string,
-  putNovelsByIdBody:
-    | PutNovelsByIdBodyOne
-    | PutNovelsByIdBodyTwo
-    | PutNovelsByIdBodyThree,
-  options?: SecondParameter<typeof customInstance>,
+	id: string,
+	putNovelsByIdBody:
+		| PutNovelsByIdBodyOne
+		| PutNovelsByIdBodyTwo
+		| PutNovelsByIdBodyThree,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutNovelsById200>(
-    {
-      url: `http://localhost:7001/novels/${id}`,
-      method: 'PUT',
-      data: putNovelsByIdBody,
-    },
-    options,
-  );
+	return customInstance<PutNovelsById200>(
+		{
+			url: `http://localhost:7001/novels/${id}`,
+			method: "PUT",
+			data: putNovelsByIdBody,
+		},
+		options,
+	);
 };
 
 export const getPutNovelsByIdMutationOptions = <
-  TError = ErrorType<PutNovelsById404 | PutNovelsById500>,
-  TContext = unknown,
+	TError = ErrorType<PutNovelsById404 | PutNovelsById500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof putNovelsById>>,
-    TError,
-    {
-      id: string;
-      data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
-    },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof putNovelsById>>,
+		TError,
+		{
+			id: string;
+			data:
+				| PutNovelsByIdBodyOne
+				| PutNovelsByIdBodyTwo
+				| PutNovelsByIdBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof putNovelsById>>,
-  TError,
-  {
-    id: string;
-    data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
-  },
-  TContext
+	Awaited<ReturnType<typeof putNovelsById>>,
+	TError,
+	{
+		id: string;
+		data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
+	},
+	TContext
 > => {
-  const mutationKey = ['putNovelsById'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["putNovelsById"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof putNovelsById>>,
-    {
-      id: string;
-      data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
-    }
-  > = (props) => {
-    const { id, data } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putNovelsById>>,
+		{
+			id: string;
+			data:
+				| PutNovelsByIdBodyOne
+				| PutNovelsByIdBodyTwo
+				| PutNovelsByIdBodyThree;
+		}
+	> = (props) => {
+		const { id, data } = props ?? {};
 
-    return putNovelsById(id, data, requestOptions);
-  };
+		return putNovelsById(id, data, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type PutNovelsByIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof putNovelsById>>
+	Awaited<ReturnType<typeof putNovelsById>>
 >;
 export type PutNovelsByIdMutationBody =
-  | PutNovelsByIdBodyOne
-  | PutNovelsByIdBodyTwo
-  | PutNovelsByIdBodyThree;
+	| PutNovelsByIdBodyOne
+	| PutNovelsByIdBodyTwo
+	| PutNovelsByIdBodyThree;
 export type PutNovelsByIdMutationError = ErrorType<
-  PutNovelsById404 | PutNovelsById500
+	PutNovelsById404 | PutNovelsById500
 >;
 
 export const usePutNovelsById = <
-  TError = ErrorType<PutNovelsById404 | PutNovelsById500>,
-  TContext = unknown,
+	TError = ErrorType<PutNovelsById404 | PutNovelsById500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof putNovelsById>>,
-      TError,
-      {
-        id: string;
-        data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
-      },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof putNovelsById>>,
+			TError,
+			{
+				id: string;
+				data:
+					| PutNovelsByIdBodyOne
+					| PutNovelsByIdBodyTwo
+					| PutNovelsByIdBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof putNovelsById>>,
-  TError,
-  {
-    id: string;
-    data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
-  },
-  TContext
+	Awaited<ReturnType<typeof putNovelsById>>,
+	TError,
+	{
+		id: string;
+		data: PutNovelsByIdBodyOne | PutNovelsByIdBodyTwo | PutNovelsByIdBodyThree;
+	},
+	TContext
 > => {
-  const mutationOptions = getPutNovelsByIdMutationOptions(options);
+	const mutationOptions = getPutNovelsByIdMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };
 export const deleteNovelsById = (
-  id: string,
-  options?: SecondParameter<typeof customInstance>,
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<DeleteNovelsById200>(
-    { url: `http://localhost:7001/novels/${id}`, method: 'DELETE' },
-    options,
-  );
+	return customInstance<DeleteNovelsById200>(
+		{ url: `http://localhost:7001/novels/${id}`, method: "DELETE" },
+		options,
+	);
 };
 
 export const getDeleteNovelsByIdMutationOptions = <
-  TError = ErrorType<DeleteNovelsById404 | DeleteNovelsById500>,
-  TContext = unknown,
+	TError = ErrorType<DeleteNovelsById404 | DeleteNovelsById500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof deleteNovelsById>>,
-    TError,
-    { id: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof deleteNovelsById>>,
+		TError,
+		{ id: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof deleteNovelsById>>,
-  TError,
-  { id: string },
-  TContext
+	Awaited<ReturnType<typeof deleteNovelsById>>,
+	TError,
+	{ id: string },
+	TContext
 > => {
-  const mutationKey = ['deleteNovelsById'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["deleteNovelsById"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof deleteNovelsById>>,
-    { id: string }
-  > = (props) => {
-    const { id } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteNovelsById>>,
+		{ id: string }
+	> = (props) => {
+		const { id } = props ?? {};
 
-    return deleteNovelsById(id, requestOptions);
-  };
+		return deleteNovelsById(id, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type DeleteNovelsByIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deleteNovelsById>>
+	Awaited<ReturnType<typeof deleteNovelsById>>
 >;
 
 export type DeleteNovelsByIdMutationError = ErrorType<
-  DeleteNovelsById404 | DeleteNovelsById500
+	DeleteNovelsById404 | DeleteNovelsById500
 >;
 
 export const useDeleteNovelsById = <
-  TError = ErrorType<DeleteNovelsById404 | DeleteNovelsById500>,
-  TContext = unknown,
+	TError = ErrorType<DeleteNovelsById404 | DeleteNovelsById500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof deleteNovelsById>>,
-      TError,
-      { id: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof deleteNovelsById>>,
+			TError,
+			{ id: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof deleteNovelsById>>,
-  TError,
-  { id: string },
-  TContext
+	Awaited<ReturnType<typeof deleteNovelsById>>,
+	TError,
+	{ id: string },
+	TContext
 > => {
-  const mutationOptions = getDeleteNovelsByIdMutationOptions(options);
+	const mutationOptions = getDeleteNovelsByIdMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };

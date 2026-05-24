@@ -7,5 +7,5 @@
  */
 
 export type GetConfigsByKey500 = {
-  message: string;
+	message: string;
 };

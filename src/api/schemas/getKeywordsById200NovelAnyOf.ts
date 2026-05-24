@@ -5,17 +5,18 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordsById200NovelAnyOfDescription } from './getKeywordsById200NovelAnyOfDescription';
-import type { GetKeywordsById200NovelAnyOfImageId } from './getKeywordsById200NovelAnyOfImageId';
-import type { GetKeywordsById200NovelAnyOfCreatedAt } from './getKeywordsById200NovelAnyOfCreatedAt';
-import type { GetKeywordsById200NovelAnyOfUpdatedAt } from './getKeywordsById200NovelAnyOfUpdatedAt';
+
+import type { GetKeywordsById200NovelAnyOfCreatedAt } from "./getKeywordsById200NovelAnyOfCreatedAt";
+import type { GetKeywordsById200NovelAnyOfDescription } from "./getKeywordsById200NovelAnyOfDescription";
+import type { GetKeywordsById200NovelAnyOfImageId } from "./getKeywordsById200NovelAnyOfImageId";
+import type { GetKeywordsById200NovelAnyOfUpdatedAt } from "./getKeywordsById200NovelAnyOfUpdatedAt";
 
 export type GetKeywordsById200NovelAnyOf = {
-  id: string;
-  name: string;
-  description: GetKeywordsById200NovelAnyOfDescription;
-  slugs: string[];
-  imageId: GetKeywordsById200NovelAnyOfImageId;
-  createdAt: GetKeywordsById200NovelAnyOfCreatedAt;
-  updatedAt: GetKeywordsById200NovelAnyOfUpdatedAt;
+	id: string;
+	name: string;
+	description: GetKeywordsById200NovelAnyOfDescription;
+	slugs: string[];
+	imageId: GetKeywordsById200NovelAnyOfImageId;
+	createdAt: GetKeywordsById200NovelAnyOfCreatedAt;
+	updatedAt: GetKeywordsById200NovelAnyOfUpdatedAt;
 };

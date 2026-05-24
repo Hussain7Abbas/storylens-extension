@@ -7,5 +7,5 @@
  */
 
 export type PostReplacements500 = {
-  message: string;
+	message: string;
 };

@@ -7,7 +7,7 @@
  */
 
 export type GetNovelsById200ChaptersItemUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

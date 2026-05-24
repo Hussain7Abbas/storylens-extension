@@ -7,5 +7,5 @@
  */
 
 export type DeleteReplacementsById500 = {
-  message: string;
+	message: string;
 };

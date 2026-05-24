@@ -7,7 +7,7 @@
  */
 
 export type PostKeywordsChapters200KeywordCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

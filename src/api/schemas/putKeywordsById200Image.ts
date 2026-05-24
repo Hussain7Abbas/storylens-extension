@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutKeywordsById200ImageAnyOf } from './putKeywordsById200ImageAnyOf';
+import type { PutKeywordsById200ImageAnyOf } from "./putKeywordsById200ImageAnyOf";
 
 /**
  * @nullable
  */
-export type PutKeywordsById200Image = PutKeywordsById200ImageAnyOf | null | null;
+export type PutKeywordsById200Image =
+	PutKeywordsById200ImageAnyOf | null | null;

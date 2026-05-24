@@ -7,7 +7,7 @@
  */
 
 export type DeleteKeywordCategoriesById200CreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

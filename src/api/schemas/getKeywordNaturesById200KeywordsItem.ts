@@ -5,22 +5,23 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordNaturesById200KeywordsItemImageId } from './getKeywordNaturesById200KeywordsItemImageId';
-import type { GetKeywordNaturesById200KeywordsItemParentId } from './getKeywordNaturesById200KeywordsItemParentId';
-import type { GetKeywordNaturesById200KeywordsItemCreatedAt } from './getKeywordNaturesById200KeywordsItemCreatedAt';
-import type { GetKeywordNaturesById200KeywordsItemUpdatedAt } from './getKeywordNaturesById200KeywordsItemUpdatedAt';
-import type { GetKeywordNaturesById200KeywordsItemCategory } from './getKeywordNaturesById200KeywordsItemCategory';
+
+import type { GetKeywordNaturesById200KeywordsItemCategory } from "./getKeywordNaturesById200KeywordsItemCategory";
+import type { GetKeywordNaturesById200KeywordsItemCreatedAt } from "./getKeywordNaturesById200KeywordsItemCreatedAt";
+import type { GetKeywordNaturesById200KeywordsItemImageId } from "./getKeywordNaturesById200KeywordsItemImageId";
+import type { GetKeywordNaturesById200KeywordsItemParentId } from "./getKeywordNaturesById200KeywordsItemParentId";
+import type { GetKeywordNaturesById200KeywordsItemUpdatedAt } from "./getKeywordNaturesById200KeywordsItemUpdatedAt";
 
 export type GetKeywordNaturesById200KeywordsItem = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: GetKeywordNaturesById200KeywordsItemImageId;
-  parentId: GetKeywordNaturesById200KeywordsItemParentId;
-  novelId: string;
-  createdAt: GetKeywordNaturesById200KeywordsItemCreatedAt;
-  updatedAt: GetKeywordNaturesById200KeywordsItemUpdatedAt;
-  category: GetKeywordNaturesById200KeywordsItemCategory;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: GetKeywordNaturesById200KeywordsItemImageId;
+	parentId: GetKeywordNaturesById200KeywordsItemParentId;
+	novelId: string;
+	createdAt: GetKeywordNaturesById200KeywordsItemCreatedAt;
+	updatedAt: GetKeywordNaturesById200KeywordsItemUpdatedAt;
+	category: GetKeywordNaturesById200KeywordsItemCategory;
 };

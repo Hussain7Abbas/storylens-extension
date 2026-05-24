@@ -5,17 +5,18 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetChaptersById200NovelDescription } from './getChaptersById200NovelDescription';
-import type { GetChaptersById200NovelImageId } from './getChaptersById200NovelImageId';
-import type { GetChaptersById200NovelCreatedAt } from './getChaptersById200NovelCreatedAt';
-import type { GetChaptersById200NovelUpdatedAt } from './getChaptersById200NovelUpdatedAt';
+
+import type { GetChaptersById200NovelCreatedAt } from "./getChaptersById200NovelCreatedAt";
+import type { GetChaptersById200NovelDescription } from "./getChaptersById200NovelDescription";
+import type { GetChaptersById200NovelImageId } from "./getChaptersById200NovelImageId";
+import type { GetChaptersById200NovelUpdatedAt } from "./getChaptersById200NovelUpdatedAt";
 
 export type GetChaptersById200Novel = {
-  id: string;
-  name: string;
-  description: GetChaptersById200NovelDescription;
-  slugs: string[];
-  imageId: GetChaptersById200NovelImageId;
-  createdAt: GetChaptersById200NovelCreatedAt;
-  updatedAt: GetChaptersById200NovelUpdatedAt;
+	id: string;
+	name: string;
+	description: GetChaptersById200NovelDescription;
+	slugs: string[];
+	imageId: GetChaptersById200NovelImageId;
+	createdAt: GetChaptersById200NovelCreatedAt;
+	updatedAt: GetChaptersById200NovelUpdatedAt;
 };

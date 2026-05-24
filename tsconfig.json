@@ -1,13 +1,13 @@
 {
-  "compilerOptions": {
-    "allowImportingTsExtensions": true,
-    "jsx": "react-jsx",
-    "types": ["@types/webextension-polyfill"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "extends": "./.wxt/tsconfig.json",
-  "exclude": ["node_modules"]
+	"compilerOptions": {
+		"allowImportingTsExtensions": true,
+		"jsx": "react-jsx",
+		"types": ["@types/webextension-polyfill"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	},
+	"extends": "./.wxt/tsconfig.json",
+	"exclude": ["node_modules"]
 }

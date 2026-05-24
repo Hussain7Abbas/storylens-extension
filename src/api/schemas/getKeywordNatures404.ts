@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordNatures404 = {
-  message: string;
+	message: string;
 };

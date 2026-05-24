@@ -7,5 +7,5 @@
  */
 
 export type PostFilesUpload500 = {
-  message: string;
+	message: string;
 };

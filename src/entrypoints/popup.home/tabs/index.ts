@@ -1,2 +1,2 @@
-export * from './coloring/coloring-tab';
-export * from './replacing/replacing-tab';
+export * from "./coloring/coloring-tab";
+export * from "./replacing/replacing-tab";

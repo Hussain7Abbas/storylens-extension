@@ -7,5 +7,5 @@
  */
 
 export type PutKeywordsById404 = {
-  message: string;
+	message: string;
 };

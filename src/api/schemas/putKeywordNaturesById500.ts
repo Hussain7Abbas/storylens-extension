@@ -7,5 +7,5 @@
  */
 
 export type PutKeywordNaturesById500 = {
-  message: string;
+	message: string;
 };

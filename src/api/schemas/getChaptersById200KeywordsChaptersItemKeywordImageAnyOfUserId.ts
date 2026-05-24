@@ -7,5 +7,5 @@
  */
 
 export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId =
-  | null
-  | string;
+	| null
+	| string;
