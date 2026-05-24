@@ -9,7 +9,12 @@ export function useRoutes() {
 	const [prevRoutes, setPrevRoutes] = useAtom(prevRouteAtom);
 
 	function push(route: Routes) {
-		setRoutes((prev) => [...prev, route]);
+		setRoutes((prev) => {
+			if (prev[prev.length - 1] === route) {
+				return prev;
+			}
+			return [...prev, route];
+		});
 		return route;
 	}
 
@@ -40,6 +45,11 @@ export function useRoutes() {
 		return prevRoute;
 	}
 
+	function goHome() {
+		setRoutes(["home"]);
+		setPrevRoutes([]);
+	}
+
 	function refresh() {
 		push("home");
 		pop();
@@ -50,6 +60,7 @@ export function useRoutes() {
 		current: routes[routes.length - 1],
 		forward,
 		go,
+		goHome,
 		pop,
 		push,
 		replace,

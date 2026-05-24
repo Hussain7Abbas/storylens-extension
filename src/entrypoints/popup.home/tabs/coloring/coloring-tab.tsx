@@ -1,14 +1,16 @@
-import { Box, Button, Stack } from "@mantine/core";
+import { Box, Button, Stack, Text } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetKeywords200DataItem } from "@/api/schemas";
 import { SearchInput } from "@/components/search-input";
+import { useCanMutate } from "@/lib/auth";
 import { ColoringCards } from "./coloring-cards";
 import type { ColoringFormModesType } from "./coloring-form";
 import { ColoringForm } from "./coloring-form";
 
 export function ColoringTab({ selectedNovelId }: { selectedNovelId: string }) {
 	const { t } = useTranslation();
+	const canMutate = useCanMutate();
 	const [coloringFormMode, setColoringFormMode] =
 		useState<ColoringFormModesType>(undefined);
 	const [keyword, setKeyword] = useState<GetKeywords200DataItem | undefined>(
@@ -28,19 +30,25 @@ export function ColoringTab({ selectedNovelId }: { selectedNovelId: string }) {
 				/>
 			) : (
 				<>
-					<Button
-						type="submit"
-						variant="light"
-						color="green.7"
-						onClick={() => {
-							setKeyword(undefined);
-							setColoringFormMode("add");
-						}}
-						hidden={!!coloringFormMode}
-						fullWidth
-					>
-						{t("_.add")}
-					</Button>
+					{canMutate ? (
+						<Button
+							type="submit"
+							variant="light"
+							color="green.7"
+							onClick={() => {
+								setKeyword(undefined);
+								setColoringFormMode("add");
+							}}
+							hidden={!!coloringFormMode}
+							fullWidth
+						>
+							{t("_.add")}
+						</Button>
+					) : (
+						<Text size="xs" c="dimmed" ta="center">
+							{t("auth.guestReadOnly")}
+						</Text>
+					)}
 					<Box
 						pos="sticky"
 						top="var(--popup-tabs-sticky-height, 46px)"
@@ -60,6 +68,7 @@ export function ColoringTab({ selectedNovelId }: { selectedNovelId: string }) {
 						search={search}
 						setKeyword={setKeyword}
 						setMode={setColoringFormMode}
+						readOnly={!canMutate}
 					/>
 				</>
 			)}

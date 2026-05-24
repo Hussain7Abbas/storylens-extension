@@ -6,10 +6,12 @@ import {
 	Paper,
 	Stack,
 	TagsInput,
+	Text,
 	TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useEffect } from "react";
+import { useAtomValue } from "jotai";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
@@ -19,6 +21,7 @@ import {
 	usePutNovelsById,
 } from "@/api/endpoints/novels.js";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { userRoleAtom } from "@/lib/auth";
 import type { Novel } from "@/types/models";
 import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
 import { previewXpathRegexResultFromHtml } from "@/utils/selector-preview";
@@ -71,6 +74,10 @@ export function NovelForm({
 	onClose?: () => void;
 }) {
 	const { t } = useTranslation();
+	const role = useAtomValue(userRoleAtom);
+	const [detectedName, setDetectedName] = useState<string | null>(null);
+	const [detectingName, setDetectingName] = useState(false);
+
 	const form = useForm({
 		initialValues: {
 			name: "",
@@ -106,19 +113,23 @@ export function NovelForm({
 			return;
 		}
 
+		setDetectingName(true);
 		void (async () => {
 			const [tab] = await browser.tabs.query({
 				active: true,
 				currentWindow: true,
 			});
 			if (!tab?.id) {
+				setDetectingName(false);
 				return;
 			}
 
 			const novelName = await getNovelNameFromRegex(tab.id);
 			if (novelName) {
+				setDetectedName(novelName);
 				form.setFieldValue("name", novelName);
 			}
+			setDetectingName(false);
 		})();
 	}, [mode]);
 
@@ -164,10 +175,20 @@ export function NovelForm({
 	});
 
 	const handleSubmit = (values: typeof form.values) => {
+		const nameToUse =
+			mode === "add" && role !== "admin"
+				? detectedName || ""
+				: values.name;
+
+		if (!nameToUse) {
+			toast.error(t("auth.cannotDetectNovel"));
+			return;
+		}
+
 		if (mode === "add") {
 			createNovelMutation.mutate({
 				data: {
-					name: values.name,
+					name: nameToUse,
 					description: values.description || undefined,
 					imageId: values.imageId || undefined,
 					slugs: values.slugs,
@@ -201,7 +222,7 @@ export function NovelForm({
 			<Paper p="xs" withBorder>
 				<Stack gap="xs">
 					<Alert
-						title="Are you sure you want to delete this novel?"
+						title={t("novels.confirmDelete")}
 						color="red"
 					/>
 					<Group grow>
@@ -230,7 +251,29 @@ export function NovelForm({
 		<Paper p="xs" withBorder>
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<Stack gap="xs">
-					<TextInput label={t("novels.name")} {...form.getInputProps("name")} />
+					{mode === "add" && role !== "admin" ? (
+						<>
+							{detectingName ? (
+								<Text size="sm" c="dimmed">
+									{t("auth.cannotDetectNovel")}...
+								</Text>
+							) : detectedName ? (
+								<Text size="sm" fw={500}>
+									{detectedName}
+								</Text>
+							) : (
+								<Alert color="orange" variant="light">
+									{t("auth.cannotDetectNovel")}
+								</Alert>
+							)}
+						</>
+					) : (
+						<TextInput
+							label={t("novels.name")}
+							{...form.getInputProps("name")}
+						/>
+					)}
+
 					<TagsInput
 						label={t("novels.slugs")}
 						placeholder={t("novels.slugsPlaceholder")}
@@ -254,7 +297,11 @@ export function NovelForm({
 						>
 							{t("_.cancel")}
 						</Button>
-						<Button type="submit" loading={createNovelMutation.isPending}>
+						<Button
+							type="submit"
+							loading={createNovelMutation.isPending}
+							disabled={mode === "add" && role !== "admin" && !detectedName}
+						>
 							{t("_.save")}
 						</Button>
 					</Group>

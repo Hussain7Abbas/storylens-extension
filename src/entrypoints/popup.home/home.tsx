@@ -13,19 +13,21 @@ import {
 import {
 	IconCheck,
 	IconCloudDownload,
-	IconCrosshair,
 	IconDotsVertical,
 	IconEdit,
+	IconLink,
 	IconPlus,
 	IconTrash,
 } from "@tabler/icons-react";
 import type { TFunction } from "i18next";
+import { useAtomValue } from "jotai";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useGetNovels } from "@/api/endpoints/novels.js";
+import { useGetNovels, usePutNovelsById } from "@/api/endpoints/novels.js";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import { useDownloadedNovelIds, useOnlineStatus } from "@/lib/offline/hooks";
+import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { NovelForm, type novelFormModes } from "./novelForm";
@@ -37,6 +39,7 @@ export function HomePage() {
 	const [mode, setMode] = useState<novelFormModes>();
 	const [downloading, setDownloading] = useState(false);
 	const online = useOnlineStatus();
+	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
 		useDownloadedNovelIds();
 
@@ -173,12 +176,17 @@ export function HomePage() {
 							<Text flex={1} ta="center">
 								{currentTabNovel?.chapter}
 							</Text>
-							<NovelMenu
-								currentTabNovel={currentTabNovel}
-								setSelectedNovel={setSelectedNovel}
-								setMode={setMode}
-								t={t}
-							/>
+							{role !== "guest" && (
+								<NovelMenu
+									currentTabNovel={currentTabNovel}
+									selectedNovel={selectedNovel}
+									setSelectedNovel={setSelectedNovel}
+									setMode={setMode}
+									refetchNovels={refetchNovels}
+									role={role}
+									t={t}
+								/>
+							)}
 						</Group>
 					)}
 
@@ -221,15 +229,57 @@ export function HomePage() {
 
 function NovelMenu({
 	currentTabNovel,
+	selectedNovel,
 	setSelectedNovel,
 	setMode,
+	refetchNovels,
+	role,
 	t,
 }: {
 	currentTabNovel: currentNovelMeta | undefined;
+	selectedNovel: Partial<Novel> | undefined;
 	setSelectedNovel: (novel: Partial<Novel> | undefined) => void;
 	setMode: (mode: novelFormModes) => void;
+	refetchNovels: () => void;
+	role: "user" | "admin";
 	t: TFunction;
 }) {
+	const addSlugMutation = usePutNovelsById({
+		mutation: {
+			onSuccess: () => {
+				toast.success(t("auth.addSlugSuccess"));
+				refetchNovels();
+			},
+			onError: () => {
+				toast.error(t("auth.addSlugFailed"));
+			},
+		},
+	});
+
+	const handleAddSlug = () => {
+		if (!currentTabNovel?.novelSlug) {
+			toast.error(t("auth.noSlugDetected"));
+			return;
+		}
+		if (!selectedNovel?.id) {
+			return;
+		}
+
+		const existingSlugs = selectedNovel.slugs ?? [];
+		if (existingSlugs.includes(currentTabNovel.novelSlug)) {
+			toast.success(t("auth.addSlugSuccess"));
+			return;
+		}
+
+		addSlugMutation.mutate({
+			id: selectedNovel.id,
+			data: {
+				name: selectedNovel.name ?? "",
+				slugs: [...existingSlugs, currentTabNovel.novelSlug],
+			},
+		});
+	};
+
 	return (
 		<Menu shadow="md" width={200}>
 			<Menu.Target>
@@ -254,30 +304,37 @@ function NovelMenu({
 				>
 					{t("novels.add")}
 				</Menu.Item>
-				<Menu.Item
-					leftSection={<IconEdit size={14} color="blue" />}
-					onClick={() => {
-						setMode("edit");
-					}}
-				>
-					{t("novels.edit")}
-				</Menu.Item>
-				<Menu.Item
-					leftSection={<IconTrash size={14} color="red" />}
-					onClick={() => {
-						setMode("delete");
-					}}
-				>
-					{t("novels.delete")}
-				</Menu.Item>
-				<Menu.Item
-					leftSection={<IconCrosshair size={14} color="gray" />}
-					onClick={() => {
-						toast.success(t("novels.comingSoon"));
-					}}
-				>
-					{t("novels.applyKeywordsAndReplacements")}
-				</Menu.Item>
+
+				{selectedNovel?.id && (
+					<Menu.Item
+						leftSection={<IconLink size={14} color="cyan" />}
+						onClick={handleAddSlug}
+						disabled={!currentTabNovel?.novelSlug}
+					>
+						{t("novels.addSlug")}
+					</Menu.Item>
+				)}
+
+				{role === "admin" && (
+					<>
+						<Menu.Item
+							leftSection={<IconEdit size={14} color="blue" />}
+							onClick={() => {
+								setMode("edit");
+							}}
+						>
+							{t("novels.edit")}
+						</Menu.Item>
+						<Menu.Item
+							leftSection={<IconTrash size={14} color="red" />}
+							onClick={() => {
+								setMode("delete");
+							}}
+						>
+							{t("novels.delete")}
+						</Menu.Item>
+					</>
+				)}
 			</Menu.Dropdown>
 		</Menu>
 	);

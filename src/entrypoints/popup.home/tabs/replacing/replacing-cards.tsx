@@ -30,6 +30,7 @@ interface ReplacingFormProps extends StackProps {
 	search: string;
 	setReplacement: (replacement: GetReplacements200DataItem) => void;
 	setMode: (mode: ReplacingFormModesType) => void;
+	readOnly?: boolean;
 }
 
 export function ReplacingCards({
@@ -37,6 +38,7 @@ export function ReplacingCards({
 	search,
 	setReplacement,
 	setMode,
+	readOnly = false,
 	...props
 }: ReplacingFormProps) {
 	const { t } = useTranslation();
@@ -98,10 +100,14 @@ export function ReplacingCards({
 				return (
 					<ListItemCard
 						key={replacement.id}
-						onClick={() => {
-							setReplacement(replacement);
-							setMode("edit");
-						}}
+						onClick={
+							readOnly
+								? undefined
+								: () => {
+										setReplacement(replacement);
+										setMode("edit");
+									}
+						}
 					>
 						<Group wrap="nowrap" align="flex-start" gap="xs" w="100%">
 							<Text fw={500} style={{ flex: 1 }}>

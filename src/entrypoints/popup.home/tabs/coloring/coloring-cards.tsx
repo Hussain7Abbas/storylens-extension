@@ -24,6 +24,7 @@ interface ColoringFormProps extends StackProps {
 	search: string;
 	setKeyword: (keyword: GetKeywords200DataItem) => void;
 	setMode: (mode: ColoringFormModesType) => void;
+	readOnly?: boolean;
 }
 
 export function ColoringCards({
@@ -31,6 +32,7 @@ export function ColoringCards({
 	search,
 	setKeyword,
 	setMode,
+	readOnly = false,
 	...props
 }: ColoringFormProps) {
 	const { t } = useTranslation();
@@ -92,10 +94,14 @@ export function ColoringCards({
 				return (
 					<ListItemCard
 						key={keyword.id}
-						onClick={() => {
-							setKeyword(keyword);
-							setMode("edit");
-						}}
+						onClick={
+							readOnly
+								? undefined
+								: () => {
+										setKeyword(keyword);
+										setMode("edit");
+									}
+						}
 					>
 						<Group wrap="nowrap" align="flex-start" gap="xs">
 							<Text fw={500} style={{ flex: 1 }}>
