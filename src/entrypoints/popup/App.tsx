@@ -26,7 +26,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	useEffect(() => {
 		console.log("✅locale", { locale });
 		i18n.changeLanguage(locale);
-	}, [locale]);
+	}, [locale, i18n]);
 
 	return (
 		<>
@@ -34,8 +34,8 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 			<MantineProvider defaultColorScheme="auto">
 				<QueryClientProvider client={queryClient}>
 					<Stack
-						h={type === "popup" ? "30rem" : "100vh"}
-						w={type === "popup" ? "20rem" : "100vw"}
+						h={type === "popup" ? "32rem" : "100vh"}
+						w={type === "popup" ? "24rem" : "100vw"}
 						gap={0}
 						dir={locale === "ar" ? "rtl" : "ltr"}
 					>

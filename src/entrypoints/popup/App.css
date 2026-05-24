@@ -1,15 +1,15 @@
 #root {
-	width: 20rem;
-	min-width: 20rem;
-	max-width: 1280px;
+	width: 24rem;
+	min-width: 24rem;
+	max-width: 24rem;
 }
 
 html,
 body {
 	margin: 0;
-	width: 20rem;
-	min-width: 20rem;
-	min-height: 30rem;
+	width: 24rem;
+	min-width: 24rem;
+	min-height: 32rem;
 }
 
 body {
