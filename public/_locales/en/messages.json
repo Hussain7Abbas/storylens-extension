@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "StoryLens"
+  },
+  "extDescription": {
+    "message": "StoryLens is a browser extension that Colorize, rename, and track characters, places, and techniques in web novels. Personalize your reading experience and never lose track of key elements in each chapter."
+  },
+  "helloWorld": {
+    "message": "Hello world!"
+  }
+}
