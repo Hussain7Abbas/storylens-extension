@@ -1,12 +1,12 @@
-import { createEnv } from '@t3-oss/env-core';
-import { z } from 'zod';
+import { createEnv } from "@t3-oss/env-core";
+import { z } from "zod";
 
 export const env = createEnv({
-  runtimeEnv: process.env,
-  emptyStringAsUndefined: true,
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+	runtimeEnv: process.env,
+	emptyStringAsUndefined: true,
+	skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 
-  server: {
-    API_URL: z.string().url(),
-  },
+	server: {
+		WXT_API_URL: z.string().url(),
+	},
 });
