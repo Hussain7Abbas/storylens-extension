@@ -91,6 +91,7 @@ export async function downloadNovel(novelId: string): Promise<void> {
 		description: novelResponse.data.description,
 		slugs: novelResponse.data.slugs,
 		imageId: novelResponse.data.imageId,
+		createdById: novelResponse.data.createdById,
 		createdAt: novelResponse.data.createdAt,
 		updatedAt: novelResponse.data.updatedAt,
 		downloadedAt: Date.now(),

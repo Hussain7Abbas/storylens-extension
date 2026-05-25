@@ -24,39 +24,65 @@ const DEFAULT_MARKUP_SKIP_SELECTOR = ".storylens-keyword, .storylens-tooltip";
 const REPLACEMENT_MARKUP_SKIP_SELECTOR =
 	".storylens-replaced, .storylens-keyword, .storylens-tooltip";
 
-function sortByLengthDesc(values: string[]): string[] {
-	return [...values].sort((left, right) => right.length - left.length);
+type MatchingType = "FULL" | "PARTIAL";
+
+type TermWithMatching = {
+	term: string;
+	matchingType: MatchingType;
+};
+
+function sortTermsByLengthDesc(terms: TermWithMatching[]): TermWithMatching[] {
+	return [...terms].sort(
+		(left, right) => right.term.length - left.term.length,
+	);
 }
 
 function escapeRegex(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function dedupeTermsCaseInsensitive(terms: string[]): string[] {
+function dedupeTermsCaseInsensitive(terms: TermWithMatching[]): TermWithMatching[] {
 	const seen = new Set<string>();
-	const deduped: string[] = [];
+	const deduped: TermWithMatching[] = [];
 
-	for (const term of sortByLengthDesc(terms)) {
-		const normalized = term.toLowerCase();
+	for (const entry of sortTermsByLengthDesc(terms)) {
+		const normalized = entry.term.toLowerCase();
 		if (seen.has(normalized)) {
 			continue;
 		}
 
 		seen.add(normalized);
-		deduped.push(term);
+		deduped.push(entry);
 	}
 
 	return deduped;
 }
 
-function buildCombinedPattern(terms: string[]): RegExp | undefined {
-	const uniqueTerms = dedupeTermsCaseInsensitive(terms.filter(Boolean));
+function wrapFullTermPattern(escaped: string): string {
+	return `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`;
+}
+
+function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
+	const uniqueTerms = dedupeTermsCaseInsensitive(
+		terms.filter((entry) => entry.term),
+	);
 	if (uniqueTerms.length === 0) {
 		return undefined;
 	}
 
-	const pattern = uniqueTerms.map(escapeRegex).join("|");
-	return new RegExp(pattern, "gi");
+	const pattern = uniqueTerms
+		.map(({ term, matchingType }) => {
+			const escaped = escapeRegex(term);
+			return matchingType === "FULL" ? wrapFullTermPattern(escaped) : escaped;
+		})
+		.join("|");
+
+	try {
+		return new RegExp(pattern, "giu");
+	} catch (error) {
+		console.error(`${LOG_PREFIX} Failed to build keyword pattern`, error);
+		return undefined;
+	}
 }
 
 export function findContentRoot(): HTMLElement {
@@ -279,7 +305,10 @@ function applyReplacements(
 	replacements: NovelContentData["replacements"],
 ): number {
 	const regex = buildCombinedPattern(
-		replacements.map((replacement) => replacement.from),
+		replacements.map((replacement) => ({
+			term: replacement.from,
+			matchingType: replacement.matchingType ?? "FULL",
+		})),
 	);
 	if (!regex) {
 		return 0;
@@ -307,7 +336,12 @@ function applyKeywordHighlights(
 	root: HTMLElement,
 	keywords: NovelContentData["keywords"],
 ): number {
-	const regex = buildCombinedPattern(keywords.map((keyword) => keyword.name));
+	const regex = buildCombinedPattern(
+		keywords.map((keyword) => ({
+			term: keyword.name,
+			matchingType: keyword.matchingType ?? "FULL",
+		})),
+	);
 	if (!regex) {
 		return 0;
 	}

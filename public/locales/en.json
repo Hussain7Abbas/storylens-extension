@@ -43,7 +43,8 @@
 		"selectCategory": "Select category",
 		"selectNature": "Select nature",
 		"imageOptional": "Image ID (optional)",
-		"createFailed": "Failed to create keyword"
+		"createFailed": "Failed to create keyword",
+		"fullWordMatch": "Full word match"
 	},
 	"replacing": {
 		"from": "From",
@@ -51,7 +52,8 @@
 		"fromRequired": "From is required",
 		"toRequired": "To is required",
 		"noReplacements": "No replacements found",
-		"createFailed": "Failed to create replacement"
+		"createFailed": "Failed to create replacement",
+		"fullWordMatch": "Full word match"
 	},
 	"home": {
 		"title": "Keywords Management",

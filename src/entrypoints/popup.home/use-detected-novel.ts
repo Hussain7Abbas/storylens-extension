@@ -14,7 +14,16 @@ async function sleep(ms: number): Promise<void> {
 async function getDetectedNovel(
 	tabId: number,
 ): Promise<currentNovelMeta | undefined> {
-	for (let attempt = 0; attempt < 3; attempt += 1) {
+	try {
+		const cached = await sendMessage("getCachedTabNovel", tabId);
+		if (cached) {
+			return cached;
+		}
+	} catch {
+		// Background cache may not be ready yet.
+	}
+
+	for (let attempt = 0; attempt < 8; attempt += 1) {
 		try {
 			const novel = await sendMessage("getCurrentNovel", undefined, { tabId });
 			if (novel) {
@@ -24,16 +33,21 @@ async function getDetectedNovel(
 			// Content script may still be initializing.
 		}
 
-		if (attempt < 2) {
-			await sleep(250);
+		try {
+			const cached = await sendMessage("getCachedTabNovel", tabId);
+			if (cached) {
+				return cached;
+			}
+		} catch {
+			// Background cache may not be ready yet.
+		}
+
+		if (attempt < 7) {
+			await sleep(300);
 		}
 	}
 
-	try {
-		return await sendMessage("getCachedTabNovel", tabId);
-	} catch {
-		return undefined;
-	}
+	return undefined;
 }
 
 export function useDetectedNovel(
@@ -83,6 +97,22 @@ export function useDetectedNovel(
 
 		void detectNovel();
 	}, [applyDetectedNovel, novels]);
+
+	useEffect(() => {
+		if (!currentTabNovel) {
+			return;
+		}
+
+		const candidates = novels?.length ? novels : offlineNovels;
+		if (!candidates?.length) {
+			return;
+		}
+
+		const novel = findNovelBySlug(candidates, currentTabNovel.novelSlug);
+		if (novel) {
+			setSelectedNovel(novel);
+		}
+	}, [currentTabNovel, novels, offlineNovels]);
 
 	return {
 		selectedNovel,

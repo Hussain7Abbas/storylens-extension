@@ -129,7 +129,11 @@ export async function runContentScript(
 		};
 	});
 
-	onMessage("getCurrentNovel", () => {
+	onMessage("getCurrentNovel", async () => {
+		if (!websiteSelectorsValue) {
+			await loadWebsiteSelectors();
+		}
+
 		return detectCurrentNovel();
 	});
 
@@ -141,14 +145,15 @@ export async function runContentScript(
 	await loadWebsiteSelectors();
 	await reportCurrentNovel();
 
-	try {
-		await handleDetectedNovel();
-	} catch (error) {
-		console.error(
-			`${LOG_PREFIX} Failed during initial novel processing`,
-			error,
-		);
-	}
+	// Defer highlighting so message handlers stay responsive during page load.
+	queueMicrotask(() => {
+		void handleDetectedNovel().catch((error) => {
+			console.error(
+				`${LOG_PREFIX} Failed during initial novel processing`,
+				error,
+			);
+		});
+	});
 
 	ctx.addEventListener(window, "wxt:locationchange", () => {
 		console.log(`${LOG_PREFIX} Location changed`, window.location.href);

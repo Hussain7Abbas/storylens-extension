@@ -41,6 +41,35 @@ class StoryLensOfflineDatabase extends Dexie {
 			keywordCategories: "id, name",
 			keywordNatures: "id, name",
 		});
+
+		this.version(3)
+			.stores({
+				catalogNovels: "id, name",
+				novels: "id, name, downloadedAt",
+				keywords: "id, novelId, name, categoryId, natureId",
+				replacements: "id, novelId, from",
+				keywordCategories: "id, name",
+				keywordNatures: "id, name",
+			})
+			.upgrade(async (transaction) => {
+				await transaction
+					.table("keywords")
+					.toCollection()
+					.modify((keyword: OfflineKeyword) => {
+						if (!keyword.matchingType) {
+							keyword.matchingType = "FULL";
+						}
+					});
+
+				await transaction
+					.table("replacements")
+					.toCollection()
+					.modify((replacement: OfflineReplacement) => {
+						if (!replacement.matchingType) {
+							replacement.matchingType = "FULL";
+						}
+					});
+			});
 	}
 }
 

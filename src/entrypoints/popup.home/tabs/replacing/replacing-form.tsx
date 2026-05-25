@@ -4,6 +4,7 @@ import {
 	Button,
 	Group,
 	Stack,
+	Switch,
 	TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -12,10 +13,15 @@ import { useTranslation } from "react-i18next";
 import type {
 	GetReplacements200DataItem,
 	PostReplacementsBodyOne,
+	PutReplacementsByIdBodyOne,
 } from "@/api/schemas";
 import { useOfflineReplacementMutations } from "@/lib/offline/hooks";
 
 export type ReplacingFormModesType = "add" | "edit" | undefined;
+
+type ReplacingFormValues = PostReplacementsBodyOne & {
+	matchingType: NonNullable<PostReplacementsBodyOne["matchingType"]>;
+};
 interface ReplacingFormProps extends React.HTMLAttributes<HTMLFormElement> {
 	mode: ReplacingFormModesType;
 	selectedNovelId: string | undefined;
@@ -31,11 +37,12 @@ export function ReplacingForm({
 	...props
 }: ReplacingFormProps) {
 	const { t } = useTranslation();
-	const form = useForm<PostReplacementsBodyOne>({
+	const form = useForm<ReplacingFormValues>({
 		initialValues: {
 			novelId: replacement?.novelId || "",
 			from: replacement?.from || "",
 			to: replacement?.to || "",
+			matchingType: replacement?.matchingType ?? "FULL",
 		},
 		validate: {
 			from: (value) => (!value ? t("replacing.fromRequired") : null),
@@ -58,6 +65,7 @@ export function ReplacingForm({
 					novelId: selectedNovelId,
 					from: values.from,
 					to: values.to,
+					matchingType: values.matchingType,
 				},
 				{
 					onSuccess: () => {
@@ -67,10 +75,16 @@ export function ReplacingForm({
 				},
 			);
 		} else if (mode === "edit" && replacement?.id) {
+			const updateData: PutReplacementsByIdBodyOne = {
+				novelId: selectedNovelId,
+				from: values.from,
+				to: values.to,
+				matchingType: values.matchingType,
+			};
 			updateMutation.mutate(
 				{
 					id: replacement.id,
-					data: values,
+					data: updateData,
 				},
 				{
 					onSuccess: () => {
@@ -105,6 +119,17 @@ export function ReplacingForm({
 					label={t("replacing.from")}
 					{...form.getInputProps("from")}
 					required
+				/>
+
+				<Switch
+					label={t("replacing.fullWordMatch")}
+					checked={form.values.matchingType === "FULL"}
+					onChange={(event) =>
+						form.setFieldValue(
+							"matchingType",
+							event.currentTarget.checked ? "FULL" : "PARTIAL",
+						)
+					}
 				/>
 
 				<TextInput

@@ -7,6 +7,7 @@ import {
 	Loader,
 	Select,
 	Stack,
+	Switch,
 	TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -15,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import type {
 	GetKeywords200DataItem,
 	PostKeywordsBodyOne,
+	PutKeywordsByIdBodyOne,
 } from "@/api/schemas";
 import {
 	useOfflineKeywordCategories,
@@ -24,6 +26,10 @@ import {
 import type { KeywordCategory, KeywordNature } from "@/types/models";
 
 export type ColoringFormModesType = "add" | "edit" | undefined;
+
+type ColoringFormValues = PostKeywordsBodyOne & {
+	matchingType: NonNullable<PostKeywordsBodyOne["matchingType"]>;
+};
 interface ColoringFormProps extends React.HTMLAttributes<HTMLFormElement> {
 	mode: ColoringFormModesType;
 	selectedNovelId: string | undefined;
@@ -39,11 +45,12 @@ export function ColoringForm({
 	...props
 }: ColoringFormProps) {
 	const { t } = useTranslation();
-	const form = useForm<PostKeywordsBodyOne>({
+	const form = useForm<ColoringFormValues>({
 		initialValues: {
 			novelId: keyword?.novelId || "",
 			name: keyword?.name || "",
 			description: keyword?.description || "",
+			matchingType: keyword?.matchingType ?? "FULL",
 			categoryId: keyword?.categoryId || "",
 			natureId: keyword?.natureId || "",
 			imageId: keyword?.imageId || undefined,
@@ -84,10 +91,19 @@ export function ColoringForm({
 				},
 			);
 		} else if (mode === "edit" && keyword?.id) {
+			const updateData: PutKeywordsByIdBodyOne = {
+				name: values.name,
+				description: values.description,
+				matchingType: values.matchingType,
+				categoryId: values.categoryId,
+				natureId: values.natureId,
+				imageId: values.imageId,
+				parentId: values.parentId,
+			};
 			updateMutation.mutate(
 				{
 					id: keyword.id,
-					data: values,
+					data: updateData,
 				},
 				{
 					onSuccess: () => {
@@ -122,6 +138,17 @@ export function ColoringForm({
 					label={t("coloring.name")}
 					{...form.getInputProps("name")}
 					required
+				/>
+
+				<Switch
+					label={t("coloring.fullWordMatch")}
+					checked={form.values.matchingType === "FULL"}
+					onChange={(event) =>
+						form.setFieldValue(
+							"matchingType",
+							event.currentTarget.checked ? "FULL" : "PARTIAL",
+						)
+					}
 				/>
 
 				<Select

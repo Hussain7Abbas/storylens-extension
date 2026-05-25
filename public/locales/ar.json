@@ -43,7 +43,8 @@
 		"selectCategory": "اختر التصنيف",
 		"selectNature": "اختر الطبيعة",
 		"imageOptional": "معرف الصورة (اختياري)",
-		"createFailed": "فشل إنشاء الكلمة المفتاحية"
+		"createFailed": "فشل إنشاء الكلمة المفتاحية",
+		"fullWordMatch": "مطابقة الكلمة كاملة"
 	},
 	"replacing": {
 		"from": "من",
@@ -51,7 +52,8 @@
 		"fromRequired": "حقل \"من\" مطلوب",
 		"toRequired": "حقل \"إلى\" مطلوب",
 		"noReplacements": "لا توجد استبدالات",
-		"createFailed": "فشل إنشاء الاستبدال"
+		"createFailed": "فشل إنشاء الاستبدال",
+		"fullWordMatch": "مطابقة الكلمة كاملة"
 	},
 	"home": {
 		"title": "إدارة الكلمات المفتاحية",
