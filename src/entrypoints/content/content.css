@@ -5,13 +5,13 @@
 }
 
 /* Tooltip container */
-.tooltip1 {
+.storylens-tooltip {
 	position: relative;
 	display: inline-block;
 }
 
 /* Tooltip text */
-.tooltip1 .tooltiptext1 {
+.storylens-tooltip .storylens-tooltip-text {
 	visibility: hidden;
 	width: fit-content;
 	background-color: black;
@@ -32,11 +32,11 @@
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip1:hover .tooltiptext1 {
+.storylens-tooltip:hover .storylens-tooltip-text {
 	visibility: visible;
 }
 
-.tooltip1 .tooltiptext1::after {
+.storylens-tooltip .storylens-tooltip-text::after {
 	content: " ";
 	position: absolute;
 	top: 100%; /* At the bottom of the tooltip */
@@ -48,19 +48,19 @@
 }
 
 /* Keyword tooltip specific styles */
-.keyword-tooltip {
+.storylens-keyword-tooltip {
 	cursor: pointer;
 	border-radius: 3px;
 	padding: 2px 4px;
 	transition: background-color 0.2s ease;
 }
 
-.keyword-tooltip:hover {
+.storylens-keyword-tooltip:hover {
 	background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Category indicator circle */
-.category-indicator {
+.storylens-category-indicator {
 	display: inline-block;
 	width: 8px;
 	height: 8px;
@@ -69,7 +69,7 @@
 	vertical-align: middle;
 }
 
-.storylens-keyword .nature-indicator {
+.storylens-keyword .storylens-nature-indicator {
 	position: absolute;
 	top: 5px;
 	inset-inline-end: -2px;
@@ -80,32 +80,32 @@
 }
 
 /* Keyword info in tooltip */
-.keyword-info {
+.storylens-keyword-info {
 	text-align: left;
 	max-width: 200px;
 }
 
-.keyword-info strong {
+.storylens-keyword-info strong {
 	display: block;
 	margin-bottom: 4px;
 	font-size: 16px;
 }
 
-.keyword-info p {
+.storylens-keyword-info p {
 	margin: 4px 0;
 	font-size: 12px;
 	line-height: 1.4;
 }
 
-.keyword-meta {
+.storylens-keyword-meta {
 	display: flex;
 	gap: 8px;
 	margin-top: 6px;
 	font-size: 10px;
 }
 
-.keyword-meta .category,
-.keyword-meta .nature {
+.storylens-keyword-meta .storylens-category,
+.storylens-keyword-meta .storylens-nature {
 	padding: 2px 6px;
 	border-radius: 3px;
 	background-color: rgba(255, 255, 255, 0.2);
