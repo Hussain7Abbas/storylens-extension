@@ -42,8 +42,12 @@
 		"novel": "الرواية",
 		"selectCategory": "اختر التصنيف",
 		"selectNature": "اختر الطبيعة",
-		"imageOptional": "معرف الصورة (اختياري)",
+		"imageOptional": "اختر صورة (اختياري)",
+		"imagePreview": "معاينة الصورة",
+		"hasImage": "يحتوي على صورة",
+		"imageUploadFailed": "فشل رفع الصورة",
 		"createFailed": "فشل إنشاء الكلمة المفتاحية",
+		"updateFailed": "فشل تحديث الكلمة المفتاحية",
 		"fullWordMatch": "مطابقة الكلمة كاملة"
 	},
 	"replacing": {

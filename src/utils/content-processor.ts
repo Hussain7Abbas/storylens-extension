@@ -3,6 +3,11 @@ import type {
 	ContentProcessingStats,
 	NovelContentData,
 } from "@/types/content-data";
+import {
+	destroyKeywordTooltipPortal,
+	initKeywordTooltipPortal,
+	registerKeywordTooltipAnchor,
+} from "@/utils/keyword-tooltip";
 
 const LOG_PREFIX = "[StoryLens]";
 const PROCESS_ATTR = "data-storylens-processed";
@@ -19,10 +24,10 @@ const CONTENT_ROOT_SELECTORS = [
 const SKIP_ANCESTOR_SELECTOR =
 	"script, style, noscript, textarea, input, select, option, [data-storylens-skip]";
 
-const DEFAULT_MARKUP_SKIP_SELECTOR = ".storylens-keyword, .storylens-tooltip";
+const DEFAULT_MARKUP_SKIP_SELECTOR = ".storylens-keyword";
 
 const REPLACEMENT_MARKUP_SKIP_SELECTOR =
-	".storylens-replaced, .storylens-keyword, .storylens-tooltip";
+	".storylens-replaced, .storylens-keyword";
 
 type MatchingType = "FULL" | "PARTIAL";
 
@@ -209,8 +214,7 @@ function createKeywordElement(
 	keyword: GetKeywords200DataItem,
 ): HTMLSpanElement {
 	const span = document.createElement("span");
-	span.className =
-		"storylens-tooltip storylens-keyword-tooltip storylens-keyword";
+	span.className = "storylens-keyword-tooltip storylens-keyword";
 	span.style.setProperty("color", keyword.category.color, "important");
 	span.dataset.keywordId = keyword.id;
 
@@ -225,36 +229,7 @@ function createKeywordElement(
 	span.append(natureIndicator);
 	span.append(document.createTextNode(matchedText));
 
-	const tooltip = document.createElement("span");
-	tooltip.className = "storylens-tooltip-text storylens-keyword-info";
-
-	const title = document.createElement("strong");
-	title.textContent = keyword.name;
-	tooltip.append(title);
-
-	if (keyword.description) {
-		const description = document.createElement("p");
-		description.textContent = keyword.description;
-		tooltip.append(description);
-	}
-
-	const meta = document.createElement("div");
-	meta.className = "storylens-keyword-meta";
-
-	const category = document.createElement("span");
-	category.className = "storylens-category";
-	category.textContent = keyword.category.name;
-	category.style.setProperty("color", keyword.category.color, "important");
-	meta.append(category);
-
-	const nature = document.createElement("span");
-	nature.className = "storylens-nature";
-	nature.textContent = keyword.nature.name;
-	nature.style.setProperty("color", keyword.nature.color, "important");
-	meta.append(nature);
-
-	tooltip.append(meta);
-	span.append(tooltip);
+	registerKeywordTooltipAnchor(span, keyword);
 
 	return span;
 }
@@ -397,6 +372,8 @@ export function applyContentProcessing(
 	const replacementsApplied = applyReplacements(root, data.replacements);
 	const keywordsHighlighted = applyKeywordHighlights(root, data.keywords);
 
+	initKeywordTooltipPortal();
+
 	root.setAttribute(PROCESS_ATTR, processKey);
 	root.classList.add("storylens-processed");
 
@@ -431,6 +408,8 @@ function unwrapMarkupSpan(span: HTMLSpanElement): void {
 }
 
 export function removeExtensionMarkup(): void {
+	destroyKeywordTooltipPortal();
+
 	const keywordSpans = [...document.querySelectorAll("span.storylens-keyword")];
 	for (const span of keywordSpans) {
 		if (span instanceof HTMLSpanElement) {

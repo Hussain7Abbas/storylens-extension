@@ -4,15 +4,17 @@
 	overflow: initial !important;
 }
 
-/* Tooltip container */
-.storylens-tooltip {
-	position: relative;
-	display: inline-block;
+.storylens-keyword-tooltip-root {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2147483647;
 }
 
-/* Tooltip text */
-.storylens-tooltip .storylens-tooltip-text {
-	visibility: hidden;
+.storylens-tooltip-text--floating {
+	visibility: visible;
+	position: fixed;
+	pointer-events: auto;
 	width: fit-content;
 	background-color: black;
 	color: #fff;
@@ -20,31 +22,28 @@
 	border-radius: 6px;
 	padding: 5px 10px;
 	font-size: 14px;
-
-	/* Position the tooltip */
-	position: absolute;
-	z-index: 1;
-	bottom: 100%;
-	margin-left: -60px;
-	left: 50%;
-	width: 16vw;
-	transform: translateX(-2vw);
+	z-index: 2147483647;
+	margin: 0;
+	transform: none;
 }
 
-/* Show the tooltip text when you mouse over the tooltip container */
-.storylens-tooltip:hover .storylens-tooltip-text {
-	visibility: visible;
-}
-
-.storylens-tooltip .storylens-tooltip-text::after {
+.storylens-tooltip-text--floating::after {
 	content: " ";
 	position: absolute;
-	top: 100%; /* At the bottom of the tooltip */
 	left: 50%;
 	margin-left: -5px;
 	border-width: 5px;
 	border-style: solid;
+}
+
+.storylens-tooltip-text--floating[data-placement="above"]::after {
+	top: 100%;
 	border-color: black transparent transparent transparent;
+}
+
+.storylens-tooltip-text--floating[data-placement="below"]::after {
+	bottom: 100%;
+	border-color: transparent transparent black transparent;
 }
 
 /* Keyword tooltip specific styles */
@@ -53,6 +52,8 @@
 	border-radius: 3px;
 	padding: 2px 4px;
 	transition: background-color 0.2s ease;
+	position: relative;
+	display: inline-block;
 }
 
 .storylens-keyword-tooltip:hover {
@@ -81,20 +82,31 @@
 
 /* Keyword info in tooltip */
 .storylens-keyword-info {
-	text-align: left;
-	max-width: 200px;
+	max-width: 16rem;
 }
 
 .storylens-keyword-info strong {
 	display: block;
 	margin-bottom: 4px;
 	font-size: 16px;
+	text-align: center;
 }
 
 .storylens-keyword-info p {
 	margin: 4px 0;
 	font-size: 12px;
 	line-height: 1.4;
+	text-align: right;
+}
+
+.storylens-keyword-info .storylens-keyword-image {
+	display: block;
+	width: auto;
+	max-width: 16rem;
+	max-height: 16rem;
+	object-fit: contain;
+	border-radius: 8px;
+	margin: 0 0 6px;
 }
 
 .storylens-keyword-meta {

@@ -4,6 +4,7 @@ import {
 	Button,
 	FileInput,
 	Group,
+	Image,
 	Loader,
 	Select,
 	Stack,
@@ -12,6 +13,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconCategory, IconMasksTheater, IconTrash } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
 	GetKeywords200DataItem,
@@ -24,6 +26,7 @@ import {
 	useOfflineKeywordNatures,
 } from "@/lib/offline/hooks";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
+import { uploadImageFile } from "@/utils/upload-image-file";
 
 export type ColoringFormModesType = "add" | "edit" | undefined;
 
@@ -45,6 +48,27 @@ export function ColoringForm({
 	...props
 }: ColoringFormProps) {
 	const { t } = useTranslation();
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+	const [isUploadingImage, setIsUploadingImage] = useState(false);
+	const [uploadError, setUploadError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!imageFile) {
+			setImagePreviewUrl(null);
+			return;
+		}
+
+		const objectUrl = URL.createObjectURL(imageFile);
+		setImagePreviewUrl(objectUrl);
+
+		return () => {
+			URL.revokeObjectURL(objectUrl);
+		};
+	}, [imageFile]);
+
+	const displayedImageUrl = imagePreviewUrl ?? keyword?.image?.url ?? null;
+
 	const form = useForm<ColoringFormValues>({
 		initialValues: {
 			novelId: keyword?.novelId || "",
@@ -72,20 +96,40 @@ export function ColoringForm({
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordMutations(selectedNovelId ?? "");
 
-	const handleSubmit = (values: typeof form.values) => {
+	const handleSubmit = async (values: typeof form.values) => {
 		if (!selectedNovelId) {
 			form.setFieldError("novel", t("home.selectNovelFirst"));
 			return;
 		}
+
+		setUploadError(null);
+		let imageId = values.imageId;
+
+		if (imageFile) {
+			setIsUploadingImage(true);
+			try {
+				imageId = await uploadImageFile(imageFile);
+			} catch (error) {
+				setUploadError(
+					error instanceof Error ? error.message : t("coloring.imageUploadFailed"),
+				);
+				return;
+			} finally {
+				setIsUploadingImage(false);
+			}
+		}
+
 		if (mode === "add") {
 			createMutation.mutate(
 				{
 					...values,
 					novelId: selectedNovelId,
+					imageId,
 				},
 				{
 					onSuccess: () => {
 						form.reset();
+						setImageFile(null);
 						onClose();
 					},
 				},
@@ -97,7 +141,7 @@ export function ColoringForm({
 				matchingType: values.matchingType,
 				categoryId: values.categoryId,
 				natureId: values.natureId,
-				imageId: values.imageId,
+				imageId,
 				parentId: values.parentId,
 			};
 			updateMutation.mutate(
@@ -108,6 +152,7 @@ export function ColoringForm({
 				{
 					onSuccess: () => {
 						form.reset();
+						setImageFile(null);
 						onClose();
 					},
 				},
@@ -127,6 +172,7 @@ export function ColoringForm({
 	};
 
 	const isPending =
+		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
 		deleteMutation.isPending;
@@ -187,13 +233,37 @@ export function ColoringForm({
 
 				<FileInput
 					label={t("coloring.image")}
-					{...form.getInputProps("imageId")}
+					accept="image/*"
+					value={imageFile}
+					onChange={setImageFile}
 					placeholder={t("coloring.imageOptional")}
+					clearable
 				/>
+
+				{displayedImageUrl && (
+					<Image
+						src={displayedImageUrl}
+						alt={t("coloring.imagePreview")}
+						radius="md"
+						fit="contain"
+						maw="16rem"
+						mah="16rem"
+						w="auto"
+						style={{ alignSelf: "flex-start" }}
+					/>
+				)}
+
+				{uploadError && <Alert color="red">{uploadError}</Alert>}
 
 				{createMutation.isError && (
 					<Alert color="red">
 						{t("coloring.createFailed")}: {createMutation.error?.message}
+					</Alert>
+				)}
+
+				{updateMutation.isError && (
+					<Alert color="red">
+						{t("coloring.updateFailed")}: {updateMutation.error?.message}
 					</Alert>
 				)}
 

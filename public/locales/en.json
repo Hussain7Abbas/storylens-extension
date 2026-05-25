@@ -42,8 +42,12 @@
 		"novel": "Novel",
 		"selectCategory": "Select category",
 		"selectNature": "Select nature",
-		"imageOptional": "Image ID (optional)",
+		"imageOptional": "Select an image (optional)",
+		"imagePreview": "Image preview",
+		"hasImage": "Has image",
+		"imageUploadFailed": "Failed to upload image",
 		"createFailed": "Failed to create keyword",
+		"updateFailed": "Failed to update keyword",
 		"fullWordMatch": "Full word match"
 	},
 	"replacing": {

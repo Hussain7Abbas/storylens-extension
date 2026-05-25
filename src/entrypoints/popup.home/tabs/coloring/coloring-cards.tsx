@@ -7,7 +7,7 @@ import {
 	type StackProps,
 	Text,
 } from "@mantine/core";
-import { IconCloudUpload } from "@tabler/icons-react";
+import { IconCloudUpload, IconPhoto } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { getKeywords } from "@/api/endpoints/keywords.js";
 import type { GetKeywords200DataItem, GetKeywordsParams } from "@/api/schemas";
@@ -93,6 +93,7 @@ export function ColoringCards({
 				const isPending =
 					pendingEntityIds.has(keyword.id) ||
 					("isDirty" in keyword && keyword.isDirty === true);
+				const hasImage = Boolean(keyword.imageId ?? keyword.image?.url);
 
 				return (
 					<ListItemCard
@@ -111,6 +112,14 @@ export function ColoringCards({
 								{keyword.name}
 							</Text>
 							<Group gap="xs" wrap="nowrap">
+								{hasImage && (
+									<IconPhoto
+										size={14}
+										stroke={1.75}
+										style={{ flexShrink: 0, opacity: 0.7 }}
+										aria-label={t("coloring.hasImage")}
+									/>
+								)}
 								{isPending && (
 									<Badge
 										size="xs"
