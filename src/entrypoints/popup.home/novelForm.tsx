@@ -25,8 +25,8 @@ import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
-import { isSlugInList } from "@/utils/novel-matching";
 import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
+import { isSlugInList } from "@/utils/novel-matching";
 import { previewXpathRegexResultFromHtml } from "@/utils/selector-preview";
 import { getWebsiteSelector } from "@/utils/site-detection";
 
@@ -199,9 +199,7 @@ export function NovelForm({
 
 	const handleSubmit = (values: typeof form.values) => {
 		const nameToUse =
-			mode === "add" && role !== "admin"
-				? detectedName || ""
-				: values.name;
+			mode === "add" && role !== "admin" ? detectedName || "" : values.name;
 
 		if (!nameToUse) {
 			toast.error(t("auth.cannotDetectNovel"));
@@ -244,10 +242,7 @@ export function NovelForm({
 		return (
 			<Paper p="xs" withBorder>
 				<Stack gap="xs">
-					<Alert
-						title={t("novels.confirmDelete")}
-						color="red"
-					/>
+					<Alert title={t("novels.confirmDelete")} color="red" />
 					<Group grow>
 						<Button
 							variant="outline"

@@ -25,13 +25,13 @@ import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useGetNovels, usePutNovelsById } from "@/api/endpoints/novels.js";
+import { userRoleAtom } from "@/lib/auth";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {
 	useDownloadedNovelIds,
 	useDownloadedNovelsList,
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
-import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
@@ -157,9 +157,7 @@ export function HomePage() {
 								value={selectedNovel?.id}
 								onChange={(value) =>
 									setSelectedNovel(
-										availableNovels.find(
-											(novel: Novel) => novel.id === value,
-										),
+										availableNovels.find((novel: Novel) => novel.id === value),
 									)
 								}
 								required

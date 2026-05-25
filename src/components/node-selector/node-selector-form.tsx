@@ -6,9 +6,9 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useGetConfigsByKey, usePutConfigs } from "@/api/endpoints/configs.js";
-import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import type { websiteSelectors } from "@/types/configs";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
+import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
 	computeSelectorPreviews,
 	extractXpathText,

@@ -10,6 +10,7 @@ import { useForm } from "@mantine/form";
 import { IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import type { PostKeywordNaturesBodyOne } from "@/api/schemas";
+import { ColorInput } from "@/components/color-input";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
 import { useOfflineNatureMutations } from "@/lib/offline/hooks";
 import type { KeywordNature } from "@/types/models";
@@ -97,9 +98,8 @@ export function NatureForm({
 					required
 				/>
 
-				<TextInput
+				<ColorInput
 					label={t("settings.color")}
-					placeholder="#FF0000"
 					{...form.getInputProps("color")}
 					required
 				/>

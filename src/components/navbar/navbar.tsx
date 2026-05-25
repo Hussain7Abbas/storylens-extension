@@ -18,11 +18,17 @@ import {
 	IconSun,
 	IconUser,
 } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import cx from "clsx";
 import type { TFunction } from "i18next";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import icon from "@/assets/icon.png";

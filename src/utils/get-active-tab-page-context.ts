@@ -40,8 +40,7 @@ async function readPageHtml(tabId: number): Promise<PageContext | null> {
 }
 
 export async function getActiveTabPageContext(): Promise<
-	| { ok: true; page: PageContext }
-	| { ok: false; error: PageContextError }
+	{ ok: true; page: PageContext } | { ok: false; error: PageContextError }
 > {
 	const [tab] = await browser.tabs.query({
 		active: true,

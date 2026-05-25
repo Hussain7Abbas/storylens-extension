@@ -57,7 +57,6 @@ import {
 	updateKeywordCategoryReferences,
 	updateKeywordNatureReferences,
 } from "@/lib/offline/db";
-import type { DownloadedNovel } from "@/lib/offline/types";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import {
 	addPendingOp,
@@ -65,6 +64,7 @@ import {
 	getPendingEntityIds,
 	getPendingOpsCount,
 } from "@/lib/offline/sync-storage";
+import type { DownloadedNovel } from "@/lib/offline/types";
 import {
 	createTempId,
 	GLOBAL_LOOKUP_SCOPE,
@@ -101,9 +101,7 @@ function sortReplacements(
 	return [...items].sort((left, right) => left.from.localeCompare(right.from));
 }
 
-function sortLookupByName<
-	T extends { name: string },
->(items: T[]): T[] {
+function sortLookupByName<T extends { name: string }>(items: T[]): T[] {
 	return [...items].sort((left, right) => left.name.localeCompare(right.name));
 }
 
@@ -846,11 +844,7 @@ export function useOfflineNatureMutations() {
 	const online = useOnlineStatus();
 
 	const invalidate = useCallback(() => {
-		invalidateOfflineQueries(
-			queryClient,
-			"keywordNature",
-			GLOBAL_LOOKUP_SCOPE,
-		);
+		invalidateOfflineQueries(queryClient, "keywordNature", GLOBAL_LOOKUP_SCOPE);
 	}, [queryClient]);
 
 	const createMutation = useMutation({

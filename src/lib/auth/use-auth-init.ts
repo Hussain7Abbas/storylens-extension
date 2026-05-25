@@ -1,45 +1,46 @@
-import { useAtom } from 'jotai';
-import { useEffect, useState } from 'react';
-import { browser } from '#imports';
-import { authStateAtom, onboardingCompletedAtom } from './auth-store';
+import { useAtom } from "jotai";
+import { useEffect, useState } from "react";
+import { browser } from "#imports";
 import {
-  createGuestAccount,
-  getStoredAuth,
-  setupAuthInterceptor,
-} from './auth-service';
+	createGuestAccount,
+	getStoredAuth,
+	setupAuthInterceptor,
+} from "./auth-service";
+import { authStateAtom, onboardingCompletedAtom } from "./auth-store";
 
-const ONBOARDING_KEY = 'storylens-onboarding-completed';
+const ONBOARDING_KEY = "storylens-onboarding-completed";
 
 export function useAuthInit() {
-  const [, setAuthState] = useAtom(authStateAtom);
-  const [, setOnboardingCompleted] = useAtom(onboardingCompletedAtom);
-  const [loading, setLoading] = useState(true);
+	const [, setAuthState] = useAtom(authStateAtom);
+	const [, setOnboardingCompleted] = useAtom(onboardingCompletedAtom);
+	const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setupAuthInterceptor();
+	useEffect(() => {
+		setupAuthInterceptor();
 
-    void (async () => {
-      try {
-        const onboardingResult = await browser.storage.local.get(ONBOARDING_KEY);
-        const completed = onboardingResult[ONBOARDING_KEY] === true;
-        setOnboardingCompleted(completed);
+		void (async () => {
+			try {
+				const onboardingResult =
+					await browser.storage.local.get(ONBOARDING_KEY);
+				const completed = onboardingResult[ONBOARDING_KEY] === true;
+				setOnboardingCompleted(completed);
 
-        const stored = await getStoredAuth();
+				const stored = await getStoredAuth();
 
-        if (stored.user && stored.token) {
-          setAuthState({ user: stored.user, token: stored.token });
-          return;
-        }
+				if (stored.user && stored.token) {
+					setAuthState({ user: stored.user, token: stored.token });
+					return;
+				}
 
-        const { user, token } = await createGuestAccount();
-        setAuthState({ user, token });
-      } catch (error) {
-        console.error('[StoryLens] Auth init failed:', error);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [setAuthState, setOnboardingCompleted]);
+				const { user, token } = await createGuestAccount();
+				setAuthState({ user, token });
+			} catch (error) {
+				console.error("[StoryLens] Auth init failed:", error);
+			} finally {
+				setLoading(false);
+			}
+		})();
+	}, [setAuthState, setOnboardingCompleted]);
 
-  return { loading };
+	return { loading };
 }

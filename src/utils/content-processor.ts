@@ -19,8 +19,7 @@ const CONTENT_ROOT_SELECTORS = [
 const SKIP_ANCESTOR_SELECTOR =
 	"script, style, noscript, textarea, input, select, option, [data-storylens-skip]";
 
-const DEFAULT_MARKUP_SKIP_SELECTOR =
-	".storylens-keyword, .storylens-tooltip";
+const DEFAULT_MARKUP_SKIP_SELECTOR = ".storylens-keyword, .storylens-tooltip";
 
 const REPLACEMENT_MARKUP_SKIP_SELECTOR =
 	".storylens-replaced, .storylens-keyword, .storylens-tooltip";
@@ -405,7 +404,9 @@ export function removeExtensionMarkup(): void {
 		}
 	}
 
-	const replacedSpans = [...document.querySelectorAll("span.storylens-replaced")];
+	const replacedSpans = [
+		...document.querySelectorAll("span.storylens-replaced"),
+	];
 	for (const span of replacedSpans) {
 		if (span instanceof HTMLSpanElement) {
 			unwrapMarkupSpan(span);

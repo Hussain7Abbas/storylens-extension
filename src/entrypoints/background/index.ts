@@ -1,6 +1,7 @@
 import { defineBackground } from "wxt/utils/define-background";
 import { browser } from "#imports";
 import { onMessage } from "@/entrypoints/background/messaging";
+import { setupAuthInterceptor } from "@/lib/auth/auth-service";
 import { updateSyncBadge } from "@/lib/offline/badge";
 import {
 	getKeywordsByNovelId,
@@ -14,7 +15,6 @@ import type { NovelContentData } from "@/types/content-data";
 import { handleApiProxyRequest } from "@/utils/api-proxy-handler";
 import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
 import { setupApiClient } from "@/utils/setup-api-client";
-import { setupAuthInterceptor } from "@/lib/auth/auth-service";
 
 const tabNovels = new Map<number, currentNovelMeta>();
 const SYNC_ALARM_NAME = "storylens-periodic-sync";

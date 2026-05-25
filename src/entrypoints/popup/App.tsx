@@ -3,9 +3,9 @@ import "@mantine/core/styles.css";
 import "@/styles/global.css";
 import "./App.css";
 import {
+	Center,
 	ColorSchemeScript,
 	Loader,
-	Center,
 	MantineProvider,
 	ScrollArea,
 	Stack,
@@ -17,9 +17,9 @@ import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
-import { useAuthInit, onboardingCompletedAtom } from "@/lib/auth";
-import { localeAtom } from "@/store/locale";
+import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
+import { localeAtom } from "@/store/locale";
 import { Router } from "./routers";
 
 function PopupAutoSync({ enabled }: { enabled: boolean }) {
@@ -34,7 +34,10 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 
 	if (loading) {
 		return (
-			<Center h={type === "popup" ? "32rem" : "100vh"} w={type === "popup" ? "24rem" : "100vw"}>
+			<Center
+				h={type === "popup" ? "32rem" : "100vh"}
+				w={type === "popup" ? "24rem" : "100vw"}
+			>
 				<Loader />
 			</Center>
 		);
