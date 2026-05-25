@@ -5,9 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { browser } from "#imports";
 import { useGetConfigsByKey, usePutConfigs } from "@/api/endpoints/configs.js";
-import { sendMessage } from "@/entrypoints/background/messaging";
+import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import type { websiteSelectors } from "@/types/configs";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
 import {
@@ -27,6 +26,22 @@ type PageContext = {
 	url: string;
 	html: string;
 };
+
+function getPageContextErrorMessage(
+	error: "no-tab" | "unsupported-url" | "no-content-script",
+	t: (key: string) => string,
+): string {
+	switch (error) {
+		case "no-tab":
+			return t("nodeSelector.detectFailedNoTab");
+		case "unsupported-url":
+			return t("nodeSelector.detectFailedUnsupportedTab");
+		case "no-content-script":
+			return t("nodeSelector.detectFailedNoContentScript");
+		default:
+			return t("nodeSelector.detectFailed");
+	}
+}
 
 const INITIAL_FORM_VALUES: SelectorPreviewInput & { website: string } = {
 	website: "",
@@ -104,21 +119,15 @@ export function NodeSelectorForm({
 		},
 	});
 
-	async function loadPageContext(): Promise<PageContext | null> {
-		const [tab] = await browser.tabs.query({
-			active: true,
-			currentWindow: true,
-		});
-		if (!tab?.id) {
-			return null;
+	async function loadPageContext(
+		fallback?: PageContext | null,
+	): Promise<PageContext | null> {
+		const result = await getActiveTabPageContext();
+		if (result.ok) {
+			return result.page;
 		}
 
-		const page = await sendMessage("getPageHtml", undefined, { tabId: tab.id });
-		if (!page?.url || !page.html) {
-			return null;
-		}
-
-		return page;
+		return fallback ?? null;
 	}
 
 	useEffect(() => {
@@ -160,9 +169,15 @@ export function NodeSelectorForm({
 		setIsDetecting(true);
 
 		try {
-			const page = await loadPageContext();
+			const tabResult = await getActiveTabPageContext();
+			const page = tabResult.ok ? tabResult.page : pageContext;
+
 			if (!page) {
-				toast.error(t("nodeSelector.detectFailed"));
+				toast.error(
+					tabResult.ok
+						? t("nodeSelector.detectFailed")
+						: getPageContextErrorMessage(tabResult.error, t),
+				);
 				return;
 			}
 
@@ -185,8 +200,13 @@ export function NodeSelectorForm({
 			toast.success(
 				`${t("nodeSelector.detectSuccess")} (${detection.result.confidence})`,
 			);
-		} catch {
-			toast.error(t("nodeSelector.detectFailed"));
+		} catch (error) {
+			console.error("[StoryLens] Auto-detect selectors failed", error);
+			const message =
+				error instanceof Error && error.message
+					? error.message
+					: t("nodeSelector.detectFailed");
+			toast.error(message);
 		} finally {
 			setIsDetecting(false);
 		}

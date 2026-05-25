@@ -213,6 +213,9 @@
 		"detectSuccess": "Selectors detected successfully",
 		"detectPartial": "Selectors detected with validation warnings",
 		"detectFailed": "Failed to detect selectors",
+		"detectFailedNoTab": "No active browser tab found. Open a novel chapter page and try again.",
+		"detectFailedUnsupportedTab": "Auto-detect only works on regular web pages. Open a novel chapter page in the active tab.",
+		"detectFailedNoContentScript": "Could not read the current tab. Refresh the chapter page, then try again.",
 		"noData": "There is no websites to show"
 	}
 }

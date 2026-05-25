@@ -2,6 +2,7 @@ import type { ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import type { currentNovelMeta } from "@/types";
 import { removeExtensionMarkup } from "@/utils/content-processor";
+import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { getAllNovelData } from "@/utils/site-detection";
 
@@ -107,7 +108,7 @@ export async function runContentScript(
 	onMessage("getPageHtml", () => {
 		return {
 			url: window.location.href,
-			html: document.documentElement.outerHTML,
+			html: sanitizePageHtml(),
 		};
 	});
 

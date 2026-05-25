@@ -1,4 +1,4 @@
-import { customInstance } from "@/api/axios-instance";
+import { extensionApiPost } from "@/utils/api-proxy-client";
 
 export type NodeSelectorFormValues = {
 	website: string;
@@ -35,12 +35,8 @@ export async function detectChapterSelectors(input: {
 	html: string;
 	model?: string;
 }) {
-	const response = await customInstance<DetectChapterSelectorsResponse>({
-		url: "/ai/chapter-selectors",
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		data: input,
-	});
-
-	return response.data;
+	return extensionApiPost<DetectChapterSelectorsResponse>(
+		"/ai/chapter-selectors",
+		input,
+	);
 }
