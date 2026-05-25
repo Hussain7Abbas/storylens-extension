@@ -1,27 +1,35 @@
-=== CHROME WEB STORE — PRIVACY PRACTICES ANSWERS ===
+=== CHROME WEB STORE — DATA USAGE / PRIVACY PRACTICES ===
+Public disclosures — must match apps/extension/store/privacy-policy.en.txt
 
 Does your extension collect or transmit user data?
 Yes
 
-Data types to declare
+--- Data types ---
 
 [YES] Website content
-Reason: The Extension reads visible chapter text on novel pages the user visits so it can apply keyword highlights and text replacements configured by the user.
+Purpose: Read visible chapter text on the novel page the user is reading so StoryLens can apply keyword highlights and text replacements configured by the user.
+Required? Partially — required to enhance the active reading page; not uploaded as full page content for unrelated use.
 
 [YES] User activity
-Reason: The Extension stores and syncs user-created glossary activity such as novels, keywords, categories, replacements, and related settings through the StoryLens API.
+Purpose: Store and sync user-created glossary data (novels, keywords, categories, replacements, colors, and related settings) with the StoryLens API so it persists across sessions.
+Required? Partially — local highlighting can work on a page without sync; saving/syncing glossary data requires transmission to the StoryLens API.
 
-[NO] Personally identifiable information
-Reason: The current public Extension version does not require user login and does not intentionally collect names, email addresses, or similar identity data.
+[YES] Personally identifiable information
+Purpose: Support optional account registration and profile management. If the user registers, StoryLens may collect and store email, username, and optional display name. Guest users receive an auto-generated username so glossary data can be associated with their account.
+Required? Optional — guest access is created automatically; registration with email/name is voluntary.
+
+[YES] Authentication information
+Purpose: Create and maintain user sessions. StoryLens stores a session token locally and transmits credentials (email and password) only when the user chooses to register or sign in.
+Required? Partially — a guest session token is created automatically so the API can associate glossary data with the user; email/password are only collected if the user registers or logs in.
 
 [NO] Health information
 [NO] Financial and payment information
-[NO] Authentication information
 [NO] Personal communications
 [NO] Location
 [NO] Web history
+Reason for Web history = No: StoryLens does not collect or transmit a record of sites the user has visited. It only reads content on the page the user is currently reading for in-page highlighting.
 
-Certifications / usage statements
+--- Certifications ---
 
 Is the data encrypted in transit?
 Yes — data is transmitted to https://storylens-api.iscoded.com over HTTPS.
@@ -30,17 +38,19 @@ Is the data sold to third parties?
 No
 
 Is the data used for purposes unrelated to the item's core functionality?
-No — data is used only to provide novel glossary highlighting and syncing.
+No — data is used only to provide novel glossary highlighting, account/session management, and syncing.
 
 Is the data transferred to third parties?
 No — aside from operating the StoryLens backend needed to provide the service.
 
 Is collection required for the Extension to work?
 Partially optional:
-• Using the Extension locally on a page requires reading that page's visible chapter content
-• Syncing and saving glossary data requires transmission to the StoryLens API
+• Reading visible chapter content on the active page is required for in-page highlights and replacements
+• A guest session is created automatically to sync glossary data with the StoryLens API
+• Registering with email, name, or password is optional
 
 Privacy policy URL
 https://github.com/Hussain7Abbas/storylens/blob/main/apps/extension/store/privacy-policy.en.txt
 
-(After you push the store files to GitHub, use this URL in the Chrome Web Store dashboard.)
+Contact email (developer dashboard)
+hussain@iscoded.com

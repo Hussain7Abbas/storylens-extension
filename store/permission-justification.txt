@@ -1,10 +1,24 @@
-=== PERMISSION JUSTIFICATIONS ===
+=== PERMISSION JUSTIFICATIONS (Chrome Web Store) ===
+Copy each section below into the matching dashboard field (1,000 character limit each).
 
-HOST PERMISSION — Read and change all your data on all websites (<all_urls>)
-StoryLens injects a content script on the web novel page the user is reading so it can locate chapter text and apply keyword highlights and text replacements configured by the user. Novel sites use different domains and URL structures, so the extension must be able to run on the page the user is actively reading. StoryLens does not collect or transmit full page content to third parties; it reads the visible chapter content only to apply the user's own glossary settings on that page.
+--- tabs justification ---
 
-HOST PERMISSION — https://storylens-api.iscoded.com/*
-StoryLens stores and retrieves the user's novels, keywords, categories, replacements, and related settings from the StoryLens backend API. This permission allows the extension background service worker to sync glossary data over HTTPS with the StoryLens server.
+StoryLens uses the tabs permission to read the active tab’s URL so it can detect which web novel and chapter the user is reading. The background service worker maps that detected metadata to the tab ID so the popup can show the correct novel context. When the user edits keywords or replacements in the popup, StoryLens sends a refresh message to the active tab so highlights and text replacements update on the page without a manual reload. The tabs permission is also used to clean up cached per-tab data when a tab is closed.
 
-PERMISSION — Tabs
-The tabs permission is used to associate detected novel and chapter metadata with the active browser tab, and to refresh the content script when the user updates settings from the popup so highlights and replacements update on the current page.
+--- storage justification ---
+
+StoryLens uses chrome.storage.local to persist extension settings and state between sessions. This includes the user’s auth session token, onboarding completion status, and offline sync metadata such as pending glossary changes waiting to upload and the list of novels downloaded for offline reading. Storage is used only to keep the user’s StoryLens data available across browser restarts and to support offline edits that sync when the network is available again.
+
+--- alarms justification ---
+
+StoryLens uses the alarms permission to run a periodic background sync every five minutes. When the user is online, this alarm uploads pending offline glossary changes (keywords, replacements, categories, and related edits) to the StoryLens API and updates the extension badge to reflect sync status. Alarms allow this work to happen reliably in the background without keeping the popup open, so user changes made while reading are saved even if the user closes the extension UI.
+
+--- unlimitedStorage justification ---
+
+StoryLens users may build large glossaries with many keywords, replacements, categories, and offline edits across multiple novels. The extension stores offline sync queues and related local state in chrome.storage.local, which can grow beyond Chrome’s default storage quota as pending changes accumulate. unlimitedStorage ensures that sync metadata and queued edits are not lost when a user maintains a large glossary or works offline for extended reading sessions.
+
+--- Host permission justification ---
+
+StoryLens needs access to the web novel page the user is reading so its content script can locate chapter text and apply the user’s keyword highlights and text replacements on that page. Novel sites use many different domains and URL structures, so the extension must run on whichever reading page the user opens. StoryLens reads visible chapter content only to apply the user’s own glossary settings locally on the active page; it does not collect or sell full page content.
+
+StoryLens also needs host access to https://storylens-api.iscoded.com so the background service worker can sync the user’s novels, keywords, categories, replacements, and settings with the StoryLens backend over HTTPS.

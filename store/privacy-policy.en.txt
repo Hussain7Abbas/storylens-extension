@@ -1,6 +1,6 @@
 StoryLens Privacy Policy
 
-Last updated: May 24, 2026
+Last updated: May 25, 2026
 
 StoryLens ("the Extension") is a browser extension that helps users highlight and manage glossary terms while reading web novels online. This policy explains what information the Extension handles and how it is used.
 
@@ -20,11 +20,17 @@ This data is sent to the StoryLens API at https://storylens-api.iscoded.com so y
 2. Website content on pages you visit
 To highlight and replace terms on a novel page, the Extension reads the visible chapter content on the page you are reading. This processing happens locally in your browser to apply your configured keywords and replacements. The Extension is designed to use page content only for reading enhancement on the active page.
 
-3. Technical data
+3. Account and authentication data
+When you first use StoryLens, the Extension may automatically create a guest account with a generated username so your glossary can be saved and synced. If you choose to register or sign in, the Extension may collect and transmit:
+• Email address and password (when you register or log in)
+• Username and optional display name
+• A session token stored locally in your browser for authenticated API requests
+
+4. Technical data
 Like most web-connected software, requests to the StoryLens API may include standard technical information such as request timestamps and browser/network metadata needed to deliver the service.
 
 Information we do not collect through the Extension
-• The Extension does not require account login in the current public version
+• We do not collect your browsing history across websites
 • We do not sell your personal information
 • We do not use your data for unrelated advertising profiles
 
@@ -33,6 +39,7 @@ We use the information above only to:
 • Detect the novel/chapter context on supported reading pages
 • Apply your keyword highlights and replacements
 • Save, load, and sync your glossary and settings
+• Create and maintain guest or registered user sessions
 • Operate, maintain, and improve StoryLens
 
 Data storage and security
