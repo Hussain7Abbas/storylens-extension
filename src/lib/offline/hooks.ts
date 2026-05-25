@@ -46,6 +46,7 @@ import {
 	deleteReplacementById,
 	getAllKeywordCategories,
 	getAllKeywordNatures,
+	getDownloadedNovels,
 	getKeywordsByNovelId,
 	getReplacementsByNovelId,
 	isNovelDownloaded,
@@ -56,6 +57,7 @@ import {
 	updateKeywordCategoryReferences,
 	updateKeywordNatureReferences,
 } from "@/lib/offline/db";
+import type { DownloadedNovel } from "@/lib/offline/types";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import {
 	addPendingOp,
@@ -162,6 +164,25 @@ export function useDownloadedNovelIds(): {
 
 	return {
 		downloadedIds: query.data ?? new Set<string>(),
+		isLoading: query.isLoading,
+		refresh: () => {
+			void query.refetch();
+		},
+	};
+}
+
+export function useDownloadedNovelsList(): {
+	novels: DownloadedNovel[];
+	isLoading: boolean;
+	refresh: () => void;
+} {
+	const query = useQuery({
+		queryKey: ["offline", "downloaded-novels"],
+		queryFn: getDownloadedNovels,
+	});
+
+	return {
+		novels: query.data ?? [],
 		isLoading: query.isLoading,
 		refresh: () => {
 			void query.refetch();

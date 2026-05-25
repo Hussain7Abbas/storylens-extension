@@ -21,12 +21,16 @@ import {
 } from "@tabler/icons-react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useGetNovels, usePutNovelsById } from "@/api/endpoints/novels.js";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
-import { useDownloadedNovelIds, useOnlineStatus } from "@/lib/offline/hooks";
+import {
+	useDownloadedNovelIds,
+	useDownloadedNovelsList,
+	useOnlineStatus,
+} from "@/lib/offline/hooks";
 import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
@@ -43,6 +47,11 @@ export function HomePage() {
 	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
 		useDownloadedNovelIds();
+	const {
+		novels: downloadedNovels,
+		isLoading: downloadedNovelsLoading,
+		refresh: refreshDownloadedNovels,
+	} = useDownloadedNovelsList();
 
 	const {
 		data: novelsData,
@@ -50,13 +59,32 @@ export function HomePage() {
 		refetch: refetchNovels,
 	} = useGetNovels<{
 		data: { data: Novel[] };
-	}>({
-		pagination: { page: 1, pageSize: 100 },
-		sorting: { column: "name", direction: "asc" },
-	});
+	}>(
+		{
+			pagination: { page: 1, pageSize: 100 },
+			sorting: { column: "name", direction: "asc" },
+		},
+		{
+			query: {
+				enabled: online,
+				retry: false,
+			},
+		},
+	);
+
+	const availableNovels = useMemo(() => {
+		const apiNovels = novelsData?.data?.data;
+		if (apiNovels?.length) {
+			return apiNovels;
+		}
+		return downloadedNovels;
+	}, [novelsData?.data?.data, downloadedNovels]);
+
+	const novelListLoading = online ? novelsLoading : downloadedNovelsLoading;
 
 	const { selectedNovel, setSelectedNovel, currentTabNovel } = useDetectedNovel(
 		novelsData?.data?.data,
+		downloadedNovels,
 	);
 
 	const isSelectedDownloaded = selectedNovel?.id
@@ -82,6 +110,7 @@ export function HomePage() {
 				toast.success(t("offline.novelDownloaded"));
 			}
 			refreshDownloadedIds();
+			refreshDownloadedNovels();
 		} catch {
 			toast.error(
 				isSelectedDownloaded
@@ -107,7 +136,12 @@ export function HomePage() {
 				/>
 			) : (
 				<Stack gap={0}>
-					{novelsLoading ? (
+					{!online && (
+						<Text size="xs" c="orange" mb="xs">
+							{t("offline.banner")}
+						</Text>
+					)}
+					{novelListLoading ? (
 						<Skeleton height={40} animate />
 					) : (
 						<Group gap="xs" align="end">
@@ -116,14 +150,14 @@ export function HomePage() {
 								placeholder={t("home.selectNovelPlaceholder")}
 								allowDeselect={false}
 								flex={1}
-								data={novelsData?.data?.data?.map((novel: Novel) => ({
+								data={availableNovels.map((novel: Novel) => ({
 									value: novel.id,
 									label: novel.name,
 								}))}
 								value={selectedNovel?.id}
 								onChange={(value) =>
 									setSelectedNovel(
-										novelsData?.data?.data?.find(
+										availableNovels.find(
 											(novel: Novel) => novel.id === value,
 										),
 									)

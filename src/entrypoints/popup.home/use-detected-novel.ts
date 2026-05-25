@@ -36,7 +36,10 @@ async function getDetectedNovel(
 	}
 }
 
-export function useDetectedNovel(novels: Novel[] | undefined) {
+export function useDetectedNovel(
+	novels: Novel[] | undefined,
+	offlineNovels: Novel[] | undefined,
+) {
 	const [selectedNovel, setSelectedNovel] = useState<
 		Partial<Novel> | undefined
 	>();
@@ -48,18 +51,20 @@ export function useDetectedNovel(novels: Novel[] | undefined) {
 		(detectedNovel: currentNovelMeta) => {
 			setCurrentTabNovel(detectedNovel);
 
-			if (!novels?.length) {
+			const candidates = novels?.length ? novels : offlineNovels;
+			if (!candidates?.length) {
 				return;
 			}
 
-			const novel = findNovelBySlug(novels, detectedNovel.novelSlug);
+			const novel = findNovelBySlug(candidates, detectedNovel.novelSlug);
 			if (novel) {
 				setSelectedNovel(novel);
 			}
 		},
-		[novels],
+		[novels, offlineNovels],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: we want to re-run the effect when novels changes
 	useEffect(() => {
 		const detectNovel = async () => {
 			const [tab] = await browser.tabs.query({

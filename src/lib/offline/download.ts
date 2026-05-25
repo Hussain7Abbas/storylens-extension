@@ -24,6 +24,7 @@ import {
 	REPLACEMENT_LIST_SORTING,
 	withListQueryParams,
 } from "@/utils/api-list-params";
+import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
 
 const DOWNLOAD_PAGE_SIZE = 500;
 
@@ -80,6 +81,7 @@ export async function downloadNovel(novelId: string): Promise<void> {
 				sorting: { column: "name", direction: "asc" },
 			}),
 		),
+		loadWebsiteSelectorsValue(),
 	]);
 
 	const novel: DownloadedNovel = {
