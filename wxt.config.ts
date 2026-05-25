@@ -62,6 +62,6 @@ export default defineConfig({
 		},
 		chromiumArgs: ["--user-data-dir=./.wxt/chromium-data"],
 		keepProfileChanges: true,
-		startUrls: ["https://rewayat.club/novel/hail-the-king/72"],
+		startUrls: ["https://mknov.com/novel/984/chapter/364038"],
 	},
 });
