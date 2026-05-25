@@ -7,6 +7,6 @@
  */
 
 export type PutWebsiteSelectorsByWebsiteBodyThreeNovelUrlAnyOf = {
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	regex: string;
 };

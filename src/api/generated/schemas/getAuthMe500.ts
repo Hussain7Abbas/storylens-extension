@@ -7,5 +7,5 @@
  */
 
 export type GetAuthMe500 = {
-  message: string;
+	message: string;
 };

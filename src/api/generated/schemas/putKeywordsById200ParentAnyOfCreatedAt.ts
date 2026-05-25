@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutKeywordsById200ParentAnyOfCreatedAt = unknown | string | string | number;
+export type PutKeywordsById200ParentAnyOfCreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

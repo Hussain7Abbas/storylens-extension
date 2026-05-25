@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostReplacements200KeywordAnyOfMatchingType = 'FULL' | 'PARTIAL';
+export type PostReplacements200KeywordAnyOfMatchingType = "FULL" | "PARTIAL";

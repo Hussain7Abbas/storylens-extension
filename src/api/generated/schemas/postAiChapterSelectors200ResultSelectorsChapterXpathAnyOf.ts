@@ -7,6 +7,6 @@
  */
 
 export type PostAiChapterSelectors200ResultSelectorsChapterXpathAnyOf = {
-  value: string;
-  regex: string;
+	value: string;
+	regex: string;
 };

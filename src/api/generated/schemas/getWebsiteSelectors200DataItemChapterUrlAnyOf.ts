@@ -7,6 +7,6 @@
  */
 
 export type GetWebsiteSelectors200DataItemChapterUrlAnyOf = {
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	regex: string;
 };

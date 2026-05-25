@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsById200KeywordAnyOfCategoryCreatedAt } from './getReplacementsById200KeywordAnyOfCategoryCreatedAt';
-import type { GetReplacementsById200KeywordAnyOfCategoryUpdatedAt } from './getReplacementsById200KeywordAnyOfCategoryUpdatedAt';
+import type { GetReplacementsById200KeywordAnyOfCategoryCreatedAt } from "./getReplacementsById200KeywordAnyOfCategoryCreatedAt";
+import type { GetReplacementsById200KeywordAnyOfCategoryUpdatedAt } from "./getReplacementsById200KeywordAnyOfCategoryUpdatedAt";
 
 export type GetReplacementsById200KeywordAnyOfCategory = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: GetReplacementsById200KeywordAnyOfCategoryCreatedAt;
-  updatedAt: GetReplacementsById200KeywordAnyOfCategoryUpdatedAt;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: GetReplacementsById200KeywordAnyOfCategoryCreatedAt;
+	updatedAt: GetReplacementsById200KeywordAnyOfCategoryUpdatedAt;
 };

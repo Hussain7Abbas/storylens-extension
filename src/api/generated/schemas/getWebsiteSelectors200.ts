@@ -5,8 +5,8 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetWebsiteSelectors200DataItem } from './getWebsiteSelectors200DataItem';
+import type { GetWebsiteSelectors200DataItem } from "./getWebsiteSelectors200DataItem";
 
 export type GetWebsiteSelectors200 = {
-  data: GetWebsiteSelectors200DataItem[];
+	data: GetWebsiteSelectors200DataItem[];
 };

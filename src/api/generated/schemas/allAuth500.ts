@@ -7,5 +7,5 @@
  */
 
 export type AllAuth500 = {
-  message: string;
+	message: string;
 };

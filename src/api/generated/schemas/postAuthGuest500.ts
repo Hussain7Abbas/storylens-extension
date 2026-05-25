@@ -7,5 +7,5 @@
  */
 
 export type PostAuthGuest500 = {
-  message: string;
+	message: string;
 };

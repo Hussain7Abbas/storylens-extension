@@ -7,5 +7,5 @@
  */
 
 export type PostWebsiteSelectors500 = {
-  message: string;
+	message: string;
 };

@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsChaptersKeywordByKeywordIdSortingDirection = typeof GetKeywordsChaptersKeywordByKeywordIdSortingDirection[keyof typeof GetKeywordsChaptersKeywordByKeywordIdSortingDirection];
-
+export type GetKeywordsChaptersKeywordByKeywordIdSortingDirection =
+	(typeof GetKeywordsChaptersKeywordByKeywordIdSortingDirection)[keyof typeof GetKeywordsChaptersKeywordByKeywordIdSortingDirection];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetKeywordsChaptersKeywordByKeywordIdSortingDirection = {
-  asc: 'asc',
-  desc: 'desc',
+	asc: "asc",
+	desc: "desc",
 } as const;

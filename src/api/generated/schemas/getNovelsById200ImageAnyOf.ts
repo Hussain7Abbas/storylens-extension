@@ -5,18 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetNovelsById200ImageAnyOfType } from './getNovelsById200ImageAnyOfType';
-import type { GetNovelsById200ImageAnyOfUserId } from './getNovelsById200ImageAnyOfUserId';
-import type { GetNovelsById200ImageAnyOfCreatedAt } from './getNovelsById200ImageAnyOfCreatedAt';
-import type { GetNovelsById200ImageAnyOfUpdatedAt } from './getNovelsById200ImageAnyOfUpdatedAt';
+
+import type { GetNovelsById200ImageAnyOfCreatedAt } from "./getNovelsById200ImageAnyOfCreatedAt";
+import type { GetNovelsById200ImageAnyOfType } from "./getNovelsById200ImageAnyOfType";
+import type { GetNovelsById200ImageAnyOfUpdatedAt } from "./getNovelsById200ImageAnyOfUpdatedAt";
+import type { GetNovelsById200ImageAnyOfUserId } from "./getNovelsById200ImageAnyOfUserId";
 
 export type GetNovelsById200ImageAnyOf = {
-  id: string;
-  url: string;
-  type: GetNovelsById200ImageAnyOfType;
-  provider_image_id: string;
-  delete_url: string;
-  userId: GetNovelsById200ImageAnyOfUserId;
-  createdAt: GetNovelsById200ImageAnyOfCreatedAt;
-  updatedAt: GetNovelsById200ImageAnyOfUpdatedAt;
+	id: string;
+	url: string;
+	type: GetNovelsById200ImageAnyOfType;
+	provider_image_id: string;
+	delete_url: string;
+	userId: GetNovelsById200ImageAnyOfUserId;
+	createdAt: GetNovelsById200ImageAnyOfCreatedAt;
+	updatedAt: GetNovelsById200ImageAnyOfUpdatedAt;
 };

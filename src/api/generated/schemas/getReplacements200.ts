@@ -5,9 +5,9 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacements200DataItem } from './getReplacements200DataItem';
+import type { GetReplacements200DataItem } from "./getReplacements200DataItem";
 
 export type GetReplacements200 = {
-  data: GetReplacements200DataItem[];
-  total: number;
+	data: GetReplacements200DataItem[];
+	total: number;
 };

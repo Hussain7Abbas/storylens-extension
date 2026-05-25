@@ -5,31 +5,32 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetChaptersById200KeywordsChaptersItemKeywordMatchingType } from './getChaptersById200KeywordsChaptersItemKeywordMatchingType';
-import type { GetChaptersById200KeywordsChaptersItemKeywordImageId } from './getChaptersById200KeywordsChaptersItemKeywordImageId';
-import type { GetChaptersById200KeywordsChaptersItemKeywordParentId } from './getChaptersById200KeywordsChaptersItemKeywordParentId';
-import type { GetChaptersById200KeywordsChaptersItemKeywordCreatedById } from './getChaptersById200KeywordsChaptersItemKeywordCreatedById';
-import type { GetChaptersById200KeywordsChaptersItemKeywordCreatedAt } from './getChaptersById200KeywordsChaptersItemKeywordCreatedAt';
-import type { GetChaptersById200KeywordsChaptersItemKeywordUpdatedAt } from './getChaptersById200KeywordsChaptersItemKeywordUpdatedAt';
-import type { GetChaptersById200KeywordsChaptersItemKeywordCategory } from './getChaptersById200KeywordsChaptersItemKeywordCategory';
-import type { GetChaptersById200KeywordsChaptersItemKeywordNature } from './getChaptersById200KeywordsChaptersItemKeywordNature';
-import type { GetChaptersById200KeywordsChaptersItemKeywordImage } from './getChaptersById200KeywordsChaptersItemKeywordImage';
+
+import type { GetChaptersById200KeywordsChaptersItemKeywordCategory } from "./getChaptersById200KeywordsChaptersItemKeywordCategory";
+import type { GetChaptersById200KeywordsChaptersItemKeywordCreatedAt } from "./getChaptersById200KeywordsChaptersItemKeywordCreatedAt";
+import type { GetChaptersById200KeywordsChaptersItemKeywordCreatedById } from "./getChaptersById200KeywordsChaptersItemKeywordCreatedById";
+import type { GetChaptersById200KeywordsChaptersItemKeywordImage } from "./getChaptersById200KeywordsChaptersItemKeywordImage";
+import type { GetChaptersById200KeywordsChaptersItemKeywordImageId } from "./getChaptersById200KeywordsChaptersItemKeywordImageId";
+import type { GetChaptersById200KeywordsChaptersItemKeywordMatchingType } from "./getChaptersById200KeywordsChaptersItemKeywordMatchingType";
+import type { GetChaptersById200KeywordsChaptersItemKeywordNature } from "./getChaptersById200KeywordsChaptersItemKeywordNature";
+import type { GetChaptersById200KeywordsChaptersItemKeywordParentId } from "./getChaptersById200KeywordsChaptersItemKeywordParentId";
+import type { GetChaptersById200KeywordsChaptersItemKeywordUpdatedAt } from "./getChaptersById200KeywordsChaptersItemKeywordUpdatedAt";
 
 export type GetChaptersById200KeywordsChaptersItemKeyword = {
-  id: string;
-  name: string;
-  description: string;
-  matchingType: GetChaptersById200KeywordsChaptersItemKeywordMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId: GetChaptersById200KeywordsChaptersItemKeywordImageId;
-  parentId: GetChaptersById200KeywordsChaptersItemKeywordParentId;
-  novelId: string;
-  createdById: GetChaptersById200KeywordsChaptersItemKeywordCreatedById;
-  createdAt: GetChaptersById200KeywordsChaptersItemKeywordCreatedAt;
-  updatedAt: GetChaptersById200KeywordsChaptersItemKeywordUpdatedAt;
-  category: GetChaptersById200KeywordsChaptersItemKeywordCategory;
-  nature: GetChaptersById200KeywordsChaptersItemKeywordNature;
-  /** @nullable */
-  image: GetChaptersById200KeywordsChaptersItemKeywordImage;
+	id: string;
+	name: string;
+	description: string;
+	matchingType: GetChaptersById200KeywordsChaptersItemKeywordMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId: GetChaptersById200KeywordsChaptersItemKeywordImageId;
+	parentId: GetChaptersById200KeywordsChaptersItemKeywordParentId;
+	novelId: string;
+	createdById: GetChaptersById200KeywordsChaptersItemKeywordCreatedById;
+	createdAt: GetChaptersById200KeywordsChaptersItemKeywordCreatedAt;
+	updatedAt: GetChaptersById200KeywordsChaptersItemKeywordUpdatedAt;
+	category: GetChaptersById200KeywordsChaptersItemKeywordCategory;
+	nature: GetChaptersById200KeywordsChaptersItemKeywordNature;
+	/** @nullable */
+	image: GetChaptersById200KeywordsChaptersItemKeywordImage;
 };

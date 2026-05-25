@@ -7,5 +7,5 @@
  */
 
 export type PostAuthRegister200 = {
-  available: boolean;
+	available: boolean;
 };

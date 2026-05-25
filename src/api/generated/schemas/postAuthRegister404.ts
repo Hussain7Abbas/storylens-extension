@@ -7,5 +7,5 @@
  */
 
 export type PostAuthRegister404 = {
-  message: string;
+	message: string;
 };

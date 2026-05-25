@@ -7,5 +7,5 @@
  */
 
 export type GetNovels500 = {
-  message: string;
+	message: string;
 };

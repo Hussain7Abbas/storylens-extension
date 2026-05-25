@@ -5,24 +5,25 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywords200DataItemParentAnyOfMatchingType } from './getKeywords200DataItemParentAnyOfMatchingType';
-import type { GetKeywords200DataItemParentAnyOfImageId } from './getKeywords200DataItemParentAnyOfImageId';
-import type { GetKeywords200DataItemParentAnyOfParentId } from './getKeywords200DataItemParentAnyOfParentId';
-import type { GetKeywords200DataItemParentAnyOfCreatedById } from './getKeywords200DataItemParentAnyOfCreatedById';
-import type { GetKeywords200DataItemParentAnyOfCreatedAt } from './getKeywords200DataItemParentAnyOfCreatedAt';
-import type { GetKeywords200DataItemParentAnyOfUpdatedAt } from './getKeywords200DataItemParentAnyOfUpdatedAt';
+
+import type { GetKeywords200DataItemParentAnyOfCreatedAt } from "./getKeywords200DataItemParentAnyOfCreatedAt";
+import type { GetKeywords200DataItemParentAnyOfCreatedById } from "./getKeywords200DataItemParentAnyOfCreatedById";
+import type { GetKeywords200DataItemParentAnyOfImageId } from "./getKeywords200DataItemParentAnyOfImageId";
+import type { GetKeywords200DataItemParentAnyOfMatchingType } from "./getKeywords200DataItemParentAnyOfMatchingType";
+import type { GetKeywords200DataItemParentAnyOfParentId } from "./getKeywords200DataItemParentAnyOfParentId";
+import type { GetKeywords200DataItemParentAnyOfUpdatedAt } from "./getKeywords200DataItemParentAnyOfUpdatedAt";
 
 export type GetKeywords200DataItemParentAnyOf = {
-  id: string;
-  name: string;
-  description: string;
-  matchingType: GetKeywords200DataItemParentAnyOfMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId: GetKeywords200DataItemParentAnyOfImageId;
-  parentId: GetKeywords200DataItemParentAnyOfParentId;
-  novelId: string;
-  createdById: GetKeywords200DataItemParentAnyOfCreatedById;
-  createdAt: GetKeywords200DataItemParentAnyOfCreatedAt;
-  updatedAt: GetKeywords200DataItemParentAnyOfUpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	matchingType: GetKeywords200DataItemParentAnyOfMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId: GetKeywords200DataItemParentAnyOfImageId;
+	parentId: GetKeywords200DataItemParentAnyOfParentId;
+	novelId: string;
+	createdById: GetKeywords200DataItemParentAnyOfCreatedById;
+	createdAt: GetKeywords200DataItemParentAnyOfCreatedAt;
+	updatedAt: GetKeywords200DataItemParentAnyOfUpdatedAt;
 };

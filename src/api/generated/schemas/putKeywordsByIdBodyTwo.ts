@@ -5,16 +5,16 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutKeywordsByIdBodyTwoMatchingType } from './putKeywordsByIdBodyTwoMatchingType';
+import type { PutKeywordsByIdBodyTwoMatchingType } from "./putKeywordsByIdBodyTwoMatchingType";
 
 export type PutKeywordsByIdBodyTwo = {
-  /** @minLength 1 */
-  name: string;
-  /** @minLength 1 */
-  description: string;
-  matchingType: PutKeywordsByIdBodyTwoMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId?: string;
-  parentId?: string;
+	/** @minLength 1 */
+	name: string;
+	/** @minLength 1 */
+	description: string;
+	matchingType: PutKeywordsByIdBodyTwoMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId?: string;
+	parentId?: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type GetWebsiteSelectors500 = {
-  message: string;
+	message: string;
 };

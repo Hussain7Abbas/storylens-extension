@@ -7,5 +7,5 @@
  */
 
 export type GetAuthCheckUsernameByUsername200 = {
-  available: boolean;
+	available: boolean;
 };

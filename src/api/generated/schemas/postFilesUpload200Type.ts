@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostFilesUpload200Type = typeof PostFilesUpload200Type[keyof typeof PostFilesUpload200Type];
-
+export type PostFilesUpload200Type =
+	(typeof PostFilesUpload200Type)[keyof typeof PostFilesUpload200Type];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostFilesUpload200Type = {
-  Image: 'Image',
-  Video: 'Video',
+	Image: "Image",
+	Video: "Video",
 } as const;

@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostAiChapterSelectors200ResultSelectorsChapterUrlAnyOf } from './postAiChapterSelectors200ResultSelectorsChapterUrlAnyOf';
+import type { PostAiChapterSelectors200ResultSelectorsChapterUrlAnyOf } from "./postAiChapterSelectors200ResultSelectorsChapterUrlAnyOf";
 
 /**
  * @nullable
  */
-export type PostAiChapterSelectors200ResultSelectorsChapterUrl = PostAiChapterSelectors200ResultSelectorsChapterUrlAnyOf | null | null;
+export type PostAiChapterSelectors200ResultSelectorsChapterUrl =
+	PostAiChapterSelectors200ResultSelectorsChapterUrlAnyOf | null | null;

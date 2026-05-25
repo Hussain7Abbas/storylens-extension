@@ -7,5 +7,5 @@
  */
 
 export type PostAiChapterSelectors404 = {
-  message: string;
+	message: string;
 };

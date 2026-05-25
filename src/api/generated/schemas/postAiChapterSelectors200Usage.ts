@@ -7,7 +7,7 @@
  */
 
 export type PostAiChapterSelectors200Usage = {
-  inputTokens?: number;
-  outputTokens?: number;
-  cost?: number;
+	inputTokens?: number;
+	outputTokens?: number;
+	cost?: number;
 };

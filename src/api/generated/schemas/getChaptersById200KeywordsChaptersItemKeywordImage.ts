@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOf } from './getChaptersById200KeywordsChaptersItemKeywordImageAnyOf';
+import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOf } from "./getChaptersById200KeywordsChaptersItemKeywordImageAnyOf";
 
 /**
  * @nullable
  */
-export type GetChaptersById200KeywordsChaptersItemKeywordImage = GetChaptersById200KeywordsChaptersItemKeywordImageAnyOf | null | null;
+export type GetChaptersById200KeywordsChaptersItemKeywordImage =
+	GetChaptersById200KeywordsChaptersItemKeywordImageAnyOf | null | null;

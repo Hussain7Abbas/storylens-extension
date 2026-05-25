@@ -5,18 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutKeywordsById200ImageAnyOfType } from './putKeywordsById200ImageAnyOfType';
-import type { PutKeywordsById200ImageAnyOfUserId } from './putKeywordsById200ImageAnyOfUserId';
-import type { PutKeywordsById200ImageAnyOfCreatedAt } from './putKeywordsById200ImageAnyOfCreatedAt';
-import type { PutKeywordsById200ImageAnyOfUpdatedAt } from './putKeywordsById200ImageAnyOfUpdatedAt';
+
+import type { PutKeywordsById200ImageAnyOfCreatedAt } from "./putKeywordsById200ImageAnyOfCreatedAt";
+import type { PutKeywordsById200ImageAnyOfType } from "./putKeywordsById200ImageAnyOfType";
+import type { PutKeywordsById200ImageAnyOfUpdatedAt } from "./putKeywordsById200ImageAnyOfUpdatedAt";
+import type { PutKeywordsById200ImageAnyOfUserId } from "./putKeywordsById200ImageAnyOfUserId";
 
 export type PutKeywordsById200ImageAnyOf = {
-  id: string;
-  url: string;
-  type: PutKeywordsById200ImageAnyOfType;
-  provider_image_id: string;
-  delete_url: string;
-  userId: PutKeywordsById200ImageAnyOfUserId;
-  createdAt: PutKeywordsById200ImageAnyOfCreatedAt;
-  updatedAt: PutKeywordsById200ImageAnyOfUpdatedAt;
+	id: string;
+	url: string;
+	type: PutKeywordsById200ImageAnyOfType;
+	provider_image_id: string;
+	delete_url: string;
+	userId: PutKeywordsById200ImageAnyOfUserId;
+	createdAt: PutKeywordsById200ImageAnyOfCreatedAt;
+	updatedAt: PutKeywordsById200ImageAnyOfUpdatedAt;
 };

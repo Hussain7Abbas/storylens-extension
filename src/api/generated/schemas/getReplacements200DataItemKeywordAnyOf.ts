@@ -5,24 +5,25 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacements200DataItemKeywordAnyOfMatchingType } from './getReplacements200DataItemKeywordAnyOfMatchingType';
-import type { GetReplacements200DataItemKeywordAnyOfImageId } from './getReplacements200DataItemKeywordAnyOfImageId';
-import type { GetReplacements200DataItemKeywordAnyOfParentId } from './getReplacements200DataItemKeywordAnyOfParentId';
-import type { GetReplacements200DataItemKeywordAnyOfCreatedById } from './getReplacements200DataItemKeywordAnyOfCreatedById';
-import type { GetReplacements200DataItemKeywordAnyOfCreatedAt } from './getReplacements200DataItemKeywordAnyOfCreatedAt';
-import type { GetReplacements200DataItemKeywordAnyOfUpdatedAt } from './getReplacements200DataItemKeywordAnyOfUpdatedAt';
+
+import type { GetReplacements200DataItemKeywordAnyOfCreatedAt } from "./getReplacements200DataItemKeywordAnyOfCreatedAt";
+import type { GetReplacements200DataItemKeywordAnyOfCreatedById } from "./getReplacements200DataItemKeywordAnyOfCreatedById";
+import type { GetReplacements200DataItemKeywordAnyOfImageId } from "./getReplacements200DataItemKeywordAnyOfImageId";
+import type { GetReplacements200DataItemKeywordAnyOfMatchingType } from "./getReplacements200DataItemKeywordAnyOfMatchingType";
+import type { GetReplacements200DataItemKeywordAnyOfParentId } from "./getReplacements200DataItemKeywordAnyOfParentId";
+import type { GetReplacements200DataItemKeywordAnyOfUpdatedAt } from "./getReplacements200DataItemKeywordAnyOfUpdatedAt";
 
 export type GetReplacements200DataItemKeywordAnyOf = {
-  id: string;
-  name: string;
-  description: string;
-  matchingType: GetReplacements200DataItemKeywordAnyOfMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId: GetReplacements200DataItemKeywordAnyOfImageId;
-  parentId: GetReplacements200DataItemKeywordAnyOfParentId;
-  novelId: string;
-  createdById: GetReplacements200DataItemKeywordAnyOfCreatedById;
-  createdAt: GetReplacements200DataItemKeywordAnyOfCreatedAt;
-  updatedAt: GetReplacements200DataItemKeywordAnyOfUpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	matchingType: GetReplacements200DataItemKeywordAnyOfMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId: GetReplacements200DataItemKeywordAnyOfImageId;
+	parentId: GetReplacements200DataItemKeywordAnyOfParentId;
+	novelId: string;
+	createdById: GetReplacements200DataItemKeywordAnyOfCreatedById;
+	createdAt: GetReplacements200DataItemKeywordAnyOfCreatedAt;
+	updatedAt: GetReplacements200DataItemKeywordAnyOfUpdatedAt;
 };

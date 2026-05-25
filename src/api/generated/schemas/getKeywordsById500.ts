@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordsById500 = {
-  message: string;
+	message: string;
 };

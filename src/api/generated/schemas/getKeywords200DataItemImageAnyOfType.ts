@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywords200DataItemImageAnyOfType = 'Image' | 'Video';
+export type GetKeywords200DataItemImageAnyOfType = "Image" | "Video";

@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutKeywordNaturesById200CreatedAt } from './putKeywordNaturesById200CreatedAt';
-import type { PutKeywordNaturesById200UpdatedAt } from './putKeywordNaturesById200UpdatedAt';
+import type { PutKeywordNaturesById200CreatedAt } from "./putKeywordNaturesById200CreatedAt";
+import type { PutKeywordNaturesById200UpdatedAt } from "./putKeywordNaturesById200UpdatedAt";
 
 export type PutKeywordNaturesById200 = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: PutKeywordNaturesById200CreatedAt;
-  updatedAt: PutKeywordNaturesById200UpdatedAt;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: PutKeywordNaturesById200CreatedAt;
+	updatedAt: PutKeywordNaturesById200UpdatedAt;
 };

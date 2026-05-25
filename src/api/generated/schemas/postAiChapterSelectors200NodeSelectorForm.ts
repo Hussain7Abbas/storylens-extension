@@ -7,11 +7,11 @@
  */
 
 export type PostAiChapterSelectors200NodeSelectorForm = {
-  website: string;
-  novelXpath: string;
-  novelXpathRegex: string;
-  novelUrlRegex: string;
-  chapterXpath: string;
-  chapterXpathRegex: string;
-  chapterUrlRegex: string;
+	website: string;
+	novelXpath: string;
+	novelXpathRegex: string;
+	novelUrlRegex: string;
+	chapterXpath: string;
+	chapterXpathRegex: string;
+	chapterUrlRegex: string;
 };

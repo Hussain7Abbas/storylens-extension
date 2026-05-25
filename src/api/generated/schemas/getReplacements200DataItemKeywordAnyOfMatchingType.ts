@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetReplacements200DataItemKeywordAnyOfMatchingType = 'FULL' | 'PARTIAL';
+export type GetReplacements200DataItemKeywordAnyOfMatchingType =
+	| "FULL"
+	| "PARTIAL";

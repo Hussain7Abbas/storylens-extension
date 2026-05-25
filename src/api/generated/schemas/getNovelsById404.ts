@@ -7,5 +7,5 @@
  */
 
 export type GetNovelsById404 = {
-  message: string;
+	message: string;
 };

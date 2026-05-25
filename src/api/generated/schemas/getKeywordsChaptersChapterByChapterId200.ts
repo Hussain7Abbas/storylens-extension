@@ -5,9 +5,9 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordsChaptersChapterByChapterId200DataItem } from './getKeywordsChaptersChapterByChapterId200DataItem';
+import type { GetKeywordsChaptersChapterByChapterId200DataItem } from "./getKeywordsChaptersChapterByChapterId200DataItem";
 
 export type GetKeywordsChaptersChapterByChapterId200 = {
-  data: GetKeywordsChaptersChapterByChapterId200DataItem[];
-  total: number;
+	data: GetKeywordsChaptersChapterByChapterId200DataItem[];
+	total: number;
 };

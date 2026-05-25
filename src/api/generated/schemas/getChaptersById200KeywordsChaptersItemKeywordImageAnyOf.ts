@@ -5,18 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType } from './getChaptersById200KeywordsChaptersItemKeywordImageAnyOfType';
-import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId } from './getChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId';
-import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfCreatedAt } from './getChaptersById200KeywordsChaptersItemKeywordImageAnyOfCreatedAt';
-import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUpdatedAt } from './getChaptersById200KeywordsChaptersItemKeywordImageAnyOfUpdatedAt';
+
+import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfCreatedAt } from "./getChaptersById200KeywordsChaptersItemKeywordImageAnyOfCreatedAt";
+import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType } from "./getChaptersById200KeywordsChaptersItemKeywordImageAnyOfType";
+import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUpdatedAt } from "./getChaptersById200KeywordsChaptersItemKeywordImageAnyOfUpdatedAt";
+import type { GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId } from "./getChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId";
 
 export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOf = {
-  id: string;
-  url: string;
-  type: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType;
-  provider_image_id: string;
-  delete_url: string;
-  userId: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId;
-  createdAt: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfCreatedAt;
-  updatedAt: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUpdatedAt;
+	id: string;
+	url: string;
+	type: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType;
+	provider_image_id: string;
+	delete_url: string;
+	userId: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId;
+	createdAt: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfCreatedAt;
+	updatedAt: GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUpdatedAt;
 };

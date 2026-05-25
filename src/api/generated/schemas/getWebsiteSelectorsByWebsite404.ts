@@ -7,5 +7,5 @@
  */
 
 export type GetWebsiteSelectorsByWebsite404 = {
-  message: string;
+	message: string;
 };

@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostWebsiteSelectorsBodyTwoNovelUrlAnyOf } from './postWebsiteSelectorsBodyTwoNovelUrlAnyOf';
+import type { PostWebsiteSelectorsBodyTwoNovelUrlAnyOf } from "./postWebsiteSelectorsBodyTwoNovelUrlAnyOf";
 
 /**
  * @nullable
  */
-export type PostWebsiteSelectorsBodyTwoNovelUrl = PostWebsiteSelectorsBodyTwoNovelUrlAnyOf | null | null;
+export type PostWebsiteSelectorsBodyTwoNovelUrl =
+	PostWebsiteSelectorsBodyTwoNovelUrlAnyOf | null | null;

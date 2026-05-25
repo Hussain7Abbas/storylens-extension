@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId = null | string;
+export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfUserId =
+	| null
+	| string;

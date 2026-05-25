@@ -7,6 +7,6 @@
  */
 
 export type PostWebsiteSelectors200ChapterUrlAnyOf = {
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	regex: string;
 };

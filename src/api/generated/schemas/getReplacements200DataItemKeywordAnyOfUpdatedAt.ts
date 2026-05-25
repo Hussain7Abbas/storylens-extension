@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetReplacements200DataItemKeywordAnyOfUpdatedAt = unknown | string | string | number;
+export type GetReplacements200DataItemKeywordAnyOfUpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

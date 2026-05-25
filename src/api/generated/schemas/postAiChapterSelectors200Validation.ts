@@ -5,16 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostAiChapterSelectors200ValidationNovelSlug } from './postAiChapterSelectors200ValidationNovelSlug';
-import type { PostAiChapterSelectors200ValidationNovelName } from './postAiChapterSelectors200ValidationNovelName';
-import type { PostAiChapterSelectors200ValidationChapter } from './postAiChapterSelectors200ValidationChapter';
+
+import type { PostAiChapterSelectors200ValidationChapter } from "./postAiChapterSelectors200ValidationChapter";
+import type { PostAiChapterSelectors200ValidationNovelName } from "./postAiChapterSelectors200ValidationNovelName";
+import type { PostAiChapterSelectors200ValidationNovelSlug } from "./postAiChapterSelectors200ValidationNovelSlug";
 
 export type PostAiChapterSelectors200Validation = {
-  /** @nullable */
-  novelSlug: PostAiChapterSelectors200ValidationNovelSlug;
-  /** @nullable */
-  novelName: PostAiChapterSelectors200ValidationNovelName;
-  /** @nullable */
-  chapter: PostAiChapterSelectors200ValidationChapter;
-  errors: string[];
+	/** @nullable */
+	novelSlug: PostAiChapterSelectors200ValidationNovelSlug;
+	/** @nullable */
+	novelName: PostAiChapterSelectors200ValidationNovelName;
+	/** @nullable */
+	chapter: PostAiChapterSelectors200ValidationChapter;
+	errors: string[];
 };

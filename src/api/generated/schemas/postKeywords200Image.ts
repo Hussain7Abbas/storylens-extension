@@ -5,7 +5,7 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywords200ImageAnyOf } from './postKeywords200ImageAnyOf';
+import type { PostKeywords200ImageAnyOf } from "./postKeywords200ImageAnyOf";
 
 /**
  * @nullable

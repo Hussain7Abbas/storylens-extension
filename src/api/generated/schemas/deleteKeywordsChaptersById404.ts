@@ -7,5 +7,5 @@
  */
 
 export type DeleteKeywordsChaptersById404 = {
-  message: string;
+	message: string;
 };

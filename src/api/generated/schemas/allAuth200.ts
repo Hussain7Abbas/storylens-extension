@@ -7,5 +7,5 @@
  */
 
 export type AllAuth200 = {
-  available: boolean;
+	available: boolean;
 };

@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type DeleteKeywordsById200MatchingType = typeof DeleteKeywordsById200MatchingType[keyof typeof DeleteKeywordsById200MatchingType];
-
+export type DeleteKeywordsById200MatchingType =
+	(typeof DeleteKeywordsById200MatchingType)[keyof typeof DeleteKeywordsById200MatchingType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DeleteKeywordsById200MatchingType = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
+	FULL: "FULL",
+	PARTIAL: "PARTIAL",
 } as const;

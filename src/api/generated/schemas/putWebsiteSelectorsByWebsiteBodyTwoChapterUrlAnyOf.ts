@@ -7,6 +7,6 @@
  */
 
 export type PutWebsiteSelectorsByWebsiteBodyTwoChapterUrlAnyOf = {
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	regex: string;
 };

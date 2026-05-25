@@ -7,5 +7,5 @@
  */
 
 export type AllAuth404 = {
-  message: string;
+	message: string;
 };

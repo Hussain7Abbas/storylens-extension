@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacements200DataItemKeywordAnyOf } from './getReplacements200DataItemKeywordAnyOf';
+import type { GetReplacements200DataItemKeywordAnyOf } from "./getReplacements200DataItemKeywordAnyOf";
 
 /**
  * @nullable
  */
-export type GetReplacements200DataItemKeyword = GetReplacements200DataItemKeywordAnyOf | null | null;
+export type GetReplacements200DataItemKeyword =
+	GetReplacements200DataItemKeywordAnyOf | null | null;

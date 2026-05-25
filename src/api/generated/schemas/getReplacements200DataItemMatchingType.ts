@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetReplacements200DataItemMatchingType = typeof GetReplacements200DataItemMatchingType[keyof typeof GetReplacements200DataItemMatchingType];
-
+export type GetReplacements200DataItemMatchingType =
+	(typeof GetReplacements200DataItemMatchingType)[keyof typeof GetReplacements200DataItemMatchingType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetReplacements200DataItemMatchingType = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
+	FULL: "FULL",
+	PARTIAL: "PARTIAL",
 } as const;

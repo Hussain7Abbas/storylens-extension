@@ -5,7 +5,7 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywords200ParentAnyOf } from './postKeywords200ParentAnyOf';
+import type { PostKeywords200ParentAnyOf } from "./postKeywords200ParentAnyOf";
 
 /**
  * @nullable

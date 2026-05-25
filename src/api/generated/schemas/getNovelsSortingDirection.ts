@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetNovelsSortingDirection = typeof GetNovelsSortingDirection[keyof typeof GetNovelsSortingDirection];
-
+export type GetNovelsSortingDirection =
+	(typeof GetNovelsSortingDirection)[keyof typeof GetNovelsSortingDirection];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetNovelsSortingDirection = {
-  asc: 'asc',
-  desc: 'desc',
+	asc: "asc",
+	desc: "desc",
 } as const;

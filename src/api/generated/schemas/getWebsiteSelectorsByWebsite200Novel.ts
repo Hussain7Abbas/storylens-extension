@@ -5,12 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetWebsiteSelectorsByWebsite200NovelXpath } from './getWebsiteSelectorsByWebsite200NovelXpath';
-import type { GetWebsiteSelectorsByWebsite200NovelUrl } from './getWebsiteSelectorsByWebsite200NovelUrl';
+
+import type { GetWebsiteSelectorsByWebsite200NovelUrl } from "./getWebsiteSelectorsByWebsite200NovelUrl";
+import type { GetWebsiteSelectorsByWebsite200NovelXpath } from "./getWebsiteSelectorsByWebsite200NovelXpath";
 
 export type GetWebsiteSelectorsByWebsite200Novel = {
-  /** @nullable */
-  xpath: GetWebsiteSelectorsByWebsite200NovelXpath;
-  /** @nullable */
-  url: GetWebsiteSelectorsByWebsite200NovelUrl;
+	/** @nullable */
+	xpath: GetWebsiteSelectorsByWebsite200NovelXpath;
+	/** @nullable */
+	url: GetWebsiteSelectorsByWebsite200NovelUrl;
 };

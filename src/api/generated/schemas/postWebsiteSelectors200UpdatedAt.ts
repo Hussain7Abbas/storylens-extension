@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostWebsiteSelectors200UpdatedAt = unknown | string | string | number;
+export type PostWebsiteSelectors200UpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

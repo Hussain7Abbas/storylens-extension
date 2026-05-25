@@ -5,10 +5,11 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutWebsiteSelectorsByWebsiteBodyOneNovel } from './putWebsiteSelectorsByWebsiteBodyOneNovel';
-import type { PutWebsiteSelectorsByWebsiteBodyOneChapter } from './putWebsiteSelectorsByWebsiteBodyOneChapter';
+
+import type { PutWebsiteSelectorsByWebsiteBodyOneChapter } from "./putWebsiteSelectorsByWebsiteBodyOneChapter";
+import type { PutWebsiteSelectorsByWebsiteBodyOneNovel } from "./putWebsiteSelectorsByWebsiteBodyOneNovel";
 
 export type PutWebsiteSelectorsByWebsiteBodyOne = {
-  novel: PutWebsiteSelectorsByWebsiteBodyOneNovel;
-  chapter: PutWebsiteSelectorsByWebsiteBodyOneChapter;
+	novel: PutWebsiteSelectorsByWebsiteBodyOneNovel;
+	chapter: PutWebsiteSelectorsByWebsiteBodyOneChapter;
 };

@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf } from './putWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf';
+import type { PutWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf } from "./putWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf";
 
 /**
  * @nullable
  */
-export type PutWebsiteSelectorsByWebsiteBodyThreeChapterUrl = PutWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf | null | null;
+export type PutWebsiteSelectorsByWebsiteBodyThreeChapterUrl =
+	PutWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf | null | null;

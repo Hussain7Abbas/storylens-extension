@@ -5,23 +5,24 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacements200DataItemMatchingType } from './getReplacements200DataItemMatchingType';
-import type { GetReplacements200DataItemKeywordId } from './getReplacements200DataItemKeywordId';
-import type { GetReplacements200DataItemCreatedById } from './getReplacements200DataItemCreatedById';
-import type { GetReplacements200DataItemCreatedAt } from './getReplacements200DataItemCreatedAt';
-import type { GetReplacements200DataItemUpdatedAt } from './getReplacements200DataItemUpdatedAt';
-import type { GetReplacements200DataItemKeyword } from './getReplacements200DataItemKeyword';
+
+import type { GetReplacements200DataItemCreatedAt } from "./getReplacements200DataItemCreatedAt";
+import type { GetReplacements200DataItemCreatedById } from "./getReplacements200DataItemCreatedById";
+import type { GetReplacements200DataItemKeyword } from "./getReplacements200DataItemKeyword";
+import type { GetReplacements200DataItemKeywordId } from "./getReplacements200DataItemKeywordId";
+import type { GetReplacements200DataItemMatchingType } from "./getReplacements200DataItemMatchingType";
+import type { GetReplacements200DataItemUpdatedAt } from "./getReplacements200DataItemUpdatedAt";
 
 export type GetReplacements200DataItem = {
-  id: string;
-  from: string;
-  to: string;
-  matchingType: GetReplacements200DataItemMatchingType;
-  novelId: string;
-  keywordId: GetReplacements200DataItemKeywordId;
-  createdById: GetReplacements200DataItemCreatedById;
-  createdAt: GetReplacements200DataItemCreatedAt;
-  updatedAt: GetReplacements200DataItemUpdatedAt;
-  /** @nullable */
-  keyword: GetReplacements200DataItemKeyword;
+	id: string;
+	from: string;
+	to: string;
+	matchingType: GetReplacements200DataItemMatchingType;
+	novelId: string;
+	keywordId: GetReplacements200DataItemKeywordId;
+	createdById: GetReplacements200DataItemCreatedById;
+	createdAt: GetReplacements200DataItemCreatedAt;
+	updatedAt: GetReplacements200DataItemUpdatedAt;
+	/** @nullable */
+	keyword: GetReplacements200DataItemKeyword;
 };

@@ -7,5 +7,5 @@
  */
 
 export type GetAuthCheckUsernameByUsername404 = {
-  message: string;
+	message: string;
 };

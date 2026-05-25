@@ -5,19 +5,20 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordsChaptersById200ChapterNovelDescription } from './getKeywordsChaptersById200ChapterNovelDescription';
-import type { GetKeywordsChaptersById200ChapterNovelImageId } from './getKeywordsChaptersById200ChapterNovelImageId';
-import type { GetKeywordsChaptersById200ChapterNovelCreatedById } from './getKeywordsChaptersById200ChapterNovelCreatedById';
-import type { GetKeywordsChaptersById200ChapterNovelCreatedAt } from './getKeywordsChaptersById200ChapterNovelCreatedAt';
-import type { GetKeywordsChaptersById200ChapterNovelUpdatedAt } from './getKeywordsChaptersById200ChapterNovelUpdatedAt';
+
+import type { GetKeywordsChaptersById200ChapterNovelCreatedAt } from "./getKeywordsChaptersById200ChapterNovelCreatedAt";
+import type { GetKeywordsChaptersById200ChapterNovelCreatedById } from "./getKeywordsChaptersById200ChapterNovelCreatedById";
+import type { GetKeywordsChaptersById200ChapterNovelDescription } from "./getKeywordsChaptersById200ChapterNovelDescription";
+import type { GetKeywordsChaptersById200ChapterNovelImageId } from "./getKeywordsChaptersById200ChapterNovelImageId";
+import type { GetKeywordsChaptersById200ChapterNovelUpdatedAt } from "./getKeywordsChaptersById200ChapterNovelUpdatedAt";
 
 export type GetKeywordsChaptersById200ChapterNovel = {
-  id: string;
-  name: string;
-  description: GetKeywordsChaptersById200ChapterNovelDescription;
-  slugs: string[];
-  imageId: GetKeywordsChaptersById200ChapterNovelImageId;
-  createdById: GetKeywordsChaptersById200ChapterNovelCreatedById;
-  createdAt: GetKeywordsChaptersById200ChapterNovelCreatedAt;
-  updatedAt: GetKeywordsChaptersById200ChapterNovelUpdatedAt;
+	id: string;
+	name: string;
+	description: GetKeywordsChaptersById200ChapterNovelDescription;
+	slugs: string[];
+	imageId: GetKeywordsChaptersById200ChapterNovelImageId;
+	createdById: GetKeywordsChaptersById200ChapterNovelCreatedById;
+	createdAt: GetKeywordsChaptersById200ChapterNovelCreatedAt;
+	updatedAt: GetKeywordsChaptersById200ChapterNovelUpdatedAt;
 };

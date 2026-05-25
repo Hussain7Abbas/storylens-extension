@@ -7,5 +7,5 @@
  */
 
 export type DeleteWebsiteSelectorsByWebsite404 = {
-  message: string;
+	message: string;
 };

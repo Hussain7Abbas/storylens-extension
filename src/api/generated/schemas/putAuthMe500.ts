@@ -7,5 +7,5 @@
  */
 
 export type PutAuthMe500 = {
-  message: string;
+	message: string;
 };

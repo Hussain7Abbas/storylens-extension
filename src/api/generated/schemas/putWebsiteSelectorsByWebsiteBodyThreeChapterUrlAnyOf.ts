@@ -7,6 +7,6 @@
  */
 
 export type PutWebsiteSelectorsByWebsiteBodyThreeChapterUrlAnyOf = {
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	regex: string;
 };

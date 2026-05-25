@@ -7,5 +7,5 @@
  */
 
 export type GetConfigsByKey404 = {
-  message: string;
+	message: string;
 };

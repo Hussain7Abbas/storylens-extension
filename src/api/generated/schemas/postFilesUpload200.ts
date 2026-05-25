@@ -5,18 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostFilesUpload200Type } from './postFilesUpload200Type';
-import type { PostFilesUpload200UserId } from './postFilesUpload200UserId';
-import type { PostFilesUpload200CreatedAt } from './postFilesUpload200CreatedAt';
-import type { PostFilesUpload200UpdatedAt } from './postFilesUpload200UpdatedAt';
+
+import type { PostFilesUpload200CreatedAt } from "./postFilesUpload200CreatedAt";
+import type { PostFilesUpload200Type } from "./postFilesUpload200Type";
+import type { PostFilesUpload200UpdatedAt } from "./postFilesUpload200UpdatedAt";
+import type { PostFilesUpload200UserId } from "./postFilesUpload200UserId";
 
 export type PostFilesUpload200 = {
-  id: string;
-  url: string;
-  type: PostFilesUpload200Type;
-  provider_image_id: string;
-  delete_url: string;
-  userId: PostFilesUpload200UserId;
-  createdAt: PostFilesUpload200CreatedAt;
-  updatedAt: PostFilesUpload200UpdatedAt;
+	id: string;
+	url: string;
+	type: PostFilesUpload200Type;
+	provider_image_id: string;
+	delete_url: string;
+	userId: PostFilesUpload200UserId;
+	createdAt: PostFilesUpload200CreatedAt;
+	updatedAt: PostFilesUpload200UpdatedAt;
 };

@@ -7,5 +7,5 @@
  */
 
 export type PostWebsiteSelectors404 = {
-  message: string;
+	message: string;
 };

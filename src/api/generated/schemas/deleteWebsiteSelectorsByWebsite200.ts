@@ -5,16 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteWebsiteSelectorsByWebsite200Novel } from './deleteWebsiteSelectorsByWebsite200Novel';
-import type { DeleteWebsiteSelectorsByWebsite200Chapter } from './deleteWebsiteSelectorsByWebsite200Chapter';
-import type { DeleteWebsiteSelectorsByWebsite200CreatedAt } from './deleteWebsiteSelectorsByWebsite200CreatedAt';
-import type { DeleteWebsiteSelectorsByWebsite200UpdatedAt } from './deleteWebsiteSelectorsByWebsite200UpdatedAt';
+
+import type { DeleteWebsiteSelectorsByWebsite200Chapter } from "./deleteWebsiteSelectorsByWebsite200Chapter";
+import type { DeleteWebsiteSelectorsByWebsite200CreatedAt } from "./deleteWebsiteSelectorsByWebsite200CreatedAt";
+import type { DeleteWebsiteSelectorsByWebsite200Novel } from "./deleteWebsiteSelectorsByWebsite200Novel";
+import type { DeleteWebsiteSelectorsByWebsite200UpdatedAt } from "./deleteWebsiteSelectorsByWebsite200UpdatedAt";
 
 export type DeleteWebsiteSelectorsByWebsite200 = {
-  id: string;
-  website: string;
-  novel: DeleteWebsiteSelectorsByWebsite200Novel;
-  chapter: DeleteWebsiteSelectorsByWebsite200Chapter;
-  createdAt: DeleteWebsiteSelectorsByWebsite200CreatedAt;
-  updatedAt: DeleteWebsiteSelectorsByWebsite200UpdatedAt;
+	id: string;
+	website: string;
+	novel: DeleteWebsiteSelectorsByWebsite200Novel;
+	chapter: DeleteWebsiteSelectorsByWebsite200Chapter;
+	createdAt: DeleteWebsiteSelectorsByWebsite200CreatedAt;
+	updatedAt: DeleteWebsiteSelectorsByWebsite200UpdatedAt;
 };

@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteWebsiteSelectorsByWebsite200ChapterUrlAnyOf } from './deleteWebsiteSelectorsByWebsite200ChapterUrlAnyOf';
+import type { DeleteWebsiteSelectorsByWebsite200ChapterUrlAnyOf } from "./deleteWebsiteSelectorsByWebsite200ChapterUrlAnyOf";
 
 /**
  * @nullable
  */
-export type DeleteWebsiteSelectorsByWebsite200ChapterUrl = DeleteWebsiteSelectorsByWebsite200ChapterUrlAnyOf | null | null;
+export type DeleteWebsiteSelectorsByWebsite200ChapterUrl =
+	DeleteWebsiteSelectorsByWebsite200ChapterUrlAnyOf | null | null;

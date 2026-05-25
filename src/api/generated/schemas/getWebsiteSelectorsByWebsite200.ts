@@ -5,16 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetWebsiteSelectorsByWebsite200Novel } from './getWebsiteSelectorsByWebsite200Novel';
-import type { GetWebsiteSelectorsByWebsite200Chapter } from './getWebsiteSelectorsByWebsite200Chapter';
-import type { GetWebsiteSelectorsByWebsite200CreatedAt } from './getWebsiteSelectorsByWebsite200CreatedAt';
-import type { GetWebsiteSelectorsByWebsite200UpdatedAt } from './getWebsiteSelectorsByWebsite200UpdatedAt';
+
+import type { GetWebsiteSelectorsByWebsite200Chapter } from "./getWebsiteSelectorsByWebsite200Chapter";
+import type { GetWebsiteSelectorsByWebsite200CreatedAt } from "./getWebsiteSelectorsByWebsite200CreatedAt";
+import type { GetWebsiteSelectorsByWebsite200Novel } from "./getWebsiteSelectorsByWebsite200Novel";
+import type { GetWebsiteSelectorsByWebsite200UpdatedAt } from "./getWebsiteSelectorsByWebsite200UpdatedAt";
 
 export type GetWebsiteSelectorsByWebsite200 = {
-  id: string;
-  website: string;
-  novel: GetWebsiteSelectorsByWebsite200Novel;
-  chapter: GetWebsiteSelectorsByWebsite200Chapter;
-  createdAt: GetWebsiteSelectorsByWebsite200CreatedAt;
-  updatedAt: GetWebsiteSelectorsByWebsite200UpdatedAt;
+	id: string;
+	website: string;
+	novel: GetWebsiteSelectorsByWebsite200Novel;
+	chapter: GetWebsiteSelectorsByWebsite200Chapter;
+	createdAt: GetWebsiteSelectorsByWebsite200CreatedAt;
+	updatedAt: GetWebsiteSelectorsByWebsite200UpdatedAt;
 };

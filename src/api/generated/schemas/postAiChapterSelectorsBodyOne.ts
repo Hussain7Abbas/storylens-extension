@@ -7,8 +7,8 @@
  */
 
 export type PostAiChapterSelectorsBodyOne = {
-  url: string;
-  /** @minLength 1 */
-  html: string;
-  model?: string;
+	url: string;
+	/** @minLength 1 */
+	html: string;
+	model?: string;
 };

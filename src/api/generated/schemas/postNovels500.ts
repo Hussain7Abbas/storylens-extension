@@ -7,5 +7,5 @@
  */
 
 export type PostNovels500 = {
-  message: string;
+	message: string;
 };

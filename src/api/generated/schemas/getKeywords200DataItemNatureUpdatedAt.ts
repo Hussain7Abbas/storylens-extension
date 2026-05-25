@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywords200DataItemNatureUpdatedAt = unknown | string | string | number;
+export type GetKeywords200DataItemNatureUpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

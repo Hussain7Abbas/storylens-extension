@@ -7,9 +7,9 @@
  */
 
 export type PutChaptersByIdBodyThree = {
-  /** @minLength 1 */
-  name: string;
-  /** @minimum 1 */
-  number: number;
-  description?: string;
+	/** @minLength 1 */
+	name: string;
+	/** @minimum 1 */
+	number: number;
+	description?: string;
 };

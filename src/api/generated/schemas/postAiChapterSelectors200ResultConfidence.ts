@@ -6,12 +6,12 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostAiChapterSelectors200ResultConfidence = typeof PostAiChapterSelectors200ResultConfidence[keyof typeof PostAiChapterSelectors200ResultConfidence];
-
+export type PostAiChapterSelectors200ResultConfidence =
+	(typeof PostAiChapterSelectors200ResultConfidence)[keyof typeof PostAiChapterSelectors200ResultConfidence];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostAiChapterSelectors200ResultConfidence = {
-  high: 'high',
-  medium: 'medium',
-  low: 'low',
+	high: "high",
+	medium: "medium",
+	low: "low",
 } as const;

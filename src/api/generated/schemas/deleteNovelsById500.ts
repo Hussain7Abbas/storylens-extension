@@ -7,5 +7,5 @@
  */
 
 export type DeleteNovelsById500 = {
-  message: string;
+	message: string;
 };

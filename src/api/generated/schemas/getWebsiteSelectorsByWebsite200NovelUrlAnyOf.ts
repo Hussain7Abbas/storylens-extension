@@ -7,6 +7,6 @@
  */
 
 export type GetWebsiteSelectorsByWebsite200NovelUrlAnyOf = {
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	regex: string;
 };

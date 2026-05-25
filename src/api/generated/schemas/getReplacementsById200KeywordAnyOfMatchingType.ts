@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetReplacementsById200KeywordAnyOfMatchingType = 'FULL' | 'PARTIAL';
+export type GetReplacementsById200KeywordAnyOfMatchingType = "FULL" | "PARTIAL";

@@ -5,12 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteWebsiteSelectorsByWebsite200ChapterXpath } from './deleteWebsiteSelectorsByWebsite200ChapterXpath';
-import type { DeleteWebsiteSelectorsByWebsite200ChapterUrl } from './deleteWebsiteSelectorsByWebsite200ChapterUrl';
+
+import type { DeleteWebsiteSelectorsByWebsite200ChapterUrl } from "./deleteWebsiteSelectorsByWebsite200ChapterUrl";
+import type { DeleteWebsiteSelectorsByWebsite200ChapterXpath } from "./deleteWebsiteSelectorsByWebsite200ChapterXpath";
 
 export type DeleteWebsiteSelectorsByWebsite200Chapter = {
-  /** @nullable */
-  xpath: DeleteWebsiteSelectorsByWebsite200ChapterXpath;
-  /** @nullable */
-  url: DeleteWebsiteSelectorsByWebsite200ChapterUrl;
+	/** @nullable */
+	xpath: DeleteWebsiteSelectorsByWebsite200ChapterXpath;
+	/** @nullable */
+	url: DeleteWebsiteSelectorsByWebsite200ChapterUrl;
 };

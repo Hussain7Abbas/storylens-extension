@@ -5,24 +5,25 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywordsChapters200KeywordMatchingType } from './postKeywordsChapters200KeywordMatchingType';
-import type { PostKeywordsChapters200KeywordImageId } from './postKeywordsChapters200KeywordImageId';
-import type { PostKeywordsChapters200KeywordParentId } from './postKeywordsChapters200KeywordParentId';
-import type { PostKeywordsChapters200KeywordCreatedById } from './postKeywordsChapters200KeywordCreatedById';
-import type { PostKeywordsChapters200KeywordCreatedAt } from './postKeywordsChapters200KeywordCreatedAt';
-import type { PostKeywordsChapters200KeywordUpdatedAt } from './postKeywordsChapters200KeywordUpdatedAt';
+
+import type { PostKeywordsChapters200KeywordCreatedAt } from "./postKeywordsChapters200KeywordCreatedAt";
+import type { PostKeywordsChapters200KeywordCreatedById } from "./postKeywordsChapters200KeywordCreatedById";
+import type { PostKeywordsChapters200KeywordImageId } from "./postKeywordsChapters200KeywordImageId";
+import type { PostKeywordsChapters200KeywordMatchingType } from "./postKeywordsChapters200KeywordMatchingType";
+import type { PostKeywordsChapters200KeywordParentId } from "./postKeywordsChapters200KeywordParentId";
+import type { PostKeywordsChapters200KeywordUpdatedAt } from "./postKeywordsChapters200KeywordUpdatedAt";
 
 export type PostKeywordsChapters200Keyword = {
-  id: string;
-  name: string;
-  description: string;
-  matchingType: PostKeywordsChapters200KeywordMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId: PostKeywordsChapters200KeywordImageId;
-  parentId: PostKeywordsChapters200KeywordParentId;
-  novelId: string;
-  createdById: PostKeywordsChapters200KeywordCreatedById;
-  createdAt: PostKeywordsChapters200KeywordCreatedAt;
-  updatedAt: PostKeywordsChapters200KeywordUpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	matchingType: PostKeywordsChapters200KeywordMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId: PostKeywordsChapters200KeywordImageId;
+	parentId: PostKeywordsChapters200KeywordParentId;
+	novelId: string;
+	createdById: PostKeywordsChapters200KeywordCreatedById;
+	createdAt: PostKeywordsChapters200KeywordCreatedAt;
+	updatedAt: PostKeywordsChapters200KeywordUpdatedAt;
 };

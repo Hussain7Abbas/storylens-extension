@@ -7,5 +7,5 @@
  */
 
 export type DeleteKeywordNaturesById500 = {
-  message: string;
+	message: string;
 };

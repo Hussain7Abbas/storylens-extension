@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type DeleteKeywordCategoriesById200CreatedAt = unknown | string | string | number;
+export type DeleteKeywordCategoriesById200CreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

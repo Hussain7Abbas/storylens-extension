@@ -7,5 +7,5 @@
  */
 
 export type PostAiChapterSelectors500 = {
-  message: string;
+	message: string;
 };

@@ -5,12 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostWebsiteSelectorsBodyThreeNovel } from './postWebsiteSelectorsBodyThreeNovel';
-import type { PostWebsiteSelectorsBodyThreeChapter } from './postWebsiteSelectorsBodyThreeChapter';
+
+import type { PostWebsiteSelectorsBodyThreeChapter } from "./postWebsiteSelectorsBodyThreeChapter";
+import type { PostWebsiteSelectorsBodyThreeNovel } from "./postWebsiteSelectorsBodyThreeNovel";
 
 export type PostWebsiteSelectorsBodyThree = {
-  /** @minLength 1 */
-  website: string;
-  novel: PostWebsiteSelectorsBodyThreeNovel;
-  chapter: PostWebsiteSelectorsBodyThreeChapter;
+	/** @minLength 1 */
+	website: string;
+	novel: PostWebsiteSelectorsBodyThreeNovel;
+	chapter: PostWebsiteSelectorsBodyThreeChapter;
 };

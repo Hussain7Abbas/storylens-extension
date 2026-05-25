@@ -11,7 +11,10 @@ import {
 	usePostWebsiteSelectors,
 	usePutWebsiteSelectorsByWebsite,
 } from "@/api/generated/endpoints/website-selectors.js";
-import type { websiteSelector } from "@/types/configs";
+import type {
+	PostWebsiteSelectorsBodyOne,
+	PutWebsiteSelectorsByWebsiteBodyOne,
+} from "@/api/generated/schemas";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
 import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
@@ -59,7 +62,7 @@ const INITIAL_FORM_VALUES: SelectorPreviewInput & { website: string } = {
 
 function buildSelectorPayload(
 	values: typeof INITIAL_FORM_VALUES,
-): websiteSelector {
+): PostWebsiteSelectorsBodyOne {
 	return {
 		website: values.website,
 		novel: {
@@ -78,6 +81,16 @@ function buildSelectorPayload(
 				? { regex: values.chapterUrlRegex }
 				: null,
 		},
+	};
+}
+
+function buildSelectorUpdatePayload(
+	values: typeof INITIAL_FORM_VALUES,
+): PutWebsiteSelectorsByWebsiteBodyOne {
+	const payload = buildSelectorPayload(values);
+	return {
+		novel: payload.novel,
+		chapter: payload.chapter,
 	};
 }
 
@@ -246,18 +259,15 @@ export function NodeSelectorForm({
 	}
 
 	function handleSubmit(values: typeof form.values) {
-		const payload = buildSelectorPayload(values);
-
 		if (isEdit) {
-			const { website: _website, ...updateBody } = payload;
 			updateSelector.mutate({
 				website: values.website,
-				data: updateBody,
+				data: buildSelectorUpdatePayload(values),
 			});
 			return;
 		}
 
-		createSelector.mutate({ data: payload });
+		createSelector.mutate({ data: buildSelectorPayload(values) });
 	}
 
 	useEffect(() => {

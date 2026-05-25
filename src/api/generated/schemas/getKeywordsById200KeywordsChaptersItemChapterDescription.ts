@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsById200KeywordsChaptersItemChapterDescription = null | string;
+export type GetKeywordsById200KeywordsChaptersItemChapterDescription =
+	| null
+	| string;

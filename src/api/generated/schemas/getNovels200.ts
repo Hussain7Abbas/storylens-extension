@@ -5,9 +5,9 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetNovels200DataItem } from './getNovels200DataItem';
+import type { GetNovels200DataItem } from "./getNovels200DataItem";
 
 export type GetNovels200 = {
-  data: GetNovels200DataItem[];
-  total: number;
+	data: GetNovels200DataItem[];
+	total: number;
 };

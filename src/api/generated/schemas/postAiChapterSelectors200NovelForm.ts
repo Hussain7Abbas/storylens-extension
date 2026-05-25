@@ -7,7 +7,7 @@
  */
 
 export type PostAiChapterSelectors200NovelForm = {
-  name: string;
-  description: string;
-  slugs: string[];
+	name: string;
+	description: string;
+	slugs: string[];
 };

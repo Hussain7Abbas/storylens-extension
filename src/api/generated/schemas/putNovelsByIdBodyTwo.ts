@@ -7,10 +7,10 @@
  */
 
 export type PutNovelsByIdBodyTwo = {
-  /** @minLength 1 */
-  name: string;
-  /** @minLength 1 */
-  description?: string;
-  imageId?: string;
-  slugs?: string[];
+	/** @minLength 1 */
+	name: string;
+	/** @minLength 1 */
+	description?: string;
+	imageId?: string;
+	slugs?: string[];
 };

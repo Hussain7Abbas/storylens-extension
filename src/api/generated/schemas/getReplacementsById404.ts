@@ -7,5 +7,5 @@
  */
 
 export type GetReplacementsById404 = {
-  message: string;
+	message: string;
 };

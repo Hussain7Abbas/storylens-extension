@@ -7,5 +7,5 @@
  */
 
 export type PostKeywordsChapters500 = {
-  message: string;
+	message: string;
 };

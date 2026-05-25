@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostKeywords200MatchingType = typeof PostKeywords200MatchingType[keyof typeof PostKeywords200MatchingType];
-
+export type PostKeywords200MatchingType =
+	(typeof PostKeywords200MatchingType)[keyof typeof PostKeywords200MatchingType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostKeywords200MatchingType = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
+	FULL: "FULL",
+	PARTIAL: "PARTIAL",
 } as const;

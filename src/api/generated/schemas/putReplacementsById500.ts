@@ -7,5 +7,5 @@
  */
 
 export type PutReplacementsById500 = {
-  message: string;
+	message: string;
 };

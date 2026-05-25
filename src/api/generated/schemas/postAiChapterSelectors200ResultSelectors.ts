@@ -5,11 +5,12 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostAiChapterSelectors200ResultSelectorsNovel } from './postAiChapterSelectors200ResultSelectorsNovel';
-import type { PostAiChapterSelectors200ResultSelectorsChapter } from './postAiChapterSelectors200ResultSelectorsChapter';
+
+import type { PostAiChapterSelectors200ResultSelectorsChapter } from "./postAiChapterSelectors200ResultSelectorsChapter";
+import type { PostAiChapterSelectors200ResultSelectorsNovel } from "./postAiChapterSelectors200ResultSelectorsNovel";
 
 export type PostAiChapterSelectors200ResultSelectors = {
-  website: string;
-  novel: PostAiChapterSelectors200ResultSelectorsNovel;
-  chapter: PostAiChapterSelectors200ResultSelectorsChapter;
+	website: string;
+	novel: PostAiChapterSelectors200ResultSelectorsNovel;
+	chapter: PostAiChapterSelectors200ResultSelectorsChapter;
 };

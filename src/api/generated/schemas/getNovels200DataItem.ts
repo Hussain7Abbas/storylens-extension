@@ -5,19 +5,20 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetNovels200DataItemDescription } from './getNovels200DataItemDescription';
-import type { GetNovels200DataItemImageId } from './getNovels200DataItemImageId';
-import type { GetNovels200DataItemCreatedById } from './getNovels200DataItemCreatedById';
-import type { GetNovels200DataItemCreatedAt } from './getNovels200DataItemCreatedAt';
-import type { GetNovels200DataItemUpdatedAt } from './getNovels200DataItemUpdatedAt';
+
+import type { GetNovels200DataItemCreatedAt } from "./getNovels200DataItemCreatedAt";
+import type { GetNovels200DataItemCreatedById } from "./getNovels200DataItemCreatedById";
+import type { GetNovels200DataItemDescription } from "./getNovels200DataItemDescription";
+import type { GetNovels200DataItemImageId } from "./getNovels200DataItemImageId";
+import type { GetNovels200DataItemUpdatedAt } from "./getNovels200DataItemUpdatedAt";
 
 export type GetNovels200DataItem = {
-  id: string;
-  name: string;
-  description: GetNovels200DataItemDescription;
-  slugs: string[];
-  imageId: GetNovels200DataItemImageId;
-  createdById: GetNovels200DataItemCreatedById;
-  createdAt: GetNovels200DataItemCreatedAt;
-  updatedAt: GetNovels200DataItemUpdatedAt;
+	id: string;
+	name: string;
+	description: GetNovels200DataItemDescription;
+	slugs: string[];
+	imageId: GetNovels200DataItemImageId;
+	createdById: GetNovels200DataItemCreatedById;
+	createdAt: GetNovels200DataItemCreatedAt;
+	updatedAt: GetNovels200DataItemUpdatedAt;
 };

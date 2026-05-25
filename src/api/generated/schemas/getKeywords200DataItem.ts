@@ -5,34 +5,35 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywords200DataItemMatchingType } from './getKeywords200DataItemMatchingType';
-import type { GetKeywords200DataItemImageId } from './getKeywords200DataItemImageId';
-import type { GetKeywords200DataItemParentId } from './getKeywords200DataItemParentId';
-import type { GetKeywords200DataItemCreatedById } from './getKeywords200DataItemCreatedById';
-import type { GetKeywords200DataItemCreatedAt } from './getKeywords200DataItemCreatedAt';
-import type { GetKeywords200DataItemUpdatedAt } from './getKeywords200DataItemUpdatedAt';
-import type { GetKeywords200DataItemCategory } from './getKeywords200DataItemCategory';
-import type { GetKeywords200DataItemNature } from './getKeywords200DataItemNature';
-import type { GetKeywords200DataItemImage } from './getKeywords200DataItemImage';
-import type { GetKeywords200DataItemParent } from './getKeywords200DataItemParent';
+
+import type { GetKeywords200DataItemCategory } from "./getKeywords200DataItemCategory";
+import type { GetKeywords200DataItemCreatedAt } from "./getKeywords200DataItemCreatedAt";
+import type { GetKeywords200DataItemCreatedById } from "./getKeywords200DataItemCreatedById";
+import type { GetKeywords200DataItemImage } from "./getKeywords200DataItemImage";
+import type { GetKeywords200DataItemImageId } from "./getKeywords200DataItemImageId";
+import type { GetKeywords200DataItemMatchingType } from "./getKeywords200DataItemMatchingType";
+import type { GetKeywords200DataItemNature } from "./getKeywords200DataItemNature";
+import type { GetKeywords200DataItemParent } from "./getKeywords200DataItemParent";
+import type { GetKeywords200DataItemParentId } from "./getKeywords200DataItemParentId";
+import type { GetKeywords200DataItemUpdatedAt } from "./getKeywords200DataItemUpdatedAt";
 
 export type GetKeywords200DataItem = {
-  id: string;
-  name: string;
-  description: string;
-  matchingType: GetKeywords200DataItemMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId: GetKeywords200DataItemImageId;
-  parentId: GetKeywords200DataItemParentId;
-  novelId: string;
-  createdById: GetKeywords200DataItemCreatedById;
-  createdAt: GetKeywords200DataItemCreatedAt;
-  updatedAt: GetKeywords200DataItemUpdatedAt;
-  category: GetKeywords200DataItemCategory;
-  nature: GetKeywords200DataItemNature;
-  /** @nullable */
-  image: GetKeywords200DataItemImage;
-  /** @nullable */
-  parent: GetKeywords200DataItemParent;
+	id: string;
+	name: string;
+	description: string;
+	matchingType: GetKeywords200DataItemMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId: GetKeywords200DataItemImageId;
+	parentId: GetKeywords200DataItemParentId;
+	novelId: string;
+	createdById: GetKeywords200DataItemCreatedById;
+	createdAt: GetKeywords200DataItemCreatedAt;
+	updatedAt: GetKeywords200DataItemUpdatedAt;
+	category: GetKeywords200DataItemCategory;
+	nature: GetKeywords200DataItemNature;
+	/** @nullable */
+	image: GetKeywords200DataItemImage;
+	/** @nullable */
+	parent: GetKeywords200DataItemParent;
 };

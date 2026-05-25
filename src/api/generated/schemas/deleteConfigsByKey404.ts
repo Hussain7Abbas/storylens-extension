@@ -7,5 +7,5 @@
  */
 
 export type DeleteConfigsByKey404 = {
-  message: string;
+	message: string;
 };

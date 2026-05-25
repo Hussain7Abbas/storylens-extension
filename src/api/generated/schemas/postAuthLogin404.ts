@@ -7,5 +7,5 @@
  */
 
 export type PostAuthLogin404 = {
-  message: string;
+	message: string;
 };

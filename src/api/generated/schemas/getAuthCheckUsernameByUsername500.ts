@@ -7,5 +7,5 @@
  */
 
 export type GetAuthCheckUsernameByUsername500 = {
-  message: string;
+	message: string;
 };

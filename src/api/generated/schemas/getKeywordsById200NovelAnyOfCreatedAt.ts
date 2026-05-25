@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsById200NovelAnyOfCreatedAt = unknown | string | string | number;
+export type GetKeywordsById200NovelAnyOfCreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

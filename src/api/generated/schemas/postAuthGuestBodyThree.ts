@@ -7,9 +7,9 @@
  */
 
 export type PostAuthGuestBodyThree = {
-  /**
-   * @minLength 3
-   * @maxLength 30
-   */
-  username: string;
+	/**
+	 * @minLength 3
+	 * @maxLength 30
+	 */
+	username: string;
 };

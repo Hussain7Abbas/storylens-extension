@@ -7,14 +7,14 @@
  */
 
 export type PutAuthMeBodyTwo = {
-  /**
-   * @minLength 3
-   * @maxLength 30
-   */
-  username?: string;
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  name?: string;
+	/**
+	 * @minLength 3
+	 * @maxLength 30
+	 */
+	username?: string;
+	/**
+	 * @minLength 1
+	 * @maxLength 100
+	 */
+	name?: string;
 };

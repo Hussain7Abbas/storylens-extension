@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType = 'Image' | 'Video';
+export type GetChaptersById200KeywordsChaptersItemKeywordImageAnyOfType =
+	| "Image"
+	| "Video";

@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsById200ReplacementsItemMatchingType = typeof GetKeywordsById200ReplacementsItemMatchingType[keyof typeof GetKeywordsById200ReplacementsItemMatchingType];
-
+export type GetKeywordsById200ReplacementsItemMatchingType =
+	(typeof GetKeywordsById200ReplacementsItemMatchingType)[keyof typeof GetKeywordsById200ReplacementsItemMatchingType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetKeywordsById200ReplacementsItemMatchingType = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
+	FULL: "FULL",
+	PARTIAL: "PARTIAL",
 } as const;

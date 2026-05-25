@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywords200DataItemParentAnyOf } from './getKeywords200DataItemParentAnyOf';
+import type { GetKeywords200DataItemParentAnyOf } from "./getKeywords200DataItemParentAnyOf";
 
 /**
  * @nullable
  */
-export type GetKeywords200DataItemParent = GetKeywords200DataItemParentAnyOf | null | null;
+export type GetKeywords200DataItemParent =
+	GetKeywords200DataItemParentAnyOf | null | null;

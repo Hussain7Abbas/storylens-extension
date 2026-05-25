@@ -5,21 +5,22 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetChaptersById200Number } from './getChaptersById200Number';
-import type { GetChaptersById200Description } from './getChaptersById200Description';
-import type { GetChaptersById200CreatedAt } from './getChaptersById200CreatedAt';
-import type { GetChaptersById200UpdatedAt } from './getChaptersById200UpdatedAt';
-import type { GetChaptersById200Novel } from './getChaptersById200Novel';
-import type { GetChaptersById200KeywordsChaptersItem } from './getChaptersById200KeywordsChaptersItem';
+
+import type { GetChaptersById200CreatedAt } from "./getChaptersById200CreatedAt";
+import type { GetChaptersById200Description } from "./getChaptersById200Description";
+import type { GetChaptersById200KeywordsChaptersItem } from "./getChaptersById200KeywordsChaptersItem";
+import type { GetChaptersById200Novel } from "./getChaptersById200Novel";
+import type { GetChaptersById200Number } from "./getChaptersById200Number";
+import type { GetChaptersById200UpdatedAt } from "./getChaptersById200UpdatedAt";
 
 export type GetChaptersById200 = {
-  id: string;
-  name: string;
-  number: GetChaptersById200Number;
-  description: GetChaptersById200Description;
-  novelId: string;
-  createdAt: GetChaptersById200CreatedAt;
-  updatedAt: GetChaptersById200UpdatedAt;
-  novel: GetChaptersById200Novel;
-  KeywordsChapters: GetChaptersById200KeywordsChaptersItem[];
+	id: string;
+	name: string;
+	number: GetChaptersById200Number;
+	description: GetChaptersById200Description;
+	novelId: string;
+	createdAt: GetChaptersById200CreatedAt;
+	updatedAt: GetChaptersById200UpdatedAt;
+	novel: GetChaptersById200Novel;
+	KeywordsChapters: GetChaptersById200KeywordsChaptersItem[];
 };

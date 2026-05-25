@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteConfigsByKey200CreatedAt } from './deleteConfigsByKey200CreatedAt';
-import type { DeleteConfigsByKey200UpdatedAt } from './deleteConfigsByKey200UpdatedAt';
+import type { DeleteConfigsByKey200CreatedAt } from "./deleteConfigsByKey200CreatedAt";
+import type { DeleteConfigsByKey200UpdatedAt } from "./deleteConfigsByKey200UpdatedAt";
 
 export type DeleteConfigsByKey200 = {
-  id: string;
-  key: string;
-  value: string;
-  createdAt: DeleteConfigsByKey200CreatedAt;
-  updatedAt: DeleteConfigsByKey200UpdatedAt;
+	id: string;
+	key: string;
+	value: string;
+	createdAt: DeleteConfigsByKey200CreatedAt;
+	updatedAt: DeleteConfigsByKey200UpdatedAt;
 };

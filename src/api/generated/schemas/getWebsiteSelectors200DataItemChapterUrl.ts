@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetWebsiteSelectors200DataItemChapterUrlAnyOf } from './getWebsiteSelectors200DataItemChapterUrlAnyOf';
+import type { GetWebsiteSelectors200DataItemChapterUrlAnyOf } from "./getWebsiteSelectors200DataItemChapterUrlAnyOf";
 
 /**
  * @nullable
  */
-export type GetWebsiteSelectors200DataItemChapterUrl = GetWebsiteSelectors200DataItemChapterUrlAnyOf | null | null;
+export type GetWebsiteSelectors200DataItemChapterUrl =
+	GetWebsiteSelectors200DataItemChapterUrlAnyOf | null | null;

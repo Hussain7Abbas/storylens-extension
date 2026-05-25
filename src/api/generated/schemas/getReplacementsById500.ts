@@ -7,5 +7,5 @@
  */
 
 export type GetReplacementsById500 = {
-  message: string;
+	message: string;
 };

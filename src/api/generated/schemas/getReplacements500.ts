@@ -7,5 +7,5 @@
  */
 
 export type GetReplacements500 = {
-  message: string;
+	message: string;
 };

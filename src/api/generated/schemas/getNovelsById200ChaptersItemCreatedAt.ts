@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetNovelsById200ChaptersItemCreatedAt = unknown | string | string | number;
+export type GetNovelsById200ChaptersItemCreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

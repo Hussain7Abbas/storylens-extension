@@ -7,17 +7,17 @@
  */
 
 export type PostAuthRegisterBodyOne = {
-  email: string;
-  /** @minLength 8 */
-  password: string;
-  /**
-   * @minLength 3
-   * @maxLength 30
-   */
-  username: string;
-  /**
-   * @minLength 1
-   * @maxLength 100
-   */
-  name?: string;
+	email: string;
+	/** @minLength 8 */
+	password: string;
+	/**
+	 * @minLength 3
+	 * @maxLength 30
+	 */
+	username: string;
+	/**
+	 * @minLength 1
+	 * @maxLength 100
+	 */
+	name?: string;
 };

@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostFilesUploadBodyOneType = typeof PostFilesUploadBodyOneType[keyof typeof PostFilesUploadBodyOneType];
-
+export type PostFilesUploadBodyOneType =
+	(typeof PostFilesUploadBodyOneType)[keyof typeof PostFilesUploadBodyOneType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostFilesUploadBodyOneType = {
-  Image: 'Image',
-  Video: 'Video',
+	Image: "Image",
+	Video: "Video",
 } as const;

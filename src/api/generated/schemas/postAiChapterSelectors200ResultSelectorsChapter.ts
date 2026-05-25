@@ -5,12 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostAiChapterSelectors200ResultSelectorsChapterXpath } from './postAiChapterSelectors200ResultSelectorsChapterXpath';
-import type { PostAiChapterSelectors200ResultSelectorsChapterUrl } from './postAiChapterSelectors200ResultSelectorsChapterUrl';
+
+import type { PostAiChapterSelectors200ResultSelectorsChapterUrl } from "./postAiChapterSelectors200ResultSelectorsChapterUrl";
+import type { PostAiChapterSelectors200ResultSelectorsChapterXpath } from "./postAiChapterSelectors200ResultSelectorsChapterXpath";
 
 export type PostAiChapterSelectors200ResultSelectorsChapter = {
-  /** @nullable */
-  xpath: PostAiChapterSelectors200ResultSelectorsChapterXpath;
-  /** @nullable */
-  url: PostAiChapterSelectors200ResultSelectorsChapterUrl;
+	/** @nullable */
+	xpath: PostAiChapterSelectors200ResultSelectorsChapterXpath;
+	/** @nullable */
+	url: PostAiChapterSelectors200ResultSelectorsChapterUrl;
 };

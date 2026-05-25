@@ -7,5 +7,5 @@
  */
 
 export type _GetKeywordNaturesById200Count = {
-  keywords: number;
+	keywords: number;
 };

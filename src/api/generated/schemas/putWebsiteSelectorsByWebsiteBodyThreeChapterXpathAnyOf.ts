@@ -7,8 +7,8 @@
  */
 
 export type PutWebsiteSelectorsByWebsiteBodyThreeChapterXpathAnyOf = {
-  /** @minLength 1 */
-  value: string;
-  /** @minLength 1 */
-  regex: string;
+	/** @minLength 1 */
+	value: string;
+	/** @minLength 1 */
+	regex: string;
 };

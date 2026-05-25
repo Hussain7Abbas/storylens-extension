@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsChaptersChapterByChapterId200DataItemCreatedAt = unknown | string | string | number;
+export type GetKeywordsChaptersChapterByChapterId200DataItemCreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

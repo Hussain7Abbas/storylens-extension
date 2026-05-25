@@ -5,24 +5,25 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordsById200ParentAnyOfMatchingType } from './getKeywordsById200ParentAnyOfMatchingType';
-import type { GetKeywordsById200ParentAnyOfImageId } from './getKeywordsById200ParentAnyOfImageId';
-import type { GetKeywordsById200ParentAnyOfParentId } from './getKeywordsById200ParentAnyOfParentId';
-import type { GetKeywordsById200ParentAnyOfCreatedById } from './getKeywordsById200ParentAnyOfCreatedById';
-import type { GetKeywordsById200ParentAnyOfCreatedAt } from './getKeywordsById200ParentAnyOfCreatedAt';
-import type { GetKeywordsById200ParentAnyOfUpdatedAt } from './getKeywordsById200ParentAnyOfUpdatedAt';
+
+import type { GetKeywordsById200ParentAnyOfCreatedAt } from "./getKeywordsById200ParentAnyOfCreatedAt";
+import type { GetKeywordsById200ParentAnyOfCreatedById } from "./getKeywordsById200ParentAnyOfCreatedById";
+import type { GetKeywordsById200ParentAnyOfImageId } from "./getKeywordsById200ParentAnyOfImageId";
+import type { GetKeywordsById200ParentAnyOfMatchingType } from "./getKeywordsById200ParentAnyOfMatchingType";
+import type { GetKeywordsById200ParentAnyOfParentId } from "./getKeywordsById200ParentAnyOfParentId";
+import type { GetKeywordsById200ParentAnyOfUpdatedAt } from "./getKeywordsById200ParentAnyOfUpdatedAt";
 
 export type GetKeywordsById200ParentAnyOf = {
-  id: string;
-  name: string;
-  description: string;
-  matchingType: GetKeywordsById200ParentAnyOfMatchingType;
-  categoryId: string;
-  natureId: string;
-  imageId: GetKeywordsById200ParentAnyOfImageId;
-  parentId: GetKeywordsById200ParentAnyOfParentId;
-  novelId: string;
-  createdById: GetKeywordsById200ParentAnyOfCreatedById;
-  createdAt: GetKeywordsById200ParentAnyOfCreatedAt;
-  updatedAt: GetKeywordsById200ParentAnyOfUpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	matchingType: GetKeywordsById200ParentAnyOfMatchingType;
+	categoryId: string;
+	natureId: string;
+	imageId: GetKeywordsById200ParentAnyOfImageId;
+	parentId: GetKeywordsById200ParentAnyOfParentId;
+	novelId: string;
+	createdById: GetKeywordsById200ParentAnyOfCreatedById;
+	createdAt: GetKeywordsById200ParentAnyOfCreatedAt;
+	updatedAt: GetKeywordsById200ParentAnyOfUpdatedAt;
 };

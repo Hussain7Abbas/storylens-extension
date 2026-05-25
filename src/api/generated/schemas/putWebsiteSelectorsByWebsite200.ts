@@ -5,16 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutWebsiteSelectorsByWebsite200Novel } from './putWebsiteSelectorsByWebsite200Novel';
-import type { PutWebsiteSelectorsByWebsite200Chapter } from './putWebsiteSelectorsByWebsite200Chapter';
-import type { PutWebsiteSelectorsByWebsite200CreatedAt } from './putWebsiteSelectorsByWebsite200CreatedAt';
-import type { PutWebsiteSelectorsByWebsite200UpdatedAt } from './putWebsiteSelectorsByWebsite200UpdatedAt';
+
+import type { PutWebsiteSelectorsByWebsite200Chapter } from "./putWebsiteSelectorsByWebsite200Chapter";
+import type { PutWebsiteSelectorsByWebsite200CreatedAt } from "./putWebsiteSelectorsByWebsite200CreatedAt";
+import type { PutWebsiteSelectorsByWebsite200Novel } from "./putWebsiteSelectorsByWebsite200Novel";
+import type { PutWebsiteSelectorsByWebsite200UpdatedAt } from "./putWebsiteSelectorsByWebsite200UpdatedAt";
 
 export type PutWebsiteSelectorsByWebsite200 = {
-  id: string;
-  website: string;
-  novel: PutWebsiteSelectorsByWebsite200Novel;
-  chapter: PutWebsiteSelectorsByWebsite200Chapter;
-  createdAt: PutWebsiteSelectorsByWebsite200CreatedAt;
-  updatedAt: PutWebsiteSelectorsByWebsite200UpdatedAt;
+	id: string;
+	website: string;
+	novel: PutWebsiteSelectorsByWebsite200Novel;
+	chapter: PutWebsiteSelectorsByWebsite200Chapter;
+	createdAt: PutWebsiteSelectorsByWebsite200CreatedAt;
+	updatedAt: PutWebsiteSelectorsByWebsite200UpdatedAt;
 };

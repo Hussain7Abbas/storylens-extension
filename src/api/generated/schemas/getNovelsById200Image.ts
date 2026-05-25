@@ -5,7 +5,7 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetNovelsById200ImageAnyOf } from './getNovelsById200ImageAnyOf';
+import type { GetNovelsById200ImageAnyOf } from "./getNovelsById200ImageAnyOf";
 
 /**
  * @nullable

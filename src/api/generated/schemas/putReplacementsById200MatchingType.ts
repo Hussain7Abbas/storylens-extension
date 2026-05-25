@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutReplacementsById200MatchingType = typeof PutReplacementsById200MatchingType[keyof typeof PutReplacementsById200MatchingType];
-
+export type PutReplacementsById200MatchingType =
+	(typeof PutReplacementsById200MatchingType)[keyof typeof PutReplacementsById200MatchingType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PutReplacementsById200MatchingType = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
+	FULL: "FULL",
+	PARTIAL: "PARTIAL",
 } as const;

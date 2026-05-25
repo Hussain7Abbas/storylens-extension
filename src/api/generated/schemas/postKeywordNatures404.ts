@@ -7,5 +7,5 @@
  */
 
 export type PostKeywordNatures404 = {
-  message: string;
+	message: string;
 };

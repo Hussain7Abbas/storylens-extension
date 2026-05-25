@@ -7,5 +7,5 @@
  */
 
 export type PostAuthGuest404 = {
-  message: string;
+	message: string;
 };

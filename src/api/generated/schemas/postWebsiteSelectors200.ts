@@ -5,16 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostWebsiteSelectors200Novel } from './postWebsiteSelectors200Novel';
-import type { PostWebsiteSelectors200Chapter } from './postWebsiteSelectors200Chapter';
-import type { PostWebsiteSelectors200CreatedAt } from './postWebsiteSelectors200CreatedAt';
-import type { PostWebsiteSelectors200UpdatedAt } from './postWebsiteSelectors200UpdatedAt';
+
+import type { PostWebsiteSelectors200Chapter } from "./postWebsiteSelectors200Chapter";
+import type { PostWebsiteSelectors200CreatedAt } from "./postWebsiteSelectors200CreatedAt";
+import type { PostWebsiteSelectors200Novel } from "./postWebsiteSelectors200Novel";
+import type { PostWebsiteSelectors200UpdatedAt } from "./postWebsiteSelectors200UpdatedAt";
 
 export type PostWebsiteSelectors200 = {
-  id: string;
-  website: string;
-  novel: PostWebsiteSelectors200Novel;
-  chapter: PostWebsiteSelectors200Chapter;
-  createdAt: PostWebsiteSelectors200CreatedAt;
-  updatedAt: PostWebsiteSelectors200UpdatedAt;
+	id: string;
+	website: string;
+	novel: PostWebsiteSelectors200Novel;
+	chapter: PostWebsiteSelectors200Chapter;
+	createdAt: PostWebsiteSelectors200CreatedAt;
+	updatedAt: PostWebsiteSelectors200UpdatedAt;
 };

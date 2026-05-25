@@ -7,5 +7,5 @@
  */
 
 export type PutConfigs500 = {
-  message: string;
+	message: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type PutAuthMe404 = {
-  message: string;
+	message: string;
 };

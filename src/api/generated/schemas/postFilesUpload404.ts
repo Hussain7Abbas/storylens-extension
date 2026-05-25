@@ -7,5 +7,5 @@
  */
 
 export type PostFilesUpload404 = {
-  message: string;
+	message: string;
 };

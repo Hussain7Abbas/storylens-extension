@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordCategories404 = {
-  message: string;
+	message: string;
 };

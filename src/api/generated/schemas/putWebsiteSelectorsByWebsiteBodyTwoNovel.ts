@@ -5,12 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutWebsiteSelectorsByWebsiteBodyTwoNovelXpath } from './putWebsiteSelectorsByWebsiteBodyTwoNovelXpath';
-import type { PutWebsiteSelectorsByWebsiteBodyTwoNovelUrl } from './putWebsiteSelectorsByWebsiteBodyTwoNovelUrl';
+
+import type { PutWebsiteSelectorsByWebsiteBodyTwoNovelUrl } from "./putWebsiteSelectorsByWebsiteBodyTwoNovelUrl";
+import type { PutWebsiteSelectorsByWebsiteBodyTwoNovelXpath } from "./putWebsiteSelectorsByWebsiteBodyTwoNovelXpath";
 
 export type PutWebsiteSelectorsByWebsiteBodyTwoNovel = {
-  /** @nullable */
-  xpath: PutWebsiteSelectorsByWebsiteBodyTwoNovelXpath;
-  /** @nullable */
-  url: PutWebsiteSelectorsByWebsiteBodyTwoNovelUrl;
+	/** @nullable */
+	xpath: PutWebsiteSelectorsByWebsiteBodyTwoNovelXpath;
+	/** @nullable */
+	url: PutWebsiteSelectorsByWebsiteBodyTwoNovelUrl;
 };

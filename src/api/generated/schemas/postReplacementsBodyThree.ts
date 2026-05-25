@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostReplacementsBodyThreeMatchingType } from './postReplacementsBodyThreeMatchingType';
+import type { PostReplacementsBodyThreeMatchingType } from "./postReplacementsBodyThreeMatchingType";
 
 export type PostReplacementsBodyThree = {
-  novelId: string;
-  /** @minLength 1 */
-  from: string;
-  /** @minLength 1 */
-  to: string;
-  matchingType?: PostReplacementsBodyThreeMatchingType;
+	novelId: string;
+	/** @minLength 1 */
+	from: string;
+	/** @minLength 1 */
+	to: string;
+	matchingType?: PostReplacementsBodyThreeMatchingType;
 };

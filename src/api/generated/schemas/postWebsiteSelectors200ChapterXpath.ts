@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostWebsiteSelectors200ChapterXpathAnyOf } from './postWebsiteSelectors200ChapterXpathAnyOf';
+import type { PostWebsiteSelectors200ChapterXpathAnyOf } from "./postWebsiteSelectors200ChapterXpathAnyOf";
 
 /**
  * @nullable
  */
-export type PostWebsiteSelectors200ChapterXpath = PostWebsiteSelectors200ChapterXpathAnyOf | null | null;
+export type PostWebsiteSelectors200ChapterXpath =
+	PostWebsiteSelectors200ChapterXpathAnyOf | null | null;

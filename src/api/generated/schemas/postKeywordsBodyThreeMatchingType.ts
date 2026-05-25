@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostKeywordsBodyThreeMatchingType = typeof PostKeywordsBodyThreeMatchingType[keyof typeof PostKeywordsBodyThreeMatchingType];
-
+export type PostKeywordsBodyThreeMatchingType =
+	(typeof PostKeywordsBodyThreeMatchingType)[keyof typeof PostKeywordsBodyThreeMatchingType];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PostKeywordsBodyThreeMatchingType = {
-  FULL: 'FULL',
-  PARTIAL: 'PARTIAL',
+	FULL: "FULL",
+	PARTIAL: "PARTIAL",
 } as const;

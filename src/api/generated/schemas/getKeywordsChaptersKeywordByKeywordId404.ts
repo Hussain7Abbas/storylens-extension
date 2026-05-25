@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordsChaptersKeywordByKeywordId404 = {
-  message: string;
+	message: string;
 };

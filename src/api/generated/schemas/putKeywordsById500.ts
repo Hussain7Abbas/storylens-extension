@@ -7,5 +7,5 @@
  */
 
 export type PutKeywordsById500 = {
-  message: string;
+	message: string;
 };

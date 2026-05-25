@@ -7,5 +7,5 @@
  */
 
 export type PostAuthRegister500 = {
-  message: string;
+	message: string;
 };

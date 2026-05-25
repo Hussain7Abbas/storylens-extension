@@ -5,23 +5,24 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutReplacementsById200MatchingType } from './putReplacementsById200MatchingType';
-import type { PutReplacementsById200KeywordId } from './putReplacementsById200KeywordId';
-import type { PutReplacementsById200CreatedById } from './putReplacementsById200CreatedById';
-import type { PutReplacementsById200CreatedAt } from './putReplacementsById200CreatedAt';
-import type { PutReplacementsById200UpdatedAt } from './putReplacementsById200UpdatedAt';
-import type { PutReplacementsById200Keyword } from './putReplacementsById200Keyword';
+
+import type { PutReplacementsById200CreatedAt } from "./putReplacementsById200CreatedAt";
+import type { PutReplacementsById200CreatedById } from "./putReplacementsById200CreatedById";
+import type { PutReplacementsById200Keyword } from "./putReplacementsById200Keyword";
+import type { PutReplacementsById200KeywordId } from "./putReplacementsById200KeywordId";
+import type { PutReplacementsById200MatchingType } from "./putReplacementsById200MatchingType";
+import type { PutReplacementsById200UpdatedAt } from "./putReplacementsById200UpdatedAt";
 
 export type PutReplacementsById200 = {
-  id: string;
-  from: string;
-  to: string;
-  matchingType: PutReplacementsById200MatchingType;
-  novelId: string;
-  keywordId: PutReplacementsById200KeywordId;
-  createdById: PutReplacementsById200CreatedById;
-  createdAt: PutReplacementsById200CreatedAt;
-  updatedAt: PutReplacementsById200UpdatedAt;
-  /** @nullable */
-  keyword: PutReplacementsById200Keyword;
+	id: string;
+	from: string;
+	to: string;
+	matchingType: PutReplacementsById200MatchingType;
+	novelId: string;
+	keywordId: PutReplacementsById200KeywordId;
+	createdById: PutReplacementsById200CreatedById;
+	createdAt: PutReplacementsById200CreatedAt;
+	updatedAt: PutReplacementsById200UpdatedAt;
+	/** @nullable */
+	keyword: PutReplacementsById200Keyword;
 };

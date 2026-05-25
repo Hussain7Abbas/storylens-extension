@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutReplacementsByIdBodyTwoMatchingType } from './putReplacementsByIdBodyTwoMatchingType';
+import type { PutReplacementsByIdBodyTwoMatchingType } from "./putReplacementsByIdBodyTwoMatchingType";
 
 export type PutReplacementsByIdBodyTwo = {
-  novelId: string;
-  /** @minLength 1 */
-  from: string;
-  /** @minLength 1 */
-  to: string;
-  matchingType: PutReplacementsByIdBodyTwoMatchingType;
+	novelId: string;
+	/** @minLength 1 */
+	from: string;
+	/** @minLength 1 */
+	to: string;
+	matchingType: PutReplacementsByIdBodyTwoMatchingType;
 };

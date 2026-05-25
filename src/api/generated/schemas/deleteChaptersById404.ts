@@ -7,5 +7,5 @@
  */
 
 export type DeleteChaptersById404 = {
-  message: string;
+	message: string;
 };

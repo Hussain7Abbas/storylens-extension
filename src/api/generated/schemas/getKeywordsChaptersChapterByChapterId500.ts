@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordsChaptersChapterByChapterId500 = {
-  message: string;
+	message: string;
 };

@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutKeywordsById200ParentAnyOfMatchingType = 'FULL' | 'PARTIAL';
+export type PutKeywordsById200ParentAnyOfMatchingType = "FULL" | "PARTIAL";

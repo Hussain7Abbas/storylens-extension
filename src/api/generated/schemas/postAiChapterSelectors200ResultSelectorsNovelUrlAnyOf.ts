@@ -7,6 +7,6 @@
  */
 
 export type PostAiChapterSelectors200ResultSelectorsNovelUrlAnyOf = {
-  value: string;
-  regex: string;
+	value: string;
+	regex: string;
 };

@@ -5,9 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostWebsiteSelectorsBodyOneNovelXpathAnyOf } from './postWebsiteSelectorsBodyOneNovelXpathAnyOf';
+import type { PostWebsiteSelectorsBodyOneNovelXpathAnyOf } from "./postWebsiteSelectorsBodyOneNovelXpathAnyOf";
 
 /**
  * @nullable
  */
-export type PostWebsiteSelectorsBodyOneNovelXpath = PostWebsiteSelectorsBodyOneNovelXpathAnyOf | null | null;
+export type PostWebsiteSelectorsBodyOneNovelXpath =
+	PostWebsiteSelectorsBodyOneNovelXpathAnyOf | null | null;

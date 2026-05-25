@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetWebsiteSelectors200DataItemCreatedAt = unknown | string | string | number;
+export type GetWebsiteSelectors200DataItemCreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

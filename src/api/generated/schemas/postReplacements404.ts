@@ -7,5 +7,5 @@
  */
 
 export type PostReplacements404 = {
-  message: string;
+	message: string;
 };

@@ -7,7 +7,7 @@
  */
 
 export type PostAuthLoginBodyOne = {
-  email: string;
-  /** @minLength 1 */
-  password: string;
+	email: string;
+	/** @minLength 1 */
+	password: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type DeleteNovelsById404 = {
-  message: string;
+	message: string;
 };

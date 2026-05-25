@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsChaptersById200KeywordImageAnyOfCreatedAt = unknown | string | string | number;
+export type GetKeywordsChaptersById200KeywordImageAnyOfCreatedAt =
+	| unknown
+	| string
+	| string
+	| number;

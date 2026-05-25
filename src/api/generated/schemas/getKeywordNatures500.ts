@@ -7,5 +7,5 @@
  */
 
 export type GetKeywordNatures500 = {
-  message: string;
+	message: string;
 };

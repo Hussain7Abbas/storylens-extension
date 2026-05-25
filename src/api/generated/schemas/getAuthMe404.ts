@@ -7,5 +7,5 @@
  */
 
 export type GetAuthMe404 = {
-  message: string;
+	message: string;
 };

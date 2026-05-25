@@ -6,11 +6,11 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordNaturesSortingDirection = typeof GetKeywordNaturesSortingDirection[keyof typeof GetKeywordNaturesSortingDirection];
-
+export type GetKeywordNaturesSortingDirection =
+	(typeof GetKeywordNaturesSortingDirection)[keyof typeof GetKeywordNaturesSortingDirection];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetKeywordNaturesSortingDirection = {
-  asc: 'asc',
-  desc: 'desc',
+	asc: "asc",
+	desc: "desc",
 } as const;

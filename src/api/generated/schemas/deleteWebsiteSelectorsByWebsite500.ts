@@ -7,5 +7,5 @@
  */
 
 export type DeleteWebsiteSelectorsByWebsite500 = {
-  message: string;
+	message: string;
 };

@@ -7,5 +7,5 @@
  */
 
 export type PutNovelsById404 = {
-  message: string;
+	message: string;
 };

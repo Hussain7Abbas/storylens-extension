@@ -5,8 +5,8 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetConfigs200DataItem } from './getConfigs200DataItem';
+import type { GetConfigs200DataItem } from "./getConfigs200DataItem";
 
 export type GetConfigs200 = {
-  data: GetConfigs200DataItem[];
+	data: GetConfigs200DataItem[];
 };
