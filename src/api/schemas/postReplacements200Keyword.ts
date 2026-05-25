@@ -5,10 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostReplacements200KeywordAnyOf } from './postReplacements200KeywordAnyOf';
+import type { PostReplacements200KeywordAnyOf } from "./postReplacements200KeywordAnyOf";
 
 /**
  * @nullable
  */
 export type PostReplacements200Keyword =
-  PostReplacements200KeywordAnyOf | null | null;
+	PostReplacements200KeywordAnyOf | null | null;

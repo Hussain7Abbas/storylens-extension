@@ -7,7 +7,7 @@
  */
 
 export type GetNovelsById200ChaptersItemCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

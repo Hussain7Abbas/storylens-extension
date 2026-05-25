@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordsChaptersById200KeywordCategoryCreatedAt } from './getKeywordsChaptersById200KeywordCategoryCreatedAt';
-import type { GetKeywordsChaptersById200KeywordCategoryUpdatedAt } from './getKeywordsChaptersById200KeywordCategoryUpdatedAt';
+import type { GetKeywordsChaptersById200KeywordCategoryCreatedAt } from "./getKeywordsChaptersById200KeywordCategoryCreatedAt";
+import type { GetKeywordsChaptersById200KeywordCategoryUpdatedAt } from "./getKeywordsChaptersById200KeywordCategoryUpdatedAt";
 
 export type GetKeywordsChaptersById200KeywordCategory = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: GetKeywordsChaptersById200KeywordCategoryCreatedAt;
-  updatedAt: GetKeywordsChaptersById200KeywordCategoryUpdatedAt;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: GetKeywordsChaptersById200KeywordCategoryCreatedAt;
+	updatedAt: GetKeywordsChaptersById200KeywordCategoryUpdatedAt;
 };

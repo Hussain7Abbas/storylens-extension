@@ -7,7 +7,7 @@
  */
 
 export type GetKeywords200DataItemImageAnyOfUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

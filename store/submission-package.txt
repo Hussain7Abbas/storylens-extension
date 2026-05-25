@@ -1,0 +1,54 @@
+=== WHAT TO SUBMIT ===
+
+1) EXTENSION PACKAGE (required)
+File: apps/extension/.output/storylens-extension-1.0.0-chrome.zip
+Rebuild command: make release-chrome
+
+2) STORE ICON (required — already inside the uploaded zip)
+Size: 128 x 128 px
+Format: PNG
+Source in repo: apps/extension/.output/chrome-mv3/icons/128.png
+
+3) SCREENSHOTS (required — you create these manually)
+Minimum: 1 screenshot
+Maximum: 5 screenshots
+Accepted sizes (use one size consistently):
+• 1280 x 800 px  ← recommended
+• 640 x 400 px
+Format: JPEG or 24-bit PNG (no alpha channel)
+
+Suggested screenshot set:
+A. Novel page with keyword highlights visible
+B. Extension popup showing keyword list / coloring tab
+C. Extension popup showing replacement settings
+D. Options/settings page
+E. Arabic UI example (optional)
+
+4) SMALL PROMO TILE (optional, but useful if you want featuring)
+Size: 440 x 280 px
+Format: JPEG or 24-bit PNG (no alpha)
+
+5) MARQUEE PROMO TILE (optional)
+Size: 1400 x 560 px
+Format: JPEG or 24-bit PNG (no alpha)
+
+6) PRIVACY POLICY URL (required)
+Host the text from: apps/extension/store/privacy-policy.en.txt
+Privacy policy contact: hussain@iscoded.com
+
+=== DISTRIBUTION SETTINGS ===
+
+Visibility: Public
+Pricing: Free
+Mature content: No
+Regions: All regions (or choose specific countries)
+
+=== SUPPORT / DEVELOPER CONTACT ===
+
+Developer display name: Hussain Abbas
+Contact email: hussain@iscoded.com
+Website: https://github.com/Hussain7Abbas/storylens
+
+=== REVIEW NOTES (optional field in dashboard) ===
+
+StoryLens enhances web novel reading by applying user-configured keyword highlights and text replacements on supported novel pages. The Extension syncs glossary data with https://storylens-api.iscoded.com. Test by opening a supported web novel chapter, clicking the StoryLens toolbar icon, and adding a keyword with a highlight color.

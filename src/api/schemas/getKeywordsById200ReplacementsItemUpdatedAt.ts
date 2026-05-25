@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsById200ReplacementsItemUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

@@ -7,5 +7,5 @@
  */
 
 export type GetIndex500 = {
-  message: string;
+	message: string;
 };

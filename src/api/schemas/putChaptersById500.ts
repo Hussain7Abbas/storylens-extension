@@ -7,5 +7,5 @@
  */
 
 export type PutChaptersById500 = {
-  message: string;
+	message: string;
 };

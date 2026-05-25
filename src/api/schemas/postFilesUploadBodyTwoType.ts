@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostFilesUploadBodyTwoType = 'Image' | 'Video';
+export type PostFilesUploadBodyTwoType = "Image" | "Video";

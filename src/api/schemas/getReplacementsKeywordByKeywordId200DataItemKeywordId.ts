@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetReplacementsKeywordByKeywordId200DataItemKeywordId = null | string;
+export type GetReplacementsKeywordByKeywordId200DataItemKeywordId =
+	| null
+	| string;

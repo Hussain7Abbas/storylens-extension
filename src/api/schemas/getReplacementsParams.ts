@@ -5,22 +5,22 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsSortingDirection } from './getReplacementsSortingDirection';
+import type { GetReplacementsSortingDirection } from "./getReplacementsSortingDirection";
 
 export type GetReplacementsParams = {
-  pagination?: {
-    page: number;
-    pageSize: number;
-  };
-  sorting?: {
-    column: string;
-    direction?: GetReplacementsSortingDirection;
-  };
-  query?: {
-    search?: string;
-    from?: string;
-    to?: string;
-    novelId?: string;
-    keywordId?: string;
-  };
+	pagination?: {
+		page: number;
+		pageSize: number;
+	};
+	sorting?: {
+		column: string;
+		direction?: GetReplacementsSortingDirection;
+	};
+	query?: {
+		search?: string;
+		from?: string;
+		to?: string;
+		novelId?: string;
+		keywordId?: string;
+	};
 };

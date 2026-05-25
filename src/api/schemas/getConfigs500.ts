@@ -7,5 +7,5 @@
  */
 
 export type GetConfigs500 = {
-  message: string;
+	message: string;
 };

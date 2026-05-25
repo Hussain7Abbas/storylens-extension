@@ -5,20 +5,21 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteKeywordsById200ImageId } from './deleteKeywordsById200ImageId';
-import type { DeleteKeywordsById200ParentId } from './deleteKeywordsById200ParentId';
-import type { DeleteKeywordsById200CreatedAt } from './deleteKeywordsById200CreatedAt';
-import type { DeleteKeywordsById200UpdatedAt } from './deleteKeywordsById200UpdatedAt';
+
+import type { DeleteKeywordsById200CreatedAt } from "./deleteKeywordsById200CreatedAt";
+import type { DeleteKeywordsById200ImageId } from "./deleteKeywordsById200ImageId";
+import type { DeleteKeywordsById200ParentId } from "./deleteKeywordsById200ParentId";
+import type { DeleteKeywordsById200UpdatedAt } from "./deleteKeywordsById200UpdatedAt";
 
 export type DeleteKeywordsById200 = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: DeleteKeywordsById200ImageId;
-  parentId: DeleteKeywordsById200ParentId;
-  novelId: string;
-  createdAt: DeleteKeywordsById200CreatedAt;
-  updatedAt: DeleteKeywordsById200UpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: DeleteKeywordsById200ImageId;
+	parentId: DeleteKeywordsById200ParentId;
+	novelId: string;
+	createdAt: DeleteKeywordsById200CreatedAt;
+	updatedAt: DeleteKeywordsById200UpdatedAt;
 };

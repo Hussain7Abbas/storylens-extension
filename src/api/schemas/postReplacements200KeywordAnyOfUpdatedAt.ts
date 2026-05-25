@@ -7,7 +7,7 @@
  */
 
 export type PostReplacements200KeywordAnyOfUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

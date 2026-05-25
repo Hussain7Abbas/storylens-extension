@@ -5,10 +5,10 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsById200KeywordAnyOf } from './getReplacementsById200KeywordAnyOf';
+import type { GetReplacementsById200KeywordAnyOf } from "./getReplacementsById200KeywordAnyOf";
 
 /**
  * @nullable
  */
 export type GetReplacementsById200Keyword =
-  GetReplacementsById200KeywordAnyOf | null | null;
+	GetReplacementsById200KeywordAnyOf | null | null;

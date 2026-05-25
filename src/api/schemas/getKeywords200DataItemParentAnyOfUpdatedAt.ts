@@ -7,7 +7,7 @@
  */
 
 export type GetKeywords200DataItemParentAnyOfUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

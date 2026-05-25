@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordCategoriesById200KeywordsItemUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

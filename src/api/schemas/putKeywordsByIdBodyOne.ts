@@ -7,12 +7,12 @@
  */
 
 export type PutKeywordsByIdBodyOne = {
-  /** @minLength 1 */
-  name: string;
-  /** @minLength 1 */
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId?: string;
-  parentId?: string;
+	/** @minLength 1 */
+	name: string;
+	/** @minLength 1 */
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId?: string;
+	parentId?: string;
 };

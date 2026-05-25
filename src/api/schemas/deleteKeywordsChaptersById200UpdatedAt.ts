@@ -7,7 +7,7 @@
  */
 
 export type DeleteKeywordsChaptersById200UpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

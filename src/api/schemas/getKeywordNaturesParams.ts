@@ -5,15 +5,15 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordNaturesSortingDirection } from './getKeywordNaturesSortingDirection';
+import type { GetKeywordNaturesSortingDirection } from "./getKeywordNaturesSortingDirection";
 
 export type GetKeywordNaturesParams = {
-  pagination?: {
-    page: number;
-    pageSize: number;
-  };
-  sorting?: {
-    column: string;
-    direction?: GetKeywordNaturesSortingDirection;
-  };
+	pagination?: {
+		page: number;
+		pageSize: number;
+	};
+	sorting?: {
+		column: string;
+		direction?: GetKeywordNaturesSortingDirection;
+	};
 };

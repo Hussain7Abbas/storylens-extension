@@ -7,6 +7,6 @@
  */
 
 export type PostKeywordsChaptersBodyThree = {
-  keywordId: string;
-  chapterId: string;
+	keywordId: string;
+	chapterId: string;
 };

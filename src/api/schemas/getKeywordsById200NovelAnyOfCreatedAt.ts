@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsById200NovelAnyOfCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

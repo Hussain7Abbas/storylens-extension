@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsById200KeywordsChaptersItemChapterNumber = string | number;
+export type GetKeywordsById200KeywordsChaptersItemChapterNumber =
+	| string
+	| number;

@@ -1,126 +1,126 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic&display=swap");
 
 #kol_content {
-  overflow: initial !important;
+	overflow: initial !important;
 }
 
 /* Tooltip container */
 .tooltip1 {
-  position: relative;
-  display: inline-block;
+	position: relative;
+	display: inline-block;
 }
 
 /* Tooltip text */
 .tooltip1 .tooltiptext1 {
-  visibility: hidden;
-  width: fit-content;
-  background-color: black;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 14px;
+	visibility: hidden;
+	width: fit-content;
+	background-color: black;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 5px 10px;
+	font-size: 14px;
 
-  /* Position the tooltip */
-  position: absolute;
-  z-index: 1;
-  bottom: 100%;
-  margin-left: -60px;
-  left: 50%;
-  width: 16vw;
-  transform: translateX(-2vw);
+	/* Position the tooltip */
+	position: absolute;
+	z-index: 1;
+	bottom: 100%;
+	margin-left: -60px;
+	left: 50%;
+	width: 16vw;
+	transform: translateX(-2vw);
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip1:hover .tooltiptext1 {
-  visibility: visible;
+	visibility: visible;
 }
 
 .tooltip1 .tooltiptext1::after {
-  content: " ";
-  position: absolute;
-  top: 100%; /* At the bottom of the tooltip */
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: black transparent transparent transparent;
+	content: " ";
+	position: absolute;
+	top: 100%; /* At the bottom of the tooltip */
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: black transparent transparent transparent;
 }
 
 /* Keyword tooltip specific styles */
 .keyword-tooltip {
-  cursor: pointer;
-  border-radius: 3px;
-  padding: 2px 4px;
-  transition: background-color 0.2s ease;
+	cursor: pointer;
+	border-radius: 3px;
+	padding: 2px 4px;
+	transition: background-color 0.2s ease;
 }
 
 .keyword-tooltip:hover {
-  background-color: rgba(0, 0, 0, 0.1);
+	background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Category indicator circle */
 .category-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 4px;
-  vertical-align: middle;
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 4px;
+	vertical-align: middle;
 }
 
 .storylens-keyword .nature-indicator {
-  position: absolute;
-  top: 5px;
-  inset-inline-end: -2px;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  pointer-events: none;
+	position: absolute;
+	top: 5px;
+	inset-inline-end: -2px;
+	width: 3px;
+	height: 3px;
+	border-radius: 50%;
+	pointer-events: none;
 }
 
 /* Keyword info in tooltip */
 .keyword-info {
-  text-align: left;
-  max-width: 200px;
+	text-align: left;
+	max-width: 200px;
 }
 
 .keyword-info strong {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 16px;
+	display: block;
+	margin-bottom: 4px;
+	font-size: 16px;
 }
 
 .keyword-info p {
-  margin: 4px 0;
-  font-size: 12px;
-  line-height: 1.4;
+	margin: 4px 0;
+	font-size: 12px;
+	line-height: 1.4;
 }
 
 .keyword-meta {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 10px;
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+	font-size: 10px;
 }
 
 .keyword-meta .category,
 .keyword-meta .nature {
-  padding: 2px 6px;
-  border-radius: 3px;
-  background-color: rgba(255, 255, 255, 0.2);
+	padding: 2px 6px;
+	border-radius: 3px;
+	background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Content formatting */
 .chapter-content p {
-  display: block !important;
-  font-family: "Noto Kufi Arabic", sans-serif;
+	display: block !important;
+	font-family: "Noto Kufi Arabic", sans-serif;
 }
 
 section.content-wrap .chapter-content p:nth-child(odd) {
-  display: none !important;
+	display: none !important;
 } /* for sunnovels */
 
 .publift-widget-22804772995 {
-  display: none !important;
+	display: none !important;
 }

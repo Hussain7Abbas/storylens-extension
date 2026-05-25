@@ -5,15 +5,15 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordsChaptersChapterByChapterIdSortingDirection } from './getKeywordsChaptersChapterByChapterIdSortingDirection';
+import type { GetKeywordsChaptersChapterByChapterIdSortingDirection } from "./getKeywordsChaptersChapterByChapterIdSortingDirection";
 
 export type GetKeywordsChaptersChapterByChapterIdParams = {
-  pagination?: {
-    page: number;
-    pageSize: number;
-  };
-  sorting?: {
-    column: string;
-    direction?: GetKeywordsChaptersChapterByChapterIdSortingDirection;
-  };
+	pagination?: {
+		page: number;
+		pageSize: number;
+	};
+	sorting?: {
+		column: string;
+		direction?: GetKeywordsChaptersChapterByChapterIdSortingDirection;
+	};
 };

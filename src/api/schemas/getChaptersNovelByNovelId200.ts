@@ -5,9 +5,9 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetChaptersNovelByNovelId200DataItem } from './getChaptersNovelByNovelId200DataItem';
+import type { GetChaptersNovelByNovelId200DataItem } from "./getChaptersNovelByNovelId200DataItem";
 
 export type GetChaptersNovelByNovelId200 = {
-  data: GetChaptersNovelByNovelId200DataItem[];
-  total: number;
+	data: GetChaptersNovelByNovelId200DataItem[];
+	total: number;
 };

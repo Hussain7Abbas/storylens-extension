@@ -7,13 +7,13 @@
  */
 
 export type PostKeywordsBodyTwo = {
-  /** @minLength 1 */
-  name: string;
-  /** @minLength 1 */
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId?: string;
-  parentId?: string;
-  novelId: string;
+	/** @minLength 1 */
+	name: string;
+	/** @minLength 1 */
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId?: string;
+	parentId?: string;
+	novelId: string;
 };

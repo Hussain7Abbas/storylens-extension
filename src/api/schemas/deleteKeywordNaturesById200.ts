@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { DeleteKeywordNaturesById200CreatedAt } from './deleteKeywordNaturesById200CreatedAt';
-import type { DeleteKeywordNaturesById200UpdatedAt } from './deleteKeywordNaturesById200UpdatedAt';
+import type { DeleteKeywordNaturesById200CreatedAt } from "./deleteKeywordNaturesById200CreatedAt";
+import type { DeleteKeywordNaturesById200UpdatedAt } from "./deleteKeywordNaturesById200UpdatedAt";
 
 export type DeleteKeywordNaturesById200 = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: DeleteKeywordNaturesById200CreatedAt;
-  updatedAt: DeleteKeywordNaturesById200UpdatedAt;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: DeleteKeywordNaturesById200CreatedAt;
+	updatedAt: DeleteKeywordNaturesById200UpdatedAt;
 };

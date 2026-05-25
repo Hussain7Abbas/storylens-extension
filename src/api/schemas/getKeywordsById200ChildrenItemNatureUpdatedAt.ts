@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsById200ChildrenItemNatureUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

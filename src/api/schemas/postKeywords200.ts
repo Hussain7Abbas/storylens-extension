@@ -5,30 +5,31 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostKeywords200ImageId } from './postKeywords200ImageId';
-import type { PostKeywords200ParentId } from './postKeywords200ParentId';
-import type { PostKeywords200CreatedAt } from './postKeywords200CreatedAt';
-import type { PostKeywords200UpdatedAt } from './postKeywords200UpdatedAt';
-import type { PostKeywords200Category } from './postKeywords200Category';
-import type { PostKeywords200Nature } from './postKeywords200Nature';
-import type { PostKeywords200Image } from './postKeywords200Image';
-import type { PostKeywords200Parent } from './postKeywords200Parent';
+
+import type { PostKeywords200Category } from "./postKeywords200Category";
+import type { PostKeywords200CreatedAt } from "./postKeywords200CreatedAt";
+import type { PostKeywords200Image } from "./postKeywords200Image";
+import type { PostKeywords200ImageId } from "./postKeywords200ImageId";
+import type { PostKeywords200Nature } from "./postKeywords200Nature";
+import type { PostKeywords200Parent } from "./postKeywords200Parent";
+import type { PostKeywords200ParentId } from "./postKeywords200ParentId";
+import type { PostKeywords200UpdatedAt } from "./postKeywords200UpdatedAt";
 
 export type PostKeywords200 = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: PostKeywords200ImageId;
-  parentId: PostKeywords200ParentId;
-  novelId: string;
-  createdAt: PostKeywords200CreatedAt;
-  updatedAt: PostKeywords200UpdatedAt;
-  category: PostKeywords200Category;
-  nature: PostKeywords200Nature;
-  /** @nullable */
-  image: PostKeywords200Image;
-  /** @nullable */
-  parent: PostKeywords200Parent;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: PostKeywords200ImageId;
+	parentId: PostKeywords200ParentId;
+	novelId: string;
+	createdAt: PostKeywords200CreatedAt;
+	updatedAt: PostKeywords200UpdatedAt;
+	category: PostKeywords200Category;
+	nature: PostKeywords200Nature;
+	/** @nullable */
+	image: PostKeywords200Image;
+	/** @nullable */
+	parent: PostKeywords200Parent;
 };

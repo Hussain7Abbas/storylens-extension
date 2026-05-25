@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordCategoriesById200KeywordsItemCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

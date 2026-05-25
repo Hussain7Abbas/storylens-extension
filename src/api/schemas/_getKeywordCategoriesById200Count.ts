@@ -7,5 +7,5 @@
  */
 
 export type _GetKeywordCategoriesById200Count = {
-  keywords: number;
+	keywords: number;
 };

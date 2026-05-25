@@ -5,20 +5,21 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostNovels200Description } from './postNovels200Description';
-import type { PostNovels200ImageId } from './postNovels200ImageId';
-import type { PostNovels200CreatedAt } from './postNovels200CreatedAt';
-import type { PostNovels200UpdatedAt } from './postNovels200UpdatedAt';
-import type { PostNovels200Image } from './postNovels200Image';
+
+import type { PostNovels200CreatedAt } from "./postNovels200CreatedAt";
+import type { PostNovels200Description } from "./postNovels200Description";
+import type { PostNovels200Image } from "./postNovels200Image";
+import type { PostNovels200ImageId } from "./postNovels200ImageId";
+import type { PostNovels200UpdatedAt } from "./postNovels200UpdatedAt";
 
 export type PostNovels200 = {
-  id: string;
-  name: string;
-  description: PostNovels200Description;
-  slugs: string[];
-  imageId: PostNovels200ImageId;
-  createdAt: PostNovels200CreatedAt;
-  updatedAt: PostNovels200UpdatedAt;
-  /** @nullable */
-  image: PostNovels200Image;
+	id: string;
+	name: string;
+	description: PostNovels200Description;
+	slugs: string[];
+	imageId: PostNovels200ImageId;
+	createdAt: PostNovels200CreatedAt;
+	updatedAt: PostNovels200UpdatedAt;
+	/** @nullable */
+	image: PostNovels200Image;
 };

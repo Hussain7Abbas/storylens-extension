@@ -5,19 +5,20 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsById200KeywordId } from './getReplacementsById200KeywordId';
-import type { GetReplacementsById200CreatedAt } from './getReplacementsById200CreatedAt';
-import type { GetReplacementsById200UpdatedAt } from './getReplacementsById200UpdatedAt';
-import type { GetReplacementsById200Keyword } from './getReplacementsById200Keyword';
+
+import type { GetReplacementsById200CreatedAt } from "./getReplacementsById200CreatedAt";
+import type { GetReplacementsById200Keyword } from "./getReplacementsById200Keyword";
+import type { GetReplacementsById200KeywordId } from "./getReplacementsById200KeywordId";
+import type { GetReplacementsById200UpdatedAt } from "./getReplacementsById200UpdatedAt";
 
 export type GetReplacementsById200 = {
-  id: string;
-  from: string;
-  to: string;
-  novelId: string;
-  keywordId: GetReplacementsById200KeywordId;
-  createdAt: GetReplacementsById200CreatedAt;
-  updatedAt: GetReplacementsById200UpdatedAt;
-  /** @nullable */
-  keyword: GetReplacementsById200Keyword;
+	id: string;
+	from: string;
+	to: string;
+	novelId: string;
+	keywordId: GetReplacementsById200KeywordId;
+	createdAt: GetReplacementsById200CreatedAt;
+	updatedAt: GetReplacementsById200UpdatedAt;
+	/** @nullable */
+	keyword: GetReplacementsById200Keyword;
 };

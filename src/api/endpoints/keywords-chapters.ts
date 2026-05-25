@@ -5,47 +5,47 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  MutationFunction,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseMutationOptions,
-  UseMutationResult,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query';
 
 import type {
-  DeleteKeywordsChaptersById200,
-  DeleteKeywordsChaptersById404,
-  DeleteKeywordsChaptersById500,
-  GetKeywordsChaptersById200,
-  GetKeywordsChaptersById404,
-  GetKeywordsChaptersById500,
-  GetKeywordsChaptersChapterByChapterId200,
-  GetKeywordsChaptersChapterByChapterId404,
-  GetKeywordsChaptersChapterByChapterId500,
-  GetKeywordsChaptersChapterByChapterIdParams,
-  GetKeywordsChaptersKeywordByKeywordId200,
-  GetKeywordsChaptersKeywordByKeywordId404,
-  GetKeywordsChaptersKeywordByKeywordId500,
-  GetKeywordsChaptersKeywordByKeywordIdParams,
-  PostKeywordsChapters200,
-  PostKeywordsChapters404,
-  PostKeywordsChapters500,
-  PostKeywordsChaptersBodyOne,
-  PostKeywordsChaptersBodyThree,
-  PostKeywordsChaptersBodyTwo,
-} from '../schemas';
+	DataTag,
+	DefinedInitialDataOptions,
+	DefinedUseQueryResult,
+	MutationFunction,
+	QueryClient,
+	QueryFunction,
+	QueryKey,
+	UndefinedInitialDataOptions,
+	UseMutationOptions,
+	UseMutationResult,
+	UseQueryOptions,
+	UseQueryResult,
+} from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { ErrorType } from "../axios-instance";
 
-import { customInstance } from '../axios-instance';
-import type { ErrorType } from '../axios-instance';
+import { customInstance } from "../axios-instance";
+import type {
+	DeleteKeywordsChaptersById200,
+	DeleteKeywordsChaptersById404,
+	DeleteKeywordsChaptersById500,
+	GetKeywordsChaptersById200,
+	GetKeywordsChaptersById404,
+	GetKeywordsChaptersById500,
+	GetKeywordsChaptersChapterByChapterId200,
+	GetKeywordsChaptersChapterByChapterId404,
+	GetKeywordsChaptersChapterByChapterId500,
+	GetKeywordsChaptersChapterByChapterIdParams,
+	GetKeywordsChaptersKeywordByKeywordId200,
+	GetKeywordsChaptersKeywordByKeywordId404,
+	GetKeywordsChaptersKeywordByKeywordId500,
+	GetKeywordsChaptersKeywordByKeywordIdParams,
+	PostKeywordsChapters200,
+	PostKeywordsChapters404,
+	PostKeywordsChapters500,
+	PostKeywordsChaptersBodyOne,
+	PostKeywordsChaptersBodyThree,
+	PostKeywordsChaptersBodyTwo,
+} from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -54,743 +54,787 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getKeywordsChaptersChapterByChapterId = (
-  chapterId: string,
-  params: GetKeywordsChaptersChapterByChapterIdParams,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	chapterId: string,
+	params: GetKeywordsChaptersChapterByChapterIdParams,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetKeywordsChaptersChapterByChapterId200>(
-    {
-      url: `http://localhost:7001/keywords-chapters/chapter/${chapterId}`,
-      method: 'GET',
-      params,
-      signal,
-    },
-    options,
-  );
+	return customInstance<GetKeywordsChaptersChapterByChapterId200>(
+		{
+			url: `http://localhost:7001/keywords-chapters/chapter/${chapterId}`,
+			method: "GET",
+			params,
+			signal,
+		},
+		options,
+	);
 };
 
 export const getGetKeywordsChaptersChapterByChapterIdQueryKey = (
-  chapterId?: string,
-  params?: GetKeywordsChaptersChapterByChapterIdParams,
+	chapterId?: string,
+	params?: GetKeywordsChaptersChapterByChapterIdParams,
 ) => {
-  return [
-    `http://localhost:7001/keywords-chapters/chapter/${chapterId}`,
-    ...(params ? [params] : []),
-  ] as const;
+	return [
+		`http://localhost:7001/keywords-chapters/chapter/${chapterId}`,
+		...(params ? [params] : []),
+	] as const;
 };
 
 export const getGetKeywordsChaptersChapterByChapterIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersChapterByChapterId404
-    | GetKeywordsChaptersChapterByChapterId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersChapterByChapterId404
+		| GetKeywordsChaptersChapterByChapterId500
+	>,
 >(
-  chapterId: string,
-  params: GetKeywordsChaptersChapterByChapterIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	chapterId: string,
+	params: GetKeywordsChaptersChapterByChapterIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getGetKeywordsChaptersChapterByChapterIdQueryKey(chapterId, params);
+	const queryKey =
+		queryOptions?.queryKey ??
+		getGetKeywordsChaptersChapterByChapterIdQueryKey(chapterId, params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
-  > = ({ signal }) =>
-    getKeywordsChaptersChapterByChapterId(chapterId, params, requestOptions, signal);
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
+	> = ({ signal }) =>
+		getKeywordsChaptersChapterByChapterId(
+			chapterId,
+			params,
+			requestOptions,
+			signal,
+		);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!chapterId,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!chapterId,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetKeywordsChaptersChapterByChapterIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
+	Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
 >;
 export type GetKeywordsChaptersChapterByChapterIdQueryError = ErrorType<
-  GetKeywordsChaptersChapterByChapterId404 | GetKeywordsChaptersChapterByChapterId500
+	| GetKeywordsChaptersChapterByChapterId404
+	| GetKeywordsChaptersChapterByChapterId500
 >;
 
 export function useGetKeywordsChaptersChapterByChapterId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersChapterByChapterId404
-    | GetKeywordsChaptersChapterByChapterId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersChapterByChapterId404
+		| GetKeywordsChaptersChapterByChapterId500
+	>,
 >(
-  chapterId: string,
-  params: GetKeywordsChaptersChapterByChapterIdParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-          TError,
-          Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	chapterId: string,
+	params: GetKeywordsChaptersChapterByChapterIdParams,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+					TError,
+					Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetKeywordsChaptersChapterByChapterId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersChapterByChapterId404
-    | GetKeywordsChaptersChapterByChapterId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersChapterByChapterId404
+		| GetKeywordsChaptersChapterByChapterId500
+	>,
 >(
-  chapterId: string,
-  params: GetKeywordsChaptersChapterByChapterIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-          TError,
-          Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	chapterId: string,
+	params: GetKeywordsChaptersChapterByChapterIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+					TError,
+					Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetKeywordsChaptersChapterByChapterId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersChapterByChapterId404
-    | GetKeywordsChaptersChapterByChapterId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersChapterByChapterId404
+		| GetKeywordsChaptersChapterByChapterId500
+	>,
 >(
-  chapterId: string,
-  params: GetKeywordsChaptersChapterByChapterIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	chapterId: string,
+	params: GetKeywordsChaptersChapterByChapterIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetKeywordsChaptersChapterByChapterId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersChapterByChapterId404
-    | GetKeywordsChaptersChapterByChapterId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersChapterByChapterId404
+		| GetKeywordsChaptersChapterByChapterId500
+	>,
 >(
-  chapterId: string,
-  params: GetKeywordsChaptersChapterByChapterIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetKeywordsChaptersChapterByChapterIdQueryOptions(
-    chapterId,
-    params,
-    options,
-  );
+	chapterId: string,
+	params: GetKeywordsChaptersChapterByChapterIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetKeywordsChaptersChapterByChapterIdQueryOptions(
+		chapterId,
+		params,
+		options,
+	);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const getKeywordsChaptersKeywordByKeywordId = (
-  keywordId: string,
-  params: GetKeywordsChaptersKeywordByKeywordIdParams,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	keywordId: string,
+	params: GetKeywordsChaptersKeywordByKeywordIdParams,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetKeywordsChaptersKeywordByKeywordId200>(
-    {
-      url: `http://localhost:7001/keywords-chapters/keyword/${keywordId}`,
-      method: 'GET',
-      params,
-      signal,
-    },
-    options,
-  );
+	return customInstance<GetKeywordsChaptersKeywordByKeywordId200>(
+		{
+			url: `http://localhost:7001/keywords-chapters/keyword/${keywordId}`,
+			method: "GET",
+			params,
+			signal,
+		},
+		options,
+	);
 };
 
 export const getGetKeywordsChaptersKeywordByKeywordIdQueryKey = (
-  keywordId?: string,
-  params?: GetKeywordsChaptersKeywordByKeywordIdParams,
+	keywordId?: string,
+	params?: GetKeywordsChaptersKeywordByKeywordIdParams,
 ) => {
-  return [
-    `http://localhost:7001/keywords-chapters/keyword/${keywordId}`,
-    ...(params ? [params] : []),
-  ] as const;
+	return [
+		`http://localhost:7001/keywords-chapters/keyword/${keywordId}`,
+		...(params ? [params] : []),
+	] as const;
 };
 
 export const getGetKeywordsChaptersKeywordByKeywordIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersKeywordByKeywordId404
-    | GetKeywordsChaptersKeywordByKeywordId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersKeywordByKeywordId404
+		| GetKeywordsChaptersKeywordByKeywordId500
+	>,
 >(
-  keywordId: string,
-  params: GetKeywordsChaptersKeywordByKeywordIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	keywordId: string,
+	params: GetKeywordsChaptersKeywordByKeywordIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getGetKeywordsChaptersKeywordByKeywordIdQueryKey(keywordId, params);
+	const queryKey =
+		queryOptions?.queryKey ??
+		getGetKeywordsChaptersKeywordByKeywordIdQueryKey(keywordId, params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
-  > = ({ signal }) =>
-    getKeywordsChaptersKeywordByKeywordId(keywordId, params, requestOptions, signal);
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
+	> = ({ signal }) =>
+		getKeywordsChaptersKeywordByKeywordId(
+			keywordId,
+			params,
+			requestOptions,
+			signal,
+		);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!keywordId,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!keywordId,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetKeywordsChaptersKeywordByKeywordIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
+	Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
 >;
 export type GetKeywordsChaptersKeywordByKeywordIdQueryError = ErrorType<
-  GetKeywordsChaptersKeywordByKeywordId404 | GetKeywordsChaptersKeywordByKeywordId500
+	| GetKeywordsChaptersKeywordByKeywordId404
+	| GetKeywordsChaptersKeywordByKeywordId500
 >;
 
 export function useGetKeywordsChaptersKeywordByKeywordId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersKeywordByKeywordId404
-    | GetKeywordsChaptersKeywordByKeywordId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersKeywordByKeywordId404
+		| GetKeywordsChaptersKeywordByKeywordId500
+	>,
 >(
-  keywordId: string,
-  params: GetKeywordsChaptersKeywordByKeywordIdParams,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-          TError,
-          Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	keywordId: string,
+	params: GetKeywordsChaptersKeywordByKeywordIdParams,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+					TError,
+					Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetKeywordsChaptersKeywordByKeywordId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersKeywordByKeywordId404
-    | GetKeywordsChaptersKeywordByKeywordId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersKeywordByKeywordId404
+		| GetKeywordsChaptersKeywordByKeywordId500
+	>,
 >(
-  keywordId: string,
-  params: GetKeywordsChaptersKeywordByKeywordIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-          TError,
-          Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	keywordId: string,
+	params: GetKeywordsChaptersKeywordByKeywordIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+					TError,
+					Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetKeywordsChaptersKeywordByKeywordId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersKeywordByKeywordId404
-    | GetKeywordsChaptersKeywordByKeywordId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersKeywordByKeywordId404
+		| GetKeywordsChaptersKeywordByKeywordId500
+	>,
 >(
-  keywordId: string,
-  params: GetKeywordsChaptersKeywordByKeywordIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	keywordId: string,
+	params: GetKeywordsChaptersKeywordByKeywordIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetKeywordsChaptersKeywordByKeywordId<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-  TError = ErrorType<
-    | GetKeywordsChaptersKeywordByKeywordId404
-    | GetKeywordsChaptersKeywordByKeywordId500
-  >,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+	TError = ErrorType<
+		| GetKeywordsChaptersKeywordByKeywordId404
+		| GetKeywordsChaptersKeywordByKeywordId500
+	>,
 >(
-  keywordId: string,
-  params: GetKeywordsChaptersKeywordByKeywordIdParams,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetKeywordsChaptersKeywordByKeywordIdQueryOptions(
-    keywordId,
-    params,
-    options,
-  );
+	keywordId: string,
+	params: GetKeywordsChaptersKeywordByKeywordIdParams,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetKeywordsChaptersKeywordByKeywordIdQueryOptions(
+		keywordId,
+		params,
+		options,
+	);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const getKeywordsChaptersById = (
-  id: string,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetKeywordsChaptersById200>(
-    { url: `http://localhost:7001/keywords-chapters/${id}`, method: 'GET', signal },
-    options,
-  );
+	return customInstance<GetKeywordsChaptersById200>(
+		{
+			url: `http://localhost:7001/keywords-chapters/${id}`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
 };
 
 export const getGetKeywordsChaptersByIdQueryKey = (id?: string) => {
-  return [`http://localhost:7001/keywords-chapters/${id}`] as const;
+	return [`http://localhost:7001/keywords-chapters/${id}`] as const;
 };
 
 export const getGetKeywordsChaptersByIdQueryOptions = <
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-  TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetKeywordsChaptersByIdQueryKey(id);
+	const queryKey =
+		queryOptions?.queryKey ?? getGetKeywordsChaptersByIdQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getKeywordsChaptersById>>
-  > = ({ signal }) => getKeywordsChaptersById(id, requestOptions, signal);
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getKeywordsChaptersById>>
+	> = ({ signal }) => getKeywordsChaptersById(id, requestOptions, signal);
 
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!id,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetKeywordsChaptersByIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getKeywordsChaptersById>>
+	Awaited<ReturnType<typeof getKeywordsChaptersById>>
 >;
 export type GetKeywordsChaptersByIdQueryError = ErrorType<
-  GetKeywordsChaptersById404 | GetKeywordsChaptersById500
+	GetKeywordsChaptersById404 | GetKeywordsChaptersById500
 >;
 
 export function useGetKeywordsChaptersById<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-  TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
-  id: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-          TError,
-          Awaited<ReturnType<typeof getKeywordsChaptersById>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	id: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+					TError,
+					Awaited<ReturnType<typeof getKeywordsChaptersById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetKeywordsChaptersById<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-  TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-        TError,
-        TData
-      >
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-          TError,
-          Awaited<ReturnType<typeof getKeywordsChaptersById>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+					TError,
+					Awaited<ReturnType<typeof getKeywordsChaptersById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetKeywordsChaptersById<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-  TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetKeywordsChaptersById<
-  TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-  TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
+	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-        TError,
-        TData
-      >
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetKeywordsChaptersByIdQueryOptions(id, options);
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getKeywordsChaptersById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetKeywordsChaptersByIdQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const deleteKeywordsChaptersById = (
-  id: string,
-  options?: SecondParameter<typeof customInstance>,
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<DeleteKeywordsChaptersById200>(
-    { url: `http://localhost:7001/keywords-chapters/${id}`, method: 'DELETE' },
-    options,
-  );
+	return customInstance<DeleteKeywordsChaptersById200>(
+		{ url: `http://localhost:7001/keywords-chapters/${id}`, method: "DELETE" },
+		options,
+	);
 };
 
 export const getDeleteKeywordsChaptersByIdMutationOptions = <
-  TError = ErrorType<DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500>,
-  TContext = unknown,
+	TError = ErrorType<
+		DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
+	>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
-    TError,
-    { id: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
+		TError,
+		{ id: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
-  TError,
-  { id: string },
-  TContext
+	Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
+	TError,
+	{ id: string },
+	TContext
 > => {
-  const mutationKey = ['deleteKeywordsChaptersById'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["deleteKeywordsChaptersById"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
-    { id: string }
-  > = (props) => {
-    const { id } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
+		{ id: string }
+	> = (props) => {
+		const { id } = props ?? {};
 
-    return deleteKeywordsChaptersById(id, requestOptions);
-  };
+		return deleteKeywordsChaptersById(id, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type DeleteKeywordsChaptersByIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deleteKeywordsChaptersById>>
+	Awaited<ReturnType<typeof deleteKeywordsChaptersById>>
 >;
 
 export type DeleteKeywordsChaptersByIdMutationError = ErrorType<
-  DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
+	DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
 >;
 
 export const useDeleteKeywordsChaptersById = <
-  TError = ErrorType<DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500>,
-  TContext = unknown,
+	TError = ErrorType<
+		DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
+	>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
-      TError,
-      { id: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
+			TError,
+			{ id: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
-  TError,
-  { id: string },
-  TContext
+	Awaited<ReturnType<typeof deleteKeywordsChaptersById>>,
+	TError,
+	{ id: string },
+	TContext
 > => {
-  const mutationOptions = getDeleteKeywordsChaptersByIdMutationOptions(options);
+	const mutationOptions = getDeleteKeywordsChaptersByIdMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };
 export const postKeywordsChapters = (
-  postKeywordsChaptersBody:
-    | PostKeywordsChaptersBodyOne
-    | PostKeywordsChaptersBodyTwo
-    | PostKeywordsChaptersBodyThree,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	postKeywordsChaptersBody:
+		| PostKeywordsChaptersBodyOne
+		| PostKeywordsChaptersBodyTwo
+		| PostKeywordsChaptersBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<PostKeywordsChapters200>(
-    {
-      url: 'http://localhost:7001/keywords-chapters/',
-      method: 'POST',
-      data: postKeywordsChaptersBody,
-      signal,
-    },
-    options,
-  );
+	return customInstance<PostKeywordsChapters200>(
+		{
+			url: "http://localhost:7001/keywords-chapters/",
+			method: "POST",
+			data: postKeywordsChaptersBody,
+			signal,
+		},
+		options,
+	);
 };
 
 export const getPostKeywordsChaptersMutationOptions = <
-  TError = ErrorType<PostKeywordsChapters404 | PostKeywordsChapters500>,
-  TContext = unknown,
+	TError = ErrorType<PostKeywordsChapters404 | PostKeywordsChapters500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof postKeywordsChapters>>,
-    TError,
-    {
-      data:
-        | PostKeywordsChaptersBodyOne
-        | PostKeywordsChaptersBodyTwo
-        | PostKeywordsChaptersBodyThree;
-    },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postKeywordsChapters>>,
+		TError,
+		{
+			data:
+				| PostKeywordsChaptersBodyOne
+				| PostKeywordsChaptersBodyTwo
+				| PostKeywordsChaptersBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof postKeywordsChapters>>,
-  TError,
-  {
-    data:
-      | PostKeywordsChaptersBodyOne
-      | PostKeywordsChaptersBodyTwo
-      | PostKeywordsChaptersBodyThree;
-  },
-  TContext
+	Awaited<ReturnType<typeof postKeywordsChapters>>,
+	TError,
+	{
+		data:
+			| PostKeywordsChaptersBodyOne
+			| PostKeywordsChaptersBodyTwo
+			| PostKeywordsChaptersBodyThree;
+	},
+	TContext
 > => {
-  const mutationKey = ['postKeywordsChapters'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["postKeywordsChapters"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof postKeywordsChapters>>,
-    {
-      data:
-        | PostKeywordsChaptersBodyOne
-        | PostKeywordsChaptersBodyTwo
-        | PostKeywordsChaptersBodyThree;
-    }
-  > = (props) => {
-    const { data } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postKeywordsChapters>>,
+		{
+			data:
+				| PostKeywordsChaptersBodyOne
+				| PostKeywordsChaptersBodyTwo
+				| PostKeywordsChaptersBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
 
-    return postKeywordsChapters(data, requestOptions);
-  };
+		return postKeywordsChapters(data, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type PostKeywordsChaptersMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postKeywordsChapters>>
+	Awaited<ReturnType<typeof postKeywordsChapters>>
 >;
 export type PostKeywordsChaptersMutationBody =
-  | PostKeywordsChaptersBodyOne
-  | PostKeywordsChaptersBodyTwo
-  | PostKeywordsChaptersBodyThree;
+	| PostKeywordsChaptersBodyOne
+	| PostKeywordsChaptersBodyTwo
+	| PostKeywordsChaptersBodyThree;
 export type PostKeywordsChaptersMutationError = ErrorType<
-  PostKeywordsChapters404 | PostKeywordsChapters500
+	PostKeywordsChapters404 | PostKeywordsChapters500
 >;
 
 export const usePostKeywordsChapters = <
-  TError = ErrorType<PostKeywordsChapters404 | PostKeywordsChapters500>,
-  TContext = unknown,
+	TError = ErrorType<PostKeywordsChapters404 | PostKeywordsChapters500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof postKeywordsChapters>>,
-      TError,
-      {
-        data:
-          | PostKeywordsChaptersBodyOne
-          | PostKeywordsChaptersBodyTwo
-          | PostKeywordsChaptersBodyThree;
-      },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postKeywordsChapters>>,
+			TError,
+			{
+				data:
+					| PostKeywordsChaptersBodyOne
+					| PostKeywordsChaptersBodyTwo
+					| PostKeywordsChaptersBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof postKeywordsChapters>>,
-  TError,
-  {
-    data:
-      | PostKeywordsChaptersBodyOne
-      | PostKeywordsChaptersBodyTwo
-      | PostKeywordsChaptersBodyThree;
-  },
-  TContext
+	Awaited<ReturnType<typeof postKeywordsChapters>>,
+	TError,
+	{
+		data:
+			| PostKeywordsChaptersBodyOne
+			| PostKeywordsChaptersBodyTwo
+			| PostKeywordsChaptersBodyThree;
+	},
+	TContext
 > => {
-  const mutationOptions = getPostKeywordsChaptersMutationOptions(options);
+	const mutationOptions = getPostKeywordsChaptersMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };

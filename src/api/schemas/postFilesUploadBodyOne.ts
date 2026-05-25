@@ -5,9 +5,9 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostFilesUploadBodyOneType } from './postFilesUploadBodyOneType';
+import type { PostFilesUploadBodyOneType } from "./postFilesUploadBodyOneType";
 
 export type PostFilesUploadBodyOne = {
-  file: Blob;
-  type: PostFilesUploadBodyOneType;
+	file: Blob;
+	type: PostFilesUploadBodyOneType;
 };

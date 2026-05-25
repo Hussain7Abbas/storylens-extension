@@ -7,5 +7,5 @@
  */
 
 export type PutConfigs404 = {
-  message: string;
+	message: string;
 };

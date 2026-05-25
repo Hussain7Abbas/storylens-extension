@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutNovelsById200ImageAnyOfUpdatedAt = unknown | string | string | number;
+export type PutNovelsById200ImageAnyOfUpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

@@ -5,9 +5,9 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsKeywordByKeywordId200DataItem } from './getReplacementsKeywordByKeywordId200DataItem';
+import type { GetReplacementsKeywordByKeywordId200DataItem } from "./getReplacementsKeywordByKeywordId200DataItem";
 
 export type GetReplacementsKeywordByKeywordId200 = {
-  data: GetReplacementsKeywordByKeywordId200DataItem[];
-  total: number;
+	data: GetReplacementsKeywordByKeywordId200DataItem[];
+	total: number;
 };

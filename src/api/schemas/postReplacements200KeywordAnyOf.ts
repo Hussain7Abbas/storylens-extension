@@ -5,20 +5,21 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PostReplacements200KeywordAnyOfImageId } from './postReplacements200KeywordAnyOfImageId';
-import type { PostReplacements200KeywordAnyOfParentId } from './postReplacements200KeywordAnyOfParentId';
-import type { PostReplacements200KeywordAnyOfCreatedAt } from './postReplacements200KeywordAnyOfCreatedAt';
-import type { PostReplacements200KeywordAnyOfUpdatedAt } from './postReplacements200KeywordAnyOfUpdatedAt';
+
+import type { PostReplacements200KeywordAnyOfCreatedAt } from "./postReplacements200KeywordAnyOfCreatedAt";
+import type { PostReplacements200KeywordAnyOfImageId } from "./postReplacements200KeywordAnyOfImageId";
+import type { PostReplacements200KeywordAnyOfParentId } from "./postReplacements200KeywordAnyOfParentId";
+import type { PostReplacements200KeywordAnyOfUpdatedAt } from "./postReplacements200KeywordAnyOfUpdatedAt";
 
 export type PostReplacements200KeywordAnyOf = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: PostReplacements200KeywordAnyOfImageId;
-  parentId: PostReplacements200KeywordAnyOfParentId;
-  novelId: string;
-  createdAt: PostReplacements200KeywordAnyOfCreatedAt;
-  updatedAt: PostReplacements200KeywordAnyOfUpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: PostReplacements200KeywordAnyOfImageId;
+	parentId: PostReplacements200KeywordAnyOfParentId;
+	novelId: string;
+	createdAt: PostReplacements200KeywordAnyOfCreatedAt;
+	updatedAt: PostReplacements200KeywordAnyOfUpdatedAt;
 };

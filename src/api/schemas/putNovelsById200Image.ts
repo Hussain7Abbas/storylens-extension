@@ -5,7 +5,7 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutNovelsById200ImageAnyOf } from './putNovelsById200ImageAnyOf';
+import type { PutNovelsById200ImageAnyOf } from "./putNovelsById200ImageAnyOf";
 
 /**
  * @nullable

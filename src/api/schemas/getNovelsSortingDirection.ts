@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetNovelsSortingDirection = 'asc' | 'desc';
+export type GetNovelsSortingDirection = "asc" | "desc";

@@ -7,9 +7,9 @@
  */
 
 export type PutReplacementsByIdBodyThree = {
-  novelId: string;
-  /** @minLength 1 */
-  from: string;
-  /** @minLength 1 */
-  to: string;
+	novelId: string;
+	/** @minLength 1 */
+	from: string;
+	/** @minLength 1 */
+	to: string;
 };

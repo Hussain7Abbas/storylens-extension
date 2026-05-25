@@ -1,1 +1,1 @@
-export * from './site-detection';
+export * from "./site-detection";

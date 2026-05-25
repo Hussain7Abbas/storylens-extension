@@ -7,5 +7,5 @@
  */
 
 export type PostKeywordCategories404 = {
-  message: string;
+	message: string;
 };

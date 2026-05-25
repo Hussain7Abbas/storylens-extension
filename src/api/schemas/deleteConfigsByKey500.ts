@@ -7,5 +7,5 @@
  */
 
 export type DeleteConfigsByKey500 = {
-  message: string;
+	message: string;
 };

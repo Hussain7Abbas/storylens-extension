@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostNovels200ImageAnyOfUpdatedAt = unknown | string | string | number;
+export type PostNovels200ImageAnyOfUpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

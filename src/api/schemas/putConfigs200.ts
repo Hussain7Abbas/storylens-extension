@@ -5,13 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutConfigs200CreatedAt } from './putConfigs200CreatedAt';
-import type { PutConfigs200UpdatedAt } from './putConfigs200UpdatedAt';
+import type { PutConfigs200CreatedAt } from "./putConfigs200CreatedAt";
+import type { PutConfigs200UpdatedAt } from "./putConfigs200UpdatedAt";
 
 export type PutConfigs200 = {
-  id: string;
-  key: string;
-  value: string;
-  createdAt: PutConfigs200CreatedAt;
-  updatedAt: PutConfigs200UpdatedAt;
+	id: string;
+	key: string;
+	value: string;
+	createdAt: PutConfigs200CreatedAt;
+	updatedAt: PutConfigs200UpdatedAt;
 };

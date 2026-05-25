@@ -7,5 +7,5 @@
  */
 
 export type GetReplacementsKeywordByKeywordId500 = {
-  message: string;
+	message: string;
 };

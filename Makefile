@@ -1,4 +1,4 @@
-.PHONY: help install dev dev-firefox build build-firefox zip zip-firefox typecheck orval i18n-parse
+.PHONY: help install dev dev-firefox build build-firefox zip zip-firefox release-chrome typecheck orval i18n-parse
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
@@ -22,6 +22,7 @@ help:
 	@echo "  $(GREEN)build-firefox$(RESET)  Firefox production build"
 	@echo "  $(GREEN)zip$(RESET)            build + zip for Chrome"
 	@echo "  $(GREEN)zip-firefox$(RESET)    build + zip for Firefox"
+	@echo "  $(GREEN)release-chrome$(RESET) production API client + Chrome store zip"
 	@echo "  $(GREEN)typecheck$(RESET)      TypeScript check"
 	@echo "  $(GREEN)orval$(RESET)          regenerate API client from backend OpenAPI"
 	@echo "  $(GREEN)i18n-parse$(RESET)     extract i18n keys"
@@ -47,6 +48,9 @@ zip: build
 
 zip-firefox: build-firefox
 	@cd "$(ROOT)" && bun run zip:firefox
+
+release-chrome:
+	@cd "$(ROOT)" && WXT_API_URL="https://storylens-api.iscoded.com" bun run zip
 
 typecheck:
 	@cd "$(ROOT)" && bun run typecheck

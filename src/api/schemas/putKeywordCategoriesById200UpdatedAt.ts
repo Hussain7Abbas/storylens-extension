@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutKeywordCategoriesById200UpdatedAt = unknown | string | string | number;
+export type PutKeywordCategoriesById200UpdatedAt =
+	| unknown
+	| string
+	| string
+	| number;

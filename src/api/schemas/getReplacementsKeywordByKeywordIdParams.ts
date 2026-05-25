@@ -5,15 +5,15 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetReplacementsKeywordByKeywordIdSortingDirection } from './getReplacementsKeywordByKeywordIdSortingDirection';
+import type { GetReplacementsKeywordByKeywordIdSortingDirection } from "./getReplacementsKeywordByKeywordIdSortingDirection";
 
 export type GetReplacementsKeywordByKeywordIdParams = {
-  pagination?: {
-    page: number;
-    pageSize: number;
-  };
-  sorting?: {
-    column: string;
-    direction?: GetReplacementsKeywordByKeywordIdSortingDirection;
-  };
+	pagination?: {
+		page: number;
+		pageSize: number;
+	};
+	sorting?: {
+		column: string;
+		direction?: GetReplacementsKeywordByKeywordIdSortingDirection;
+	};
 };

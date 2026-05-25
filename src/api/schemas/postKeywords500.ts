@@ -7,5 +7,5 @@
  */
 
 export type PostKeywords500 = {
-  message: string;
+	message: string;
 };

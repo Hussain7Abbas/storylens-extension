@@ -5,17 +5,18 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { GetKeywordCategoriesById200CreatedAt } from './getKeywordCategoriesById200CreatedAt';
-import type { GetKeywordCategoriesById200UpdatedAt } from './getKeywordCategoriesById200UpdatedAt';
-import type { GetKeywordCategoriesById200KeywordsItem } from './getKeywordCategoriesById200KeywordsItem';
-import type { _GetKeywordCategoriesById200Count } from './_getKeywordCategoriesById200Count';
+
+import type { _GetKeywordCategoriesById200Count } from "./_getKeywordCategoriesById200Count";
+import type { GetKeywordCategoriesById200CreatedAt } from "./getKeywordCategoriesById200CreatedAt";
+import type { GetKeywordCategoriesById200KeywordsItem } from "./getKeywordCategoriesById200KeywordsItem";
+import type { GetKeywordCategoriesById200UpdatedAt } from "./getKeywordCategoriesById200UpdatedAt";
 
 export type GetKeywordCategoriesById200 = {
-  id: string;
-  name: string;
-  color: string;
-  createdAt: GetKeywordCategoriesById200CreatedAt;
-  updatedAt: GetKeywordCategoriesById200UpdatedAt;
-  keywords: GetKeywordCategoriesById200KeywordsItem[];
-  _count: _GetKeywordCategoriesById200Count;
+	id: string;
+	name: string;
+	color: string;
+	createdAt: GetKeywordCategoriesById200CreatedAt;
+	updatedAt: GetKeywordCategoriesById200UpdatedAt;
+	keywords: GetKeywordCategoriesById200KeywordsItem[];
+	_count: _GetKeywordCategoriesById200Count;
 };

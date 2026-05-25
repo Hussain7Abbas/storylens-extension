@@ -7,7 +7,7 @@
  */
 
 export type GetReplacements200DataItemKeywordAnyOfCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

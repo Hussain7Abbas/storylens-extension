@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetReplacementsSortingDirection = 'asc' | 'desc';
+export type GetReplacementsSortingDirection = "asc" | "desc";

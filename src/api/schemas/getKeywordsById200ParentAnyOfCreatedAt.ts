@@ -7,7 +7,7 @@
  */
 
 export type GetKeywordsById200ParentAnyOfCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

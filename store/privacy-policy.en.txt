@@ -1,0 +1,67 @@
+StoryLens Privacy Policy
+
+Last updated: May 25, 2026
+
+StoryLens ("the Extension") is a browser extension that helps users highlight and manage glossary terms while reading web novels online. This policy explains what information the Extension handles and how it is used.
+
+Information the Extension processes
+
+1. User-created glossary data
+When you use StoryLens, the Extension may create, store, and sync data you enter, including:
+• Novel titles and metadata
+• Keywords and descriptions
+• Categories and natures
+• Text replacements
+• Colors and display settings
+• Uploaded images associated with keywords or novels, if you choose to upload them
+
+This data is sent to the StoryLens API at https://storylens-api.iscoded.com so your glossary can be saved and loaded during future reading sessions.
+
+2. Website content on pages you visit
+To highlight and replace terms on a novel page, the Extension reads the visible chapter content on the page you are reading. This processing happens locally in your browser to apply your configured keywords and replacements. The Extension is designed to use page content only for reading enhancement on the active page.
+
+3. Account and authentication data
+When you first use StoryLens, the Extension may automatically create a guest account with a generated username so your glossary can be saved and synced. If you choose to register or sign in, the Extension may collect and transmit:
+• Email address and password (when you register or log in)
+• Username and optional display name
+• A session token stored locally in your browser for authenticated API requests
+
+4. Technical data
+Like most web-connected software, requests to the StoryLens API may include standard technical information such as request timestamps and browser/network metadata needed to deliver the service.
+
+Information we do not collect through the Extension
+• We do not collect your browsing history across websites
+• We do not sell your personal information
+• We do not use your data for unrelated advertising profiles
+
+How we use information
+We use the information above only to:
+• Detect the novel/chapter context on supported reading pages
+• Apply your keyword highlights and replacements
+• Save, load, and sync your glossary and settings
+• Create and maintain guest or registered user sessions
+• Operate, maintain, and improve StoryLens
+
+Data storage and security
+Data synced with StoryLens is transmitted over HTTPS. Data is stored on servers used to operate the StoryLens API.
+
+Data retention
+Your glossary data is retained while you continue to use StoryLens and as needed to provide the service. You may request deletion of your stored data by contacting the developer.
+
+Third-party services
+StoryLens uses the StoryLens API hosted at https://storylens-api.iscoded.com. We do not sell user data to third parties.
+
+Your choices
+You can stop using the Extension at any time by disabling or removing it from Chrome. Removing the Extension stops further local processing on web pages.
+
+Children's privacy
+StoryLens is not directed to children under 13, and we do not knowingly collect personal information from children.
+
+Changes to this policy
+We may update this privacy policy from time to time. The "Last updated" date at the top will reflect the latest version.
+
+Contact
+For privacy questions or data deletion requests, contact:
+Hussain Abbas
+Email: hussain@iscoded.com
+Website: https://github.com/Hussain7Abbas/storylens

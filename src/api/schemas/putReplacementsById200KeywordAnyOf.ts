@@ -5,20 +5,21 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import type { PutReplacementsById200KeywordAnyOfImageId } from './putReplacementsById200KeywordAnyOfImageId';
-import type { PutReplacementsById200KeywordAnyOfParentId } from './putReplacementsById200KeywordAnyOfParentId';
-import type { PutReplacementsById200KeywordAnyOfCreatedAt } from './putReplacementsById200KeywordAnyOfCreatedAt';
-import type { PutReplacementsById200KeywordAnyOfUpdatedAt } from './putReplacementsById200KeywordAnyOfUpdatedAt';
+
+import type { PutReplacementsById200KeywordAnyOfCreatedAt } from "./putReplacementsById200KeywordAnyOfCreatedAt";
+import type { PutReplacementsById200KeywordAnyOfImageId } from "./putReplacementsById200KeywordAnyOfImageId";
+import type { PutReplacementsById200KeywordAnyOfParentId } from "./putReplacementsById200KeywordAnyOfParentId";
+import type { PutReplacementsById200KeywordAnyOfUpdatedAt } from "./putReplacementsById200KeywordAnyOfUpdatedAt";
 
 export type PutReplacementsById200KeywordAnyOf = {
-  id: string;
-  name: string;
-  description: string;
-  categoryId: string;
-  natureId: string;
-  imageId: PutReplacementsById200KeywordAnyOfImageId;
-  parentId: PutReplacementsById200KeywordAnyOfParentId;
-  novelId: string;
-  createdAt: PutReplacementsById200KeywordAnyOfCreatedAt;
-  updatedAt: PutReplacementsById200KeywordAnyOfUpdatedAt;
+	id: string;
+	name: string;
+	description: string;
+	categoryId: string;
+	natureId: string;
+	imageId: PutReplacementsById200KeywordAnyOfImageId;
+	parentId: PutReplacementsById200KeywordAnyOfParentId;
+	novelId: string;
+	createdAt: PutReplacementsById200KeywordAnyOfCreatedAt;
+	updatedAt: PutReplacementsById200KeywordAnyOfUpdatedAt;
 };

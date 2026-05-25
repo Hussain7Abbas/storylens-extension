@@ -7,7 +7,7 @@
  */
 
 export type PutKeywordsById200ImageAnyOfUpdatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

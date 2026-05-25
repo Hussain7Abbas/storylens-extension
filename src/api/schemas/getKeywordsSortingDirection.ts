@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetKeywordsSortingDirection = 'asc' | 'desc';
+export type GetKeywordsSortingDirection = "asc" | "desc";

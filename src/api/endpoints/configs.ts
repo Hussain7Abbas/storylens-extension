@@ -5,42 +5,42 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  MutationFunction,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseMutationOptions,
-  UseMutationResult,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query';
 
 import type {
-  DeleteConfigsByKey200,
-  DeleteConfigsByKey404,
-  DeleteConfigsByKey500,
-  GetConfigs200,
-  GetConfigs404,
-  GetConfigs500,
-  GetConfigsByKey200,
-  GetConfigsByKey404,
-  GetConfigsByKey500,
-  PutConfigs200,
-  PutConfigs404,
-  PutConfigs500,
-  PutConfigsBodyOne,
-  PutConfigsBodyThree,
-  PutConfigsBodyTwo,
-} from '../schemas';
+	DataTag,
+	DefinedInitialDataOptions,
+	DefinedUseQueryResult,
+	MutationFunction,
+	QueryClient,
+	QueryFunction,
+	QueryKey,
+	UndefinedInitialDataOptions,
+	UseMutationOptions,
+	UseMutationResult,
+	UseQueryOptions,
+	UseQueryResult,
+} from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { ErrorType } from "../axios-instance";
 
-import { customInstance } from '../axios-instance';
-import type { ErrorType } from '../axios-instance';
+import { customInstance } from "../axios-instance";
+import type {
+	DeleteConfigsByKey200,
+	DeleteConfigsByKey404,
+	DeleteConfigsByKey500,
+	GetConfigs200,
+	GetConfigs404,
+	GetConfigs500,
+	GetConfigsByKey200,
+	GetConfigsByKey404,
+	GetConfigsByKey500,
+	PutConfigs200,
+	PutConfigs404,
+	PutConfigs500,
+	PutConfigsBodyOne,
+	PutConfigsBodyThree,
+	PutConfigsBodyTwo,
+} from "../schemas";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -49,417 +49,458 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 export const getConfigs = (
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetConfigs200>(
-    { url: 'http://localhost:7001/configs/', method: 'GET', signal },
-    options,
-  );
+	return customInstance<GetConfigs200>(
+		{ url: "http://localhost:7001/configs/", method: "GET", signal },
+		options,
+	);
 };
 
 export const getGetConfigsQueryKey = () => {
-  return ['http://localhost:7001/configs/'] as const;
+	return ["http://localhost:7001/configs/"] as const;
 };
 
 export const getGetConfigsQueryOptions = <
-  TData = Awaited<ReturnType<typeof getConfigs>>,
-  TError = ErrorType<GetConfigs404 | GetConfigs500>,
+	TData = Awaited<ReturnType<typeof getConfigs>>,
+	TError = ErrorType<GetConfigs404 | GetConfigs500>,
 >(options?: {
-  query?: Partial<
-    UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	query?: Partial<
+		UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetConfigsQueryKey();
+	const queryKey = queryOptions?.queryKey ?? getGetConfigsQueryKey();
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getConfigs>>> = ({
-    signal,
-  }) => getConfigs(requestOptions, signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getConfigs>>> = ({
+		signal,
+	}) => getConfigs(requestOptions, signal);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getConfigs>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+		Awaited<ReturnType<typeof getConfigs>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetConfigsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getConfigs>>
+	Awaited<ReturnType<typeof getConfigs>>
 >;
 export type GetConfigsQueryError = ErrorType<GetConfigs404 | GetConfigs500>;
 
 export function useGetConfigs<
-  TData = Awaited<ReturnType<typeof getConfigs>>,
-  TError = ErrorType<GetConfigs404 | GetConfigs500>,
+	TData = Awaited<ReturnType<typeof getConfigs>>,
+	TError = ErrorType<GetConfigs404 | GetConfigs500>,
 >(
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getConfigs>>,
-          TError,
-          Awaited<ReturnType<typeof getConfigs>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options: {
+		query: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getConfigs>>,
+					TError,
+					Awaited<ReturnType<typeof getConfigs>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetConfigs<
-  TData = Awaited<ReturnType<typeof getConfigs>>,
-  TError = ErrorType<GetConfigs404 | GetConfigs500>,
+	TData = Awaited<ReturnType<typeof getConfigs>>,
+	TError = ErrorType<GetConfigs404 | GetConfigs500>,
 >(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getConfigs>>,
-          TError,
-          Awaited<ReturnType<typeof getConfigs>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getConfigs>>,
+					TError,
+					Awaited<ReturnType<typeof getConfigs>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetConfigs<
-  TData = Awaited<ReturnType<typeof getConfigs>>,
-  TError = ErrorType<GetConfigs404 | GetConfigs500>,
+	TData = Awaited<ReturnType<typeof getConfigs>>,
+	TError = ErrorType<GetConfigs404 | GetConfigs500>,
 >(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetConfigs<
-  TData = Awaited<ReturnType<typeof getConfigs>>,
-  TError = ErrorType<GetConfigs404 | GetConfigs500>,
+	TData = Awaited<ReturnType<typeof getConfigs>>,
+	TError = ErrorType<GetConfigs404 | GetConfigs500>,
 >(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetConfigsQueryOptions(options);
+	options?: {
+		query?: Partial<
+			UseQueryOptions<Awaited<ReturnType<typeof getConfigs>>, TError, TData>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetConfigsQueryOptions(options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const putConfigs = (
-  putConfigsBody: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree,
-  options?: SecondParameter<typeof customInstance>,
+	putConfigsBody: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<PutConfigs200>(
-    { url: 'http://localhost:7001/configs/', method: 'PUT', data: putConfigsBody },
-    options,
-  );
+	return customInstance<PutConfigs200>(
+		{
+			url: "http://localhost:7001/configs/",
+			method: "PUT",
+			data: putConfigsBody,
+		},
+		options,
+	);
 };
 
 export const getPutConfigsMutationOptions = <
-  TError = ErrorType<PutConfigs404 | PutConfigs500>,
-  TContext = unknown,
+	TError = ErrorType<PutConfigs404 | PutConfigs500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof putConfigs>>,
-    TError,
-    { data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof putConfigs>>,
+		TError,
+		{ data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof putConfigs>>,
-  TError,
-  { data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
-  TContext
+	Awaited<ReturnType<typeof putConfigs>>,
+	TError,
+	{ data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
+	TContext
 > => {
-  const mutationKey = ['putConfigs'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["putConfigs"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof putConfigs>>,
-    { data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree }
-  > = (props) => {
-    const { data } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putConfigs>>,
+		{ data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree }
+	> = (props) => {
+		const { data } = props ?? {};
 
-    return putConfigs(data, requestOptions);
-  };
+		return putConfigs(data, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type PutConfigsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof putConfigs>>
+	Awaited<ReturnType<typeof putConfigs>>
 >;
 export type PutConfigsMutationBody =
-  | PutConfigsBodyOne
-  | PutConfigsBodyTwo
-  | PutConfigsBodyThree;
+	| PutConfigsBodyOne
+	| PutConfigsBodyTwo
+	| PutConfigsBodyThree;
 export type PutConfigsMutationError = ErrorType<PutConfigs404 | PutConfigs500>;
 
 export const usePutConfigs = <
-  TError = ErrorType<PutConfigs404 | PutConfigs500>,
-  TContext = unknown,
+	TError = ErrorType<PutConfigs404 | PutConfigs500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof putConfigs>>,
-      TError,
-      { data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof putConfigs>>,
+			TError,
+			{ data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof putConfigs>>,
-  TError,
-  { data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
-  TContext
+	Awaited<ReturnType<typeof putConfigs>>,
+	TError,
+	{ data: PutConfigsBodyOne | PutConfigsBodyTwo | PutConfigsBodyThree },
+	TContext
 > => {
-  const mutationOptions = getPutConfigsMutationOptions(options);
+	const mutationOptions = getPutConfigsMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };
 export const getConfigsByKey = (
-  key: string,
-  options?: SecondParameter<typeof customInstance>,
-  signal?: AbortSignal,
+	key: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
 ) => {
-  return customInstance<GetConfigsByKey200>(
-    { url: `http://localhost:7001/configs/${key}`, method: 'GET', signal },
-    options,
-  );
+	return customInstance<GetConfigsByKey200>(
+		{ url: `http://localhost:7001/configs/${key}`, method: "GET", signal },
+		options,
+	);
 };
 
 export const getGetConfigsByKeyQueryKey = (key?: string) => {
-  return [`http://localhost:7001/configs/${key}`] as const;
+	return [`http://localhost:7001/configs/${key}`] as const;
 };
 
 export const getGetConfigsByKeyQueryOptions = <
-  TData = Awaited<ReturnType<typeof getConfigsByKey>>,
-  TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
+	TData = Awaited<ReturnType<typeof getConfigsByKey>>,
+	TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
 >(
-  key: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigsByKey>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
+	key: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getConfigsByKey>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+	const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetConfigsByKeyQueryKey(key);
+	const queryKey = queryOptions?.queryKey ?? getGetConfigsByKeyQueryKey(key);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getConfigsByKey>>> = ({
-    signal,
-  }) => getConfigsByKey(key, requestOptions, signal);
+	const queryFn: QueryFunction<Awaited<ReturnType<typeof getConfigsByKey>>> = ({
+		signal,
+	}) => getConfigsByKey(key, requestOptions, signal);
 
-  return { queryKey, queryFn, enabled: !!key, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getConfigsByKey>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!key,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getConfigsByKey>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
 export type GetConfigsByKeyQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getConfigsByKey>>
+	Awaited<ReturnType<typeof getConfigsByKey>>
 >;
 export type GetConfigsByKeyQueryError = ErrorType<
-  GetConfigsByKey404 | GetConfigsByKey500
+	GetConfigsByKey404 | GetConfigsByKey500
 >;
 
 export function useGetConfigsByKey<
-  TData = Awaited<ReturnType<typeof getConfigsByKey>>,
-  TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
+	TData = Awaited<ReturnType<typeof getConfigsByKey>>,
+	TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
 >(
-  key: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigsByKey>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getConfigsByKey>>,
-          TError,
-          Awaited<ReturnType<typeof getConfigsByKey>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	key: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getConfigsByKey>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getConfigsByKey>>,
+					TError,
+					Awaited<ReturnType<typeof getConfigsByKey>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
+	queryKey: DataTag<QueryKey, TData, TError>;
 };
 export function useGetConfigsByKey<
-  TData = Awaited<ReturnType<typeof getConfigsByKey>>,
-  TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
+	TData = Awaited<ReturnType<typeof getConfigsByKey>>,
+	TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
 >(
-  key: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigsByKey>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getConfigsByKey>>,
-          TError,
-          Awaited<ReturnType<typeof getConfigsByKey>>
-        >,
-        'initialData'
-      >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	key: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getConfigsByKey>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getConfigsByKey>>,
+					TError,
+					Awaited<ReturnType<typeof getConfigsByKey>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 export function useGetConfigsByKey<
-  TData = Awaited<ReturnType<typeof getConfigsByKey>>,
-  TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
+	TData = Awaited<ReturnType<typeof getConfigsByKey>>,
+	TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
 >(
-  key: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigsByKey>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+	key: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getConfigsByKey>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
 
 export function useGetConfigsByKey<
-  TData = Awaited<ReturnType<typeof getConfigsByKey>>,
-  TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
+	TData = Awaited<ReturnType<typeof getConfigsByKey>>,
+	TError = ErrorType<GetConfigsByKey404 | GetConfigsByKey500>,
 >(
-  key: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getConfigsByKey>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetConfigsByKeyQueryOptions(key, options);
+	key: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getConfigsByKey>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetConfigsByKeyQueryOptions(key, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  query.queryKey = queryOptions.queryKey;
+	query.queryKey = queryOptions.queryKey;
 
-  return query;
+	return query;
 }
 
 export const deleteConfigsByKey = (
-  key: string,
-  options?: SecondParameter<typeof customInstance>,
+	key: string,
+	options?: SecondParameter<typeof customInstance>,
 ) => {
-  return customInstance<DeleteConfigsByKey200>(
-    { url: `http://localhost:7001/configs/${key}`, method: 'DELETE' },
-    options,
-  );
+	return customInstance<DeleteConfigsByKey200>(
+		{ url: `http://localhost:7001/configs/${key}`, method: "DELETE" },
+		options,
+	);
 };
 
 export const getDeleteConfigsByKeyMutationOptions = <
-  TError = ErrorType<DeleteConfigsByKey404 | DeleteConfigsByKey500>,
-  TContext = unknown,
+	TError = ErrorType<DeleteConfigsByKey404 | DeleteConfigsByKey500>,
+	TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof deleteConfigsByKey>>,
-    TError,
-    { key: string },
-    TContext
-  >;
-  request?: SecondParameter<typeof customInstance>;
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof deleteConfigsByKey>>,
+		TError,
+		{ key: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof deleteConfigsByKey>>,
-  TError,
-  { key: string },
-  TContext
+	Awaited<ReturnType<typeof deleteConfigsByKey>>,
+	TError,
+	{ key: string },
+	TContext
 > => {
-  const mutationKey = ['deleteConfigsByKey'];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+	const mutationKey = ["deleteConfigsByKey"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof deleteConfigsByKey>>,
-    { key: string }
-  > = (props) => {
-    const { key } = props ?? {};
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteConfigsByKey>>,
+		{ key: string }
+	> = (props) => {
+		const { key } = props ?? {};
 
-    return deleteConfigsByKey(key, requestOptions);
-  };
+		return deleteConfigsByKey(key, requestOptions);
+	};
 
-  return { mutationFn, ...mutationOptions };
+	return { mutationFn, ...mutationOptions };
 };
 
 export type DeleteConfigsByKeyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deleteConfigsByKey>>
+	Awaited<ReturnType<typeof deleteConfigsByKey>>
 >;
 
 export type DeleteConfigsByKeyMutationError = ErrorType<
-  DeleteConfigsByKey404 | DeleteConfigsByKey500
+	DeleteConfigsByKey404 | DeleteConfigsByKey500
 >;
 
 export const useDeleteConfigsByKey = <
-  TError = ErrorType<DeleteConfigsByKey404 | DeleteConfigsByKey500>,
-  TContext = unknown,
+	TError = ErrorType<DeleteConfigsByKey404 | DeleteConfigsByKey500>,
+	TContext = unknown,
 >(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof deleteConfigsByKey>>,
-      TError,
-      { key: string },
-      TContext
-    >;
-    request?: SecondParameter<typeof customInstance>;
-  },
-  queryClient?: QueryClient,
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof deleteConfigsByKey>>,
+			TError,
+			{ key: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof deleteConfigsByKey>>,
-  TError,
-  { key: string },
-  TContext
+	Awaited<ReturnType<typeof deleteConfigsByKey>>,
+	TError,
+	{ key: string },
+	TContext
 > => {
-  const mutationOptions = getDeleteConfigsByKeyMutationOptions(options);
+	const mutationOptions = getDeleteConfigsByKeyMutationOptions(options);
 
-  return useMutation(mutationOptions, queryClient);
+	return useMutation(mutationOptions, queryClient);
 };

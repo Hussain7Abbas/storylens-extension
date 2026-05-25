@@ -7,7 +7,7 @@
  */
 
 export type PutReplacementsById200KeywordAnyOfCreatedAt =
-  | unknown
-  | string
-  | string
-  | number;
+	| unknown
+	| string
+	| string
+	| number;

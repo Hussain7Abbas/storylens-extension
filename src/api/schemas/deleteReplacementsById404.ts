@@ -7,5 +7,5 @@
  */
 
 export type DeleteReplacementsById404 = {
-  message: string;
+	message: string;
 };
