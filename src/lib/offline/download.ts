@@ -82,8 +82,10 @@ export async function downloadNovel(novelId: string): Promise<void> {
 				sorting: { column: "name", direction: "asc" },
 			}),
 		),
-		loadWebsiteSelectorsValue(),
 	]);
+
+	// Cache website selectors for content scripts (best-effort, non-blocking).
+	void loadWebsiteSelectorsValue();
 
 	const novel: DownloadedNovel = {
 		id: novelResponse.data.id,

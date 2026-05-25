@@ -468,21 +468,12 @@ export type NovelOfflineBundle = {
 export async function writeNovelOfflineBundle(
 	bundle: NovelOfflineBundle,
 ): Promise<void> {
-	await offlineDb.transaction(
-		"rw",
-		[
-			offlineDb.novels,
-			offlineDb.keywords,
-			offlineDb.replacements,
-			offlineDb.keywordCategories,
-			offlineDb.keywordNatures,
-		],
-		async () => {
-			await offlineDb.novels.put(bundle.novel);
-			await offlineDb.keywordCategories.bulkPut(bundle.categories);
-			await offlineDb.keywordNatures.bulkPut(bundle.natures);
-			await replaceKeywordsForNovel(bundle.novel.id, bundle.keywords);
-			await replaceReplacementsForNovel(bundle.novel.id, bundle.replacements);
-		},
-	);
+	// Do not wrap in a single Dexie transaction: replaceKeywordsForNovel and
+	// replaceReplacementsForNovel await chrome.storage (pending deletes), which
+	// would auto-commit an outer transaction before writes finish.
+	await offlineDb.novels.put(bundle.novel);
+	await bulkPutKeywordCategories(bundle.categories);
+	await bulkPutKeywordNatures(bundle.natures);
+	await replaceKeywordsForNovel(bundle.novel.id, bundle.keywords);
+	await replaceReplacementsForNovel(bundle.novel.id, bundle.replacements);
 }
