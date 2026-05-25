@@ -15,7 +15,7 @@ import {
 	INFINITE_SCROLL_PAGE_SIZE,
 	useInfiniteScrollList,
 } from "@/hooks/use-infinite-scroll-list";
-import { useOfflineKeywords, usePendingEntityIds } from "@/lib/offline/hooks";
+import { useOfflineKeywords, useOnlineStatus, usePendingEntityIds } from "@/lib/offline/hooks";
 import { ListItemCard } from "../list-item-card";
 import type { ColoringFormModesType } from "./coloring-form";
 
@@ -36,6 +36,7 @@ export function ColoringCards({
 	...props
 }: ColoringFormProps) {
 	const { t } = useTranslation();
+	const online = useOnlineStatus();
 	const pendingEntityIds = usePendingEntityIds();
 	const offline = useOfflineKeywords(selectedNovelId, search);
 
@@ -58,17 +59,17 @@ export function ColoringCards({
 			},
 		}),
 		search,
-		enabled: !offline.isDownloaded,
+		enabled: !offline.useLocalCache && online,
 	});
 
-	const items = offline.isDownloaded ? (offline.items ?? []) : onlineList.items;
-	const isLoading = offline.isDownloaded
+	const items = offline.useLocalCache ? (offline.items ?? []) : onlineList.items;
+	const isLoading = offline.useLocalCache
 		? offline.isLoading
 		: onlineList.isLoading;
-	const isFetchingNextPage = offline.isDownloaded
+	const isFetchingNextPage = offline.useLocalCache
 		? false
 		: onlineList.isFetchingNextPage;
-	const loadMoreRef = offline.isDownloaded ? undefined : onlineList.loadMoreRef;
+	const loadMoreRef = offline.useLocalCache ? undefined : onlineList.loadMoreRef;
 
 	if (isLoading) {
 		return (
@@ -89,7 +90,9 @@ export function ColoringCards({
 	return (
 		<Stack gap="xs" {...props}>
 			{items.map((keyword) => {
-				const isPending = pendingEntityIds.has(keyword.id);
+				const isPending =
+					pendingEntityIds.has(keyword.id) ||
+					("isDirty" in keyword && keyword.isDirty === true);
 
 				return (
 					<ListItemCard

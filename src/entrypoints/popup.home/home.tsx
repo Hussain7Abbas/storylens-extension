@@ -21,15 +21,15 @@ import {
 } from "@tabler/icons-react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useGetNovels, usePutNovelsById } from "@/api/endpoints/novels.js";
+import { usePutNovelsById } from "@/api/endpoints/novels.js";
 import { userRoleAtom } from "@/lib/auth";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {
+	useCachedNovelsList,
 	useDownloadedNovelIds,
-	useDownloadedNovelsList,
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
 import type { currentNovelMeta } from "@/types";
@@ -48,43 +48,14 @@ export function HomePage() {
 	const { downloadedIds, refresh: refreshDownloadedIds } =
 		useDownloadedNovelIds();
 	const {
-		novels: downloadedNovels,
-		isLoading: downloadedNovelsLoading,
-		refresh: refreshDownloadedNovels,
-	} = useDownloadedNovelsList();
-
-	const {
-		data: novelsData,
-		isLoading: novelsLoading,
-		refetch: refetchNovels,
-	} = useGetNovels<{
-		data: { data: Novel[] };
-	}>(
-		{
-			pagination: { page: 1, pageSize: 100 },
-			sorting: { column: "name", direction: "asc" },
-		},
-		{
-			query: {
-				enabled: online,
-				retry: false,
-			},
-		},
-	);
-
-	const availableNovels = useMemo(() => {
-		const apiNovels = novelsData?.data?.data;
-		if (apiNovels?.length) {
-			return apiNovels;
-		}
-		return downloadedNovels;
-	}, [novelsData?.data?.data, downloadedNovels]);
-
-	const novelListLoading = online ? novelsLoading : downloadedNovelsLoading;
+		novels: availableNovels,
+		isLoading: novelListLoading,
+		refresh: refreshNovelsCatalog,
+	} = useCachedNovelsList();
 
 	const { selectedNovel, setSelectedNovel, currentTabNovel } = useDetectedNovel(
-		novelsData?.data?.data,
-		downloadedNovels,
+		availableNovels,
+		availableNovels,
 	);
 
 	const isSelectedDownloaded = selectedNovel?.id
@@ -110,7 +81,6 @@ export function HomePage() {
 				toast.success(t("offline.novelDownloaded"));
 			}
 			refreshDownloadedIds();
-			refreshDownloadedNovels();
 		} catch {
 			toast.error(
 				isSelectedDownloaded
@@ -126,7 +96,7 @@ export function HomePage() {
 		<Container p="md">
 			{mode !== undefined ? (
 				<NovelForm
-					refetchNovels={refetchNovels}
+					refetchNovels={refreshNovelsCatalog}
 					selectedNovel={selectedNovel}
 					currentTabNovel={currentTabNovel}
 					mode={mode}
@@ -216,7 +186,7 @@ export function HomePage() {
 									selectedNovel={selectedNovel}
 									setSelectedNovel={setSelectedNovel}
 									setMode={setMode}
-									refetchNovels={refetchNovels}
+									refetchNovels={refreshNovelsCatalog}
 									role={role}
 									t={t}
 								/>

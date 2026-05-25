@@ -120,3 +120,21 @@ export async function getPendingEntityIds(): Promise<Set<string>> {
 			.map((op) => op.entityId),
 	);
 }
+
+export async function getPendingDeletedEntityIds(
+	novelId: string,
+	entity: SyncOperation["entity"],
+): Promise<Set<string>> {
+	const ops = await getPendingOps();
+	return new Set(
+		ops
+			.filter(
+				(op) =>
+					op.novelId === novelId &&
+					op.entity === entity &&
+					op.action === "delete" &&
+					(op.status === "pending" || op.status === "failed"),
+			)
+			.map((op) => op.entityId),
+	);
+}

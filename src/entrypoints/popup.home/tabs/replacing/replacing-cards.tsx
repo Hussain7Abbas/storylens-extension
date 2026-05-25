@@ -20,6 +20,7 @@ import {
 } from "@/hooks/use-infinite-scroll-list";
 import {
 	useOfflineReplacements,
+	useOnlineStatus,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
 import { ListItemCard } from "../list-item-card";
@@ -42,6 +43,7 @@ export function ReplacingCards({
 	...props
 }: ReplacingFormProps) {
 	const { t } = useTranslation();
+	const online = useOnlineStatus();
 	const pendingEntityIds = usePendingEntityIds();
 	const offline = useOfflineReplacements(selectedNovelId, search);
 
@@ -64,17 +66,17 @@ export function ReplacingCards({
 			},
 		}),
 		search,
-		enabled: !offline.isDownloaded,
+		enabled: !offline.useLocalCache && online,
 	});
 
-	const items = offline.isDownloaded ? (offline.items ?? []) : onlineList.items;
-	const isLoading = offline.isDownloaded
+	const items = offline.useLocalCache ? (offline.items ?? []) : onlineList.items;
+	const isLoading = offline.useLocalCache
 		? offline.isLoading
 		: onlineList.isLoading;
-	const isFetchingNextPage = offline.isDownloaded
+	const isFetchingNextPage = offline.useLocalCache
 		? false
 		: onlineList.isFetchingNextPage;
-	const loadMoreRef = offline.isDownloaded ? undefined : onlineList.loadMoreRef;
+	const loadMoreRef = offline.useLocalCache ? undefined : onlineList.loadMoreRef;
 
 	if (isLoading) {
 		return (
@@ -95,7 +97,9 @@ export function ReplacingCards({
 	return (
 		<Stack gap="xs" {...props}>
 			{items.map((replacement) => {
-				const isPending = pendingEntityIds.has(replacement.id);
+				const isPending =
+					pendingEntityIds.has(replacement.id) ||
+					("isDirty" in replacement && replacement.isDirty === true);
 
 				return (
 					<ListItemCard

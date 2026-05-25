@@ -10,12 +10,14 @@ interface ProtocolMap {
 	reportCurrentNovel(data: currentNovelMeta): void;
 	getCachedTabNovel(tabId: number): currentNovelMeta | undefined;
 	getWebsiteSelectors(): string | undefined;
+	websiteSelectorsUpdated(value: string): void;
 	refreshContent(): void;
 	apiRequest<T = unknown>(data: ApiProxyRequest): ApiProxyResponse<T>;
 	getOfflineNovelData(data: {
 		novelSlug: string;
 		chapter?: number;
 	}): NovelContentData | undefined;
+	getNovelContentData(data: currentNovelMeta): NovelContentData | undefined;
 	triggerFullSync(): SyncResult;
 }
 

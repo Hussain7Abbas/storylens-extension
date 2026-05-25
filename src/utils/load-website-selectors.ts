@@ -17,6 +17,11 @@ export async function getCachedWebsiteSelectorsValue(): Promise<
 }
 
 export async function loadWebsiteSelectorsValue(): Promise<string | undefined> {
+	const cached = await getCachedWebsiteSelectorsValue();
+	if (cached) {
+		return cached;
+	}
+
 	try {
 		const response = await getConfigsByKey(WEBSITES_SELECTORS_KEY);
 		const value = response.data.value;
@@ -29,6 +34,34 @@ export async function loadWebsiteSelectorsValue(): Promise<string | undefined> {
 			"Failed to load website selectors from API, using cache",
 			error,
 		);
-		return getCachedWebsiteSelectorsValue();
+		return undefined;
+	}
+}
+
+export type WebsiteSelectorsRefreshResult = {
+	value: string | undefined;
+	changed: boolean;
+};
+
+export async function refreshWebsiteSelectorsFromApi(): Promise<WebsiteSelectorsRefreshResult> {
+	const cached = await getCachedWebsiteSelectorsValue();
+
+	try {
+		const response = await getConfigsByKey(WEBSITES_SELECTORS_KEY);
+		const value = response.data.value;
+
+		if (!value) {
+			return { value: cached, changed: false };
+		}
+
+		if (value === cached) {
+			return { value, changed: false };
+		}
+
+		await cacheWebsiteSelectorsValue(value);
+		return { value, changed: true };
+	} catch (error) {
+		console.error("Failed to refresh website selectors from API", error);
+		return { value: cached, changed: false };
 	}
 }

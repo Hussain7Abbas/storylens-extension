@@ -11,6 +11,7 @@ import {
 	clearNovelOfflineData,
 	getDownloadedNovels,
 	isNovelDownloaded,
+	saveCatalogNovel,
 	writeNovelOfflineBundle,
 } from "@/lib/offline/db";
 import {
@@ -103,6 +104,7 @@ export async function downloadNovel(novelId: string): Promise<void> {
 		natures: naturesResponse.data.data,
 	});
 
+	await saveCatalogNovel(novelResponse.data);
 	await addDownloadedNovelId(novelId);
 }
 

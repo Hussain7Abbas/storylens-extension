@@ -13,7 +13,6 @@ import type {
 	GetReplacements200DataItem,
 	PostReplacementsBodyOne,
 } from "@/api/schemas";
-import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
 import { useOfflineReplacementMutations } from "@/lib/offline/hooks";
 
 export type ReplacingFormModesType = "add" | "edit" | undefined;
@@ -44,7 +43,6 @@ export function ReplacingForm({
 		},
 	});
 
-	const refreshContent = useRefreshContentScript();
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineReplacementMutations(selectedNovelId ?? "");
 
@@ -62,8 +60,7 @@ export function ReplacingForm({
 					to: values.to,
 				},
 				{
-					onSuccess: async () => {
-						await refreshContent();
+					onSuccess: () => {
 						form.reset();
 						onClose();
 					},
@@ -76,8 +73,7 @@ export function ReplacingForm({
 					data: values,
 				},
 				{
-					onSuccess: async () => {
-						await refreshContent();
+					onSuccess: () => {
 						form.reset();
 						onClose();
 					},
@@ -89,8 +85,7 @@ export function ReplacingForm({
 	const handleDelete = () => {
 		if (replacement?.id) {
 			deleteMutation.mutate(replacement.id, {
-				onSuccess: async () => {
-					await refreshContent();
+				onSuccess: () => {
 					form.reset();
 					onClose();
 				},

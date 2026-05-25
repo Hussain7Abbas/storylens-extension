@@ -96,6 +96,23 @@ export async function refreshPageContent(): Promise<void> {
 export async function runContentScript(
 	ctx: ContentScriptContext,
 ): Promise<void> {
+	onMessage("websiteSelectorsUpdated", ({ data }) => {
+		websiteSelectorsValue = data;
+		console.log(`${LOG_PREFIX} Website selectors updated from background`, {
+			hasSelectors: !!websiteSelectorsValue,
+		});
+		lastProcessedKey = undefined;
+
+		void reportCurrentNovel()
+			.then(() => handleDetectedNovel(true))
+			.catch((error) => {
+				console.error(
+					`${LOG_PREFIX} Failed to re-run detection after selector update`,
+					error,
+				);
+			});
+	});
+
 	onMessage("refreshContent", () => {
 		void refreshPageContent().catch((error) => {
 			console.error(

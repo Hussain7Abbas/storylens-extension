@@ -16,7 +16,6 @@ import type {
 	GetKeywords200DataItem,
 	PostKeywordsBodyOne,
 } from "@/api/schemas";
-import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
 import {
 	useOfflineKeywordCategories,
 	useOfflineKeywordMutations,
@@ -63,7 +62,6 @@ export function ColoringForm({
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
 
-	const refreshContent = useRefreshContentScript();
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordMutations(selectedNovelId ?? "");
 
@@ -79,8 +77,7 @@ export function ColoringForm({
 					novelId: selectedNovelId,
 				},
 				{
-					onSuccess: async () => {
-						await refreshContent();
+					onSuccess: () => {
 						form.reset();
 						onClose();
 					},
@@ -93,8 +90,7 @@ export function ColoringForm({
 					data: values,
 				},
 				{
-					onSuccess: async () => {
-						await refreshContent();
+					onSuccess: () => {
 						form.reset();
 						onClose();
 					},
@@ -106,8 +102,7 @@ export function ColoringForm({
 	const handleDelete = () => {
 		if (keyword?.id) {
 			deleteMutation.mutate(keyword.id, {
-				onSuccess: async () => {
-					await refreshContent();
+				onSuccess: () => {
 					form.reset();
 					onClose();
 				},

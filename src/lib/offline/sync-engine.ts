@@ -38,10 +38,14 @@ import type {
 import {
 	bulkPutKeywordCategories,
 	bulkPutKeywordNatures,
+	clearKeywordDirty,
+	clearReplacementDirty,
 	replaceKeywordCategoryId,
 	replaceKeywordId,
 	replaceKeywordNatureId,
 	replaceReplacementId,
+	saveKeyword,
+	saveReplacement,
 	writeNovelOfflineBundle,
 } from "@/lib/offline/db";
 import { downloadNovel } from "@/lib/offline/download";
@@ -55,6 +59,7 @@ import {
 	updatePendingOp,
 } from "@/lib/offline/sync-storage";
 import { isTempId, type SyncOperation } from "@/lib/offline/types";
+import { cleanOfflineKeyword, cleanOfflineReplacement } from "@/lib/offline/types";
 import {
 	KEYWORD_LIST_SORTING,
 	REPLACEMENT_LIST_SORTING,
@@ -106,15 +111,19 @@ async function pushKeywordOperation(operation: SyncOperation): Promise<void> {
 		if (isTempId(operation.entityId)) {
 			await replaceKeywordId(operation.entityId, serverKeyword.id);
 			await replacePendingEntityId(operation.entityId, serverKeyword.id);
+		} else {
+			await saveKeyword(cleanOfflineKeyword(serverKeyword));
 		}
 		return;
 	}
 
 	if (operation.action === "update") {
-		await putKeywordsById(
+		const response = await putKeywordsById(
 			operation.entityId,
 			operation.payload as PutKeywordsByIdBodyOne,
 		);
+		await saveKeyword(cleanOfflineKeyword(response.data as GetKeywords200DataItem));
+		await clearKeywordDirty(operation.entityId);
 		return;
 	}
 
@@ -133,15 +142,19 @@ async function pushReplacementOperation(
 		if (isTempId(operation.entityId)) {
 			await replaceReplacementId(operation.entityId, serverReplacement.id);
 			await replacePendingEntityId(operation.entityId, serverReplacement.id);
+		} else {
+			await saveReplacement(cleanOfflineReplacement(serverReplacement));
 		}
 		return;
 	}
 
 	if (operation.action === "update") {
-		await putReplacementsById(
+		const response = await putReplacementsById(
 			operation.entityId,
 			operation.payload as PutReplacementsByIdBodyOne,
 		);
+		await saveReplacement(cleanOfflineReplacement(response.data));
+		await clearReplacementDirty(operation.entityId);
 		return;
 	}
 
