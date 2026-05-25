@@ -6,12 +6,14 @@ export type NovelWithSlugs = {
 	slugs: string[];
 };
 
+export function isSlugInList(slug: string, slugs: string[]): boolean {
+	const normalized = normalizeSlug(slug);
+	return slugs.some((entry) => normalizeSlug(entry) === normalized);
+}
+
 export function findNovelBySlug<T extends NovelWithSlugs>(
 	novels: T[],
 	slug: string,
 ): T | undefined {
-	const normalized = normalizeSlug(slug);
-	return novels.find((novel) =>
-		novel.slugs.some((entry) => normalizeSlug(entry) === normalized),
-	);
+	return novels.find((novel) => isSlugInList(slug, novel.slugs));
 }

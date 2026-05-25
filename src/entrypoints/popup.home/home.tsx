@@ -30,6 +30,7 @@ import { useDownloadedNovelIds, useOnlineStatus } from "@/lib/offline/hooks";
 import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
+import { isSlugInList } from "@/utils/novel-matching";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
@@ -98,6 +99,7 @@ export function HomePage() {
 				<NovelForm
 					refetchNovels={refetchNovels}
 					selectedNovel={selectedNovel}
+					currentTabNovel={currentTabNovel}
 					mode={mode}
 					onClose={() => {
 						setMode(undefined);
@@ -266,8 +268,7 @@ function NovelMenu({
 		}
 
 		const existingSlugs = selectedNovel.slugs ?? [];
-		if (existingSlugs.includes(currentTabNovel.novelSlug)) {
-			toast.success(t("auth.addSlugSuccess"));
+		if (isSlugInList(currentTabNovel.novelSlug, existingSlugs)) {
 			return;
 		}
 
@@ -275,10 +276,18 @@ function NovelMenu({
 			id: selectedNovel.id,
 			data: {
 				name: selectedNovel.name ?? "",
+				description: selectedNovel.description ?? undefined,
+				imageId: selectedNovel.imageId ?? undefined,
 				slugs: [...existingSlugs, currentTabNovel.novelSlug],
 			},
 		});
 	};
+
+	const currentSlug = currentTabNovel?.novelSlug;
+	const canAddCurrentSlug =
+		!!currentSlug &&
+		!!selectedNovel?.id &&
+		!isSlugInList(currentSlug, selectedNovel.slugs ?? []);
 
 	return (
 		<Menu shadow="md" width={200}>
@@ -305,11 +314,10 @@ function NovelMenu({
 					{t("novels.add")}
 				</Menu.Item>
 
-				{selectedNovel?.id && (
+				{canAddCurrentSlug && (
 					<Menu.Item
 						leftSection={<IconLink size={14} color="cyan" />}
 						onClick={handleAddSlug}
-						disabled={!currentTabNovel?.novelSlug}
 					>
 						{t("novels.addSlug")}
 					</Menu.Item>
