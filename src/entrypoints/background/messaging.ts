@@ -2,6 +2,7 @@ import { defineExtensionMessaging } from "@webext-core/messaging";
 import type { SyncResult } from "@/lib/offline/sync-engine";
 import type { currentNovelMeta } from "@/types";
 import type { ApiProxyRequest, ApiProxyResponse } from "@/types/api-proxy";
+import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
@@ -9,8 +10,11 @@ interface ProtocolMap {
 	getPageHtml(): { url: string; html: string } | undefined;
 	reportCurrentNovel(data: currentNovelMeta): void;
 	getCachedTabNovel(tabId: number): currentNovelMeta | undefined;
-	getWebsiteSelectors(): string | undefined;
-	websiteSelectorsUpdated(value: string): void;
+	getWebsiteSelector(website: string): websiteSelector | undefined;
+	websiteSelectorUpdated(data: {
+		website: string;
+		selector: websiteSelector;
+	}): void;
 	refreshContent(): void;
 	apiRequest<T = unknown>(data: ApiProxyRequest): ApiProxyResponse<T>;
 	getOfflineNovelData(data: {

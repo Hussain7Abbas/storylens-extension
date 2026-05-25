@@ -1,7 +1,7 @@
 import { Box, Button, Stack, Text } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { GetKeywords200DataItem } from "@/api/schemas";
+import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 import { SearchInput } from "@/components/search-input";
 import { useCanMutateKeywords } from "@/lib/auth";
 import { ColoringCards } from "./coloring-cards";

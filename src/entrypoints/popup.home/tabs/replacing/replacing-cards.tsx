@@ -9,11 +9,11 @@ import {
 } from "@mantine/core";
 import { IconCloudUpload } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { getReplacements } from "@/api/endpoints/replacements.js";
+import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import type {
 	GetReplacements200DataItem,
 	GetReplacementsParams,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import {
 	INFINITE_SCROLL_PAGE_SIZE,
 	useInfiniteScrollList,

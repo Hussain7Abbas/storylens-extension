@@ -1,5 +1,5 @@
-import { getNovels } from "@/api/endpoints/novels.js";
-import type { GetNovels200DataItem } from "@/api/schemas";
+import { getNovels } from "@/api/generated/endpoints/novels.js";
+import type { GetNovels200DataItem } from "@/api/generated/schemas";
 import { bulkPutCatalogNovels } from "@/lib/offline/db";
 import { isOnline } from "@/lib/offline/online-status";
 import { withListQueryParams } from "@/utils/api-list-params";

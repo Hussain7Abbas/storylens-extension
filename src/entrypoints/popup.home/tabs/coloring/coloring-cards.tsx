@@ -9,8 +9,8 @@ import {
 } from "@mantine/core";
 import { IconCloudUpload, IconPhoto } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { getKeywords } from "@/api/endpoints/keywords.js";
-import type { GetKeywords200DataItem, GetKeywordsParams } from "@/api/schemas";
+import { getKeywords } from "@/api/generated/endpoints/keywords.js";
+import type { GetKeywords200DataItem, GetKeywordsParams } from "@/api/generated/schemas";
 import {
 	INFINITE_SCROLL_PAGE_SIZE,
 	useInfiniteScrollList,

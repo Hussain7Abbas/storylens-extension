@@ -7,11 +7,12 @@ import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-da
 import { isOnline } from "@/lib/offline/online-status";
 import { fullSync, syncPendingOperations } from "@/lib/offline/sync-engine";
 import type { currentNovelMeta } from "@/types";
+import type { websiteSelector } from "@/types/configs";
 import { handleApiProxyRequest } from "@/utils/api-proxy-handler";
 import {
-	getCachedWebsiteSelectorsValue,
-	loadWebsiteSelectorsValue,
-	refreshWebsiteSelectorsFromApi,
+	getCachedWebsiteSelector,
+	loadWebsiteSelector,
+	refreshWebsiteSelectorFromApi,
 } from "@/utils/load-website-selectors";
 import { setupApiClient } from "@/utils/setup-api-client";
 
@@ -29,25 +30,45 @@ async function runSyncCycle(): Promise<void> {
 	await updateSyncBadge();
 }
 
-async function notifyWebsiteSelectorsUpdated(value: string): Promise<void> {
+async function notifyWebsiteSelectorUpdated(
+	website: string,
+	selector: websiteSelector,
+): Promise<void> {
 	const tabs = await browser.tabs.query({});
 	for (const tab of tabs) {
-		if (tab.id === undefined) {
+		if (tab.id === undefined || !tab.url) {
+			continue;
+		}
+
+		let tabWebsite: string | undefined;
+		try {
+			tabWebsite = new URL(tab.url).hostname;
+		} catch {
+			continue;
+		}
+
+		if (tabWebsite !== website) {
 			continue;
 		}
 
 		try {
-			await sendMessage("websiteSelectorsUpdated", value, { tabId: tab.id });
+			await sendMessage(
+				"websiteSelectorUpdated",
+				{ website, selector },
+				{ tabId: tab.id },
+			);
 		} catch {
 			// Tab may not have a content script loaded.
 		}
 	}
 }
 
-async function refreshWebsiteSelectorsInBackground(): Promise<void> {
-	const result = await refreshWebsiteSelectorsFromApi();
-	if (result.changed && result.value) {
-		await notifyWebsiteSelectorsUpdated(result.value);
+async function refreshWebsiteSelectorInBackground(
+	website: string,
+): Promise<void> {
+	const result = await refreshWebsiteSelectorFromApi(website);
+	if (result.changed && result.selector) {
+		await notifyWebsiteSelectorUpdated(website, result.selector);
 	}
 }
 
@@ -103,15 +124,15 @@ export default defineBackground(() => {
 		return tabNovels.get(tabId);
 	});
 
-	onMessage("getWebsiteSelectors", async () => {
-		const cached = await getCachedWebsiteSelectorsValue();
-		void refreshWebsiteSelectorsInBackground();
+	onMessage("getWebsiteSelector", async ({ data: website }) => {
+		const cached = await getCachedWebsiteSelector(website);
+		void refreshWebsiteSelectorInBackground(website);
 
 		if (cached) {
 			return cached;
 		}
 
-		return loadWebsiteSelectorsValue();
+		return loadWebsiteSelector(website);
 	});
 
 	onMessage("apiRequest", ({ data }) => {

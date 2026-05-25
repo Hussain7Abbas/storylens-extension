@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { GetNovels200DataItem } from "@/api/schemas";
+import type { GetNovels200DataItem } from "@/api/generated/schemas";
 import { getDownloadedNovelIds, getPendingDeletedEntityIds } from "@/lib/offline/sync-storage";
 import type {
 	CatalogNovel,

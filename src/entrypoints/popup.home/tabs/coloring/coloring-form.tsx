@@ -19,7 +19,7 @@ import type {
 	GetKeywords200DataItem,
 	PostKeywordsBodyOne,
 	PutKeywordsByIdBodyOne,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import {
 	useOfflineKeywordCategories,
 	useOfflineKeywordMutations,

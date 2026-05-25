@@ -1,5 +1,5 @@
 import type { currentNovelMeta } from "@/types";
-import type { websiteSelector, websiteSelectors } from "@/types/configs";
+import type { websiteSelector } from "@/types/configs";
 import {
 	extractFromXpath,
 	extractNovelNameFromXpath,
@@ -106,33 +106,11 @@ export function extractFromUrl(url: string, regex: string): string | null {
 	return match ? match[1] : null;
 }
 
-export function getWebsiteSelector(
-	websiteSelectorData: string | undefined,
-	website: string | undefined,
-): websiteSelector | undefined {
-	if (!websiteSelectorData || !website) {
-		return undefined;
-	}
-
-	try {
-		const selectors = JSON.parse(websiteSelectorData) as websiteSelectors;
-		const selector = selectors[website];
-		if (!selector || Object.keys(selector).length === 0) {
-			return undefined;
-		}
-		return selector;
-	} catch {
-		return undefined;
-	}
-}
-
 export function getAllNovelData(
-	websiteSelectorData: string | undefined,
-	website: string | undefined,
+	websiteSelector: websiteSelector | undefined,
 	document: Document,
 ): currentNovelMeta | undefined {
-	const websiteSelector = getWebsiteSelector(websiteSelectorData, website);
-	if (!websiteSelector) {
+	if (!websiteSelector || Object.keys(websiteSelector).length === 0) {
 		console.log(
 			"[StoryLens] Not a supported website selector, skipping content processing",
 		);

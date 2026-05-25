@@ -2,4 +2,4 @@ export type {
 	GetKeywordCategories200DataItem as KeywordCategory,
 	GetKeywordNatures200DataItem as KeywordNature,
 	GetNovels200DataItem as Novel,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";

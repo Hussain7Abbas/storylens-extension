@@ -5,8 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { useGetConfigsByKey, usePutConfigs } from "@/api/endpoints/configs.js";
-import type { websiteSelectors } from "@/types/configs";
+import {
+	useDeleteWebsiteSelectorsByWebsite,
+	useGetWebsiteSelectorsByWebsite,
+	usePostWebsiteSelectors,
+	usePutWebsiteSelectorsByWebsite,
+} from "@/api/generated/endpoints/website-selectors.js";
+import type { websiteSelector } from "@/types/configs";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
 import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
@@ -14,7 +19,6 @@ import {
 	extractXpathText,
 	type SelectorPreviewInput,
 } from "@/utils/selector-preview";
-import { WEBSITES_SELECTORS_KEY } from "./constants";
 import { RegexPreview } from "./regex-preview";
 
 interface NodeSelectorFormProps {
@@ -53,6 +57,30 @@ const INITIAL_FORM_VALUES: SelectorPreviewInput & { website: string } = {
 	chapterUrlRegex: "(\\d+)(?!.*\\d)",
 };
 
+function buildSelectorPayload(
+	values: typeof INITIAL_FORM_VALUES,
+): websiteSelector {
+	return {
+		website: values.website,
+		novel: {
+			xpath: values.novelXpath
+				? { value: values.novelXpath, regex: values.novelXpathRegex }
+				: null,
+			url: values.novelUrlRegex.trim()
+				? { regex: values.novelUrlRegex }
+				: null,
+		},
+		chapter: {
+			xpath: values.chapterXpath
+				? { value: values.chapterXpath, regex: values.chapterXpathRegex }
+				: null,
+			url: values.chapterUrlRegex.trim()
+				? { regex: values.chapterUrlRegex }
+				: null,
+		},
+	};
+}
+
 export function NodeSelectorForm({
 	onClose,
 	editedWebsite,
@@ -64,13 +92,13 @@ export function NodeSelectorForm({
 
 	const isEdit = !!editedWebsite;
 
-	const { data: configData } = useGetConfigsByKey<{
-		data: { key: string; value: string };
-	}>(WEBSITES_SELECTORS_KEY);
-
-	const existingSelectors: websiteSelectors = useMemo(
-		() => (configData?.data?.value ? JSON.parse(configData.data.value) : {}),
-		[configData?.data?.value],
+	const { data: selectorData } = useGetWebsiteSelectorsByWebsite(
+		editedWebsite ?? "",
+		{
+			query: {
+				enabled: !!editedWebsite,
+			},
+		},
 	);
 
 	const form = useForm({
@@ -94,7 +122,7 @@ export function NodeSelectorForm({
 		[form.values, pageContext, xpathTexts],
 	);
 
-	const updateConfig = usePutConfigs({
+	const createSelector = usePostWebsiteSelectors({
 		mutation: {
 			onSuccess: () => {
 				navigate(0);
@@ -107,7 +135,20 @@ export function NodeSelectorForm({
 		},
 	});
 
-	const deleteConfig = usePutConfigs({
+	const updateSelector = usePutWebsiteSelectorsByWebsite({
+		mutation: {
+			onSuccess: () => {
+				navigate(0);
+				toast.success(t("nodeSelector.websiteSavedSuccess"));
+				onClose();
+			},
+			onError: () => {
+				toast.error(t("nodeSelector.websiteSavedFailed"));
+			},
+		},
+	});
+
+	const deleteSelector = useDeleteWebsiteSelectorsByWebsite({
 		mutation: {
 			onSuccess: () => {
 				navigate(0);
@@ -154,15 +195,7 @@ export function NodeSelectorForm({
 	}, []);
 
 	function handleDelete(website: string) {
-		const currentSelectors = { ...existingSelectors };
-		delete currentSelectors[website];
-
-		deleteConfig.mutate({
-			data: {
-				key: WEBSITES_SELECTORS_KEY,
-				value: JSON.stringify(currentSelectors),
-			},
-		});
+		deleteSelector.mutate({ website });
 	}
 
 	async function handleAutoDetect() {
@@ -213,45 +246,26 @@ export function NodeSelectorForm({
 	}
 
 	function handleSubmit(values: typeof form.values) {
-		const newSelectors: websiteSelectors = {
-			...existingSelectors,
-			[values.website]: {
+		const payload = buildSelectorPayload(values);
+
+		if (isEdit) {
+			const { website: _website, ...updateBody } = payload;
+			updateSelector.mutate({
 				website: values.website,
-				novel: {
-					xpath: values.novelXpath
-						? { value: values.novelXpath, regex: values.novelXpathRegex }
-						: null,
-					url: values.novelUrlRegex.trim()
-						? { regex: values.novelUrlRegex }
-						: null,
-				},
-				chapter: {
-					xpath: values.chapterXpath
-						? { value: values.chapterXpath, regex: values.chapterXpathRegex }
-						: null,
-					url: values.chapterUrlRegex.trim()
-						? { regex: values.chapterUrlRegex }
-						: null,
-				},
-			},
-		};
-
-		updateConfig.mutate({
-			data: {
-				key: WEBSITES_SELECTORS_KEY,
-				value: JSON.stringify(newSelectors),
-			},
-		});
-	}
-
-	useEffect(() => {
-		if (!editedWebsite) {
+				data: updateBody,
+			});
 			return;
 		}
 
-		const existingSelector = {
-			...existingSelectors[editedWebsite],
-		};
+		createSelector.mutate({ data: payload });
+	}
+
+	useEffect(() => {
+		if (!editedWebsite || !selectorData?.data) {
+			return;
+		}
+
+		const existingSelector = selectorData.data;
 
 		form.setValues({
 			website: existingSelector.website,
@@ -262,7 +276,9 @@ export function NodeSelectorForm({
 			chapterXpathRegex: existingSelector.chapter?.xpath?.regex ?? "\\d+",
 			chapterUrlRegex: existingSelector.chapter?.url?.regex ?? "",
 		});
-	}, [configData?.data?.value, editedWebsite, existingSelectors]);
+	}, [editedWebsite, selectorData?.data]);
+
+	const isSaving = createSelector.isPending || updateSelector.isPending;
 
 	return (
 		<Stack p="sm" gap="xs">
@@ -343,7 +359,7 @@ export function NodeSelectorForm({
 					</Button>
 					<Button
 						onClick={() => handleSubmit(form.values)}
-						loading={updateConfig.isPending}
+						loading={isSaving}
 					>
 						{t("_.save")}
 					</Button>

@@ -9,7 +9,7 @@ import {
 import { useForm } from "@mantine/form";
 import { IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import type { PostKeywordNaturesBodyOne } from "@/api/schemas";
+import type { PostKeywordNaturesBodyOne } from "@/api/generated/schemas";
 import { ColorInput } from "@/components/color-input";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
 import { useOfflineNatureMutations } from "@/lib/offline/hooks";

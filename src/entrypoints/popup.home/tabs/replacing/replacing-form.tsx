@@ -14,7 +14,7 @@ import type {
 	GetReplacements200DataItem,
 	PostReplacementsBodyOne,
 	PutReplacementsByIdBodyOne,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import { useOfflineReplacementMutations } from "@/lib/offline/hooks";
 
 export type ReplacingFormModesType = "add" | "edit" | undefined;

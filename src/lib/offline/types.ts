@@ -4,7 +4,7 @@ import type {
 	GetKeywords200DataItem,
 	GetNovels200DataItem,
 	GetReplacements200DataItem,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 
 export type SyncEntity =
 	| "keyword"

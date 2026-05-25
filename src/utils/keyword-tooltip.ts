@@ -1,4 +1,4 @@
-import type { GetKeywords200DataItem } from "@/api/schemas";
+import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 
 const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;

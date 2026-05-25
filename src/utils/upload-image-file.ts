@@ -1,5 +1,5 @@
 import { customInstance } from "@/api/axios-instance";
-import type { PostFilesUpload200 } from "@/api/schemas";
+import type { PostFilesUpload200 } from "@/api/generated/schemas";
 
 export async function uploadImageFile(file: File): Promise<string> {
 	const formData = new FormData();

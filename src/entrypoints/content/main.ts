@@ -1,6 +1,7 @@
 import type { ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import type { currentNovelMeta } from "@/types";
+import type { websiteSelector } from "@/types/configs";
 import { removeExtensionMarkup } from "@/utils/content-processor";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
@@ -8,36 +9,37 @@ import { getAllNovelData } from "@/utils/site-detection";
 
 const LOG_PREFIX = "[StoryLens]";
 
-let websiteSelectorsValue: string | undefined;
+let websiteSelector: websiteSelector | undefined;
 let lastProcessedKey: string | undefined;
 
 function buildDetectedNovelKey(meta: currentNovelMeta): string {
 	return `${meta.novelSlug}:${meta.chapter ?? "unknown"}`;
 }
 
-async function loadWebsiteSelectors(): Promise<void> {
+async function loadWebsiteSelector(): Promise<void> {
+	const website = window.location.hostname;
+	if (!website) {
+		websiteSelector = undefined;
+		return;
+	}
+
 	try {
-		websiteSelectorsValue = await sendMessage("getWebsiteSelectors");
-		console.log(`${LOG_PREFIX} Website selectors loaded`, {
-			hasSelectors: !!websiteSelectorsValue,
+		websiteSelector = await sendMessage("getWebsiteSelector", website);
+		console.log(`${LOG_PREFIX} Website selector loaded`, {
+			website,
+			hasSelector: !!websiteSelector,
 		});
 	} catch (error) {
-		console.error(`${LOG_PREFIX} Failed to load website selectors`, error);
-		websiteSelectorsValue = undefined;
+		console.error(`${LOG_PREFIX} Failed to load website selector`, error);
+		websiteSelector = undefined;
 	}
 }
 
 function detectCurrentNovel(): currentNovelMeta | undefined {
-	const website = window.location.hostname;
-	if (!website) {
-		console.log(`${LOG_PREFIX} No hostname detected`);
-		return undefined;
-	}
-
-	const novel = getAllNovelData(websiteSelectorsValue, website, document);
+	const novel = getAllNovelData(websiteSelector, document);
 	if (!novel) {
 		console.log(`${LOG_PREFIX} No novel detected on page`, {
-			website,
+			website: window.location.hostname,
 			url: window.location.href,
 		});
 		return undefined;
@@ -96,10 +98,15 @@ export async function refreshPageContent(): Promise<void> {
 export async function runContentScript(
 	ctx: ContentScriptContext,
 ): Promise<void> {
-	onMessage("websiteSelectorsUpdated", ({ data }) => {
-		websiteSelectorsValue = data;
-		console.log(`${LOG_PREFIX} Website selectors updated from background`, {
-			hasSelectors: !!websiteSelectorsValue,
+	onMessage("websiteSelectorUpdated", ({ data }) => {
+		if (data.website !== window.location.hostname) {
+			return;
+		}
+
+		websiteSelector = data.selector;
+		console.log(`${LOG_PREFIX} Website selector updated from background`, {
+			website: data.website,
+			hasSelector: !!websiteSelector,
 		});
 		lastProcessedKey = undefined;
 
@@ -130,8 +137,8 @@ export async function runContentScript(
 	});
 
 	onMessage("getCurrentNovel", async () => {
-		if (!websiteSelectorsValue) {
-			await loadWebsiteSelectors();
+		if (!websiteSelector) {
+			await loadWebsiteSelector();
 		}
 
 		return detectCurrentNovel();
@@ -142,7 +149,7 @@ export async function runContentScript(
 		hostname: window.location.hostname,
 	});
 
-	await loadWebsiteSelectors();
+	await loadWebsiteSelector();
 	await reportCurrentNovel();
 
 	// Defer highlighting so message handlers stay responsive during page load.
@@ -158,7 +165,7 @@ export async function runContentScript(
 	ctx.addEventListener(window, "wxt:locationchange", () => {
 		console.log(`${LOG_PREFIX} Location changed`, window.location.href);
 		lastProcessedKey = undefined;
-		void loadWebsiteSelectors()
+		void loadWebsiteSelector()
 			.then(() => reportCurrentNovel())
 			.then(() => handleDetectedNovel())
 			.catch((error) => {

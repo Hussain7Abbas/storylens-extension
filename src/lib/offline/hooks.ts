@@ -6,23 +6,23 @@ import {
 	getKeywordCategories,
 	postKeywordCategories,
 	putKeywordCategoriesById,
-} from "@/api/endpoints/keyword-categories.js";
+} from "@/api/generated/endpoints/keyword-categories.js";
 import {
 	deleteKeywordNaturesById,
 	getKeywordNatures,
 	postKeywordNatures,
 	putKeywordNaturesById,
-} from "@/api/endpoints/keyword-natures.js";
+} from "@/api/generated/endpoints/keyword-natures.js";
 import {
 	deleteKeywordsById,
 	postKeywords,
 	putKeywordsById,
-} from "@/api/endpoints/keywords.js";
+} from "@/api/generated/endpoints/keywords.js";
 import {
 	deleteReplacementsById,
 	postReplacements,
 	putReplacementsById,
-} from "@/api/endpoints/replacements.js";
+} from "@/api/generated/endpoints/replacements.js";
 import type {
 	GetKeywordCategories200DataItem,
 	GetKeywordNatures200DataItem,
@@ -36,7 +36,7 @@ import type {
 	PutKeywordNaturesByIdBodyOne,
 	PutKeywordsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import { withBackgroundSync } from "@/lib/offline/background-sync";
 import {
 	bulkPutKeywordCategories,

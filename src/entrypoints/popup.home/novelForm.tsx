@@ -20,15 +20,14 @@ import {
 	useDeleteNovelsById,
 	usePostNovels,
 	usePutNovelsById,
-} from "@/api/endpoints/novels.js";
+} from "@/api/generated/endpoints/novels.js";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
-import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
+import { loadWebsiteSelector } from "@/utils/load-website-selectors";
 import { isSlugInList } from "@/utils/novel-matching";
 import { previewXpathRegexResultFromHtml } from "@/utils/selector-preview";
-import { getWebsiteSelector } from "@/utils/site-detection";
 
 async function getNovelNameFromRegex(tabId: number): Promise<string | null> {
 	try {
@@ -42,9 +41,10 @@ async function getNovelNameFromRegex(tabId: number): Promise<string | null> {
 
 	try {
 		const page = await sendMessage("getPageHtml", undefined, { tabId });
-		const selectorsValue = await loadWebsiteSelectorsValue();
 		const hostname = page?.url ? new URL(page.url).hostname : undefined;
-		const selector = getWebsiteSelector(selectorsValue, hostname);
+		const selector = hostname
+			? await loadWebsiteSelector(hostname)
+			: undefined;
 
 		if (!page?.html || !selector?.novel?.xpath?.value) {
 			return null;

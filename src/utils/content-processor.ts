@@ -1,4 +1,4 @@
-import type { GetKeywords200DataItem } from "@/api/schemas";
+import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 import type {
 	ContentProcessingStats,
 	NovelContentData,

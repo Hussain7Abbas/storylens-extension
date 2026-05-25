@@ -24,7 +24,7 @@ import { useAtomValue } from "jotai";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { usePutNovelsById } from "@/api/endpoints/novels.js";
+import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { userRoleAtom } from "@/lib/auth";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {

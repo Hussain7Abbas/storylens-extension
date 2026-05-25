@@ -1,6 +1,6 @@
-import { getKeywords } from "@/api/endpoints/keywords.js";
-import { getNovels } from "@/api/endpoints/novels.js";
-import { getReplacements } from "@/api/endpoints/replacements.js";
+import { getKeywords } from "@/api/generated/endpoints/keywords.js";
+import { getNovels } from "@/api/generated/endpoints/novels.js";
+import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import {
 	getAllCatalogNovels,
 	getCatalogNovelBySlug,

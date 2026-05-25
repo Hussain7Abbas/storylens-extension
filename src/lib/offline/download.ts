@@ -1,12 +1,12 @@
-import { getKeywordCategories } from "@/api/endpoints/keyword-categories.js";
-import { getKeywordNatures } from "@/api/endpoints/keyword-natures.js";
-import { getKeywords } from "@/api/endpoints/keywords.js";
-import { getNovelsById } from "@/api/endpoints/novels.js";
-import { getReplacements } from "@/api/endpoints/replacements.js";
+import { getKeywordCategories } from "@/api/generated/endpoints/keyword-categories.js";
+import { getKeywordNatures } from "@/api/generated/endpoints/keyword-natures.js";
+import { getKeywords } from "@/api/generated/endpoints/keywords.js";
+import { getNovelsById } from "@/api/generated/endpoints/novels.js";
+import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import type {
 	GetKeywords200DataItem,
 	GetReplacements200DataItem,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import {
 	clearNovelOfflineData,
 	getDownloadedNovels,
@@ -25,7 +25,6 @@ import {
 	REPLACEMENT_LIST_SORTING,
 	withListQueryParams,
 } from "@/utils/api-list-params";
-import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
 
 const DOWNLOAD_PAGE_SIZE = 500;
 
@@ -83,9 +82,6 @@ export async function downloadNovel(novelId: string): Promise<void> {
 			}),
 		),
 	]);
-
-	// Cache website selectors for content scripts (best-effort, non-blocking).
-	void loadWebsiteSelectorsValue();
 
 	const novel: DownloadedNovel = {
 		id: novelResponse.data.id,
