@@ -123,6 +123,43 @@
 	background-color: rgba(255, 255, 255, 0.2);
 }
 
+/* Original keyword collapsible section */
+.storylens-original-section {
+	margin-top: 8px;
+	border-top: 1px solid rgba(255, 255, 255, 0.15);
+	padding-top: 6px;
+}
+
+.storylens-original-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 11px;
+	cursor: pointer;
+	padding: 2px 0;
+	width: 100%;
+	text-align: left;
+	pointer-events: auto;
+}
+
+.storylens-original-toggle:hover {
+	color: #fff;
+}
+
+.storylens-original-arrow {
+	font-size: 9px;
+	flex-shrink: 0;
+}
+
+.storylens-original-content {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Content formatting */
 .chapter-content p {
 	display: block !important;

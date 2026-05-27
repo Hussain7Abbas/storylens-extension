@@ -1,6 +1,7 @@
 import {
 	ActionIcon,
 	Alert,
+	Badge,
 	Button,
 	FileInput,
 	Group,
@@ -9,6 +10,7 @@ import {
 	Select,
 	Stack,
 	Switch,
+	Text,
 	TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -33,10 +35,12 @@ export type ColoringFormModesType = "add" | "edit" | undefined;
 type ColoringFormValues = PostKeywordsBodyOne & {
 	matchingType: NonNullable<PostKeywordsBodyOne["matchingType"]>;
 };
+
 interface ColoringFormProps extends React.HTMLAttributes<HTMLFormElement> {
 	mode: ColoringFormModesType;
 	selectedNovelId: string | undefined;
 	keyword?: GetKeywords200DataItem;
+	parentKeyword?: GetKeywords200DataItem;
 	onClose: () => void;
 }
 
@@ -44,6 +48,7 @@ export function ColoringForm({
 	mode,
 	selectedNovelId,
 	keyword,
+	parentKeyword,
 	onClose,
 	...props
 }: ColoringFormProps) {
@@ -69,15 +74,27 @@ export function ColoringForm({
 
 	const displayedImageUrl = imagePreviewUrl ?? keyword?.image?.url ?? null;
 
+	const effectiveParentId = parentKeyword?.id ?? keyword?.parentId ?? undefined;
+	const isAliasDraft = mode === "add" && !!parentKeyword;
+
 	const form = useForm<ColoringFormValues>({
 		initialValues: {
 			novelId: keyword?.novelId || "",
 			name: keyword?.name || "",
-			description: keyword?.description || "",
-			matchingType: keyword?.matchingType ?? "FULL",
-			categoryId: keyword?.categoryId || "",
-			natureId: keyword?.natureId || "",
+			description: isAliasDraft
+				? parentKeyword?.description || ""
+				: keyword?.description || "",
+			matchingType: isAliasDraft
+				? (parentKeyword?.matchingType ?? "FULL")
+				: (keyword?.matchingType ?? "FULL"),
+			categoryId: isAliasDraft
+				? parentKeyword?.categoryId || ""
+				: keyword?.categoryId || "",
+			natureId: isAliasDraft
+				? parentKeyword?.natureId || ""
+				: keyword?.natureId || "",
 			imageId: keyword?.imageId || undefined,
+			parentId: effectiveParentId,
 		},
 		validate: {
 			name: (value) => (!value ? t("home.nameRequired") : null),
@@ -96,6 +113,8 @@ export function ColoringForm({
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordMutations(selectedNovelId ?? "");
 
+	const isAlias = !!effectiveParentId;
+
 	const handleSubmit = async (values: typeof form.values) => {
 		if (!selectedNovelId) {
 			form.setFieldError("novel", t("home.selectNovelFirst"));
@@ -111,7 +130,9 @@ export function ColoringForm({
 				imageId = await uploadImageFile(imageFile);
 			} catch (error) {
 				setUploadError(
-					error instanceof Error ? error.message : t("coloring.imageUploadFailed"),
+					error instanceof Error
+						? error.message
+						: t("coloring.imageUploadFailed"),
 				);
 				return;
 			} finally {
@@ -125,6 +146,7 @@ export function ColoringForm({
 					...values,
 					novelId: selectedNovelId,
 					imageId,
+					parentId: effectiveParentId,
 				},
 				{
 					onSuccess: () => {
@@ -142,7 +164,7 @@ export function ColoringForm({
 				categoryId: values.categoryId,
 				natureId: values.natureId,
 				imageId,
-				parentId: values.parentId,
+				parentId: effectiveParentId,
 			};
 			updateMutation.mutate(
 				{
@@ -178,114 +200,142 @@ export function ColoringForm({
 		deleteMutation.isPending;
 
 	return (
-		<form onSubmit={form.onSubmit(handleSubmit)} {...props}>
-			<Stack gap="xs" p="xs">
-				<TextInput
-					label={t("coloring.name")}
-					{...form.getInputProps("name")}
-					required
-				/>
-
-				<Switch
-					label={t("coloring.fullWordMatch")}
-					checked={form.values.matchingType === "FULL"}
-					onChange={(event) =>
-						form.setFieldValue(
-							"matchingType",
-							event.currentTarget.checked ? "FULL" : "PARTIAL",
-						)
-					}
-				/>
-
-				<Select
-					label={t("coloring.category")}
-					placeholder={t("coloring.selectCategory")}
-					allowDeselect={false}
-					data={categoriesData?.map((cat: KeywordCategory) => ({
-						value: cat.id,
-						label: cat.name,
-					}))}
-					{...form.getInputProps("categoryId")}
-					required
-					leftSection={categoriesLoading ? <Loader /> : <IconCategory />}
-					disabled={naturesLoading}
-				/>
-
-				<Select
-					label={t("coloring.nature")}
-					placeholder={t("coloring.selectNature")}
-					allowDeselect={false}
-					data={naturesData?.map((nature: KeywordNature) => ({
-						value: nature.id,
-						label: nature.name,
-					}))}
-					{...form.getInputProps("natureId")}
-					required
-					leftSection={naturesLoading ? <Loader /> : <IconMasksTheater />}
-					disabled={categoriesLoading}
-				/>
-
-				<TextInput
-					label={t("coloring.description")}
-					{...form.getInputProps("description")}
-					required
-				/>
-
-				<FileInput
-					label={t("coloring.image")}
-					accept="image/*"
-					value={imageFile}
-					onChange={setImageFile}
-					placeholder={t("coloring.imageOptional")}
-					clearable
-				/>
-
-				{displayedImageUrl && (
-					<Image
-						src={displayedImageUrl}
-						alt={t("coloring.imagePreview")}
-						radius="md"
-						fit="contain"
-						maw="16rem"
-						mah="16rem"
-						w="auto"
-						style={{ alignSelf: "flex-start" }}
-					/>
-				)}
-
-				{uploadError && <Alert color="red">{uploadError}</Alert>}
-
-				{createMutation.isError && (
-					<Alert color="red">
-						{t("coloring.createFailed")}: {createMutation.error?.message}
-					</Alert>
-				)}
-
-				{updateMutation.isError && (
-					<Alert color="red">
-						{t("coloring.updateFailed")}: {updateMutation.error?.message}
-					</Alert>
-				)}
-
-				<Group justify="space-between" mt="md">
-					<ActionIcon
-						variant="transparent"
-						color="red"
-						size="lg"
-						onClick={() => handleDelete()}
-					>
-						<IconTrash />
-					</ActionIcon>
-					<Group>
-						<Button variant="outline" onClick={onClose}>
-							{t("_.cancel")}
-						</Button>
-						<Button type="submit" loading={isPending}>
-							{t("_.save")}
-						</Button>
+		<Stack gap="xs" p="xs">
+			{isAlias && parentKeyword && (
+				<Alert
+					color="blue"
+					variant="light"
+					py="xs"
+					styles={{ message: { fontSize: "var(--mantine-font-size-xs)" } }}
+				>
+					<Group gap="xs" wrap="nowrap">
+						<Badge size="xs" color="blue" variant="filled">
+							{t("coloring.alias")}
+						</Badge>
+						<Text size="xs" c="dimmed" style={{ flex: 1 }}>
+							{t("coloring.aliasOf")}:{" "}
+							<Text component="span" fw={600} size="xs" c="blue">
+								{parentKeyword.name}
+							</Text>
+						</Text>
 					</Group>
-				</Group>
-			</Stack>
-		</form>
+				</Alert>
+			)}
+
+			<form onSubmit={form.onSubmit(handleSubmit)} {...props}>
+				<Stack gap="xs">
+					<TextInput
+						label={t("coloring.name")}
+						{...form.getInputProps("name")}
+						required
+					/>
+
+					<Switch
+						label={t("coloring.fullWordMatch")}
+						checked={form.values.matchingType === "FULL"}
+						onChange={(event) =>
+							form.setFieldValue(
+								"matchingType",
+								event.currentTarget.checked ? "FULL" : "PARTIAL",
+							)
+						}
+					/>
+
+					<Select
+						label={t("coloring.category")}
+						placeholder={t("coloring.selectCategory")}
+						allowDeselect={false}
+						data={categoriesData?.map((cat: KeywordCategory) => ({
+							value: cat.id,
+							label: cat.name,
+						}))}
+						{...form.getInputProps("categoryId")}
+						required
+						leftSection={categoriesLoading ? <Loader /> : <IconCategory />}
+						disabled={naturesLoading}
+					/>
+
+					<Select
+						label={t("coloring.nature")}
+						placeholder={t("coloring.selectNature")}
+						allowDeselect={false}
+						data={naturesData?.map((nature: KeywordNature) => ({
+							value: nature.id,
+							label: nature.name,
+						}))}
+						{...form.getInputProps("natureId")}
+						required
+						leftSection={naturesLoading ? <Loader /> : <IconMasksTheater />}
+						disabled={categoriesLoading}
+					/>
+
+					<TextInput
+						label={t("coloring.description")}
+						{...form.getInputProps("description")}
+						required
+					/>
+
+					<FileInput
+						label={t("coloring.image")}
+						accept="image/*"
+						value={imageFile}
+						onChange={setImageFile}
+						placeholder={t("coloring.imageOptional")}
+						clearable
+					/>
+
+					{displayedImageUrl && (
+						<Image
+							src={displayedImageUrl}
+							alt={t("coloring.imagePreview")}
+							radius="md"
+							fit="contain"
+							maw="16rem"
+							mah="16rem"
+							w="auto"
+							style={{ alignSelf: "flex-start" }}
+						/>
+					)}
+
+					{uploadError && <Alert color="red">{uploadError}</Alert>}
+
+					{createMutation.isError && (
+						<Alert color="red">
+							{t("coloring.createFailed")}: {createMutation.error?.message}
+						</Alert>
+					)}
+
+					{updateMutation.isError && (
+						<Alert color="red">
+							{t("coloring.updateFailed")}: {updateMutation.error?.message}
+						</Alert>
+					)}
+
+					<Group
+						justify={mode === "edit" ? "space-between" : "flex-end"}
+						mt="md"
+					>
+						{mode === "edit" && (
+							<ActionIcon
+								variant="transparent"
+								color="red"
+								size="lg"
+								onClick={() => handleDelete()}
+							>
+								<IconTrash />
+							</ActionIcon>
+						)}
+						<Group>
+							<Button variant="outline" onClick={onClose}>
+								{t("_.cancel")}
+							</Button>
+							<Button type="submit" loading={isPending}>
+								{t("_.save")}
+							</Button>
+						</Group>
+					</Group>
+				</Stack>
+			</form>
+		</Stack>
 	);
 }

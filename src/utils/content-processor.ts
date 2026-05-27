@@ -212,6 +212,7 @@ function createReplacedElement(replacementText: string): HTMLSpanElement {
 function createKeywordElement(
 	matchedText: string,
 	keyword: GetKeywords200DataItem,
+	parent: GetKeywords200DataItem | undefined,
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
@@ -229,7 +230,7 @@ function createKeywordElement(
 	span.append(natureIndicator);
 	span.append(document.createTextNode(matchedText));
 
-	registerKeywordTooltipAnchor(span, keyword);
+	registerKeywordTooltipAnchor(span, keyword, parent);
 
 	return span;
 }
@@ -273,6 +274,16 @@ function buildKeywordLookup(
 	}
 
 	return lookup;
+}
+
+function buildKeywordById(
+	keywords: NovelContentData["keywords"],
+): Map<string, GetKeywords200DataItem> {
+	const byId = new Map<string, GetKeywords200DataItem>();
+	for (const keyword of keywords) {
+		byId.set(keyword.id, keyword);
+	}
+	return byId;
 }
 
 function applyReplacements(
@@ -322,6 +333,7 @@ function applyKeywordHighlights(
 	}
 
 	const lookup = buildKeywordLookup(keywords);
+	const byId = buildKeywordById(keywords);
 	const textNodes = collectTextNodes(root, DEFAULT_MARKUP_SKIP_SELECTOR);
 	let highlighted = 0;
 
@@ -332,7 +344,8 @@ function applyKeywordHighlights(
 				return null;
 			}
 
-			return createKeywordElement(matchedText, keyword);
+			const parent = keyword.parentId ? byId.get(keyword.parentId) : undefined;
+			return createKeywordElement(matchedText, keyword, parent);
 		});
 	}
 

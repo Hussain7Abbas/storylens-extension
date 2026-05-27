@@ -4,7 +4,12 @@ const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;
 const HIDE_DELAY_MS = 80;
 
-const keywordByAnchor = new WeakMap<HTMLElement, GetKeywords200DataItem>();
+type AnchorData = {
+	keyword: GetKeywords200DataItem;
+	parent: GetKeywords200DataItem | undefined;
+};
+
+const anchorDataMap = new WeakMap<HTMLElement, AnchorData>();
 
 let portalInitialized = false;
 let activeAnchor: HTMLElement | null = null;
@@ -25,13 +30,8 @@ function getTooltipRoot(): HTMLElement {
 	return root;
 }
 
-function buildKeywordTooltipContent(
-	keyword: GetKeywords200DataItem,
-): HTMLElement {
-	const tooltip = document.createElement("div");
-	tooltip.className =
-		"storylens-tooltip-text storylens-keyword-info storylens-tooltip-text--floating";
-	tooltip.setAttribute("role", "tooltip");
+function buildKeywordBody(keyword: GetKeywords200DataItem): HTMLElement {
+	const container = document.createElement("div");
 
 	if (keyword.image?.url) {
 		const image = document.createElement("img");
@@ -39,17 +39,17 @@ function buildKeywordTooltipContent(
 		image.src = keyword.image.url;
 		image.alt = keyword.name;
 		image.loading = "lazy";
-		tooltip.append(image);
+		container.append(image);
 	}
 
 	const title = document.createElement("strong");
 	title.textContent = keyword.name;
-	tooltip.append(title);
+	container.append(title);
 
 	if (keyword.description) {
 		const description = document.createElement("p");
 		description.textContent = keyword.description;
-		tooltip.append(description);
+		container.append(description);
 	}
 
 	const meta = document.createElement("div");
@@ -67,7 +67,66 @@ function buildKeywordTooltipContent(
 	nature.style.setProperty("color", keyword.nature.color, "important");
 	meta.append(nature);
 
-	tooltip.append(meta);
+	container.append(meta);
+	return container;
+}
+
+function buildCollapsibleOriginal(
+	parent: GetKeywords200DataItem,
+	onToggle: () => void,
+): HTMLElement {
+	const wrapper = document.createElement("div");
+	wrapper.className = "storylens-original-section";
+
+	const toggle = document.createElement("button");
+	toggle.type = "button";
+	toggle.className = "storylens-original-toggle";
+	toggle.dataset.open = "false";
+
+	const arrow = document.createElement("span");
+	arrow.className = "storylens-original-arrow";
+	arrow.textContent = "▶";
+	toggle.append(arrow);
+
+	const label = document.createElement("span");
+	label.textContent = ` Original: ${parent.name}`;
+	toggle.append(label);
+
+	const content = document.createElement("div");
+	content.className = "storylens-original-content";
+	content.style.display = "none";
+	content.append(buildKeywordBody(parent));
+
+	toggle.addEventListener("click", (event) => {
+		event.stopPropagation();
+		const isOpen = toggle.dataset.open === "true";
+		toggle.dataset.open = isOpen ? "false" : "true";
+		arrow.textContent = isOpen ? "▶" : "▼";
+		content.style.display = isOpen ? "none" : "block";
+		onToggle();
+	});
+
+	wrapper.append(toggle);
+	wrapper.append(content);
+	return wrapper;
+}
+
+function buildKeywordTooltipContent(
+	keyword: GetKeywords200DataItem,
+	parent: GetKeywords200DataItem | undefined,
+	onLayoutChange: () => void,
+): HTMLElement {
+	const tooltip = document.createElement("div");
+	tooltip.className =
+		"storylens-tooltip-text storylens-keyword-info storylens-tooltip-text--floating";
+	tooltip.setAttribute("role", "tooltip");
+
+	tooltip.append(buildKeywordBody(keyword));
+
+	if (parent) {
+		tooltip.append(buildCollapsibleOriginal(parent, onLayoutChange));
+	}
+
 	return tooltip;
 }
 
@@ -118,8 +177,8 @@ function scheduleHideTooltip(): void {
 }
 
 function showTooltip(anchor: HTMLElement): void {
-	const keyword = keywordByAnchor.get(anchor);
-	if (!keyword) {
+	const data = anchorDataMap.get(anchor);
+	if (!data) {
 		return;
 	}
 
@@ -133,7 +192,15 @@ function showTooltip(anchor: HTMLElement): void {
 	hideActiveTooltip();
 	activeAnchor = anchor;
 
-	const tooltip = buildKeywordTooltipContent(keyword);
+	const tooltip = buildKeywordTooltipContent(
+		data.keyword,
+		data.parent,
+		() => {
+			if (activeAnchor && activeTooltip) {
+				positionTooltip(activeAnchor, activeTooltip);
+			}
+		},
+	);
 	tooltip.addEventListener("mouseenter", clearHideTimeout);
 	tooltip.addEventListener("mouseleave", scheduleHideTooltip);
 
@@ -171,8 +238,9 @@ function detachScrollListener(): void {
 export function registerKeywordTooltipAnchor(
 	anchor: HTMLElement,
 	keyword: GetKeywords200DataItem,
+	parent?: GetKeywords200DataItem,
 ): void {
-	keywordByAnchor.set(anchor, keyword);
+	anchorDataMap.set(anchor, { keyword, parent });
 
 	anchor.addEventListener("mouseenter", () => {
 		showTooltip(anchor);
@@ -180,10 +248,7 @@ export function registerKeywordTooltipAnchor(
 
 	anchor.addEventListener("mouseleave", (event) => {
 		const related = event.relatedTarget;
-		if (
-			related instanceof Node &&
-			activeTooltip?.contains(related)
-		) {
+		if (related instanceof Node && activeTooltip?.contains(related)) {
 			return;
 		}
 

@@ -70,6 +70,15 @@ class StoryLensOfflineDatabase extends Dexie {
 						}
 					});
 			});
+
+		this.version(4).stores({
+			catalogNovels: "id, name",
+			novels: "id, name, downloadedAt",
+			keywords: "id, novelId, name, categoryId, natureId, parentId",
+			replacements: "id, novelId, from",
+			keywordCategories: "id, name",
+			keywordNatures: "id, name",
+		});
 	}
 }
 
@@ -104,6 +113,12 @@ export async function getKeywordsByNovelId(
 	novelId: string,
 ): Promise<OfflineKeyword[]> {
 	return offlineDb.keywords.where("novelId").equals(novelId).toArray();
+}
+
+export async function getAliasesByParentId(
+	parentId: string,
+): Promise<OfflineKeyword[]> {
+	return offlineDb.keywords.where("parentId").equals(parentId).toArray();
 }
 
 export async function getReplacementsByNovelId(

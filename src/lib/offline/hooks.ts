@@ -50,6 +50,7 @@ import {
 	getAllKeywordNatures,
 	getCatalogNovelById,
 	getDownloadedNovels,
+	getAliasesByParentId,
 	getKeywordsByNovelId,
 	getReplacementsByNovelId,
 	markKeywordDirty,
@@ -76,6 +77,7 @@ import {
 	cleanOfflineKeyword,
 	cleanOfflineReplacement,
 	createTempId,
+	isTempId,
 	GLOBAL_LOOKUP_SCOPE,
 	type SyncAction,
 	type SyncEntity,
@@ -305,6 +307,19 @@ export function useOfflineKeywords(novelId: string, search: string) {
 	};
 }
 
+export function useOfflineKeywordAliases(parentId: string | undefined) {
+	const offlineQuery = useQuery({
+		queryKey: ["offline", "keyword-aliases", parentId],
+		queryFn: () => (parentId ? getAliasesByParentId(parentId) : []),
+		enabled: !!parentId,
+	});
+
+	return {
+		aliases: offlineQuery.data ?? [],
+		isLoading: offlineQuery.isLoading,
+	};
+}
+
 export function useOfflineReplacements(novelId: string, search: string) {
 	const [debouncedSearch] = useDebouncedValue(search.trim(), 300);
 	const { downloadedIds } = useDownloadedNovelIds();
@@ -517,7 +532,7 @@ export function useOfflineKeywordMutations(novelId: string) {
 				categoryId: values.categoryId,
 				natureId: values.natureId,
 				imageId: values.imageId ?? null,
-				parentId: null,
+				parentId: values.parentId ?? null,
 				novelId,
 				createdById: null,
 				createdAt: new Date().toISOString(),
@@ -609,7 +624,7 @@ export function useOfflineKeywordMutations(novelId: string) {
 				categoryId: data.categoryId ?? existing?.categoryId ?? "",
 				natureId: data.natureId ?? existing?.natureId ?? "",
 				imageId: data.imageId ?? existing?.imageId ?? null,
-				parentId: existing?.parentId ?? null,
+				parentId: data.parentId !== undefined ? (data.parentId ?? null) : (existing?.parentId ?? null),
 				novelId,
 				createdById: existing?.createdById ?? null,
 				createdAt: existing?.createdAt ?? new Date().toISOString(),
@@ -623,7 +638,7 @@ export function useOfflineKeywordMutations(novelId: string) {
 
 			await saveKeyword(updated);
 
-			if (online) {
+			if (online && !isTempId(id)) {
 				runBackgroundSync(async () => {
 					try {
 						const response = await putKeywordsById(id, data);
