@@ -4,63 +4,65 @@
 	overflow: initial !important;
 }
 
-/* Tooltip container */
-.tooltip1 {
-	position: relative;
-	display: inline-block;
+.storylens-keyword-tooltip-root {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2147483647;
 }
 
-/* Tooltip text */
-.tooltip1 .tooltiptext1 {
-	visibility: hidden;
+.storylens-tooltip-text--floating {
+	visibility: visible;
+	position: fixed;
+	pointer-events: auto;
 	width: fit-content;
 	background-color: black;
 	color: #fff;
 	text-align: center;
 	border-radius: 6px;
 	padding: 5px 10px;
-	font-size: 14px;
-
-	/* Position the tooltip */
-	position: absolute;
-	z-index: 1;
-	bottom: 100%;
-	margin-left: -60px;
-	left: 50%;
-	width: 16vw;
-	transform: translateX(-2vw);
+	font-size: var(--storylens-font-size, 14px) !important;
+	font-family: var(--storylens-font-face, inherit) !important;
+	z-index: 2147483647;
+	margin: 0;
+	transform: none;
 }
 
-/* Show the tooltip text when you mouse over the tooltip container */
-.tooltip1:hover .tooltiptext1 {
-	visibility: visible;
-}
-
-.tooltip1 .tooltiptext1::after {
+.storylens-tooltip-text--floating::after {
 	content: " ";
 	position: absolute;
-	top: 100%; /* At the bottom of the tooltip */
 	left: 50%;
 	margin-left: -5px;
 	border-width: 5px;
 	border-style: solid;
+}
+
+.storylens-tooltip-text--floating[data-placement="above"]::after {
+	top: 100%;
 	border-color: black transparent transparent transparent;
 }
 
+.storylens-tooltip-text--floating[data-placement="below"]::after {
+	bottom: 100%;
+	border-color: transparent transparent black transparent;
+}
+
 /* Keyword tooltip specific styles */
-.keyword-tooltip {
+.storylens-keyword-tooltip {
 	cursor: pointer;
 	border-radius: 3px;
 	padding: 2px 4px;
 	transition: background-color 0.2s ease;
+	position: relative;
+	display: inline-block;
 }
 
-.keyword-tooltip:hover {
+.storylens-keyword-tooltip:hover {
 	background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Category indicator circle */
-.category-indicator {
+.storylens-category-indicator {
 	display: inline-block;
 	width: 8px;
 	height: 8px;
@@ -69,7 +71,7 @@
 	vertical-align: middle;
 }
 
-.storylens-keyword .nature-indicator {
+.storylens-keyword .storylens-nature-indicator {
 	position: absolute;
 	top: 5px;
 	inset-inline-end: -2px;
@@ -80,35 +82,83 @@
 }
 
 /* Keyword info in tooltip */
-.keyword-info {
-	text-align: left;
-	max-width: 200px;
+.storylens-keyword-info {
+	max-width: 16rem;
 }
 
-.keyword-info strong {
+.storylens-keyword-info strong {
 	display: block;
 	margin-bottom: 4px;
-	font-size: 16px;
+	font-size: 1.14em;
+	text-align: center;
 }
 
-.keyword-info p {
+.storylens-keyword-info p {
 	margin: 4px 0;
-	font-size: 12px;
+	font-size: 0.86em;
 	line-height: 1.4;
+	text-align: right;
 }
 
-.keyword-meta {
+.storylens-keyword-info .storylens-keyword-image {
+	display: block;
+	width: auto;
+	max-width: 16rem;
+	max-height: 16rem;
+	object-fit: contain;
+	border-radius: 8px;
+	margin: 0 0 6px;
+}
+
+.storylens-keyword-meta {
 	display: flex;
 	gap: 8px;
 	margin-top: 6px;
-	font-size: 10px;
+	font-size: 0.71em;
 }
 
-.keyword-meta .category,
-.keyword-meta .nature {
+.storylens-keyword-meta .storylens-category,
+.storylens-keyword-meta .storylens-nature {
 	padding: 2px 6px;
 	border-radius: 3px;
 	background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Original keyword collapsible section */
+.storylens-original-section {
+	margin-top: 8px;
+	border-top: 1px solid rgba(255, 255, 255, 0.15);
+	padding-top: 6px;
+}
+
+.storylens-original-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 0.79em;
+	cursor: pointer;
+	padding: 2px 0;
+	width: 100%;
+	text-align: left;
+	pointer-events: auto;
+}
+
+.storylens-original-toggle:hover {
+	color: #fff;
+}
+
+.storylens-original-arrow {
+	font-size: 0.82em;
+	flex-shrink: 0;
+}
+
+.storylens-original-content {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Content formatting */

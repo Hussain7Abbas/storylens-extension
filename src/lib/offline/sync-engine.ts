@@ -3,25 +3,25 @@ import {
 	getKeywordCategories,
 	postKeywordCategories,
 	putKeywordCategoriesById,
-} from "@/api/endpoints/keyword-categories.js";
+} from "@/api/generated/endpoints/keyword-categories.js";
 import {
 	deleteKeywordNaturesById,
 	getKeywordNatures,
 	postKeywordNatures,
 	putKeywordNaturesById,
-} from "@/api/endpoints/keyword-natures.js";
+} from "@/api/generated/endpoints/keyword-natures.js";
 import {
 	deleteKeywordsById,
 	getKeywords,
 	postKeywords,
 	putKeywordsById,
-} from "@/api/endpoints/keywords.js";
+} from "@/api/generated/endpoints/keywords.js";
 import {
 	deleteReplacementsById,
 	getReplacements,
 	postReplacements,
 	putReplacementsById,
-} from "@/api/endpoints/replacements.js";
+} from "@/api/generated/endpoints/replacements.js";
 import type {
 	GetKeywordCategories200DataItem,
 	GetKeywordNatures200DataItem,
@@ -34,14 +34,18 @@ import type {
 	PutKeywordNaturesByIdBodyOne,
 	PutKeywordsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import {
 	bulkPutKeywordCategories,
 	bulkPutKeywordNatures,
+	clearKeywordDirty,
+	clearReplacementDirty,
 	replaceKeywordCategoryId,
 	replaceKeywordId,
 	replaceKeywordNatureId,
 	replaceReplacementId,
+	saveKeyword,
+	saveReplacement,
 	writeNovelOfflineBundle,
 } from "@/lib/offline/db";
 import { downloadNovel } from "@/lib/offline/download";
@@ -55,6 +59,7 @@ import {
 	updatePendingOp,
 } from "@/lib/offline/sync-storage";
 import { isTempId, type SyncOperation } from "@/lib/offline/types";
+import { cleanOfflineKeyword, cleanOfflineReplacement } from "@/lib/offline/types";
 import {
 	KEYWORD_LIST_SORTING,
 	REPLACEMENT_LIST_SORTING,
@@ -106,15 +111,19 @@ async function pushKeywordOperation(operation: SyncOperation): Promise<void> {
 		if (isTempId(operation.entityId)) {
 			await replaceKeywordId(operation.entityId, serverKeyword.id);
 			await replacePendingEntityId(operation.entityId, serverKeyword.id);
+		} else {
+			await saveKeyword(cleanOfflineKeyword(serverKeyword));
 		}
 		return;
 	}
 
 	if (operation.action === "update") {
-		await putKeywordsById(
+		const response = await putKeywordsById(
 			operation.entityId,
 			operation.payload as PutKeywordsByIdBodyOne,
 		);
+		await saveKeyword(cleanOfflineKeyword(response.data as GetKeywords200DataItem));
+		await clearKeywordDirty(operation.entityId);
 		return;
 	}
 
@@ -133,15 +142,19 @@ async function pushReplacementOperation(
 		if (isTempId(operation.entityId)) {
 			await replaceReplacementId(operation.entityId, serverReplacement.id);
 			await replacePendingEntityId(operation.entityId, serverReplacement.id);
+		} else {
+			await saveReplacement(cleanOfflineReplacement(serverReplacement));
 		}
 		return;
 	}
 
 	if (operation.action === "update") {
-		await putReplacementsById(
+		const response = await putReplacementsById(
 			operation.entityId,
 			operation.payload as PutReplacementsByIdBodyOne,
 		);
+		await saveReplacement(cleanOfflineReplacement(response.data));
+		await clearReplacementDirty(operation.entityId);
 		return;
 	}
 
@@ -203,17 +216,20 @@ async function pushKeywordNatureOperation(
 }
 
 export async function pullLookupData(): Promise<void> {
+	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
+
 	const [categoriesResponse, naturesResponse] = await Promise.all([
 		getKeywordCategories(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 		getKeywordNatures(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 	]);
@@ -251,6 +267,9 @@ export async function syncPendingOperations(): Promise<SyncResult> {
 }
 
 export async function pullServerData(novelId: string): Promise<void> {
+	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
+
 	const [
 		keywordsResponse,
 		replacementsResponse,
@@ -278,13 +297,13 @@ export async function pullServerData(novelId: string): Promise<void> {
 		getKeywordCategories(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 		getKeywordNatures(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 	]);

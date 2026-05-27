@@ -7,8 +7,8 @@ export default defineConfig({
 		input: `${env.WXT_API_URL}/openapi.json`,
 		output: {
 			mode: "tags",
-			target: "./src/api/endpoints",
-			schemas: "./src/api/schemas",
+			target: "./src/api/generated/endpoints",
+			schemas: "./src/api/generated/schemas",
 			client: "react-query",
 			httpClient: "axios",
 			biome: true,

@@ -5,17 +5,23 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { browser } from "#imports";
-import { useGetConfigsByKey, usePutConfigs } from "@/api/endpoints/configs.js";
-import { sendMessage } from "@/entrypoints/background/messaging";
-import type { websiteSelectors } from "@/types/configs";
+import {
+	useDeleteWebsiteSelectorsByWebsite,
+	useGetWebsiteSelectorsByWebsite,
+	usePostWebsiteSelectors,
+	usePutWebsiteSelectorsByWebsite,
+} from "@/api/generated/endpoints/website-selectors.js";
+import type {
+	PostWebsiteSelectorsBodyOne,
+	PutWebsiteSelectorsByWebsiteBodyOne,
+} from "@/api/generated/schemas";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
+import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
 	computeSelectorPreviews,
 	extractXpathText,
 	type SelectorPreviewInput,
 } from "@/utils/selector-preview";
-import { WEBSITES_SELECTORS_KEY } from "./constants";
 import { RegexPreview } from "./regex-preview";
 
 interface NodeSelectorFormProps {
@@ -28,6 +34,22 @@ type PageContext = {
 	html: string;
 };
 
+function getPageContextErrorMessage(
+	error: "no-tab" | "unsupported-url" | "no-content-script",
+	t: (key: string) => string,
+): string {
+	switch (error) {
+		case "no-tab":
+			return t("nodeSelector.detectFailedNoTab");
+		case "unsupported-url":
+			return t("nodeSelector.detectFailedUnsupportedTab");
+		case "no-content-script":
+			return t("nodeSelector.detectFailedNoContentScript");
+		default:
+			return t("nodeSelector.detectFailed");
+	}
+}
+
 const INITIAL_FORM_VALUES: SelectorPreviewInput & { website: string } = {
 	website: "",
 	novelXpath: "",
@@ -37,6 +59,40 @@ const INITIAL_FORM_VALUES: SelectorPreviewInput & { website: string } = {
 	chapterXpathRegex: "\\d+",
 	chapterUrlRegex: "(\\d+)(?!.*\\d)",
 };
+
+function buildSelectorPayload(
+	values: typeof INITIAL_FORM_VALUES,
+): PostWebsiteSelectorsBodyOne {
+	return {
+		website: values.website,
+		novel: {
+			xpath: values.novelXpath
+				? { value: values.novelXpath, regex: values.novelXpathRegex }
+				: null,
+			url: values.novelUrlRegex.trim()
+				? { regex: values.novelUrlRegex }
+				: null,
+		},
+		chapter: {
+			xpath: values.chapterXpath
+				? { value: values.chapterXpath, regex: values.chapterXpathRegex }
+				: null,
+			url: values.chapterUrlRegex.trim()
+				? { regex: values.chapterUrlRegex }
+				: null,
+		},
+	};
+}
+
+function buildSelectorUpdatePayload(
+	values: typeof INITIAL_FORM_VALUES,
+): PutWebsiteSelectorsByWebsiteBodyOne {
+	const payload = buildSelectorPayload(values);
+	return {
+		novel: payload.novel,
+		chapter: payload.chapter,
+	};
+}
 
 export function NodeSelectorForm({
 	onClose,
@@ -49,13 +105,13 @@ export function NodeSelectorForm({
 
 	const isEdit = !!editedWebsite;
 
-	const { data: configData } = useGetConfigsByKey<{
-		data: { key: string; value: string };
-	}>(WEBSITES_SELECTORS_KEY);
-
-	const existingSelectors: websiteSelectors = useMemo(
-		() => (configData?.data?.value ? JSON.parse(configData.data.value) : {}),
-		[configData?.data?.value],
+	const { data: selectorData } = useGetWebsiteSelectorsByWebsite(
+		editedWebsite ?? "",
+		{
+			query: {
+				enabled: !!editedWebsite,
+			},
+		},
 	);
 
 	const form = useForm({
@@ -79,7 +135,7 @@ export function NodeSelectorForm({
 		[form.values, pageContext, xpathTexts],
 	);
 
-	const updateConfig = usePutConfigs({
+	const createSelector = usePostWebsiteSelectors({
 		mutation: {
 			onSuccess: () => {
 				navigate(0);
@@ -92,7 +148,20 @@ export function NodeSelectorForm({
 		},
 	});
 
-	const deleteConfig = usePutConfigs({
+	const updateSelector = usePutWebsiteSelectorsByWebsite({
+		mutation: {
+			onSuccess: () => {
+				navigate(0);
+				toast.success(t("nodeSelector.websiteSavedSuccess"));
+				onClose();
+			},
+			onError: () => {
+				toast.error(t("nodeSelector.websiteSavedFailed"));
+			},
+		},
+	});
+
+	const deleteSelector = useDeleteWebsiteSelectorsByWebsite({
 		mutation: {
 			onSuccess: () => {
 				navigate(0);
@@ -104,21 +173,15 @@ export function NodeSelectorForm({
 		},
 	});
 
-	async function loadPageContext(): Promise<PageContext | null> {
-		const [tab] = await browser.tabs.query({
-			active: true,
-			currentWindow: true,
-		});
-		if (!tab?.id) {
-			return null;
+	async function loadPageContext(
+		fallback?: PageContext | null,
+	): Promise<PageContext | null> {
+		const result = await getActiveTabPageContext();
+		if (result.ok) {
+			return result.page;
 		}
 
-		const page = await sendMessage("getPageHtml", undefined, { tabId: tab.id });
-		if (!page?.url || !page.html) {
-			return null;
-		}
-
-		return page;
+		return fallback ?? null;
 	}
 
 	useEffect(() => {
@@ -145,24 +208,22 @@ export function NodeSelectorForm({
 	}, []);
 
 	function handleDelete(website: string) {
-		const currentSelectors = { ...existingSelectors };
-		delete currentSelectors[website];
-
-		deleteConfig.mutate({
-			data: {
-				key: WEBSITES_SELECTORS_KEY,
-				value: JSON.stringify(currentSelectors),
-			},
-		});
+		deleteSelector.mutate({ website });
 	}
 
 	async function handleAutoDetect() {
 		setIsDetecting(true);
 
 		try {
-			const page = await loadPageContext();
+			const tabResult = await getActiveTabPageContext();
+			const page = tabResult.ok ? tabResult.page : pageContext;
+
 			if (!page) {
-				toast.error(t("nodeSelector.detectFailed"));
+				toast.error(
+					tabResult.ok
+						? t("nodeSelector.detectFailed")
+						: getPageContextErrorMessage(tabResult.error, t),
+				);
 				return;
 			}
 
@@ -185,53 +246,36 @@ export function NodeSelectorForm({
 			toast.success(
 				`${t("nodeSelector.detectSuccess")} (${detection.result.confidence})`,
 			);
-		} catch {
-			toast.error(t("nodeSelector.detectFailed"));
+		} catch (error) {
+			console.error("[StoryLens] Auto-detect selectors failed", error);
+			const message =
+				error instanceof Error && error.message
+					? error.message
+					: t("nodeSelector.detectFailed");
+			toast.error(message);
 		} finally {
 			setIsDetecting(false);
 		}
 	}
 
 	function handleSubmit(values: typeof form.values) {
-		const newSelectors: websiteSelectors = {
-			...existingSelectors,
-			[values.website]: {
+		if (isEdit) {
+			updateSelector.mutate({
 				website: values.website,
-				novel: {
-					xpath: values.novelXpath
-						? { value: values.novelXpath, regex: values.novelXpathRegex }
-						: null,
-					url: values.novelUrlRegex.trim()
-						? { regex: values.novelUrlRegex }
-						: null,
-				},
-				chapter: {
-					xpath: values.chapterXpath
-						? { value: values.chapterXpath, regex: values.chapterXpathRegex }
-						: null,
-					url: values.chapterUrlRegex.trim()
-						? { regex: values.chapterUrlRegex }
-						: null,
-				},
-			},
-		};
-
-		updateConfig.mutate({
-			data: {
-				key: WEBSITES_SELECTORS_KEY,
-				value: JSON.stringify(newSelectors),
-			},
-		});
-	}
-
-	useEffect(() => {
-		if (!editedWebsite) {
+				data: buildSelectorUpdatePayload(values),
+			});
 			return;
 		}
 
-		const existingSelector = {
-			...existingSelectors[editedWebsite],
-		};
+		createSelector.mutate({ data: buildSelectorPayload(values) });
+	}
+
+	useEffect(() => {
+		if (!editedWebsite || !selectorData?.data) {
+			return;
+		}
+
+		const existingSelector = selectorData.data;
 
 		form.setValues({
 			website: existingSelector.website,
@@ -242,7 +286,9 @@ export function NodeSelectorForm({
 			chapterXpathRegex: existingSelector.chapter?.xpath?.regex ?? "\\d+",
 			chapterUrlRegex: existingSelector.chapter?.url?.regex ?? "",
 		});
-	}, [configData?.data?.value, editedWebsite, existingSelectors]);
+	}, [editedWebsite, selectorData?.data]);
+
+	const isSaving = createSelector.isPending || updateSelector.isPending;
 
 	return (
 		<Stack p="sm" gap="xs">
@@ -323,7 +369,7 @@ export function NodeSelectorForm({
 					</Button>
 					<Button
 						onClick={() => handleSubmit(form.values)}
-						loading={updateConfig.isPending}
+						loading={isSaving}
 					>
 						{t("_.save")}
 					</Button>

@@ -1,13 +1,21 @@
 import Dexie, { type EntityTable } from "dexie";
+import type { GetNovels200DataItem } from "@/api/generated/schemas";
+import { getDownloadedNovelIds, getPendingDeletedEntityIds } from "@/lib/offline/sync-storage";
 import type {
+	CatalogNovel,
 	DownloadedNovel,
 	OfflineKeyword,
 	OfflineKeywordCategory,
 	OfflineKeywordNature,
 	OfflineReplacement,
 } from "@/lib/offline/types";
+import {
+	cleanOfflineKeyword,
+	cleanOfflineReplacement,
+} from "@/lib/offline/types";
 
 class StoryLensOfflineDatabase extends Dexie {
+	catalogNovels!: EntityTable<CatalogNovel, "id">;
 	novels!: EntityTable<DownloadedNovel, "id">;
 	keywords!: EntityTable<OfflineKeyword, "id">;
 	replacements!: EntityTable<OfflineReplacement, "id">;
@@ -24,6 +32,53 @@ class StoryLensOfflineDatabase extends Dexie {
 			keywordCategories: "id, name",
 			keywordNatures: "id, name",
 		});
+
+		this.version(2).stores({
+			catalogNovels: "id, name",
+			novels: "id, name, downloadedAt",
+			keywords: "id, novelId, name, categoryId, natureId",
+			replacements: "id, novelId, from",
+			keywordCategories: "id, name",
+			keywordNatures: "id, name",
+		});
+
+		this.version(3)
+			.stores({
+				catalogNovels: "id, name",
+				novels: "id, name, downloadedAt",
+				keywords: "id, novelId, name, categoryId, natureId",
+				replacements: "id, novelId, from",
+				keywordCategories: "id, name",
+				keywordNatures: "id, name",
+			})
+			.upgrade(async (transaction) => {
+				await transaction
+					.table("keywords")
+					.toCollection()
+					.modify((keyword: OfflineKeyword) => {
+						if (!keyword.matchingType) {
+							keyword.matchingType = "FULL";
+						}
+					});
+
+				await transaction
+					.table("replacements")
+					.toCollection()
+					.modify((replacement: OfflineReplacement) => {
+						if (!replacement.matchingType) {
+							replacement.matchingType = "FULL";
+						}
+					});
+			});
+
+		this.version(4).stores({
+			catalogNovels: "id, name",
+			novels: "id, name, downloadedAt",
+			keywords: "id, novelId, name, categoryId, natureId, parentId",
+			replacements: "id, novelId, from",
+			keywordCategories: "id, name",
+			keywordNatures: "id, name",
+		});
 	}
 }
 
@@ -36,14 +91,34 @@ export async function getDownloadedNovel(
 }
 
 export async function isNovelDownloaded(novelId: string): Promise<boolean> {
-	const novel = await offlineDb.novels.get(novelId);
-	return novel !== undefined;
+	const ids = await getDownloadedNovelIds();
+	return ids.includes(novelId);
+}
+
+export async function getAllCatalogNovels(): Promise<CatalogNovel[]> {
+	return offlineDb.catalogNovels.orderBy("name").toArray();
+}
+
+export async function bulkPutCatalogNovels(
+	novels: GetNovels200DataItem[],
+): Promise<void> {
+	await offlineDb.catalogNovels.bulkPut(novels);
+}
+
+export async function saveCatalogNovel(novel: CatalogNovel): Promise<void> {
+	await offlineDb.catalogNovels.put(novel);
 }
 
 export async function getKeywordsByNovelId(
 	novelId: string,
 ): Promise<OfflineKeyword[]> {
 	return offlineDb.keywords.where("novelId").equals(novelId).toArray();
+}
+
+export async function getAliasesByParentId(
+	parentId: string,
+): Promise<OfflineKeyword[]> {
+	return offlineDb.keywords.where("parentId").equals(parentId).toArray();
 }
 
 export async function getReplacementsByNovelId(
@@ -63,27 +138,168 @@ export async function getAllKeywordNatures(): Promise<OfflineKeywordNature[]> {
 }
 
 export async function getDownloadedNovels(): Promise<DownloadedNovel[]> {
-	return offlineDb.novels.orderBy("name").toArray();
+	const ids = await getDownloadedNovelIds();
+	if (ids.length === 0) {
+		return [];
+	}
+
+	return offlineDb.novels
+		.where("id")
+		.anyOf(ids)
+		.sortBy("name");
 }
 
 export async function getOfflineNovelBySlug(
 	slug: string,
 ): Promise<DownloadedNovel | undefined> {
+	const downloadedIds = await getDownloadedNovelIds();
+	if (downloadedIds.length === 0) {
+		return undefined;
+	}
+
 	const normalized = slug.trim().toLowerCase();
-	const novels = await offlineDb.novels.toArray();
+	const novels = await offlineDb.novels
+		.where("id")
+		.anyOf(downloadedIds)
+		.toArray();
 	return novels.find((novel) =>
 		novel.slugs.some((entry) => entry.trim().toLowerCase() === normalized),
 	);
+}
+
+export async function getCatalogNovelBySlug(
+	slug: string,
+): Promise<CatalogNovel | undefined> {
+	const normalized = slug.trim().toLowerCase();
+	const novels = await offlineDb.catalogNovels.toArray();
+	return novels.find((novel) =>
+		novel.slugs.some((entry) => entry.trim().toLowerCase() === normalized),
+	);
+}
+
+export async function getCatalogNovelById(
+	novelId: string,
+): Promise<CatalogNovel | undefined> {
+	return offlineDb.catalogNovels.get(novelId);
+}
+
+async function replaceKeywordsForNovel(
+	novelId: string,
+	serverKeywords: OfflineKeyword[],
+): Promise<void> {
+	const existing = await getKeywordsByNovelId(novelId);
+	const dirtyKeywords = existing.filter((keyword) => keyword.isDirty);
+	const dirtyIds = new Set(dirtyKeywords.map((keyword) => keyword.id));
+	const pendingDeletes = await getPendingDeletedEntityIds(novelId, "keyword");
+
+	const merged = [
+		...serverKeywords
+			.filter(
+				(keyword) =>
+					!dirtyIds.has(keyword.id) && !pendingDeletes.has(keyword.id),
+			)
+			.map((keyword) => cleanOfflineKeyword(keyword)),
+		...dirtyKeywords,
+	];
+
+	await offlineDb.transaction("rw", offlineDb.keywords, async () => {
+		await offlineDb.keywords.where("novelId").equals(novelId).delete();
+		if (merged.length > 0) {
+			await offlineDb.keywords.bulkPut(merged);
+		}
+	});
+}
+
+async function replaceReplacementsForNovel(
+	novelId: string,
+	serverReplacements: OfflineReplacement[],
+): Promise<void> {
+	const existing = await getReplacementsByNovelId(novelId);
+	const dirtyReplacements = existing.filter((replacement) => replacement.isDirty);
+	const dirtyIds = new Set(dirtyReplacements.map((replacement) => replacement.id));
+	const pendingDeletes = await getPendingDeletedEntityIds(
+		novelId,
+		"replacement",
+	);
+
+	const merged = [
+		...serverReplacements
+			.filter(
+				(replacement) =>
+					!dirtyIds.has(replacement.id) && !pendingDeletes.has(replacement.id),
+			)
+			.map((replacement) => cleanOfflineReplacement(replacement)),
+		...dirtyReplacements,
+	];
+
+	await offlineDb.transaction("rw", offlineDb.replacements, async () => {
+		await offlineDb.replacements.where("novelId").equals(novelId).delete();
+		if (merged.length > 0) {
+			await offlineDb.replacements.bulkPut(merged);
+		}
+	});
+}
+
+export async function writeNovelContentCache(
+	novel: CatalogNovel,
+	keywords: OfflineKeyword[],
+	replacements: OfflineReplacement[],
+): Promise<void> {
+	const downloaded = await isNovelDownloaded(novel.id);
+	await saveCatalogNovel(novel);
+
+	if (downloaded) {
+		return;
+	}
+
+	await replaceKeywordsForNovel(novel.id, keywords);
+	await replaceReplacementsForNovel(novel.id, replacements);
 }
 
 export async function saveKeyword(keyword: OfflineKeyword): Promise<void> {
 	await offlineDb.keywords.put(keyword);
 }
 
+export async function markKeywordDirty(id: string): Promise<void> {
+	const keyword = await offlineDb.keywords.get(id);
+	if (!keyword) {
+		return;
+	}
+
+	await offlineDb.keywords.put({ ...keyword, isDirty: true });
+}
+
+export async function clearKeywordDirty(id: string): Promise<void> {
+	const keyword = await offlineDb.keywords.get(id);
+	if (!keyword?.isDirty) {
+		return;
+	}
+
+	await offlineDb.keywords.put(cleanOfflineKeyword(keyword));
+}
+
 export async function saveReplacement(
 	replacement: OfflineReplacement,
 ): Promise<void> {
 	await offlineDb.replacements.put(replacement);
+}
+
+export async function markReplacementDirty(id: string): Promise<void> {
+	const replacement = await offlineDb.replacements.get(id);
+	if (!replacement) {
+		return;
+	}
+
+	await offlineDb.replacements.put({ ...replacement, isDirty: true });
+}
+
+export async function clearReplacementDirty(id: string): Promise<void> {
+	const replacement = await offlineDb.replacements.get(id);
+	if (!replacement?.isDirty) {
+		return;
+	}
+
+	await offlineDb.replacements.put(cleanOfflineReplacement(replacement));
 }
 
 export async function deleteKeywordById(id: string): Promise<void> {
@@ -223,7 +439,7 @@ export async function replaceKeywordId(
 
 	await offlineDb.transaction("rw", offlineDb.keywords, async () => {
 		await offlineDb.keywords.delete(tempId);
-		await offlineDb.keywords.put({ ...keyword, id: serverId });
+		await offlineDb.keywords.put(cleanOfflineKeyword({ ...keyword, id: serverId }));
 	});
 }
 
@@ -238,7 +454,9 @@ export async function replaceReplacementId(
 
 	await offlineDb.transaction("rw", offlineDb.replacements, async () => {
 		await offlineDb.replacements.delete(tempId);
-		await offlineDb.replacements.put({ ...replacement, id: serverId });
+		await offlineDb.replacements.put(
+			cleanOfflineReplacement({ ...replacement, id: serverId }),
+		);
 	});
 }
 
@@ -265,29 +483,12 @@ export type NovelOfflineBundle = {
 export async function writeNovelOfflineBundle(
 	bundle: NovelOfflineBundle,
 ): Promise<void> {
-	await offlineDb.transaction(
-		"rw",
-		[
-			offlineDb.novels,
-			offlineDb.keywords,
-			offlineDb.replacements,
-			offlineDb.keywordCategories,
-			offlineDb.keywordNatures,
-		],
-		async () => {
-			await offlineDb.novels.put(bundle.novel);
-			await offlineDb.keywords
-				.where("novelId")
-				.equals(bundle.novel.id)
-				.delete();
-			await offlineDb.replacements
-				.where("novelId")
-				.equals(bundle.novel.id)
-				.delete();
-			await offlineDb.keywords.bulkPut(bundle.keywords);
-			await offlineDb.replacements.bulkPut(bundle.replacements);
-			await offlineDb.keywordCategories.bulkPut(bundle.categories);
-			await offlineDb.keywordNatures.bulkPut(bundle.natures);
-		},
-	);
+	// Do not wrap in a single Dexie transaction: replaceKeywordsForNovel and
+	// replaceReplacementsForNovel await chrome.storage (pending deletes), which
+	// would auto-commit an outer transaction before writes finish.
+	await offlineDb.novels.put(bundle.novel);
+	await bulkPutKeywordCategories(bundle.categories);
+	await bulkPutKeywordNatures(bundle.natures);
+	await replaceKeywordsForNovel(bundle.novel.id, bundle.keywords);
+	await replaceReplacementsForNovel(bundle.novel.id, bundle.replacements);
 }

@@ -4,7 +4,7 @@ import type {
 	GetKeywords200DataItem,
 	GetNovels200DataItem,
 	GetReplacements200DataItem,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 
 export type SyncEntity =
 	| "keyword"
@@ -41,9 +41,25 @@ export type DownloadedNovel = GetNovels200DataItem & {
 	downloadedAt: number;
 };
 
-export type OfflineKeyword = GetKeywords200DataItem;
+export type CatalogNovel = GetNovels200DataItem;
 
-export type OfflineReplacement = GetReplacements200DataItem;
+export type OfflineKeyword = GetKeywords200DataItem & {
+	isDirty?: boolean;
+};
+
+export type OfflineReplacement = GetReplacements200DataItem & {
+	isDirty?: boolean;
+};
+
+export function cleanOfflineKeyword(keyword: GetKeywords200DataItem): OfflineKeyword {
+	return { ...keyword, isDirty: undefined };
+}
+
+export function cleanOfflineReplacement(
+	replacement: GetReplacements200DataItem,
+): OfflineReplacement {
+	return { ...replacement, isDirty: undefined };
+}
 
 export type OfflineKeywordCategory = GetKeywordCategories200DataItem;
 

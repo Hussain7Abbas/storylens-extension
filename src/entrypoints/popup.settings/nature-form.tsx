@@ -9,9 +9,12 @@ import {
 import { useForm } from "@mantine/form";
 import { IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import type { PostKeywordNaturesBodyOne } from "@/api/schemas";
+import { ColorInput } from "@/components/color-input";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
-import { useOfflineNatureMutations } from "@/lib/offline/hooks";
+import {
+	type NatureFormValues,
+	useOfflineNatureMutations,
+} from "@/lib/offline/hooks";
 import type { KeywordNature } from "@/types/models";
 
 export type NatureFormModesType = "add" | "edit" | undefined;
@@ -29,13 +32,13 @@ export function NatureForm({
 	...props
 }: NatureFormProps) {
 	const { t } = useTranslation();
-	const form = useForm<PostKeywordNaturesBodyOne>({
+	const form = useForm<NatureFormValues>({
 		initialValues: {
-			name: nature?.name || "",
+			nameEn: nature?.nameEn || "",
+			nameAr: nature?.nameAr || "",
 			color: nature?.color || "#000000",
 		},
 		validate: {
-			name: (value) => (!value ? t("settings.nameRequired") : null),
 			color: (value) =>
 				!/^#[0-9A-Fa-f]{6}$/.test(value) ? t("settings.invalidColor") : null,
 		},
@@ -45,9 +48,11 @@ export function NatureForm({
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineNatureMutations();
 
-	const handleSubmit = (values: typeof form.values) => {
+	const handleSubmit = (values: NatureFormValues) => {
+		const payload: NatureFormValues = { ...values };
+
 		if (mode === "add") {
-			createMutation.mutate(values, {
+			createMutation.mutate(payload, {
 				onSuccess: async () => {
 					await refreshContent();
 					form.reset();
@@ -59,7 +64,7 @@ export function NatureForm({
 
 		if (mode === "edit" && nature?.id) {
 			updateMutation.mutate(
-				{ id: nature.id, data: values },
+				{ id: nature.id, data: payload },
 				{
 					onSuccess: async () => {
 						await refreshContent();
@@ -92,14 +97,19 @@ export function NatureForm({
 		<form onSubmit={form.onSubmit(handleSubmit)} {...props}>
 			<Stack gap="xs" p="xs">
 				<TextInput
-					label={t("settings.name")}
-					{...form.getInputProps("name")}
+					label={t("settings.nameEn")}
+					{...form.getInputProps("nameEn")}
 					required
 				/>
 
 				<TextInput
+					label={t("settings.nameAr")}
+					{...form.getInputProps("nameAr")}
+					dir="rtl"
+				/>
+
+				<ColorInput
 					label={t("settings.color")}
-					placeholder="#FF0000"
 					{...form.getInputProps("color")}
 					required
 				/>

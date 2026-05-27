@@ -24,12 +24,17 @@ import { useAtomValue } from "jotai";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useGetNovels, usePutNovelsById } from "@/api/endpoints/novels.js";
-import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
-import { useDownloadedNovelIds, useOnlineStatus } from "@/lib/offline/hooks";
+import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { userRoleAtom } from "@/lib/auth";
+import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
+import {
+	useCachedNovelsList,
+	useDownloadedNovelIds,
+	useOnlineStatus,
+} from "@/lib/offline/hooks";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
+import { isSlugInList } from "@/utils/novel-matching";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
@@ -42,20 +47,15 @@ export function HomePage() {
 	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
 		useDownloadedNovelIds();
-
 	const {
-		data: novelsData,
-		isLoading: novelsLoading,
-		refetch: refetchNovels,
-	} = useGetNovels<{
-		data: { data: Novel[] };
-	}>({
-		pagination: { page: 1, pageSize: 100 },
-		sorting: { column: "name", direction: "asc" },
-	});
+		novels: availableNovels,
+		isLoading: novelListLoading,
+		refresh: refreshNovelsCatalog,
+	} = useCachedNovelsList();
 
 	const { selectedNovel, setSelectedNovel, currentTabNovel } = useDetectedNovel(
-		novelsData?.data?.data,
+		availableNovels,
+		availableNovels,
 	);
 
 	const isSelectedDownloaded = selectedNovel?.id
@@ -96,8 +96,9 @@ export function HomePage() {
 		<Container p="md">
 			{mode !== undefined ? (
 				<NovelForm
-					refetchNovels={refetchNovels}
+					refetchNovels={refreshNovelsCatalog}
 					selectedNovel={selectedNovel}
+					currentTabNovel={currentTabNovel}
 					mode={mode}
 					onClose={() => {
 						setMode(undefined);
@@ -105,7 +106,12 @@ export function HomePage() {
 				/>
 			) : (
 				<Stack gap={0}>
-					{novelsLoading ? (
+					{!online && (
+						<Text size="xs" c="orange" mb="xs">
+							{t("offline.banner")}
+						</Text>
+					)}
+					{novelListLoading ? (
 						<Skeleton height={40} animate />
 					) : (
 						<Group gap="xs" align="end">
@@ -114,16 +120,14 @@ export function HomePage() {
 								placeholder={t("home.selectNovelPlaceholder")}
 								allowDeselect={false}
 								flex={1}
-								data={novelsData?.data?.data?.map((novel: Novel) => ({
+								data={availableNovels.map((novel: Novel) => ({
 									value: novel.id,
 									label: novel.name,
 								}))}
 								value={selectedNovel?.id}
 								onChange={(value) =>
 									setSelectedNovel(
-										novelsData?.data?.data?.find(
-											(novel: Novel) => novel.id === value,
-										),
+										availableNovels.find((novel: Novel) => novel.id === value),
 									)
 								}
 								required
@@ -182,7 +186,7 @@ export function HomePage() {
 									selectedNovel={selectedNovel}
 									setSelectedNovel={setSelectedNovel}
 									setMode={setMode}
-									refetchNovels={refetchNovels}
+									refetchNovels={refreshNovelsCatalog}
 									role={role}
 									t={t}
 								/>
@@ -266,8 +270,7 @@ function NovelMenu({
 		}
 
 		const existingSlugs = selectedNovel.slugs ?? [];
-		if (existingSlugs.includes(currentTabNovel.novelSlug)) {
-			toast.success(t("auth.addSlugSuccess"));
+		if (isSlugInList(currentTabNovel.novelSlug, existingSlugs)) {
 			return;
 		}
 
@@ -275,10 +278,18 @@ function NovelMenu({
 			id: selectedNovel.id,
 			data: {
 				name: selectedNovel.name ?? "",
+				description: selectedNovel.description ?? undefined,
+				imageId: selectedNovel.imageId ?? undefined,
 				slugs: [...existingSlugs, currentTabNovel.novelSlug],
 			},
 		});
 	};
+
+	const currentSlug = currentTabNovel?.novelSlug;
+	const canAddCurrentSlug =
+		!!currentSlug &&
+		!!selectedNovel?.id &&
+		!isSlugInList(currentSlug, selectedNovel.slugs ?? []);
 
 	return (
 		<Menu shadow="md" width={200}>
@@ -305,11 +316,10 @@ function NovelMenu({
 					{t("novels.add")}
 				</Menu.Item>
 
-				{selectedNovel?.id && (
+				{canAddCurrentSlug && (
 					<Menu.Item
 						leftSection={<IconLink size={14} color="cyan" />}
 						onClick={handleAddSlug}
-						disabled={!currentTabNovel?.novelSlug}
 					>
 						{t("novels.addSlug")}
 					</Menu.Item>

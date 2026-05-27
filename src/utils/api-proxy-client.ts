@@ -53,3 +53,34 @@ export async function extensionApiGet<T>(
 
 	return response.data;
 }
+
+export async function extensionApiPost<T>(
+	url: string,
+	data?: unknown,
+): Promise<T> {
+	const response = await proxyApiRequest<T>({
+		url,
+		method: "POST",
+		data,
+		headers: { "Content-Type": "application/json" },
+	});
+
+	if (!response.ok) {
+		console.error(`${LOG_PREFIX} Proxy API error body`, response.data);
+		const apiMessage =
+			typeof response.data === "object" &&
+			response.data !== null &&
+			"message" in response.data &&
+			typeof response.data.message === "string"
+				? response.data.message
+				: undefined;
+
+		throw new Error(
+			apiMessage ??
+				response.error ??
+				`Extension API POST ${url} failed with status ${response.status}`,
+		);
+	}
+
+	return response.data;
+}

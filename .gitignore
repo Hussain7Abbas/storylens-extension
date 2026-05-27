@@ -6,3 +6,5 @@ node_modules
 .turbo
 **/*.tsbuildinfo
 .DS_Store
+
+src/api/generated/

@@ -1,45 +1,24 @@
 import { defineBackground } from "wxt/utils/define-background";
 import { browser } from "#imports";
-import { onMessage } from "@/entrypoints/background/messaging";
+import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
+import { setupAuthInterceptor } from "@/lib/auth/auth-service";
 import { updateSyncBadge } from "@/lib/offline/badge";
-import {
-	getKeywordsByNovelId,
-	getOfflineNovelBySlug,
-	getReplacementsByNovelId,
-} from "@/lib/offline/db";
+import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
 import { isOnline } from "@/lib/offline/online-status";
 import { fullSync, syncPendingOperations } from "@/lib/offline/sync-engine";
 import type { currentNovelMeta } from "@/types";
-import type { NovelContentData } from "@/types/content-data";
+import type { websiteSelector } from "@/types/configs";
 import { handleApiProxyRequest } from "@/utils/api-proxy-handler";
-import { loadWebsiteSelectorsValue } from "@/utils/load-website-selectors";
+import {
+	getCachedWebsiteSelector,
+	loadWebsiteSelector,
+	refreshWebsiteSelectorFromApi,
+} from "@/utils/load-website-selectors";
 import { setupApiClient } from "@/utils/setup-api-client";
 
 const tabNovels = new Map<number, currentNovelMeta>();
 const SYNC_ALARM_NAME = "storylens-periodic-sync";
 const SYNC_INTERVAL_MINUTES = 5;
-
-async function loadOfflineNovelContentData(
-	novelSlug: string,
-	chapter?: number,
-): Promise<NovelContentData | undefined> {
-	const novel = await getOfflineNovelBySlug(novelSlug);
-	if (!novel) {
-		return undefined;
-	}
-
-	const [keywords, replacements] = await Promise.all([
-		getKeywordsByNovelId(novel.id),
-		getReplacementsByNovelId(novel.id),
-	]);
-
-	return {
-		novel,
-		chapterNumber: chapter,
-		keywords,
-		replacements,
-	};
-}
 
 async function runSyncCycle(): Promise<void> {
 	if (!isOnline()) {
@@ -51,8 +30,51 @@ async function runSyncCycle(): Promise<void> {
 	await updateSyncBadge();
 }
 
+async function notifyWebsiteSelectorUpdated(
+	website: string,
+	selector: websiteSelector,
+): Promise<void> {
+	const tabs = await browser.tabs.query({});
+	for (const tab of tabs) {
+		if (tab.id === undefined || !tab.url) {
+			continue;
+		}
+
+		let tabWebsite: string | undefined;
+		try {
+			tabWebsite = new URL(tab.url).hostname;
+		} catch {
+			continue;
+		}
+
+		if (tabWebsite !== website) {
+			continue;
+		}
+
+		try {
+			await sendMessage(
+				"websiteSelectorUpdated",
+				{ website, selector },
+				{ tabId: tab.id },
+			);
+		} catch {
+			// Tab may not have a content script loaded.
+		}
+	}
+}
+
+async function refreshWebsiteSelectorInBackground(
+	website: string,
+): Promise<void> {
+	const result = await refreshWebsiteSelectorFromApi(website);
+	if (result.changed && result.selector) {
+		await notifyWebsiteSelectorUpdated(website, result.selector);
+	}
+}
+
 export default defineBackground(() => {
 	setupApiClient();
+	setupAuthInterceptor();
 
 	console.log("🔥", "Background script loaded");
 
@@ -102,16 +124,30 @@ export default defineBackground(() => {
 		return tabNovels.get(tabId);
 	});
 
-	onMessage("getWebsiteSelectors", () => {
-		return loadWebsiteSelectorsValue();
+	onMessage("getWebsiteSelector", async ({ data: website }) => {
+		const cached = await getCachedWebsiteSelector(website);
+		void refreshWebsiteSelectorInBackground(website);
+
+		if (cached) {
+			return cached;
+		}
+
+		return loadWebsiteSelector(website);
 	});
 
 	onMessage("apiRequest", ({ data }) => {
 		return handleApiProxyRequest(data);
 	});
 
-	onMessage("getOfflineNovelData", async ({ data }) => {
-		return loadOfflineNovelContentData(data.novelSlug, data.chapter);
+	onMessage("getNovelContentData", ({ data }) => {
+		return loadNovelContentDataForMeta(data);
+	});
+
+	onMessage("getOfflineNovelData", ({ data }) => {
+		return loadNovelContentDataForMeta({
+			novelSlug: data.novelSlug,
+			chapter: data.chapter,
+		});
 	});
 
 	onMessage("triggerFullSync", async () => {

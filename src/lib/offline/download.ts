@@ -1,16 +1,17 @@
-import { getKeywordCategories } from "@/api/endpoints/keyword-categories.js";
-import { getKeywordNatures } from "@/api/endpoints/keyword-natures.js";
-import { getKeywords } from "@/api/endpoints/keywords.js";
-import { getNovelsById } from "@/api/endpoints/novels.js";
-import { getReplacements } from "@/api/endpoints/replacements.js";
+import { getKeywordCategories } from "@/api/generated/endpoints/keyword-categories.js";
+import { getKeywordNatures } from "@/api/generated/endpoints/keyword-natures.js";
+import { getKeywords } from "@/api/generated/endpoints/keywords.js";
+import { getNovelsById } from "@/api/generated/endpoints/novels.js";
+import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import type {
 	GetKeywords200DataItem,
 	GetReplacements200DataItem,
-} from "@/api/schemas";
+} from "@/api/generated/schemas";
 import {
 	clearNovelOfflineData,
 	getDownloadedNovels,
 	isNovelDownloaded,
+	saveCatalogNovel,
 	writeNovelOfflineBundle,
 } from "@/lib/offline/db";
 import {
@@ -58,6 +59,9 @@ async function fetchAllReplacements(
 }
 
 export async function downloadNovel(novelId: string): Promise<void> {
+	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
+
 	const [
 		novelResponse,
 		keywords,
@@ -71,13 +75,13 @@ export async function downloadNovel(novelId: string): Promise<void> {
 		getKeywordCategories(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 		getKeywordNatures(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 	]);
@@ -88,6 +92,7 @@ export async function downloadNovel(novelId: string): Promise<void> {
 		description: novelResponse.data.description,
 		slugs: novelResponse.data.slugs,
 		imageId: novelResponse.data.imageId,
+		createdById: novelResponse.data.createdById,
 		createdAt: novelResponse.data.createdAt,
 		updatedAt: novelResponse.data.updatedAt,
 		downloadedAt: Date.now(),
@@ -101,6 +106,7 @@ export async function downloadNovel(novelId: string): Promise<void> {
 		natures: naturesResponse.data.data,
 	});
 
+	await saveCatalogNovel(novelResponse.data);
 	await addDownloadedNovelId(novelId);
 }
 

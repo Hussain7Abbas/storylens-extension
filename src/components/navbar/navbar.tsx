@@ -18,11 +18,17 @@ import {
 	IconSun,
 	IconUser,
 } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import cx from "clsx";
 import type { TFunction } from "i18next";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import icon from "@/assets/icon.png";
@@ -30,6 +36,7 @@ import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
 import { userRoleAtom } from "@/lib/auth";
 import { useOnlineStatus, usePendingSyncCount } from "@/lib/offline/hooks";
+import { useActiveSyncCount } from "@/store/sync-status";
 import { localeAtom } from "@/store/locale";
 import { refreshContentScript } from "@/utils/refresh-content-script";
 import classes from "./navbar.module.css";
@@ -39,6 +46,8 @@ export function Navbar() {
 	const dir = i18n.language === "ar" ? "rtl" : "ltr";
 	const online = useOnlineStatus();
 	const pendingCount = usePendingSyncCount();
+	const activeSyncCount = useActiveSyncCount();
+	const showSyncIndicator = pendingCount > 0 || activeSyncCount > 0;
 	const role = useAtomValue(userRoleAtom);
 	const isAdmin = role === "admin";
 	const { routes, current } = useRoutes();
@@ -49,9 +58,9 @@ export function Navbar() {
 	const pinnedAction =
 		canGoBack || isOnProfile || isOnSettings ? (
 			<BackButton t={t} dir={dir} />
-		) : isAdmin ? (
+		) : (
 			<SettingsButton t={t} />
-		) : null;
+		);
 
 	return (
 		<Group
@@ -70,8 +79,13 @@ export function Navbar() {
 				</Title>
 			</Group>
 			<NavbarActionsScroll dir={dir} pinnedAction={pinnedAction}>
-				{!online && pendingCount > 0 && (
-					<SyncButton t={t} pendingCount={pendingCount} online={online} />
+				{showSyncIndicator && (
+					<SyncButton
+						t={t}
+						pendingCount={pendingCount}
+						activeSyncCount={activeSyncCount}
+						online={online}
+					/>
 				)}
 				<RefreshContentButton t={t} />
 				<ToggleColorScheme t={t} />
@@ -164,14 +178,17 @@ function NavbarActionsScroll({
 function SyncButton({
 	t,
 	pendingCount,
+	activeSyncCount,
 	online,
 }: {
 	t: TFunction;
 	pendingCount: number;
+	activeSyncCount: number;
 	online: boolean;
 }) {
 	const [syncing, setSyncing] = useState(false);
 	const queryClient = useQueryClient();
+	const isBackgroundActive = activeSyncCount > 0 || syncing;
 
 	const handleSync = async () => {
 		if (!online) {
@@ -209,7 +226,7 @@ function SyncButton({
 				variant="transparent"
 				size="lg"
 				aria-label={t("offline.syncNow")}
-				loading={syncing}
+				loading={isBackgroundActive}
 				onClick={() => {
 					void handleSync();
 				}}

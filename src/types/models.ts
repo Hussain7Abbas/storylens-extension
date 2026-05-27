@@ -1,5 +1,9 @@
-export type {
-	GetKeywordCategories200DataItem as KeywordCategory,
-	GetKeywordNatures200DataItem as KeywordNature,
-	GetNovels200DataItem as Novel,
-} from "@/api/schemas";
+import type {
+	GetKeywordCategories200DataItem,
+	GetKeywordNatures200DataItem,
+	GetNovels200DataItem,
+} from "@/api/generated/schemas";
+
+export type KeywordCategory = GetKeywordCategories200DataItem;
+export type KeywordNature = GetKeywordNatures200DataItem;
+export type { GetNovels200DataItem as Novel };

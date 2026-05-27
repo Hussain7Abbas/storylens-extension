@@ -129,16 +129,10 @@ export function ProfilePage() {
 							{t("auth.loginSuccess")}
 						</Text>
 						<Group grow>
-							<Button
-								variant="light"
-								onClick={() => setView("login")}
-							>
+							<Button variant="light" onClick={() => setView("login")}>
 								{t("auth.login")}
 							</Button>
-							<Button
-								variant="filled"
-								onClick={() => setView("register")}
-							>
+							<Button variant="filled" onClick={() => setView("register")}>
 								{t("auth.register")}
 							</Button>
 						</Group>
@@ -287,7 +281,13 @@ function LoginForm({
 }: {
 	onBack: () => void;
 	onSuccess: (data: {
-		user: { id: string; email: string; username: string; name: string; role: 'guest' | 'user' | 'admin' };
+		user: {
+			id: string;
+			email: string;
+			username: string;
+			name: string;
+			role: "guest" | "user" | "admin";
+		};
 		token: string;
 	}) => void;
 }) {
@@ -349,7 +349,13 @@ function RegisterForm({
 	currentUsername?: string;
 	onBack: () => void;
 	onSuccess: (data: {
-		user: { id: string; email: string; username: string; name: string; role: 'guest' | 'user' | 'admin' };
+		user: {
+			id: string;
+			email: string;
+			username: string;
+			name: string;
+			role: "guest" | "user" | "admin";
+		};
 		token: string;
 	}) => void;
 }) {
@@ -401,10 +407,7 @@ function RegisterForm({
 					label={t("auth.username")}
 					{...form.getInputProps("username")}
 				/>
-				<TextInput
-					label={t("auth.name")}
-					{...form.getInputProps("name")}
-				/>
+				<TextInput label={t("auth.name")} {...form.getInputProps("name")} />
 				<PasswordInput
 					label={t("auth.password")}
 					{...form.getInputProps("password")}

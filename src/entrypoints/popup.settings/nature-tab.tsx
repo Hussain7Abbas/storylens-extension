@@ -53,7 +53,11 @@ export function NatureTab() {
 				/>
 			</Box>
 
-			<NatureCards search={search} setNature={setNature} setMode={setFormMode} />
+			<NatureCards
+				search={search}
+				setNature={setNature}
+				setMode={setFormMode}
+			/>
 		</Stack>
 	);
 }

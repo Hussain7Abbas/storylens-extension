@@ -9,12 +9,14 @@ import {
 	Text,
 } from "@mantine/core";
 import { IconCloudUpload } from "@tabler/icons-react";
+import { useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
 import { ListItemCard } from "@/entrypoints/popup.home/tabs/list-item-card";
 import {
 	useOfflineKeywordCategories,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
+import { localeAtom } from "@/store/locale";
 import type { KeywordCategory } from "@/types/models";
 import type { CategoryFormModesType } from "./category-form";
 
@@ -31,6 +33,7 @@ export function CategoryCards({
 	...props
 }: CategoryCardsProps) {
 	const { t } = useTranslation();
+	const locale = useAtomValue(localeAtom);
 	const pendingEntityIds = usePendingEntityIds();
 	const { data: items, isLoading } = useOfflineKeywordCategories(search);
 
@@ -54,6 +57,10 @@ export function CategoryCards({
 		<Stack gap="xs" {...props}>
 			{items.map((category) => {
 				const isPending = pendingEntityIds.has(category.id);
+				const displayName =
+					locale === "ar"
+						? (category.nameAr || category.nameEn || "")
+						: (category.nameEn || category.nameAr || "");
 
 				return (
 					<ListItemCard
@@ -74,7 +81,7 @@ export function CategoryCards({
 								}}
 							/>
 							<Text fw={500} style={{ flex: 1 }}>
-								{category.name}
+								{displayName}
 							</Text>
 							<Group gap="xs" wrap="nowrap">
 								{isPending && (
