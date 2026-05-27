@@ -36,30 +36,28 @@ function tt(key: string): string {
 	return TOOLTIP_STRINGS[cachedLocale]?.[key] ?? TOOLTIP_STRINGS.en[key] ?? key;
 }
 
-function parseStorageString(key: string): string | null {
-	const raw = localStorage.getItem(key);
-	if (!raw) return null;
-	try { return JSON.parse(raw) as string; } catch { return raw; }
+let cachedFontFace: string | null = null;
+let cachedFontSize: number | null = null;
+
+export function setTooltipFontFace(fontFace: string | null): void {
+	cachedFontFace = fontFace;
+	if (activeTooltip) applyAppearanceToRoot(getTooltipRoot());
 }
 
-function parseStorageNumber(key: string): number | null {
-	const raw = localStorage.getItem(key);
-	if (!raw) return null;
-	try { return JSON.parse(raw) as number; } catch { return null; }
+export function setTooltipFontSize(fontSize: number | null): void {
+	cachedFontSize = fontSize;
+	if (activeTooltip) applyAppearanceToRoot(getTooltipRoot());
 }
 
 function applyAppearanceToRoot(root: HTMLElement): void {
-	const fontFace = parseStorageString("storylens-font-face");
-	const fontSize = parseStorageNumber("storylens-font-size");
-
-	if (fontFace && fontFace !== "Default") {
-		root.style.setProperty("--storylens-font-face", fontFace);
+	if (cachedFontFace && cachedFontFace !== "Default") {
+		root.style.setProperty("--storylens-font-face", cachedFontFace);
 	} else {
 		root.style.removeProperty("--storylens-font-face");
 	}
 
-	if (fontSize !== null) {
-		root.style.setProperty("--storylens-font-size", `${fontSize}px`);
+	if (cachedFontSize !== null) {
+		root.style.setProperty("--storylens-font-size", `${cachedFontSize}px`);
 	} else {
 		root.style.removeProperty("--storylens-font-size");
 	}

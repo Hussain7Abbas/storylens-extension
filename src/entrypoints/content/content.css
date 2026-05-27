@@ -21,8 +21,8 @@
 	text-align: center;
 	border-radius: 6px;
 	padding: 5px 10px;
-	font-size: var(--storylens-font-size, 14px);
-	font-family: var(--storylens-font-face, inherit);
+	font-size: var(--storylens-font-size, 14px) !important;
+	font-family: var(--storylens-font-face, inherit) !important;
 	z-index: 2147483647;
 	margin: 0;
 	transform: none;
@@ -89,13 +89,13 @@
 .storylens-keyword-info strong {
 	display: block;
 	margin-bottom: 4px;
-	font-size: 16px;
+	font-size: 1.14em;
 	text-align: center;
 }
 
 .storylens-keyword-info p {
 	margin: 4px 0;
-	font-size: 12px;
+	font-size: 0.86em;
 	line-height: 1.4;
 	text-align: right;
 }
@@ -114,7 +114,7 @@
 	display: flex;
 	gap: 8px;
 	margin-top: 6px;
-	font-size: 10px;
+	font-size: 0.71em;
 }
 
 .storylens-keyword-meta .storylens-category,
@@ -138,7 +138,7 @@
 	background: none;
 	border: none;
 	color: rgba(255, 255, 255, 0.7);
-	font-size: 11px;
+	font-size: 0.79em;
 	cursor: pointer;
 	padding: 2px 0;
 	width: 100%;
@@ -151,7 +151,7 @@
 }
 
 .storylens-original-arrow {
-	font-size: 9px;
+	font-size: 0.82em;
 	flex-shrink: 0;
 }
 

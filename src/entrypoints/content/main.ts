@@ -3,7 +3,7 @@ import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { removeExtensionMarkup } from "@/utils/content-processor";
-import { setTooltipLocale } from "@/utils/keyword-tooltip";
+import { setTooltipFontFace, setTooltipFontSize, setTooltipLocale } from "@/utils/keyword-tooltip";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { getAllNovelData } from "@/utils/site-detection";
@@ -145,15 +145,30 @@ export async function runContentScript(
 		return detectCurrentNovel();
 	});
 
-	const storedLocale = await browser.storage.local.get("storylens-locale");
-	if (typeof storedLocale["storylens-locale"] === "string") {
-		setTooltipLocale(storedLocale["storylens-locale"]);
+	const stored = await browser.storage.local.get([
+		"storylens-locale",
+		"storylens-font-face",
+		"storylens-font-size",
+	]);
+	if (typeof stored["storylens-locale"] === "string") {
+		setTooltipLocale(stored["storylens-locale"]);
+	}
+	if (typeof stored["storylens-font-face"] === "string") {
+		setTooltipFontFace(stored["storylens-font-face"]);
+	}
+	if (typeof stored["storylens-font-size"] === "number") {
+		setTooltipFontSize(stored["storylens-font-size"]);
 	}
 
 	browser.storage.onChanged.addListener((changes) => {
-		const next = changes["storylens-locale"]?.newValue;
-		if (typeof next === "string") {
-			setTooltipLocale(next);
+		if (typeof changes["storylens-locale"]?.newValue === "string") {
+			setTooltipLocale(changes["storylens-locale"].newValue as string);
+		}
+		if (typeof changes["storylens-font-face"]?.newValue === "string") {
+			setTooltipFontFace(changes["storylens-font-face"].newValue as string);
+		}
+		if (typeof changes["storylens-font-size"]?.newValue === "number") {
+			setTooltipFontSize(changes["storylens-font-size"].newValue as number);
 		}
 	});
 

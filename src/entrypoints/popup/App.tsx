@@ -20,6 +20,7 @@ import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
+import { APPEARANCE_FONT_FACE_KEY, APPEARANCE_FONT_SIZE_KEY, fontFaceAtom, fontSizeAtom } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
 import { Router } from "./routers";
 
@@ -78,6 +79,8 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const { i18n } = useTranslation();
 	const locale = useAtomValue(localeAtom);
+	const fontFace = useAtomValue(fontFaceAtom);
+	const fontSize = useAtomValue(fontSizeAtom);
 
 	const queryClient = new QueryClient();
 
@@ -85,6 +88,14 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 		i18n.changeLanguage(locale);
 		void browser.storage.local.set({ "storylens-locale": locale });
 	}, [locale, i18n]);
+
+	useEffect(() => {
+		void browser.storage.local.set({ [APPEARANCE_FONT_FACE_KEY]: fontFace });
+	}, [fontFace]);
+
+	useEffect(() => {
+		void browser.storage.local.set({ [APPEARANCE_FONT_SIZE_KEY]: fontSize });
+	}, [fontSize]);
 
 	return (
 		<>
