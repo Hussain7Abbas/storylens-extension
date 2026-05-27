@@ -9,11 +9,14 @@
 import type { _GetKeywordCategoriesById200Count } from "./_getKeywordCategoriesById200Count";
 import type { GetKeywordCategoriesById200CreatedAt } from "./getKeywordCategoriesById200CreatedAt";
 import type { GetKeywordCategoriesById200KeywordsItem } from "./getKeywordCategoriesById200KeywordsItem";
+import type { GetKeywordCategoriesById200NameAr } from "./getKeywordCategoriesById200NameAr";
+import type { GetKeywordCategoriesById200NameEn } from "./getKeywordCategoriesById200NameEn";
 import type { GetKeywordCategoriesById200UpdatedAt } from "./getKeywordCategoriesById200UpdatedAt";
 
 export type GetKeywordCategoriesById200 = {
 	id: string;
-	name: string;
+	nameEn: GetKeywordCategoriesById200NameEn;
+	nameAr: GetKeywordCategoriesById200NameAr;
 	color: string;
 	createdAt: GetKeywordCategoriesById200CreatedAt;
 	updatedAt: GetKeywordCategoriesById200UpdatedAt;

@@ -31,7 +31,8 @@
         "replacing": "استبدال",
         "category": "التصنيف",
         "nature": "الطبيعة",
-        "general": "عام"
+        "general": "عام",
+        "appearance": "المظهر"
     },
     "coloring": {
         "name": "الاسم",
@@ -163,6 +164,8 @@
         "categories": "الفئات",
         "natures": "الطبيعة",
         "name": "الاسم",
+        "nameEn": "الاسم (إنجليزي)",
+        "nameAr": "الاسم (عربي)",
         "color": "اللون",
         "keywords": "الكلمات المفتاحية",
         "actions": "الإجراءات",
@@ -176,7 +179,14 @@
         "loading": "جاري التحميل...",
         "cancel": "إلغاء",
         "create": "إنشاء",
-        "update": "تحديث"
+        "update": "تحديث",
+        "appearance": {
+            "title": "مظهر التلميح",
+            "description": "خصّص الخط المعروض في تلميحات الكلمات المفتاحية.",
+            "fontFace": "الخط",
+            "fontDefault": "افتراضي",
+            "fontSize": "حجم الخط"
+        }
     },
     "category": {
         "noRecords": "لا توجد تصنيفات لعرضها"

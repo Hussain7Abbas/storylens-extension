@@ -21,7 +21,8 @@
 	text-align: center;
 	border-radius: 6px;
 	padding: 5px 10px;
-	font-size: 14px;
+	font-size: var(--storylens-font-size, 14px);
+	font-family: var(--storylens-font-face, inherit);
 	z-index: 2147483647;
 	margin: 0;
 	transform: none;

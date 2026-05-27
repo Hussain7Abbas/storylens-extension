@@ -31,7 +31,8 @@
         "replacing": "Replacing",
         "category": "Category",
         "nature": "Nature",
-        "general": "General"
+        "general": "General",
+        "appearance": "Appearance"
     },
     "coloring": {
         "name": "Name",
@@ -116,6 +117,8 @@
         "categories": "Categories",
         "natures": "Natures",
         "name": "Name",
+        "nameEn": "Name (English)",
+        "nameAr": "Name (Arabic)",
         "color": "Color",
         "keywords": "Keywords",
         "actions": "Actions",
@@ -129,7 +132,14 @@
         "loading": "Loading...",
         "cancel": "Cancel",
         "create": "Create",
-        "update": "Update"
+        "update": "Update",
+        "appearance": {
+            "title": "Tooltip Appearance",
+            "description": "Customize the font displayed in keyword tooltips.",
+            "fontFace": "Font",
+            "fontDefault": "Default",
+            "fontSize": "Font Size"
+        }
     },
     "category": {
         "noRecords": "There is no categories to show"

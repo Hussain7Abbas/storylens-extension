@@ -247,7 +247,7 @@ export function ColoringForm({
 						allowDeselect={false}
 						data={categoriesData?.map((cat: KeywordCategory) => ({
 							value: cat.id,
-							label: cat.name,
+							label: cat.nameEn || cat.nameAr || "",
 						}))}
 						{...form.getInputProps("categoryId")}
 						required
@@ -261,7 +261,7 @@ export function ColoringForm({
 						allowDeselect={false}
 						data={naturesData?.map((nature: KeywordNature) => ({
 							value: nature.id,
-							label: nature.name,
+							label: nature.nameEn || nature.nameAr || "",
 						}))}
 						{...form.getInputProps("natureId")}
 						required

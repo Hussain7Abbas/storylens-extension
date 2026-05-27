@@ -1,12 +1,12 @@
-import type { GetKeywords200DataItem } from "@/api/generated/schemas";
+import type { EnrichedKeyword } from "@/types/content-data";
 
 const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;
 const HIDE_DELAY_MS = 80;
 
 type AnchorData = {
-	keyword: GetKeywords200DataItem;
-	parent: GetKeywords200DataItem | undefined;
+	keyword: EnrichedKeyword;
+	parent: EnrichedKeyword | undefined;
 };
 
 const anchorDataMap = new WeakMap<HTMLElement, AnchorData>();
@@ -16,6 +16,60 @@ let activeAnchor: HTMLElement | null = null;
 let activeTooltip: HTMLElement | null = null;
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 let scrollListenerAttached = false;
+
+const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
+	en: { original: "Original" },
+	ar: { original: "الأصلي" },
+};
+
+let cachedLocale = "en";
+
+export function setTooltipLocale(locale: string): void {
+	cachedLocale = locale;
+}
+
+function getLocale(): string {
+	return cachedLocale;
+}
+
+function tt(key: string): string {
+	return TOOLTIP_STRINGS[cachedLocale]?.[key] ?? TOOLTIP_STRINGS.en[key] ?? key;
+}
+
+function parseStorageString(key: string): string | null {
+	const raw = localStorage.getItem(key);
+	if (!raw) return null;
+	try { return JSON.parse(raw) as string; } catch { return raw; }
+}
+
+function parseStorageNumber(key: string): number | null {
+	const raw = localStorage.getItem(key);
+	if (!raw) return null;
+	try { return JSON.parse(raw) as number; } catch { return null; }
+}
+
+function applyAppearanceToRoot(root: HTMLElement): void {
+	const fontFace = parseStorageString("storylens-font-face");
+	const fontSize = parseStorageNumber("storylens-font-size");
+
+	if (fontFace && fontFace !== "Default") {
+		root.style.setProperty("--storylens-font-face", fontFace);
+	} else {
+		root.style.removeProperty("--storylens-font-face");
+	}
+
+	if (fontSize !== null) {
+		root.style.setProperty("--storylens-font-size", `${fontSize}px`);
+	} else {
+		root.style.removeProperty("--storylens-font-size");
+	}
+}
+
+function getLocalizedName(obj: { nameEn?: string | null; nameAr?: string | null }): string {
+	const locale = getLocale();
+	if (locale === "ar") return obj.nameAr || obj.nameEn || "";
+	return obj.nameEn || obj.nameAr || "";
+}
 
 function getTooltipRoot(): HTMLElement {
 	const existing = document.getElementById(TOOLTIP_ROOT_ID);
@@ -30,7 +84,7 @@ function getTooltipRoot(): HTMLElement {
 	return root;
 }
 
-function buildKeywordBody(keyword: GetKeywords200DataItem): HTMLElement {
+function buildKeywordBody(keyword: EnrichedKeyword): HTMLElement {
 	const container = document.createElement("div");
 
 	if (keyword.image?.url) {
@@ -57,13 +111,13 @@ function buildKeywordBody(keyword: GetKeywords200DataItem): HTMLElement {
 
 	const category = document.createElement("span");
 	category.className = "storylens-category";
-	category.textContent = keyword.category.name;
+	category.textContent = getLocalizedName(keyword.category);
 	category.style.setProperty("color", keyword.category.color, "important");
 	meta.append(category);
 
 	const nature = document.createElement("span");
 	nature.className = "storylens-nature";
-	nature.textContent = keyword.nature.name;
+	nature.textContent = getLocalizedName(keyword.nature);
 	nature.style.setProperty("color", keyword.nature.color, "important");
 	meta.append(nature);
 
@@ -72,7 +126,7 @@ function buildKeywordBody(keyword: GetKeywords200DataItem): HTMLElement {
 }
 
 function buildCollapsibleOriginal(
-	parent: GetKeywords200DataItem,
+	parent: EnrichedKeyword,
 	onToggle: () => void,
 ): HTMLElement {
 	const wrapper = document.createElement("div");
@@ -89,7 +143,7 @@ function buildCollapsibleOriginal(
 	toggle.append(arrow);
 
 	const label = document.createElement("span");
-	label.textContent = ` Original: ${parent.name}`;
+	label.textContent = ` ${tt("original")}: ${parent.name}`;
 	toggle.append(label);
 
 	const content = document.createElement("div");
@@ -112,8 +166,8 @@ function buildCollapsibleOriginal(
 }
 
 function buildKeywordTooltipContent(
-	keyword: GetKeywords200DataItem,
-	parent: GetKeywords200DataItem | undefined,
+	keyword: EnrichedKeyword,
+	parent: EnrichedKeyword | undefined,
 	onLayoutChange: () => void,
 ): HTMLElement {
 	const tooltip = document.createElement("div");
@@ -183,6 +237,7 @@ function showTooltip(anchor: HTMLElement): void {
 	}
 
 	clearHideTimeout();
+	applyAppearanceToRoot(getTooltipRoot());
 
 	if (activeAnchor === anchor && activeTooltip) {
 		positionTooltip(anchor, activeTooltip);
@@ -237,8 +292,8 @@ function detachScrollListener(): void {
 
 export function registerKeywordTooltipAnchor(
 	anchor: HTMLElement,
-	keyword: GetKeywords200DataItem,
-	parent?: GetKeywords200DataItem,
+	keyword: EnrichedKeyword,
+	parent?: EnrichedKeyword,
 ): void {
 	anchorDataMap.set(anchor, { keyword, parent });
 
@@ -261,7 +316,7 @@ export function initKeywordTooltipPortal(): void {
 		return;
 	}
 
-	getTooltipRoot();
+	applyAppearanceToRoot(getTooltipRoot());
 	attachScrollListener();
 	portalInitialized = true;
 }

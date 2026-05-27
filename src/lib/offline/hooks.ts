@@ -24,16 +24,12 @@ import {
 	putReplacementsById,
 } from "@/api/generated/endpoints/replacements.js";
 import type {
-	GetKeywordCategories200DataItem,
-	GetKeywordNatures200DataItem,
 	GetKeywords200DataItem,
 	GetReplacements200DataItem,
 	PostKeywordCategoriesBodyOne,
 	PostKeywordNaturesBodyOne,
 	PostKeywordsBodyOne,
 	PostReplacementsBodyOne,
-	PutKeywordCategoriesByIdBodyOne,
-	PutKeywordNaturesByIdBodyOne,
 	PutKeywordsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
 } from "@/api/generated/schemas";
@@ -65,7 +61,9 @@ import {
 } from "@/lib/offline/db";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import { refreshNovelsCatalog } from "@/lib/offline/seed-novels-catalog";
+import { useAtomValue } from "jotai";
 import { useActiveSyncCount } from "@/store/sync-status";
+import { localeAtom } from "@/store/locale";
 import {
 	addPendingOp,
 	getDownloadedNovelIds,
@@ -88,7 +86,13 @@ import { withListQueryParams } from "@/utils/api-list-params";
 import { refreshContentScript } from "@/utils/refresh-content-script";
 
 function filterBySearch<
-	T extends { name?: string; from?: string; to?: string },
+	T extends {
+		name?: string;
+		nameEn?: string | null;
+		nameAr?: string | null;
+		from?: string;
+		to?: string;
+	},
 >(items: T[], search: string): T[] {
 	const term = search.trim().toLowerCase();
 	if (!term) {
@@ -96,7 +100,7 @@ function filterBySearch<
 	}
 
 	return items.filter((item) => {
-		const values = [item.name, item.from, item.to].filter(Boolean);
+		const values = [item.name, item.nameEn, item.nameAr, item.from, item.to].filter(Boolean);
 		return values.some((value) => value?.toLowerCase().includes(term));
 	});
 }
@@ -113,15 +117,23 @@ function sortReplacements(
 	return [...items].sort((left, right) => left.from.localeCompare(right.from));
 }
 
-function sortLookupByName<T extends { name: string }>(items: T[]): T[] {
-	return [...items].sort((left, right) => left.name.localeCompare(right.name));
+function sortLookupByName<
+	T extends { name?: string; nameEn?: string | null; nameAr?: string | null },
+>(items: T[], locale: string): T[] {
+	return [...items].sort((left, right) => {
+		const pick = (item: T) =>
+			locale === "ar"
+				? (item.nameAr ?? item.nameEn ?? item.name ?? "")
+				: (item.nameEn ?? item.nameAr ?? item.name ?? "");
+		return pick(left).localeCompare(pick(right));
+	});
 }
 
-async function seedKeywordCategoriesCache(): Promise<KeywordCategory[]> {
+async function seedKeywordCategoriesCache(locale: string): Promise<KeywordCategory[]> {
 	const response = await getKeywordCategories(
 		withListQueryParams({
 			pagination: { page: 1, pageSize: 500 },
-			sorting: { column: "name", direction: "asc" },
+			sorting: { column: locale === "ar" ? "nameAr" : "nameEn", direction: "asc" },
 		}),
 	);
 	const data = response.data.data as KeywordCategory[];
@@ -129,11 +141,11 @@ async function seedKeywordCategoriesCache(): Promise<KeywordCategory[]> {
 	return data;
 }
 
-async function seedKeywordNaturesCache(): Promise<KeywordNature[]> {
+async function seedKeywordNaturesCache(locale: string): Promise<KeywordNature[]> {
 	const response = await getKeywordNatures(
 		withListQueryParams({
 			pagination: { page: 1, pageSize: 500 },
-			sorting: { column: "name", direction: "asc" },
+			sorting: { column: locale === "ar" ? "nameAr" : "nameEn", direction: "asc" },
 		}),
 	);
 	const data = response.data.data as KeywordNature[];
@@ -356,6 +368,7 @@ export function useOfflineKeywordCategories(search = "") {
 	const [debouncedSearch] = useDebouncedValue(search.trim(), 300);
 	const online = useOnlineStatus();
 	const queryClient = useQueryClient();
+	const locale = useAtomValue(localeAtom);
 
 	const offlineQuery = useQuery({
 		queryKey: ["offline", "keyword-categories"],
@@ -363,9 +376,9 @@ export function useOfflineKeywordCategories(search = "") {
 	});
 
 	const seedQuery = useQuery({
-		queryKey: ["keyword-categories", "cache-seed"],
+		queryKey: ["keyword-categories", "cache-seed", locale],
 		queryFn: async () => {
-			const data = await seedKeywordCategoriesCache();
+			const data = await seedKeywordCategoriesCache(locale);
 			await queryClient.invalidateQueries({
 				queryKey: ["offline", "keyword-categories"],
 			});
@@ -375,11 +388,11 @@ export function useOfflineKeywordCategories(search = "") {
 	});
 
 	const data = useMemo(() => {
-		const source = offlineQuery.data?.length
+		const source = (offlineQuery.data?.length
 			? offlineQuery.data
-			: (seedQuery.data ?? []);
-		return sortLookupByName(filterBySearch(source, debouncedSearch));
-	}, [offlineQuery.data, seedQuery.data, debouncedSearch]);
+			: (seedQuery.data ?? [])) as KeywordCategory[];
+		return sortLookupByName(filterBySearch(source, debouncedSearch), locale);
+	}, [offlineQuery.data, seedQuery.data, debouncedSearch, locale]);
 
 	return {
 		data,
@@ -391,6 +404,7 @@ export function useOfflineKeywordNatures(search = "") {
 	const [debouncedSearch] = useDebouncedValue(search.trim(), 300);
 	const online = useOnlineStatus();
 	const queryClient = useQueryClient();
+	const locale = useAtomValue(localeAtom);
 
 	const offlineQuery = useQuery({
 		queryKey: ["offline", "keyword-natures"],
@@ -398,9 +412,9 @@ export function useOfflineKeywordNatures(search = "") {
 	});
 
 	const seedQuery = useQuery({
-		queryKey: ["keyword-natures", "cache-seed"],
+		queryKey: ["keyword-natures", "cache-seed", locale],
 		queryFn: async () => {
-			const data = await seedKeywordNaturesCache();
+			const data = await seedKeywordNaturesCache(locale);
 			await queryClient.invalidateQueries({
 				queryKey: ["offline", "keyword-natures"],
 			});
@@ -410,11 +424,11 @@ export function useOfflineKeywordNatures(search = "") {
 	});
 
 	const data = useMemo(() => {
-		const source = offlineQuery.data?.length
+		const source = (offlineQuery.data?.length
 			? offlineQuery.data
-			: (seedQuery.data ?? []);
-		return sortLookupByName(filterBySearch(source, debouncedSearch));
-	}, [offlineQuery.data, seedQuery.data, debouncedSearch]);
+			: (seedQuery.data ?? [])) as KeywordNature[];
+		return sortLookupByName(filterBySearch(source, debouncedSearch), locale);
+	}, [offlineQuery.data, seedQuery.data, debouncedSearch, locale]);
 
 	return {
 		data,
@@ -844,6 +858,10 @@ export function useOfflineReplacementMutations(novelId: string) {
 	return { createMutation, updateMutation, deleteMutation };
 }
 
+export type CategoryFormValues = PostKeywordCategoriesBodyOne;
+
+export type NatureFormValues = PostKeywordNaturesBodyOne;
+
 export function useOfflineCategoryMutations() {
 	const queryClient = useQueryClient();
 	const online = useOnlineStatus();
@@ -857,11 +875,12 @@ export function useOfflineCategoryMutations() {
 	}, [queryClient]);
 
 	const createMutation = useMutation({
-		mutationFn: async (values: PostKeywordCategoriesBodyOne) => {
+		mutationFn: async (values: CategoryFormValues) => {
 			const tempId = createTempId();
-			const category: GetKeywordCategories200DataItem = {
+			const category: KeywordCategory = {
 				id: tempId,
-				name: values.name,
+				nameEn: values.nameEn ?? null,
+				nameAr: values.nameAr ?? null,
 				color: values.color,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
@@ -872,11 +891,10 @@ export function useOfflineCategoryMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await postKeywordCategories(values);
+						const response = await postKeywordCategories({ nameEn: values.nameEn, nameAr: values.nameAr, color: values.color });
+						const saved = response.data as KeywordCategory;
 						await deleteKeywordCategoryById(tempId);
-						await saveKeywordCategory(
-							response.data as GetKeywordCategories200DataItem,
-						);
+						await saveKeywordCategory(saved);
 					} catch {
 						await queueOfflineOperation(
 							"keywordCategory",
@@ -908,7 +926,7 @@ export function useOfflineCategoryMutations() {
 			data,
 		}: {
 			id: string;
-			data: PutKeywordCategoriesByIdBodyOne;
+			data: CategoryFormValues;
 		}) => {
 			const existing = (await getAllKeywordCategories()).find(
 				(entry) => entry.id === id,
@@ -917,7 +935,7 @@ export function useOfflineCategoryMutations() {
 				throw new Error("Category not found offline");
 			}
 
-			const updated: GetKeywordCategories200DataItem = {
+			const updated: KeywordCategory = {
 				...existing,
 				...data,
 				updatedAt: new Date().toISOString(),
@@ -928,13 +946,10 @@ export function useOfflineCategoryMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await putKeywordCategoriesById(id, data);
-						await saveKeywordCategory(
-							response.data as GetKeywordCategories200DataItem,
-						);
-						await updateKeywordCategoryReferences(
-							response.data as GetKeywordCategories200DataItem,
-						);
+						const response = await putKeywordCategoriesById(id, { nameEn: data.nameEn, nameAr: data.nameAr, color: data.color });
+						const saved = response.data as KeywordCategory;
+						await saveKeywordCategory(saved);
+						await updateKeywordCategoryReferences(saved);
 					} catch {
 						await queueOfflineOperation(
 							"keywordCategory",
@@ -1003,11 +1018,12 @@ export function useOfflineNatureMutations() {
 	}, [queryClient]);
 
 	const createMutation = useMutation({
-		mutationFn: async (values: PostKeywordNaturesBodyOne) => {
+		mutationFn: async (values: NatureFormValues) => {
 			const tempId = createTempId();
-			const nature: GetKeywordNatures200DataItem = {
+			const nature: KeywordNature = {
 				id: tempId,
-				name: values.name,
+				nameEn: values.nameEn ?? null,
+				nameAr: values.nameAr ?? null,
 				color: values.color,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
@@ -1018,11 +1034,10 @@ export function useOfflineNatureMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await postKeywordNatures(values);
+						const response = await postKeywordNatures({ nameEn: values.nameEn, nameAr: values.nameAr, color: values.color });
+						const saved = response.data as KeywordNature;
 						await deleteKeywordNatureById(tempId);
-						await saveKeywordNature(
-							response.data as GetKeywordNatures200DataItem,
-						);
+						await saveKeywordNature(saved);
 					} catch {
 						await queueOfflineOperation(
 							"keywordNature",
@@ -1054,7 +1069,7 @@ export function useOfflineNatureMutations() {
 			data,
 		}: {
 			id: string;
-			data: PutKeywordNaturesByIdBodyOne;
+			data: NatureFormValues;
 		}) => {
 			const existing = (await getAllKeywordNatures()).find(
 				(entry) => entry.id === id,
@@ -1063,7 +1078,7 @@ export function useOfflineNatureMutations() {
 				throw new Error("Nature not found offline");
 			}
 
-			const updated: GetKeywordNatures200DataItem = {
+			const updated: KeywordNature = {
 				...existing,
 				...data,
 				updatedAt: new Date().toISOString(),
@@ -1074,13 +1089,10 @@ export function useOfflineNatureMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await putKeywordNaturesById(id, data);
-						await saveKeywordNature(
-							response.data as GetKeywordNatures200DataItem,
-						);
-						await updateKeywordNatureReferences(
-							response.data as GetKeywordNatures200DataItem,
-						);
+						const response = await putKeywordNaturesById(id, { nameEn: data.nameEn, nameAr: data.nameAr, color: data.color });
+						const saved = response.data as KeywordNature;
+						await saveKeywordNature(saved);
+						await updateKeywordNatureReferences(saved);
 					} catch {
 						await queueOfflineOperation(
 							"keywordNature",

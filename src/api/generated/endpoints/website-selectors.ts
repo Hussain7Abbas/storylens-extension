@@ -55,6 +55,426 @@ import type {
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
+export const getWebsiteSelectorsByWebsite = (
+	website: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetWebsiteSelectorsByWebsite200>(
+		{
+			url: `http://localhost:3030/website-selectors/${website}`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getGetWebsiteSelectorsByWebsiteQueryKey = (website?: string) => {
+	return [`http://localhost:3030/website-selectors/${website}`] as const;
+};
+
+export const getGetWebsiteSelectorsByWebsiteQueryOptions = <
+	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+	TError = ErrorType<
+		| GetWebsiteSelectorsByWebsite404
+		| GetWebsiteSelectorsByWebsite422
+		| GetWebsiteSelectorsByWebsite500
+	>,
+>(
+	website: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetWebsiteSelectorsByWebsiteQueryKey(website);
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
+	> = ({ signal }) =>
+		getWebsiteSelectorsByWebsite(website, requestOptions, signal);
+
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!website,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWebsiteSelectorsByWebsiteQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
+>;
+export type GetWebsiteSelectorsByWebsiteQueryError = ErrorType<
+	| GetWebsiteSelectorsByWebsite404
+	| GetWebsiteSelectorsByWebsite422
+	| GetWebsiteSelectorsByWebsite500
+>;
+
+export function useGetWebsiteSelectorsByWebsite<
+	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+	TError = ErrorType<
+		| GetWebsiteSelectorsByWebsite404
+		| GetWebsiteSelectorsByWebsite422
+		| GetWebsiteSelectorsByWebsite500
+	>,
+>(
+	website: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+					TError,
+					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetWebsiteSelectorsByWebsite<
+	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+	TError = ErrorType<
+		| GetWebsiteSelectorsByWebsite404
+		| GetWebsiteSelectorsByWebsite422
+		| GetWebsiteSelectorsByWebsite500
+	>,
+>(
+	website: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+					TError,
+					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetWebsiteSelectorsByWebsite<
+	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+	TError = ErrorType<
+		| GetWebsiteSelectorsByWebsite404
+		| GetWebsiteSelectorsByWebsite422
+		| GetWebsiteSelectorsByWebsite500
+	>,
+>(
+	website: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useGetWebsiteSelectorsByWebsite<
+	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+	TError = ErrorType<
+		| GetWebsiteSelectorsByWebsite404
+		| GetWebsiteSelectorsByWebsite422
+		| GetWebsiteSelectorsByWebsite500
+	>,
+>(
+	website: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetWebsiteSelectorsByWebsiteQueryOptions(
+		website,
+		options,
+	);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const putWebsiteSelectorsByWebsite = (
+	website: string,
+	putWebsiteSelectorsByWebsiteBody:
+		| PutWebsiteSelectorsByWebsiteBodyOne
+		| PutWebsiteSelectorsByWebsiteBodyTwo
+		| PutWebsiteSelectorsByWebsiteBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<PutWebsiteSelectorsByWebsite200>(
+		{
+			url: `http://localhost:3030/website-selectors/${website}`,
+			method: "PUT",
+			data: putWebsiteSelectorsByWebsiteBody,
+		},
+		options,
+	);
+};
+
+export const getPutWebsiteSelectorsByWebsiteMutationOptions = <
+	TError = ErrorType<
+		| PutWebsiteSelectorsByWebsite404
+		| PutWebsiteSelectorsByWebsite422
+		| PutWebsiteSelectorsByWebsite500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
+		TError,
+		{
+			website: string;
+			data:
+				| PutWebsiteSelectorsByWebsiteBodyOne
+				| PutWebsiteSelectorsByWebsiteBodyTwo
+				| PutWebsiteSelectorsByWebsiteBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
+	TError,
+	{
+		website: string;
+		data:
+			| PutWebsiteSelectorsByWebsiteBodyOne
+			| PutWebsiteSelectorsByWebsiteBodyTwo
+			| PutWebsiteSelectorsByWebsiteBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["putWebsiteSelectorsByWebsite"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
+		{
+			website: string;
+			data:
+				| PutWebsiteSelectorsByWebsiteBodyOne
+				| PutWebsiteSelectorsByWebsiteBodyTwo
+				| PutWebsiteSelectorsByWebsiteBodyThree;
+		}
+	> = (props) => {
+		const { website, data } = props ?? {};
+
+		return putWebsiteSelectorsByWebsite(website, data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PutWebsiteSelectorsByWebsiteMutationResult = NonNullable<
+	Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>
+>;
+export type PutWebsiteSelectorsByWebsiteMutationBody =
+	| PutWebsiteSelectorsByWebsiteBodyOne
+	| PutWebsiteSelectorsByWebsiteBodyTwo
+	| PutWebsiteSelectorsByWebsiteBodyThree;
+export type PutWebsiteSelectorsByWebsiteMutationError = ErrorType<
+	| PutWebsiteSelectorsByWebsite404
+	| PutWebsiteSelectorsByWebsite422
+	| PutWebsiteSelectorsByWebsite500
+>;
+
+export const usePutWebsiteSelectorsByWebsite = <
+	TError = ErrorType<
+		| PutWebsiteSelectorsByWebsite404
+		| PutWebsiteSelectorsByWebsite422
+		| PutWebsiteSelectorsByWebsite500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
+			TError,
+			{
+				website: string;
+				data:
+					| PutWebsiteSelectorsByWebsiteBodyOne
+					| PutWebsiteSelectorsByWebsiteBodyTwo
+					| PutWebsiteSelectorsByWebsiteBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
+	TError,
+	{
+		website: string;
+		data:
+			| PutWebsiteSelectorsByWebsiteBodyOne
+			| PutWebsiteSelectorsByWebsiteBodyTwo
+			| PutWebsiteSelectorsByWebsiteBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPutWebsiteSelectorsByWebsiteMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const deleteWebsiteSelectorsByWebsite = (
+	website: string,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<DeleteWebsiteSelectorsByWebsite200>(
+		{
+			url: `http://localhost:3030/website-selectors/${website}`,
+			method: "DELETE",
+		},
+		options,
+	);
+};
+
+export const getDeleteWebsiteSelectorsByWebsiteMutationOptions = <
+	TError = ErrorType<
+		| DeleteWebsiteSelectorsByWebsite404
+		| DeleteWebsiteSelectorsByWebsite422
+		| DeleteWebsiteSelectorsByWebsite500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
+		TError,
+		{ website: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
+	TError,
+	{ website: string },
+	TContext
+> => {
+	const mutationKey = ["deleteWebsiteSelectorsByWebsite"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
+		{ website: string }
+	> = (props) => {
+		const { website } = props ?? {};
+
+		return deleteWebsiteSelectorsByWebsite(website, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteWebsiteSelectorsByWebsiteMutationResult = NonNullable<
+	Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>
+>;
+
+export type DeleteWebsiteSelectorsByWebsiteMutationError = ErrorType<
+	| DeleteWebsiteSelectorsByWebsite404
+	| DeleteWebsiteSelectorsByWebsite422
+	| DeleteWebsiteSelectorsByWebsite500
+>;
+
+export const useDeleteWebsiteSelectorsByWebsite = <
+	TError = ErrorType<
+		| DeleteWebsiteSelectorsByWebsite404
+		| DeleteWebsiteSelectorsByWebsite422
+		| DeleteWebsiteSelectorsByWebsite500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
+			TError,
+			{ website: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
+	TError,
+	{ website: string },
+	TContext
+> => {
+	const mutationOptions =
+		getDeleteWebsiteSelectorsByWebsiteMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
 export const getWebsiteSelectors = (
 	options?: SecondParameter<typeof customInstance>,
 	signal?: AbortSignal,
@@ -336,422 +756,3 @@ export const usePostWebsiteSelectors = <
 
 	return useMutation(mutationOptions, queryClient);
 };
-export const putWebsiteSelectorsByWebsite = (
-	website: string,
-	putWebsiteSelectorsByWebsiteBody:
-		| PutWebsiteSelectorsByWebsiteBodyOne
-		| PutWebsiteSelectorsByWebsiteBodyTwo
-		| PutWebsiteSelectorsByWebsiteBodyThree,
-	options?: SecondParameter<typeof customInstance>,
-) => {
-	return customInstance<PutWebsiteSelectorsByWebsite200>(
-		{
-			url: `http://localhost:3030/website-selectors/${website}`,
-			method: "PUT",
-			data: putWebsiteSelectorsByWebsiteBody,
-		},
-		options,
-	);
-};
-
-export const getPutWebsiteSelectorsByWebsiteMutationOptions = <
-	TError = ErrorType<
-		| PutWebsiteSelectorsByWebsite404
-		| PutWebsiteSelectorsByWebsite422
-		| PutWebsiteSelectorsByWebsite500
-	>,
-	TContext = unknown,
->(options?: {
-	mutation?: UseMutationOptions<
-		Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
-		TError,
-		{
-			website: string;
-			data:
-				| PutWebsiteSelectorsByWebsiteBodyOne
-				| PutWebsiteSelectorsByWebsiteBodyTwo
-				| PutWebsiteSelectorsByWebsiteBodyThree;
-		},
-		TContext
-	>;
-	request?: SecondParameter<typeof customInstance>;
-}): UseMutationOptions<
-	Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
-	TError,
-	{
-		website: string;
-		data:
-			| PutWebsiteSelectorsByWebsiteBodyOne
-			| PutWebsiteSelectorsByWebsiteBodyTwo
-			| PutWebsiteSelectorsByWebsiteBodyThree;
-	},
-	TContext
-> => {
-	const mutationKey = ["putWebsiteSelectorsByWebsite"];
-	const { mutation: mutationOptions, request: requestOptions } = options
-		? options.mutation &&
-			"mutationKey" in options.mutation &&
-			options.mutation.mutationKey
-			? options
-			: { ...options, mutation: { ...options.mutation, mutationKey } }
-		: { mutation: { mutationKey }, request: undefined };
-
-	const mutationFn: MutationFunction<
-		Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
-		{
-			website: string;
-			data:
-				| PutWebsiteSelectorsByWebsiteBodyOne
-				| PutWebsiteSelectorsByWebsiteBodyTwo
-				| PutWebsiteSelectorsByWebsiteBodyThree;
-		}
-	> = (props) => {
-		const { website, data } = props ?? {};
-
-		return putWebsiteSelectorsByWebsite(website, data, requestOptions);
-	};
-
-	return { mutationFn, ...mutationOptions };
-};
-
-export type PutWebsiteSelectorsByWebsiteMutationResult = NonNullable<
-	Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>
->;
-export type PutWebsiteSelectorsByWebsiteMutationBody =
-	| PutWebsiteSelectorsByWebsiteBodyOne
-	| PutWebsiteSelectorsByWebsiteBodyTwo
-	| PutWebsiteSelectorsByWebsiteBodyThree;
-export type PutWebsiteSelectorsByWebsiteMutationError = ErrorType<
-	| PutWebsiteSelectorsByWebsite404
-	| PutWebsiteSelectorsByWebsite422
-	| PutWebsiteSelectorsByWebsite500
->;
-
-export const usePutWebsiteSelectorsByWebsite = <
-	TError = ErrorType<
-		| PutWebsiteSelectorsByWebsite404
-		| PutWebsiteSelectorsByWebsite422
-		| PutWebsiteSelectorsByWebsite500
-	>,
-	TContext = unknown,
->(
-	options?: {
-		mutation?: UseMutationOptions<
-			Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
-			TError,
-			{
-				website: string;
-				data:
-					| PutWebsiteSelectorsByWebsiteBodyOne
-					| PutWebsiteSelectorsByWebsiteBodyTwo
-					| PutWebsiteSelectorsByWebsiteBodyThree;
-			},
-			TContext
-		>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-	queryClient?: QueryClient,
-): UseMutationResult<
-	Awaited<ReturnType<typeof putWebsiteSelectorsByWebsite>>,
-	TError,
-	{
-		website: string;
-		data:
-			| PutWebsiteSelectorsByWebsiteBodyOne
-			| PutWebsiteSelectorsByWebsiteBodyTwo
-			| PutWebsiteSelectorsByWebsiteBodyThree;
-	},
-	TContext
-> => {
-	const mutationOptions =
-		getPutWebsiteSelectorsByWebsiteMutationOptions(options);
-
-	return useMutation(mutationOptions, queryClient);
-};
-export const deleteWebsiteSelectorsByWebsite = (
-	website: string,
-	options?: SecondParameter<typeof customInstance>,
-) => {
-	return customInstance<DeleteWebsiteSelectorsByWebsite200>(
-		{
-			url: `http://localhost:3030/website-selectors/${website}`,
-			method: "DELETE",
-		},
-		options,
-	);
-};
-
-export const getDeleteWebsiteSelectorsByWebsiteMutationOptions = <
-	TError = ErrorType<
-		| DeleteWebsiteSelectorsByWebsite404
-		| DeleteWebsiteSelectorsByWebsite422
-		| DeleteWebsiteSelectorsByWebsite500
-	>,
-	TContext = unknown,
->(options?: {
-	mutation?: UseMutationOptions<
-		Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
-		TError,
-		{ website: string },
-		TContext
-	>;
-	request?: SecondParameter<typeof customInstance>;
-}): UseMutationOptions<
-	Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
-	TError,
-	{ website: string },
-	TContext
-> => {
-	const mutationKey = ["deleteWebsiteSelectorsByWebsite"];
-	const { mutation: mutationOptions, request: requestOptions } = options
-		? options.mutation &&
-			"mutationKey" in options.mutation &&
-			options.mutation.mutationKey
-			? options
-			: { ...options, mutation: { ...options.mutation, mutationKey } }
-		: { mutation: { mutationKey }, request: undefined };
-
-	const mutationFn: MutationFunction<
-		Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
-		{ website: string }
-	> = (props) => {
-		const { website } = props ?? {};
-
-		return deleteWebsiteSelectorsByWebsite(website, requestOptions);
-	};
-
-	return { mutationFn, ...mutationOptions };
-};
-
-export type DeleteWebsiteSelectorsByWebsiteMutationResult = NonNullable<
-	Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>
->;
-
-export type DeleteWebsiteSelectorsByWebsiteMutationError = ErrorType<
-	| DeleteWebsiteSelectorsByWebsite404
-	| DeleteWebsiteSelectorsByWebsite422
-	| DeleteWebsiteSelectorsByWebsite500
->;
-
-export const useDeleteWebsiteSelectorsByWebsite = <
-	TError = ErrorType<
-		| DeleteWebsiteSelectorsByWebsite404
-		| DeleteWebsiteSelectorsByWebsite422
-		| DeleteWebsiteSelectorsByWebsite500
-	>,
-	TContext = unknown,
->(
-	options?: {
-		mutation?: UseMutationOptions<
-			Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
-			TError,
-			{ website: string },
-			TContext
-		>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-	queryClient?: QueryClient,
-): UseMutationResult<
-	Awaited<ReturnType<typeof deleteWebsiteSelectorsByWebsite>>,
-	TError,
-	{ website: string },
-	TContext
-> => {
-	const mutationOptions =
-		getDeleteWebsiteSelectorsByWebsiteMutationOptions(options);
-
-	return useMutation(mutationOptions, queryClient);
-};
-export const getWebsiteSelectorsByWebsite = (
-	website: string,
-	options?: SecondParameter<typeof customInstance>,
-	signal?: AbortSignal,
-) => {
-	return customInstance<GetWebsiteSelectorsByWebsite200>(
-		{
-			url: `http://localhost:3030/website-selectors/${website}`,
-			method: "GET",
-			signal,
-		},
-		options,
-	);
-};
-
-export const getGetWebsiteSelectorsByWebsiteQueryKey = (website?: string) => {
-	return [`http://localhost:3030/website-selectors/${website}`] as const;
-};
-
-export const getGetWebsiteSelectorsByWebsiteQueryOptions = <
-	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
-	>,
->(
-	website: string,
-	options?: {
-		query?: Partial<
-			UseQueryOptions<
-				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-				TError,
-				TData
-			>
-		>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-) => {
-	const { query: queryOptions, request: requestOptions } = options ?? {};
-
-	const queryKey =
-		queryOptions?.queryKey ?? getGetWebsiteSelectorsByWebsiteQueryKey(website);
-
-	const queryFn: QueryFunction<
-		Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
-	> = ({ signal }) =>
-		getWebsiteSelectorsByWebsite(website, requestOptions, signal);
-
-	return {
-		queryKey,
-		queryFn,
-		enabled: !!website,
-		...queryOptions,
-	} as UseQueryOptions<
-		Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-		TError,
-		TData
-	> & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type GetWebsiteSelectorsByWebsiteQueryResult = NonNullable<
-	Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
->;
-export type GetWebsiteSelectorsByWebsiteQueryError = ErrorType<
-	| GetWebsiteSelectorsByWebsite404
-	| GetWebsiteSelectorsByWebsite422
-	| GetWebsiteSelectorsByWebsite500
->;
-
-export function useGetWebsiteSelectorsByWebsite<
-	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
-	>,
->(
-	website: string,
-	options: {
-		query: Partial<
-			UseQueryOptions<
-				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-				TError,
-				TData
-			>
-		> &
-			Pick<
-				DefinedInitialDataOptions<
-					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-					TError,
-					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
-				>,
-				"initialData"
-			>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-	queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & {
-	queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetWebsiteSelectorsByWebsite<
-	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
-	>,
->(
-	website: string,
-	options?: {
-		query?: Partial<
-			UseQueryOptions<
-				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-				TError,
-				TData
-			>
-		> &
-			Pick<
-				UndefinedInitialDataOptions<
-					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-					TError,
-					Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
-				>,
-				"initialData"
-			>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-	queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-	queryKey: DataTag<QueryKey, TData, TError>;
-};
-export function useGetWebsiteSelectorsByWebsite<
-	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
-	>,
->(
-	website: string,
-	options?: {
-		query?: Partial<
-			UseQueryOptions<
-				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-				TError,
-				TData
-			>
-		>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-	queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-	queryKey: DataTag<QueryKey, TData, TError>;
-};
-
-export function useGetWebsiteSelectorsByWebsite<
-	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
-	>,
->(
-	website: string,
-	options?: {
-		query?: Partial<
-			UseQueryOptions<
-				Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
-				TError,
-				TData
-			>
-		>;
-		request?: SecondParameter<typeof customInstance>;
-	},
-	queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & {
-	queryKey: DataTag<QueryKey, TData, TError>;
-} {
-	const queryOptions = getGetWebsiteSelectorsByWebsiteQueryOptions(
-		website,
-		options,
-	);
-
-	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-		TData,
-		TError
-	> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-	query.queryKey = queryOptions.queryKey;
-
-	return query;
-}

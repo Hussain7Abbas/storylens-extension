@@ -58,9 +58,9 @@ export function Navbar() {
 	const pinnedAction =
 		canGoBack || isOnProfile || isOnSettings ? (
 			<BackButton t={t} dir={dir} />
-		) : isAdmin ? (
+		) : (
 			<SettingsButton t={t} />
-		) : null;
+		);
 
 	return (
 		<Group

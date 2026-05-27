@@ -59,6 +59,9 @@ async function fetchAllReplacements(
 }
 
 export async function downloadNovel(novelId: string): Promise<void> {
+	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
+
 	const [
 		novelResponse,
 		keywords,
@@ -72,13 +75,13 @@ export async function downloadNovel(novelId: string): Promise<void> {
 		getKeywordCategories(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 		getKeywordNatures(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 	]);

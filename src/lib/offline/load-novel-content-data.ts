@@ -28,10 +28,12 @@ async function loadLocalNovelContentData(
 ): Promise<NovelContentData | undefined> {
 	const downloadedNovel = await getOfflineNovelBySlug(novelSlug);
 	if (downloadedNovel) {
-		const [keywords, replacements] = await Promise.all([
+		const [rawKeywords, replacements] = await Promise.all([
 			getKeywordsByNovelId(downloadedNovel.id),
 			getReplacementsByNovelId(downloadedNovel.id),
 		]);
+
+		const keywords = rawKeywords;
 
 		console.log(`${LOG_PREFIX} Loaded downloaded novel content from local DB`, {
 			novelId: downloadedNovel.id,
@@ -52,14 +54,16 @@ async function loadLocalNovelContentData(
 		return undefined;
 	}
 
-	const [keywords, replacements] = await Promise.all([
+	const [rawKeywords, replacements] = await Promise.all([
 		getKeywordsByNovelId(catalogNovel.id),
 		getReplacementsByNovelId(catalogNovel.id),
 	]);
 
-	if (keywords.length === 0 && replacements.length === 0) {
+	if (rawKeywords.length === 0 && replacements.length === 0) {
 		return undefined;
 	}
+
+	const keywords = rawKeywords;
 
 	console.log(`${LOG_PREFIX} Loaded cached novel content from local DB`, {
 		novelId: catalogNovel.id,
@@ -119,22 +123,23 @@ async function loadRemoteNovelContentData(
 		),
 	]);
 
-	const data: NovelContentData = {
-		novel,
-		chapterNumber: meta.chapter,
-		keywords: keywordsResponse.data.data,
-		replacements: replacementsResponse.data.data,
-	};
+	const rawKeywords = keywordsResponse.data.data;
+	await writeNovelContentCache(novel, rawKeywords, replacementsResponse.data.data);
 
-	await writeNovelContentCache(novel, data.keywords, data.replacements);
+	const keywords = rawKeywords;
 
 	console.log(`${LOG_PREFIX} Loaded novel content from API and cached locally`, {
 		novelId: novel.id,
-		keywordsCount: data.keywords.length,
-		replacementsCount: data.replacements.length,
+		keywordsCount: keywords.length,
+		replacementsCount: replacementsResponse.data.data.length,
 	});
 
-	return data;
+	return {
+		novel,
+		chapterNumber: meta.chapter,
+		keywords,
+		replacements: replacementsResponse.data.data,
+	};
 }
 
 export async function loadNovelContentDataForMeta(

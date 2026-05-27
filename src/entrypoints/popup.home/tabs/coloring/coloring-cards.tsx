@@ -39,11 +39,13 @@ function keywordMatchesSearch(
 ): boolean {
 	if (!term) return true;
 	const t = term.toLowerCase();
+	const categoryName = (keyword.category.nameEn || keyword.category.nameAr || "").toLowerCase();
+	const natureName = (keyword.nature.nameEn || keyword.nature.nameAr || "").toLowerCase();
 	return (
 		keyword.name.toLowerCase().includes(t) ||
 		keyword.description.toLowerCase().includes(t) ||
-		keyword.category.name.toLowerCase().includes(t) ||
-		keyword.nature.name.toLowerCase().includes(t)
+		categoryName.includes(t) ||
+		natureName.includes(t)
 	);
 }
 
@@ -199,10 +201,10 @@ export function ColoringCards({
 										</Badge>
 									)}
 									<Text size="xs" style={{ color: parent.category.color }}>
-										{parent.category.name}
+										{parent.category.nameEn || parent.category.nameAr}
 									</Text>
 									<Text size="xs" style={{ color: parent.nature.color }}>
-										{parent.nature.name}
+										{parent.nature.nameEn || parent.nature.nameAr}
 									</Text>
 									{!readOnly && onAddAlias && (
 										<Tooltip label={t("coloring.addAlias")} withArrow>
@@ -283,10 +285,10 @@ export function ColoringCards({
 														size="xs"
 														style={{ color: alias.category.color }}
 													>
-														{alias.category.name}
+														{alias.category.nameEn || alias.category.nameAr}
 													</Text>
 													<Text size="xs" style={{ color: alias.nature.color }}>
-														{alias.nature.name}
+														{alias.nature.nameEn || alias.nature.nameAr}
 													</Text>
 												</Group>
 											</Group>

@@ -216,17 +216,20 @@ async function pushKeywordNatureOperation(
 }
 
 export async function pullLookupData(): Promise<void> {
+	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
+
 	const [categoriesResponse, naturesResponse] = await Promise.all([
 		getKeywordCategories(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 		getKeywordNatures(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 	]);
@@ -264,6 +267,9 @@ export async function syncPendingOperations(): Promise<SyncResult> {
 }
 
 export async function pullServerData(novelId: string): Promise<void> {
+	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
+
 	const [
 		keywordsResponse,
 		replacementsResponse,
@@ -291,13 +297,13 @@ export async function pullServerData(novelId: string): Promise<void> {
 		getKeywordCategories(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 		getKeywordNatures(
 			withListQueryParams({
 				pagination: { page: 1, pageSize: 500 },
-				sorting: { column: "name", direction: "asc" },
+				sorting: { column: nameSortCol, direction: "asc" },
 			}),
 		),
 	]);

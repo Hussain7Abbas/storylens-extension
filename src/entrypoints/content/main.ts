@@ -1,15 +1,16 @@
-import type { ContentScriptContext } from "#imports";
+import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import type { currentNovelMeta } from "@/types";
-import type { websiteSelector } from "@/types/configs";
+import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { removeExtensionMarkup } from "@/utils/content-processor";
+import { setTooltipLocale } from "@/utils/keyword-tooltip";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { getAllNovelData } from "@/utils/site-detection";
 
 const LOG_PREFIX = "[StoryLens]";
 
-let websiteSelector: websiteSelector | undefined;
+let websiteSelector: WebsiteSelector | undefined;
 let lastProcessedKey: string | undefined;
 
 function buildDetectedNovelKey(meta: currentNovelMeta): string {
@@ -142,6 +143,18 @@ export async function runContentScript(
 		}
 
 		return detectCurrentNovel();
+	});
+
+	const storedLocale = await browser.storage.local.get("storylens-locale");
+	if (typeof storedLocale["storylens-locale"] === "string") {
+		setTooltipLocale(storedLocale["storylens-locale"]);
+	}
+
+	browser.storage.onChanged.addListener((changes) => {
+		const next = changes["storylens-locale"]?.newValue;
+		if (typeof next === "string") {
+			setTooltipLocale(next);
+		}
 	});
 
 	console.log(`${LOG_PREFIX} Content script loaded`, {

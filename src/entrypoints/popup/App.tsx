@@ -15,6 +15,7 @@ import { useAtomValue } from "jotai";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { browser } from "#imports";
 import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
@@ -82,6 +83,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 
 	useEffect(() => {
 		i18n.changeLanguage(locale);
+		void browser.storage.local.set({ "storylens-locale": locale });
 	}, [locale, i18n]);
 
 	return (

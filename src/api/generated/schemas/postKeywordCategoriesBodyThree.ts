@@ -7,8 +7,8 @@
  */
 
 export type PostKeywordCategoriesBodyThree = {
-	/** @minLength 1 */
-	name: string;
+	nameEn?: string;
+	nameAr?: string;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
 };

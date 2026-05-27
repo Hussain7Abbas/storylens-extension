@@ -5,12 +5,16 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { GetKeywordNaturesById200KeywordsItemCategoryCreatedAt } from "./getKeywordNaturesById200KeywordsItemCategoryCreatedAt";
+import type { GetKeywordNaturesById200KeywordsItemCategoryNameAr } from "./getKeywordNaturesById200KeywordsItemCategoryNameAr";
+import type { GetKeywordNaturesById200KeywordsItemCategoryNameEn } from "./getKeywordNaturesById200KeywordsItemCategoryNameEn";
 import type { GetKeywordNaturesById200KeywordsItemCategoryUpdatedAt } from "./getKeywordNaturesById200KeywordsItemCategoryUpdatedAt";
 
 export type GetKeywordNaturesById200KeywordsItemCategory = {
 	id: string;
-	name: string;
+	nameEn: GetKeywordNaturesById200KeywordsItemCategoryNameEn;
+	nameAr: GetKeywordNaturesById200KeywordsItemCategoryNameAr;
 	color: string;
 	createdAt: GetKeywordNaturesById200KeywordsItemCategoryCreatedAt;
 	updatedAt: GetKeywordNaturesById200KeywordsItemCategoryUpdatedAt;

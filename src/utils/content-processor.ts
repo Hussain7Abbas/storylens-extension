@@ -1,6 +1,6 @@
-import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 import type {
 	ContentProcessingStats,
+	EnrichedKeyword,
 	NovelContentData,
 } from "@/types/content-data";
 import {
@@ -211,8 +211,8 @@ function createReplacedElement(replacementText: string): HTMLSpanElement {
 
 function createKeywordElement(
 	matchedText: string,
-	keyword: GetKeywords200DataItem,
-	parent: GetKeywords200DataItem | undefined,
+	keyword: EnrichedKeyword,
+	parent: EnrichedKeyword | undefined,
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
@@ -256,8 +256,8 @@ function buildReplacementLookup(
 
 function buildKeywordLookup(
 	keywords: NovelContentData["keywords"],
-): Map<string, GetKeywords200DataItem> {
-	const lookup = new Map<string, GetKeywords200DataItem>();
+): Map<string, EnrichedKeyword> {
+	const lookup = new Map<string, EnrichedKeyword>();
 	const sortedKeywords = [...keywords].sort(
 		(left, right) => right.name.length - left.name.length,
 	);
@@ -278,8 +278,8 @@ function buildKeywordLookup(
 
 function buildKeywordById(
 	keywords: NovelContentData["keywords"],
-): Map<string, GetKeywords200DataItem> {
-	const byId = new Map<string, GetKeywords200DataItem>();
+): Map<string, EnrichedKeyword> {
+	const byId = new Map<string, EnrichedKeyword>();
 	for (const keyword of keywords) {
 		byId.set(keyword.id, keyword);
 	}

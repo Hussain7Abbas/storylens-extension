@@ -116,6 +116,43 @@ const { t } = useTranslation();
 
 Translation files live in `public/_locales/`. After adding keys, run `bun run i18n:parse`.
 
+### Content Script i18n (non-React contexts)
+
+Content scripts cannot use `useTranslation`. Two rules apply:
+
+**1. Static strings in tooltips — always use `tt()`**
+
+Add every user-visible static string (labels, section headings, fallback text) to `TOOLTIP_STRINGS` in `src/utils/keyword-tooltip.ts` for every supported locale (`en`, `ar`), then render it with `tt("key")`. Never hard-code a raw string inside tooltip DOM builders.
+
+```typescript
+// keyword-tooltip.ts
+const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
+    en: { original: "Original", noDescription: "No description" },
+    ar: { original: "الأصلي", noDescription: "لا يوجد وصف" },
+};
+
+// inside a DOM builder:
+label.textContent = tt("original");
+```
+
+**2. Locale-pair fields — always use `getLocalizedName()`**
+
+When an API object carries both `nameEn` and `nameAr` (or similar locale-pair fields such as `descriptionEn`/`descriptionAr`), **never read `.name` directly**. Always go through `getLocalizedName()` so the correct locale variant is shown:
+
+```typescript
+// correct
+span.textContent = getLocalizedName(keyword.category); // picks nameEn or nameAr
+
+// wrong — ignores locale
+span.textContent = keyword.category.name;
+```
+
+If you add a new locale-pair field to the API response type, also extend `getLocalizedName` (or add a parallel helper) to cover it.
+
+**Locale source**
+
+The active locale is stored in `browser.storage.local` under the key `"storylens-locale"` and cached in the `cachedLocale` variable inside `keyword-tooltip.ts`. The content script loads it on init and watches `browser.storage.onChanged` for live updates. Do not read `localStorage` for locale in content-script code — that reads the *page's* storage, not the extension's.
+
 ---
 
 ## API Integration

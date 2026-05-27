@@ -9,11 +9,14 @@
 import type { _GetKeywordNaturesById200Count } from "./_getKeywordNaturesById200Count";
 import type { GetKeywordNaturesById200CreatedAt } from "./getKeywordNaturesById200CreatedAt";
 import type { GetKeywordNaturesById200KeywordsItem } from "./getKeywordNaturesById200KeywordsItem";
+import type { GetKeywordNaturesById200NameAr } from "./getKeywordNaturesById200NameAr";
+import type { GetKeywordNaturesById200NameEn } from "./getKeywordNaturesById200NameEn";
 import type { GetKeywordNaturesById200UpdatedAt } from "./getKeywordNaturesById200UpdatedAt";
 
 export type GetKeywordNaturesById200 = {
 	id: string;
-	name: string;
+	nameEn: GetKeywordNaturesById200NameEn;
+	nameAr: GetKeywordNaturesById200NameAr;
 	color: string;
 	createdAt: GetKeywordNaturesById200CreatedAt;
 	updatedAt: GetKeywordNaturesById200UpdatedAt;

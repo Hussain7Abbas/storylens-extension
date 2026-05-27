@@ -9,10 +9,12 @@ import {
 import { useForm } from "@mantine/form";
 import { IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import type { PostKeywordCategoriesBodyOne } from "@/api/generated/schemas";
 import { ColorInput } from "@/components/color-input";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
-import { useOfflineCategoryMutations } from "@/lib/offline/hooks";
+import {
+	type CategoryFormValues,
+	useOfflineCategoryMutations,
+} from "@/lib/offline/hooks";
 import type { KeywordCategory } from "@/types/models";
 
 export type CategoryFormModesType = "add" | "edit" | undefined;
@@ -30,13 +32,13 @@ export function CategoryForm({
 	...props
 }: CategoryFormProps) {
 	const { t } = useTranslation();
-	const form = useForm<PostKeywordCategoriesBodyOne>({
+	const form = useForm<CategoryFormValues>({
 		initialValues: {
-			name: category?.name || "",
+			nameEn: category?.nameEn || "",
+			nameAr: category?.nameAr || "",
 			color: category?.color || "#000000",
 		},
 		validate: {
-			name: (value) => (!value ? t("settings.nameRequired") : null),
 			color: (value) =>
 				!/^#[0-9A-Fa-f]{6}$/.test(value) ? t("settings.invalidColor") : null,
 		},
@@ -46,9 +48,11 @@ export function CategoryForm({
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineCategoryMutations();
 
-	const handleSubmit = (values: typeof form.values) => {
+	const handleSubmit = (values: CategoryFormValues) => {
+		const payload: CategoryFormValues = { ...values };
+
 		if (mode === "add") {
-			createMutation.mutate(values, {
+			createMutation.mutate(payload, {
 				onSuccess: async () => {
 					await refreshContent();
 					form.reset();
@@ -60,7 +64,7 @@ export function CategoryForm({
 
 		if (mode === "edit" && category?.id) {
 			updateMutation.mutate(
-				{ id: category.id, data: values },
+				{ id: category.id, data: payload },
 				{
 					onSuccess: async () => {
 						await refreshContent();
@@ -93,9 +97,15 @@ export function CategoryForm({
 		<form onSubmit={form.onSubmit(handleSubmit)} {...props}>
 			<Stack gap="xs" p="xs">
 				<TextInput
-					label={t("settings.name")}
-					{...form.getInputProps("name")}
+					label={t("settings.nameEn")}
+					{...form.getInputProps("nameEn")}
 					required
+				/>
+
+				<TextInput
+					label={t("settings.nameAr")}
+					{...form.getInputProps("nameAr")}
+					dir="rtl"
 				/>
 
 				<ColorInput
