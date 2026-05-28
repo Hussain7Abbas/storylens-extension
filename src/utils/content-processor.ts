@@ -63,10 +63,8 @@ function dedupeTermsCaseInsensitive(
 	return deduped;
 }
 
-// Arabic proclitic prefixes that attach directly to the following word with no space:
-// و (wa- and) ف (fa- then/so) ب (bi- with/by) ل (li-/la- for/to)
-// ك (ka- like/as) س (sa- future) ا (alif — part of ال/لل combinations)
-const ARABIC_PROCLITIC_PREFIX_RE = /^[وفبلكسا]*/u;
+// Single-letter Arabic proclitics that prefix words with no space.
+const ARABIC_SINGLE_LETTER_PREFIXES = new Set(["و", "ف", "ب", "ل", "ك", "س"]);
 
 // Letters that visually connect to the following character in Arabic script.
 // و and ا (bare alif) are non-connecting, so they are excluded.
@@ -78,9 +76,35 @@ function withTatweel(prefix: string): string {
 	return ARABIC_CONNECTING_LETTERS.has(last) ? `${prefix}ـ` : prefix;
 }
 
+function findKeywordMatch<T>(
+	matchedText: string,
+	lookup: Map<string, T>,
+): { prefix: string; core: string; value: T } | null {
+	// Form 1: bare keyword — exact match, always tried first.
+	const exact = lookup.get(matchedText.toLowerCase());
+	if (exact) return { prefix: "", core: matchedText, value: exact };
+
+	// Form 2: ال + keyword.
+	if (matchedText.startsWith("ال")) {
+		const core = matchedText.slice(2);
+		const value = lookup.get(core.toLowerCase());
+		if (value) return { prefix: "ال", core, value };
+	}
+
+	// Forms 3–8: single-letter proclitic + keyword.
+	const first = matchedText[0];
+	if (first && ARABIC_SINGLE_LETTER_PREFIXES.has(first)) {
+		const core = matchedText.slice(1);
+		const value = lookup.get(core.toLowerCase());
+		if (value) return { prefix: first, core, value };
+	}
+
+	return null;
+}
+
 function wrapFullTermPattern(escaped: string, term: string): string {
 	if (/^\p{Script=Arabic}/u.test(term)) {
-		return `(?<![\\p{L}\\p{N}_])[وفبلكسا]*${escaped}(?![\\p{L}\\p{N}_])`;
+		return `(?<![\\p{L}\\p{N}_])(?:ال|[وفبلكس])?${escaped}(?![\\p{L}\\p{N}_])`;
 	}
 	return `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`;
 }
@@ -162,12 +186,10 @@ function collectTextNodes(
 	return textNodes;
 }
 
-type MatchInfo = { full: string; core: string; prefix: string };
-
 function processTextNodeMatches(
 	textNode: Text,
 	regex: RegExp,
-	handler: (info: MatchInfo) => Node | Node[] | null,
+	handler: (matchedText: string) => Node | Node[] | null,
 ): number {
 	const text = textNode.textContent ?? "";
 	if (!text) {
@@ -186,7 +208,7 @@ function processTextNodeMatches(
 	let occurrences = 0;
 
 	while (match) {
-		const full = match[0];
+		const matchedText = match[0];
 		const matchIndex = match.index;
 
 		if (matchIndex > lastIndex) {
@@ -195,9 +217,7 @@ function processTextNodeMatches(
 			);
 		}
 
-		const prefix = ARABIC_PROCLITIC_PREFIX_RE.exec(full)?.[0] ?? "";
-		const core = full.slice(prefix.length);
-		const replacementNodes = handler({ full, core, prefix });
+		const replacementNodes = handler(matchedText);
 		if (replacementNodes) {
 			const nodes = Array.isArray(replacementNodes)
 				? replacementNodes
@@ -207,12 +227,12 @@ function processTextNodeMatches(
 			}
 			occurrences += 1;
 		} else {
-			fragment.appendChild(document.createTextNode(full));
+			fragment.appendChild(document.createTextNode(matchedText));
 		}
 
-		lastIndex = matchIndex + full.length;
+		lastIndex = matchIndex + matchedText.length;
 
-		if (full.length === 0) {
+		if (matchedText.length === 0) {
 			regex.lastIndex += 1;
 		}
 
@@ -334,13 +354,10 @@ function applyReplacements(
 	let applied = 0;
 
 	for (const textNode of textNodes) {
-		applied += processTextNodeMatches(textNode, regex, ({ core, prefix }) => {
-			const replacement = lookup.get(core.toLowerCase());
-			if (!replacement) {
-				return null;
-			}
-
-			return createReplacedElement(prefix + replacement.to);
+		applied += processTextNodeMatches(textNode, regex, (matchedText) => {
+			const found = findKeywordMatch(matchedText, lookup);
+			if (!found) return null;
+			return createReplacedElement(found.prefix + found.value.to);
 		});
 	}
 
@@ -367,25 +384,16 @@ function applyKeywordHighlights(
 	let highlighted = 0;
 
 	for (const textNode of textNodes) {
-		highlighted += processTextNodeMatches(
-			textNode,
-			regex,
-			({ core, prefix }) => {
-				const keyword = lookup.get(core.toLowerCase());
-				if (!keyword) {
-					return null;
-				}
-
-				const parent = keyword.parentId
-					? byId.get(keyword.parentId)
-					: undefined;
-				const keywordEl = createKeywordElement(core, keyword, parent);
-				if (!prefix) {
-					return keywordEl;
-				}
-				return [document.createTextNode(withTatweel(prefix)), keywordEl];
-			},
-		);
+		highlighted += processTextNodeMatches(textNode, regex, (matchedText) => {
+			const found = findKeywordMatch(matchedText, lookup);
+			if (!found) return null;
+			const parent = found.value.parentId
+				? byId.get(found.value.parentId)
+				: undefined;
+			const keywordEl = createKeywordElement(found.core, found.value, parent);
+			if (!found.prefix) return keywordEl;
+			return [document.createTextNode(withTatweel(found.prefix)), keywordEl];
+		});
 	}
 
 	return highlighted;
