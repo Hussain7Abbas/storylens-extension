@@ -167,6 +167,7 @@
 		"novelRemoved": "Offline data removed",
 		"novelRemoveFailed": "Failed to remove offline data",
 		"downloadRequiresOnline": "Connect to the internet to download novels",
+		"novelNotDownloaded": "Please download the novel data to apply it on the website",
 		"pendingSync": "Pending",
 		"syncNow": "Sync now",
 		"syncPending": "{{count}} changes pending sync",

@@ -214,6 +214,7 @@
 		"novelRemoved": "تمت إزالة البيانات المحلية",
 		"novelRemoveFailed": "فشل إزالة البيانات المحلية",
 		"downloadRequiresOnline": "اتصل بالإنترنت لتنزيل الروايات",
+		"novelNotDownloaded": "يرجى تنزيل بيانات الرواية لتطبيقها على الموقع",
 		"pendingSync": "قيد الانتظار",
 		"syncNow": "مزامنة الآن",
 		"syncPending": "{{count}} تغييرات بانتظار المزامنة",

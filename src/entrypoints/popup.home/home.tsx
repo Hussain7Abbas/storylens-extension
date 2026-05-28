@@ -300,6 +300,12 @@ export function HomePage() {
 						</Group>
 					)}
 
+					{selectedNovel?.id && !isSelectedDownloaded && (
+						<Text size="xs" c="orange" mt="xs">
+							{t("offline.novelNotDownloaded")}
+						</Text>
+					)}
+
 					{selectedNovel?.id && (
 						<Tabs defaultValue="coloring" variant="outline">
 							<Stack
