@@ -4,7 +4,10 @@ import type {
 	GetKeywords200DataItem,
 	GetNovels200DataItem,
 	GetReplacements200DataItem,
+	GetWebsiteNovelBiases200Item,
 } from "@/api/generated/schemas";
+
+export type OfflineWebsiteNovelBias = GetWebsiteNovelBiases200Item;
 
 export type SyncEntity =
 	| "keyword"

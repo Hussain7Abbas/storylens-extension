@@ -91,7 +91,15 @@
         "novelUpdatedSuccessfully": "تم تحديث الرواية بنجاح",
         "novelUpdatedFailed": "فشل تحديث الرواية",
         "novelDeletedSuccessfully": "تم حذف الرواية بنجاح",
-        "novelDeletedFailed": "فشل حذف الرواية"
+        "novelDeletedFailed": "فشل حذف الرواية",
+        "chapterBias": "انحياز الفصل",
+        "chapterBiasWebsite": "الموقع",
+        "chapterBiasValue": "قيمة الانحياز",
+        "chapterBiasValueHint": "القيمة الموجبة تزيد رقم الفصل، والسالبة تنقصه. اضبطها على 0 لإزالة الانحياز.",
+        "chapterBiasSavedSuccessfully": "تم حفظ انحياز الفصل",
+        "chapterBiasSaveFailed": "فشل حفظ انحياز الفصل",
+        "chapterBiasResetSuccessfully": "تم إزالة انحياز الفصل",
+        "chapterBiasResetFailed": "فشل إزالة انحياز الفصل"
     },
     "novels": {
         "add": "إضافة رواية",

@@ -4,6 +4,7 @@ import type {
 	GetKeywords200DataItemNature,
 	GetNovels200DataItem,
 	GetReplacements200DataItem,
+	GetWebsiteNovelBiases200Item,
 } from "@/api/generated/schemas";
 
 export type EnrichedCategory = GetKeywords200DataItemCategory;
@@ -15,6 +16,7 @@ export type NovelContentData = {
 	chapterNumber: number | undefined;
 	keywords: EnrichedKeyword[];
 	replacements: GetReplacements200DataItem[];
+	biases: GetWebsiteNovelBiases200Item[];
 };
 
 export type ContentProcessingStats = {

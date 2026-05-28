@@ -8,6 +8,7 @@ import type {
 	OfflineKeywordCategory,
 	OfflineKeywordNature,
 	OfflineReplacement,
+	OfflineWebsiteNovelBias,
 } from "@/lib/offline/types";
 import {
 	cleanOfflineKeyword,
@@ -21,6 +22,7 @@ class StoryLensOfflineDatabase extends Dexie {
 	replacements!: EntityTable<OfflineReplacement, "id">;
 	keywordCategories!: EntityTable<OfflineKeywordCategory, "id">;
 	keywordNatures!: EntityTable<OfflineKeywordNature, "id">;
+	websiteNovelBiases!: EntityTable<OfflineWebsiteNovelBias, "id">;
 
 	constructor() {
 		super("storylens-offline");
@@ -78,6 +80,16 @@ class StoryLensOfflineDatabase extends Dexie {
 			replacements: "id, novelId, from",
 			keywordCategories: "id, name",
 			keywordNatures: "id, name",
+		});
+
+		this.version(5).stores({
+			catalogNovels: "id, name",
+			novels: "id, name, downloadedAt",
+			keywords: "id, novelId, name, categoryId, natureId, parentId",
+			replacements: "id, novelId, from",
+			keywordCategories: "id, name",
+			keywordNatures: "id, name",
+			websiteNovelBiases: "id, novelId, websiteSelectorId, [novelId+websiteSelectorId]",
 		});
 	}
 }
@@ -240,10 +252,29 @@ async function replaceReplacementsForNovel(
 	});
 }
 
+export async function getBiasesByNovelId(
+	novelId: string,
+): Promise<OfflineWebsiteNovelBias[]> {
+	return offlineDb.websiteNovelBiases.where("novelId").equals(novelId).toArray();
+}
+
+export async function replaceBiasesForNovel(
+	novelId: string,
+	serverBiases: OfflineWebsiteNovelBias[],
+): Promise<void> {
+	await offlineDb.transaction("rw", offlineDb.websiteNovelBiases, async () => {
+		await offlineDb.websiteNovelBiases.where("novelId").equals(novelId).delete();
+		if (serverBiases.length > 0) {
+			await offlineDb.websiteNovelBiases.bulkPut(serverBiases);
+		}
+	});
+}
+
 export async function writeNovelContentCache(
 	novel: CatalogNovel,
 	keywords: OfflineKeyword[],
 	replacements: OfflineReplacement[],
+	biases: OfflineWebsiteNovelBias[] = [],
 ): Promise<void> {
 	const downloaded = await isNovelDownloaded(novel.id);
 	await saveCatalogNovel(novel);
@@ -254,6 +285,7 @@ export async function writeNovelContentCache(
 
 	await replaceKeywordsForNovel(novel.id, keywords);
 	await replaceReplacementsForNovel(novel.id, replacements);
+	await replaceBiasesForNovel(novel.id, biases);
 }
 
 export async function saveKeyword(keyword: OfflineKeyword): Promise<void> {

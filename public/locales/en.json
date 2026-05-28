@@ -91,7 +91,15 @@
         "novelUpdatedSuccessfully": "Novel updated successfully",
         "novelUpdatedFailed": "Failed to update novel",
         "novelDeletedSuccessfully": "Novel deleted successfully",
-        "novelDeletedFailed": "Failed to delete novel"
+        "novelDeletedFailed": "Failed to delete novel",
+        "chapterBias": "Chapter Bias",
+        "chapterBiasWebsite": "Website",
+        "chapterBiasValue": "Bias Value",
+        "chapterBiasValueHint": "Positive shifts the chapter number up, negative shifts it down. Set to 0 to remove bias.",
+        "chapterBiasSavedSuccessfully": "Chapter bias saved",
+        "chapterBiasSaveFailed": "Failed to save chapter bias",
+        "chapterBiasResetSuccessfully": "Chapter bias removed",
+        "chapterBiasResetFailed": "Failed to remove chapter bias"
     },
     "novels": {
         "add": "Add Novel",

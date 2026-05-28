@@ -1,8 +1,10 @@
 import { getKeywords } from "@/api/generated/endpoints/keywords.js";
 import { getNovels } from "@/api/generated/endpoints/novels.js";
 import { getReplacements } from "@/api/generated/endpoints/replacements.js";
+import { getWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
 import {
 	getAllCatalogNovels,
+	getBiasesByNovelId,
 	getCatalogNovelBySlug,
 	getKeywordsByNovelId,
 	getOfflineNovelBySlug,
@@ -28,9 +30,10 @@ async function loadLocalNovelContentData(
 ): Promise<NovelContentData | undefined> {
 	const downloadedNovel = await getOfflineNovelBySlug(novelSlug);
 	if (downloadedNovel) {
-		const [rawKeywords, replacements] = await Promise.all([
+		const [rawKeywords, replacements, biases] = await Promise.all([
 			getKeywordsByNovelId(downloadedNovel.id),
 			getReplacementsByNovelId(downloadedNovel.id),
+			getBiasesByNovelId(downloadedNovel.id),
 		]);
 
 		const keywords = rawKeywords;
@@ -46,6 +49,7 @@ async function loadLocalNovelContentData(
 			chapterNumber: chapter,
 			keywords,
 			replacements,
+			biases,
 		};
 	}
 
@@ -54,9 +58,10 @@ async function loadLocalNovelContentData(
 		return undefined;
 	}
 
-	const [rawKeywords, replacements] = await Promise.all([
+	const [rawKeywords, replacements, biases] = await Promise.all([
 		getKeywordsByNovelId(catalogNovel.id),
 		getReplacementsByNovelId(catalogNovel.id),
+		getBiasesByNovelId(catalogNovel.id),
 	]);
 
 	if (rawKeywords.length === 0 && replacements.length === 0) {
@@ -76,6 +81,7 @@ async function loadLocalNovelContentData(
 		chapterNumber: chapter,
 		keywords,
 		replacements,
+		biases,
 	};
 }
 
@@ -102,7 +108,7 @@ async function loadRemoteNovelContentData(
 		return undefined;
 	}
 
-	const [keywordsResponse, replacementsResponse] = await Promise.all([
+	const [keywordsResponse, replacementsResponse, biasesResponse] = await Promise.all([
 		getKeywords(
 			withListQueryParams(
 				{
@@ -121,10 +127,12 @@ async function loadRemoteNovelContentData(
 				REPLACEMENT_LIST_SORTING,
 			),
 		),
+		getWebsiteNovelBiases({ novelId: novel.id }),
 	]);
 
 	const rawKeywords = keywordsResponse.data.data;
-	await writeNovelContentCache(novel, rawKeywords, replacementsResponse.data.data);
+	const biases = biasesResponse.data;
+	await writeNovelContentCache(novel, rawKeywords, replacementsResponse.data.data, biases);
 
 	const keywords = rawKeywords;
 
@@ -139,6 +147,7 @@ async function loadRemoteNovelContentData(
 		chapterNumber: meta.chapter,
 		keywords,
 		replacements: replacementsResponse.data.data,
+		biases,
 	};
 }
 
