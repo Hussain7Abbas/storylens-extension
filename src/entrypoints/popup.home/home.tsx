@@ -26,24 +26,24 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
-import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
+import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
 import { userRoleAtom } from "@/lib/auth";
+import { getBiasesByNovelId } from "@/lib/offline/db";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {
 	useCachedNovelsList,
 	useDownloadedNovelIds,
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
-import { getBiasesByNovelId } from "@/lib/offline/db";
 import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
 import { NovelForm, type novelFormModes } from "./novelForm";
-import { WebsiteNovelBiasForm } from "./websiteNovelBiasModal";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
+import { WebsiteNovelBiasForm } from "./websiteNovelBiasModal";
 
 export function HomePage() {
 	const { t } = useTranslation();
@@ -51,7 +51,9 @@ export function HomePage() {
 	const [downloading, setDownloading] = useState(false);
 	const [biasFormOpen, setBiasFormOpen] = useState(false);
 	const [currentHostname, setCurrentHostname] = useState<string>();
-	const [biasesForNovel, setBiasesForNovel] = useState<OfflineWebsiteNovelBias[]>([]);
+	const [biasesForNovel, setBiasesForNovel] = useState<
+		OfflineWebsiteNovelBias[]
+	>([]);
 	const [biasSelectorId, setBiasSelectorId] = useState<string>();
 	const online = useOnlineStatus();
 	const role = useAtomValue(userRoleAtom);
@@ -70,7 +72,10 @@ export function HomePage() {
 
 	useEffect(() => {
 		const getHostname = async () => {
-			const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+			const [tab] = await browser.tabs.query({
+				active: true,
+				currentWindow: true,
+			});
 			if (tab?.url) {
 				try {
 					setCurrentHostname(new URL(tab.url).hostname);
@@ -251,7 +256,13 @@ export function HomePage() {
 									</ActionIcon>
 								</Tooltip>
 							)}
-							<Group flex={1} justify="center" align="center" gap={4} wrap="nowrap">
+							<Group
+								flex={1}
+								justify="center"
+								align="center"
+								gap={4}
+								wrap="nowrap"
+							>
 								{biasedChapter !== undefined ? (
 									<>
 										<Text size="xs" td="line-through" c="dimmed">
@@ -266,7 +277,9 @@ export function HomePage() {
 									<ActionIcon
 										size="xs"
 										variant="subtle"
-										onClick={() => { void handleOpenBiasModal(); }}
+										onClick={() => {
+											void handleOpenBiasModal();
+										}}
 										aria-label={t("home.chapterBias")}
 									>
 										<IconPencil size={12} />

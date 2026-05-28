@@ -63,7 +63,10 @@ function applyAppearanceToRoot(root: HTMLElement): void {
 	}
 }
 
-function getLocalizedName(obj: { nameEn?: string | null; nameAr?: string | null }): string {
+function getLocalizedName(obj: {
+	nameEn?: string | null;
+	nameAr?: string | null;
+}): string {
 	const locale = getLocale();
 	if (locale === "ar") return obj.nameAr || obj.nameEn || "";
 	return obj.nameEn || obj.nameAr || "";
@@ -195,8 +198,7 @@ function positionTooltip(anchor: HTMLElement, tooltip: HTMLElement): void {
 		top = anchorRect.bottom + TOOLTIP_GAP_PX;
 	}
 
-	let left =
-		anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2;
+	let left = anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2;
 	left = Math.max(
 		viewportPadding,
 		Math.min(left, window.innerWidth - tooltipRect.width - viewportPadding),
@@ -245,15 +247,11 @@ function showTooltip(anchor: HTMLElement): void {
 	hideActiveTooltip();
 	activeAnchor = anchor;
 
-	const tooltip = buildKeywordTooltipContent(
-		data.keyword,
-		data.parent,
-		() => {
-			if (activeAnchor && activeTooltip) {
-				positionTooltip(activeAnchor, activeTooltip);
-			}
-		},
-	);
+	const tooltip = buildKeywordTooltipContent(data.keyword, data.parent, () => {
+		if (activeAnchor && activeTooltip) {
+			positionTooltip(activeAnchor, activeTooltip);
+		}
+	});
 	tooltip.addEventListener("mouseenter", clearHideTimeout);
 	tooltip.addEventListener("mouseleave", scheduleHideTooltip);
 

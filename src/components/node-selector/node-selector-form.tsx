@@ -69,9 +69,7 @@ function buildSelectorPayload(
 			xpath: values.novelXpath
 				? { value: values.novelXpath, regex: values.novelXpathRegex }
 				: null,
-			url: values.novelUrlRegex.trim()
-				? { regex: values.novelUrlRegex }
-				: null,
+			url: values.novelUrlRegex.trim() ? { regex: values.novelUrlRegex } : null,
 		},
 		chapter: {
 			xpath: values.chapterXpath
@@ -367,10 +365,7 @@ export function NodeSelectorForm({
 					<Button variant="outline" onClick={onClose}>
 						{t("_.cancel")}
 					</Button>
-					<Button
-						onClick={() => handleSubmit(form.values)}
-						loading={isSaving}
-					>
+					<Button onClick={() => handleSubmit(form.values)} loading={isSaving}>
 						{t("_.save")}
 					</Button>
 				</Group>

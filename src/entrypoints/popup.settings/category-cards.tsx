@@ -59,8 +59,8 @@ export function CategoryCards({
 				const isPending = pendingEntityIds.has(category.id);
 				const displayName =
 					locale === "ar"
-						? (category.nameAr || category.nameEn || "")
-						: (category.nameEn || category.nameAr || "");
+						? category.nameAr || category.nameEn || ""
+						: category.nameEn || category.nameAr || "";
 
 				return (
 					<ListItemCard

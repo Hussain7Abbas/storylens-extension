@@ -1,5 +1,6 @@
 import { useDebouncedValue } from "@mantine/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	deleteKeywordCategoriesById,
@@ -41,12 +42,12 @@ import {
 	deleteKeywordCategoryById,
 	deleteKeywordNatureById,
 	deleteReplacementById,
+	getAliasesByParentId,
 	getAllCatalogNovels,
 	getAllKeywordCategories,
 	getAllKeywordNatures,
 	getCatalogNovelById,
 	getDownloadedNovels,
-	getAliasesByParentId,
 	getKeywordsByNovelId,
 	getReplacementsByNovelId,
 	markKeywordDirty,
@@ -61,26 +62,30 @@ import {
 } from "@/lib/offline/db";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import { refreshNovelsCatalog } from "@/lib/offline/seed-novels-catalog";
-import { useAtomValue } from "jotai";
-import { useActiveSyncCount } from "@/store/sync-status";
-import { localeAtom } from "@/store/locale";
 import {
 	addPendingOp,
 	getDownloadedNovelIds,
 	getPendingEntityIds,
 	getPendingOpsCount,
 } from "@/lib/offline/sync-storage";
-import type { CatalogNovel, DownloadedNovel, OfflineKeyword, OfflineReplacement } from "@/lib/offline/types";
+import type {
+	CatalogNovel,
+	DownloadedNovel,
+	OfflineKeyword,
+	OfflineReplacement,
+} from "@/lib/offline/types";
 import {
 	cleanOfflineKeyword,
 	cleanOfflineReplacement,
 	createTempId,
-	isTempId,
 	GLOBAL_LOOKUP_SCOPE,
+	isTempId,
 	type SyncAction,
 	type SyncEntity,
 	type SyncOperation,
 } from "@/lib/offline/types";
+import { localeAtom } from "@/store/locale";
+import { useActiveSyncCount } from "@/store/sync-status";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { withListQueryParams } from "@/utils/api-list-params";
 import { refreshContentScript } from "@/utils/refresh-content-script";
@@ -100,7 +105,13 @@ function filterBySearch<
 	}
 
 	return items.filter((item) => {
-		const values = [item.name, item.nameEn, item.nameAr, item.from, item.to].filter(Boolean);
+		const values = [
+			item.name,
+			item.nameEn,
+			item.nameAr,
+			item.from,
+			item.to,
+		].filter(Boolean);
 		return values.some((value) => value?.toLowerCase().includes(term));
 	});
 }
@@ -129,11 +140,16 @@ function sortLookupByName<
 	});
 }
 
-async function seedKeywordCategoriesCache(locale: string): Promise<KeywordCategory[]> {
+async function seedKeywordCategoriesCache(
+	locale: string,
+): Promise<KeywordCategory[]> {
 	const response = await getKeywordCategories(
 		withListQueryParams({
 			pagination: { page: 1, pageSize: 500 },
-			sorting: { column: locale === "ar" ? "nameAr" : "nameEn", direction: "asc" },
+			sorting: {
+				column: locale === "ar" ? "nameAr" : "nameEn",
+				direction: "asc",
+			},
 		}),
 	);
 	const data = response.data.data as KeywordCategory[];
@@ -141,11 +157,16 @@ async function seedKeywordCategoriesCache(locale: string): Promise<KeywordCatego
 	return data;
 }
 
-async function seedKeywordNaturesCache(locale: string): Promise<KeywordNature[]> {
+async function seedKeywordNaturesCache(
+	locale: string,
+): Promise<KeywordNature[]> {
 	const response = await getKeywordNatures(
 		withListQueryParams({
 			pagination: { page: 1, pageSize: 500 },
-			sorting: { column: locale === "ar" ? "nameAr" : "nameEn", direction: "asc" },
+			sorting: {
+				column: locale === "ar" ? "nameAr" : "nameEn",
+				direction: "asc",
+			},
 		}),
 	);
 	const data = response.data.data as KeywordNature[];
@@ -388,9 +409,9 @@ export function useOfflineKeywordCategories(search = "") {
 	});
 
 	const data = useMemo(() => {
-		const source = (offlineQuery.data?.length
-			? offlineQuery.data
-			: (seedQuery.data ?? [])) as KeywordCategory[];
+		const source = (
+			offlineQuery.data?.length ? offlineQuery.data : (seedQuery.data ?? [])
+		) as KeywordCategory[];
 		return sortLookupByName(filterBySearch(source, debouncedSearch), locale);
 	}, [offlineQuery.data, seedQuery.data, debouncedSearch, locale]);
 
@@ -424,9 +445,9 @@ export function useOfflineKeywordNatures(search = "") {
 	});
 
 	const data = useMemo(() => {
-		const source = (offlineQuery.data?.length
-			? offlineQuery.data
-			: (seedQuery.data ?? [])) as KeywordNature[];
+		const source = (
+			offlineQuery.data?.length ? offlineQuery.data : (seedQuery.data ?? [])
+		) as KeywordNature[];
 		return sortLookupByName(filterBySearch(source, debouncedSearch), locale);
 	}, [offlineQuery.data, seedQuery.data, debouncedSearch, locale]);
 
@@ -580,7 +601,13 @@ export function useOfflineKeywordMutations(novelId: string) {
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keyword", "create", tempId, novelId, values);
+				await queueOfflineOperation(
+					"keyword",
+					"create",
+					tempId,
+					novelId,
+					values,
+				);
 			}
 
 			return keyword;
@@ -638,7 +665,10 @@ export function useOfflineKeywordMutations(novelId: string) {
 				categoryId: data.categoryId ?? existing?.categoryId ?? "",
 				natureId: data.natureId ?? existing?.natureId ?? "",
 				imageId: data.imageId ?? existing?.imageId ?? null,
-				parentId: data.parentId !== undefined ? (data.parentId ?? null) : (existing?.parentId ?? null),
+				parentId:
+					data.parentId !== undefined
+						? (data.parentId ?? null)
+						: (existing?.parentId ?? null),
 				novelId,
 				createdById: existing?.createdById ?? null,
 				createdAt: existing?.createdAt ?? new Date().toISOString(),
@@ -842,7 +872,13 @@ export function useOfflineReplacementMutations(novelId: string) {
 					try {
 						await deleteReplacementsById(id);
 					} catch {
-						await queueOfflineOperation("replacement", "delete", id, novelId, {});
+						await queueOfflineOperation(
+							"replacement",
+							"delete",
+							id,
+							novelId,
+							{},
+						);
 					}
 				}, invalidate);
 			} else {
@@ -891,7 +927,11 @@ export function useOfflineCategoryMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await postKeywordCategories({ nameEn: values.nameEn, nameAr: values.nameAr, color: values.color });
+						const response = await postKeywordCategories({
+							nameEn: values.nameEn,
+							nameAr: values.nameAr,
+							color: values.color,
+						});
 						const saved = response.data as KeywordCategory;
 						await deleteKeywordCategoryById(tempId);
 						await saveKeywordCategory(saved);
@@ -946,7 +986,11 @@ export function useOfflineCategoryMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await putKeywordCategoriesById(id, { nameEn: data.nameEn, nameAr: data.nameAr, color: data.color });
+						const response = await putKeywordCategoriesById(id, {
+							nameEn: data.nameEn,
+							nameAr: data.nameAr,
+							color: data.color,
+						});
 						const saved = response.data as KeywordCategory;
 						await saveKeywordCategory(saved);
 						await updateKeywordCategoryReferences(saved);
@@ -1034,7 +1078,11 @@ export function useOfflineNatureMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await postKeywordNatures({ nameEn: values.nameEn, nameAr: values.nameAr, color: values.color });
+						const response = await postKeywordNatures({
+							nameEn: values.nameEn,
+							nameAr: values.nameAr,
+							color: values.color,
+						});
 						const saved = response.data as KeywordNature;
 						await deleteKeywordNatureById(tempId);
 						await saveKeywordNature(saved);
@@ -1089,7 +1137,11 @@ export function useOfflineNatureMutations() {
 			if (online) {
 				runBackgroundSync(async () => {
 					try {
-						const response = await putKeywordNaturesById(id, { nameEn: data.nameEn, nameAr: data.nameAr, color: data.color });
+						const response = await putKeywordNaturesById(id, {
+							nameEn: data.nameEn,
+							nameAr: data.nameAr,
+							color: data.color,
+						});
 						const saved = response.data as KeywordNature;
 						await saveKeywordNature(saved);
 						await updateKeywordNatureReferences(saved);

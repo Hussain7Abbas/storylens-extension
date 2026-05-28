@@ -54,7 +54,9 @@ export type OfflineReplacement = GetReplacements200DataItem & {
 	isDirty?: boolean;
 };
 
-export function cleanOfflineKeyword(keyword: GetKeywords200DataItem): OfflineKeyword {
+export function cleanOfflineKeyword(
+	keyword: GetKeywords200DataItem,
+): OfflineKeyword {
 	return { ...keyword, isDirty: undefined };
 }
 

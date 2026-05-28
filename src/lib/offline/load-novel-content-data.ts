@@ -108,39 +108,48 @@ async function loadRemoteNovelContentData(
 		return undefined;
 	}
 
-	const [keywordsResponse, replacementsResponse, biasesResponse] = await Promise.all([
-		getKeywords(
-			withListQueryParams(
-				{
-					pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-					query: { novelId: novel.id },
-				},
-				KEYWORD_LIST_SORTING,
+	const [keywordsResponse, replacementsResponse, biasesResponse] =
+		await Promise.all([
+			getKeywords(
+				withListQueryParams(
+					{
+						pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
+						query: { novelId: novel.id },
+					},
+					KEYWORD_LIST_SORTING,
+				),
 			),
-		),
-		getReplacements(
-			withListQueryParams(
-				{
-					pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-					query: { novelId: novel.id },
-				},
-				REPLACEMENT_LIST_SORTING,
+			getReplacements(
+				withListQueryParams(
+					{
+						pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
+						query: { novelId: novel.id },
+					},
+					REPLACEMENT_LIST_SORTING,
+				),
 			),
-		),
-		getWebsiteNovelBiases({ novelId: novel.id }),
-	]);
+			getWebsiteNovelBiases({ novelId: novel.id }),
+		]);
 
 	const rawKeywords = keywordsResponse.data.data;
 	const biases = biasesResponse.data;
-	await writeNovelContentCache(novel, rawKeywords, replacementsResponse.data.data, biases);
+	await writeNovelContentCache(
+		novel,
+		rawKeywords,
+		replacementsResponse.data.data,
+		biases,
+	);
 
 	const keywords = rawKeywords;
 
-	console.log(`${LOG_PREFIX} Loaded novel content from API and cached locally`, {
-		novelId: novel.id,
-		keywordsCount: keywords.length,
-		replacementsCount: replacementsResponse.data.data.length,
-	});
+	console.log(
+		`${LOG_PREFIX} Loaded novel content from API and cached locally`,
+		{
+			novelId: novel.id,
+			keywordsCount: keywords.length,
+			replacementsCount: replacementsResponse.data.data.length,
+		},
+	);
 
 	return {
 		novel,

@@ -59,8 +59,8 @@ export function NatureCards({
 				const isPending = pendingEntityIds.has(nature.id);
 				const displayName =
 					locale === "ar"
-						? (nature.nameAr || nature.nameEn || "")
-						: (nature.nameEn || nature.nameAr || "");
+						? nature.nameAr || nature.nameEn || ""
+						: nature.nameEn || nature.nameAr || "";
 
 				return (
 					<ListItemCard

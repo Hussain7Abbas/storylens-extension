@@ -1,6 +1,9 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { GetNovels200DataItem } from "@/api/generated/schemas";
-import { getDownloadedNovelIds, getPendingDeletedEntityIds } from "@/lib/offline/sync-storage";
+import {
+	getDownloadedNovelIds,
+	getPendingDeletedEntityIds,
+} from "@/lib/offline/sync-storage";
 import type {
 	CatalogNovel,
 	DownloadedNovel,
@@ -89,7 +92,8 @@ class StoryLensOfflineDatabase extends Dexie {
 			replacements: "id, novelId, from",
 			keywordCategories: "id, name",
 			keywordNatures: "id, name",
-			websiteNovelBiases: "id, novelId, websiteSelectorId, [novelId+websiteSelectorId]",
+			websiteNovelBiases:
+				"id, novelId, websiteSelectorId, [novelId+websiteSelectorId]",
 		});
 	}
 }
@@ -155,10 +159,7 @@ export async function getDownloadedNovels(): Promise<DownloadedNovel[]> {
 		return [];
 	}
 
-	return offlineDb.novels
-		.where("id")
-		.anyOf(ids)
-		.sortBy("name");
+	return offlineDb.novels.where("id").anyOf(ids).sortBy("name");
 }
 
 export async function getOfflineNovelBySlug(
@@ -227,8 +228,12 @@ async function replaceReplacementsForNovel(
 	serverReplacements: OfflineReplacement[],
 ): Promise<void> {
 	const existing = await getReplacementsByNovelId(novelId);
-	const dirtyReplacements = existing.filter((replacement) => replacement.isDirty);
-	const dirtyIds = new Set(dirtyReplacements.map((replacement) => replacement.id));
+	const dirtyReplacements = existing.filter(
+		(replacement) => replacement.isDirty,
+	);
+	const dirtyIds = new Set(
+		dirtyReplacements.map((replacement) => replacement.id),
+	);
 	const pendingDeletes = await getPendingDeletedEntityIds(
 		novelId,
 		"replacement",
@@ -255,7 +260,10 @@ async function replaceReplacementsForNovel(
 export async function getBiasesByNovelId(
 	novelId: string,
 ): Promise<OfflineWebsiteNovelBias[]> {
-	return offlineDb.websiteNovelBiases.where("novelId").equals(novelId).toArray();
+	return offlineDb.websiteNovelBiases
+		.where("novelId")
+		.equals(novelId)
+		.toArray();
 }
 
 export async function replaceBiasesForNovel(
@@ -263,7 +271,10 @@ export async function replaceBiasesForNovel(
 	serverBiases: OfflineWebsiteNovelBias[],
 ): Promise<void> {
 	await offlineDb.transaction("rw", offlineDb.websiteNovelBiases, async () => {
-		await offlineDb.websiteNovelBiases.where("novelId").equals(novelId).delete();
+		await offlineDb.websiteNovelBiases
+			.where("novelId")
+			.equals(novelId)
+			.delete();
 		if (serverBiases.length > 0) {
 			await offlineDb.websiteNovelBiases.bulkPut(serverBiases);
 		}
@@ -471,7 +482,9 @@ export async function replaceKeywordId(
 
 	await offlineDb.transaction("rw", offlineDb.keywords, async () => {
 		await offlineDb.keywords.delete(tempId);
-		await offlineDb.keywords.put(cleanOfflineKeyword({ ...keyword, id: serverId }));
+		await offlineDb.keywords.put(
+			cleanOfflineKeyword({ ...keyword, id: serverId }),
+		);
 	});
 }
 

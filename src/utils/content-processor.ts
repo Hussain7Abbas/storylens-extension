@@ -37,16 +37,16 @@ type TermWithMatching = {
 };
 
 function sortTermsByLengthDesc(terms: TermWithMatching[]): TermWithMatching[] {
-	return [...terms].sort(
-		(left, right) => right.term.length - left.term.length,
-	);
+	return [...terms].sort((left, right) => right.term.length - left.term.length);
 }
 
 function escapeRegex(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function dedupeTermsCaseInsensitive(terms: TermWithMatching[]): TermWithMatching[] {
+function dedupeTermsCaseInsensitive(
+	terms: TermWithMatching[],
+): TermWithMatching[] {
 	const seen = new Set<string>();
 	const deduped: TermWithMatching[] = [];
 
@@ -63,7 +63,25 @@ function dedupeTermsCaseInsensitive(terms: TermWithMatching[]): TermWithMatching
 	return deduped;
 }
 
-function wrapFullTermPattern(escaped: string): string {
+// Arabic proclitic prefixes that attach directly to the following word with no space:
+// و (wa- and) ف (fa- then/so) ب (bi- with/by) ل (li-/la- for/to)
+// ك (ka- like/as) س (sa- future) ا (alif — part of ال/لل combinations)
+const ARABIC_PROCLITIC_PREFIX_RE = /^[وفبلكسا]*/u;
+
+// Letters that visually connect to the following character in Arabic script.
+// و and ا (bare alif) are non-connecting, so they are excluded.
+const ARABIC_CONNECTING_LETTERS = new Set(["ب", "ف", "ل", "ك", "س"]);
+
+function withTatweel(prefix: string): string {
+	if (!prefix) return prefix;
+	const last = prefix[prefix.length - 1];
+	return ARABIC_CONNECTING_LETTERS.has(last) ? `${prefix}ـ` : prefix;
+}
+
+function wrapFullTermPattern(escaped: string, term: string): string {
+	if (/^\p{Script=Arabic}/u.test(term)) {
+		return `(?<![\\p{L}\\p{N}_])[وفبلكسا]*${escaped}(?![\\p{L}\\p{N}_])`;
+	}
 	return `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`;
 }
 
@@ -78,7 +96,9 @@ function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
 	const pattern = uniqueTerms
 		.map(({ term, matchingType }) => {
 			const escaped = escapeRegex(term);
-			return matchingType === "FULL" ? wrapFullTermPattern(escaped) : escaped;
+			return matchingType === "FULL"
+				? wrapFullTermPattern(escaped, term)
+				: escaped;
 		})
 		.join("|");
 
@@ -142,10 +162,12 @@ function collectTextNodes(
 	return textNodes;
 }
 
+type MatchInfo = { full: string; core: string; prefix: string };
+
 function processTextNodeMatches(
 	textNode: Text,
 	regex: RegExp,
-	handler: (matchedText: string) => Node | null,
+	handler: (info: MatchInfo) => Node | Node[] | null,
 ): number {
 	const text = textNode.textContent ?? "";
 	if (!text) {
@@ -164,7 +186,7 @@ function processTextNodeMatches(
 	let occurrences = 0;
 
 	while (match) {
-		const matchedText = match[0];
+		const full = match[0];
 		const matchIndex = match.index;
 
 		if (matchIndex > lastIndex) {
@@ -173,17 +195,24 @@ function processTextNodeMatches(
 			);
 		}
 
-		const replacementNode = handler(matchedText);
-		if (replacementNode) {
-			fragment.appendChild(replacementNode);
+		const prefix = ARABIC_PROCLITIC_PREFIX_RE.exec(full)?.[0] ?? "";
+		const core = full.slice(prefix.length);
+		const replacementNodes = handler({ full, core, prefix });
+		if (replacementNodes) {
+			const nodes = Array.isArray(replacementNodes)
+				? replacementNodes
+				: [replacementNodes];
+			for (const node of nodes) {
+				fragment.appendChild(node);
+			}
 			occurrences += 1;
 		} else {
-			fragment.appendChild(document.createTextNode(matchedText));
+			fragment.appendChild(document.createTextNode(full));
 		}
 
-		lastIndex = matchIndex + matchedText.length;
+		lastIndex = matchIndex + full.length;
 
-		if (matchedText.length === 0) {
+		if (full.length === 0) {
 			regex.lastIndex += 1;
 		}
 
@@ -305,13 +334,13 @@ function applyReplacements(
 	let applied = 0;
 
 	for (const textNode of textNodes) {
-		applied += processTextNodeMatches(textNode, regex, (matchedText) => {
-			const replacement = lookup.get(matchedText.toLowerCase());
+		applied += processTextNodeMatches(textNode, regex, ({ core, prefix }) => {
+			const replacement = lookup.get(core.toLowerCase());
 			if (!replacement) {
 				return null;
 			}
 
-			return createReplacedElement(replacement.to);
+			return createReplacedElement(prefix + replacement.to);
 		});
 	}
 
@@ -338,15 +367,25 @@ function applyKeywordHighlights(
 	let highlighted = 0;
 
 	for (const textNode of textNodes) {
-		highlighted += processTextNodeMatches(textNode, regex, (matchedText) => {
-			const keyword = lookup.get(matchedText.toLowerCase());
-			if (!keyword) {
-				return null;
-			}
+		highlighted += processTextNodeMatches(
+			textNode,
+			regex,
+			({ core, prefix }) => {
+				const keyword = lookup.get(core.toLowerCase());
+				if (!keyword) {
+					return null;
+				}
 
-			const parent = keyword.parentId ? byId.get(keyword.parentId) : undefined;
-			return createKeywordElement(matchedText, keyword, parent);
-		});
+				const parent = keyword.parentId
+					? byId.get(keyword.parentId)
+					: undefined;
+				const keywordEl = createKeywordElement(core, keyword, parent);
+				if (!prefix) {
+					return keywordEl;
+				}
+				return [document.createTextNode(withTatweel(prefix)), keywordEl];
+			},
+		);
 	}
 
 	return highlighted;

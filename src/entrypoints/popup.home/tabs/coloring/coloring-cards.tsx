@@ -39,8 +39,16 @@ function keywordMatchesSearch(
 ): boolean {
 	if (!term) return true;
 	const t = term.toLowerCase();
-	const categoryName = (keyword.category.nameEn || keyword.category.nameAr || "").toLowerCase();
-	const natureName = (keyword.nature.nameEn || keyword.nature.nameAr || "").toLowerCase();
+	const categoryName = (
+		keyword.category.nameEn ||
+		keyword.category.nameAr ||
+		""
+	).toLowerCase();
+	const natureName = (
+		keyword.nature.nameEn ||
+		keyword.nature.nameAr ||
+		""
+	).toLowerCase();
 	return (
 		keyword.name.toLowerCase().includes(t) ||
 		keyword.description.toLowerCase().includes(t) ||

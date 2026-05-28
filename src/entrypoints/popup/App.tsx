@@ -20,7 +20,12 @@ import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
-import { APPEARANCE_FONT_FACE_KEY, APPEARANCE_FONT_SIZE_KEY, fontFaceAtom, fontSizeAtom } from "@/store/appearance";
+import {
+	APPEARANCE_FONT_FACE_KEY,
+	APPEARANCE_FONT_SIZE_KEY,
+	fontFaceAtom,
+	fontSizeAtom,
+} from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
 import { Router } from "./routers";
 

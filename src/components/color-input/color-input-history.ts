@@ -93,7 +93,9 @@ export function addColorToHistory(color: string): string[] {
 		return readColorHistory();
 	}
 
-	const history = [...readColorHistory()].filter((entry) => entry !== normalized);
+	const history = [...readColorHistory()].filter(
+		(entry) => entry !== normalized,
+	);
 	const nextHistory = [normalized, ...history].slice(0, MAX_HISTORY);
 	const serialized = JSON.stringify(nextHistory);
 

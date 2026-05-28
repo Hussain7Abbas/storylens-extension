@@ -36,8 +36,8 @@ import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
 import { userRoleAtom } from "@/lib/auth";
 import { useOnlineStatus, usePendingSyncCount } from "@/lib/offline/hooks";
-import { useActiveSyncCount } from "@/store/sync-status";
 import { localeAtom } from "@/store/locale";
+import { useActiveSyncCount } from "@/store/sync-status";
 import { refreshContentScript } from "@/utils/refresh-content-script";
 import classes from "./navbar.module.css";
 

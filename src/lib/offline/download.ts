@@ -59,7 +59,13 @@ async function fetchAllReplacements(
 }
 
 export async function downloadNovel(novelId: string): Promise<void> {
-	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const locale = (() => {
+		try {
+			return JSON.parse(localStorage.getItem("locale") ?? '"en"');
+		} catch {
+			return "en";
+		}
+	})();
 	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
 
 	const [

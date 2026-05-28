@@ -32,9 +32,7 @@ export function SettingsPage() {
 						{isAdmin && (
 							<Tabs.Tab value="category">{t("tabs.category")}</Tabs.Tab>
 						)}
-						{isAdmin && (
-							<Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>
-						)}
+						{isAdmin && <Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>}
 						<Tabs.Tab value="appearance">{t("tabs.appearance")}</Tabs.Tab>
 					</Tabs.List>
 				</Stack>
