@@ -709,10 +709,31 @@ export function useOfflineKeywordMutations(novelId: string) {
 	const deleteMutation = useMutation({
 		mutationFn: async (id: string) => {
 			await ensureCatalogNovelCached(novelId);
+
+			const aliases = await getAliasesByParentId(id);
+
+			for (const alias of aliases) {
+				await deleteKeywordById(alias.id);
+			}
 			await deleteKeywordById(id);
 
 			if (online) {
 				runBackgroundSync(async () => {
+					for (const alias of aliases) {
+						if (!isTempId(alias.id)) {
+							try {
+								await deleteKeywordsById(alias.id);
+							} catch {
+								await queueOfflineOperation(
+									"keyword",
+									"delete",
+									alias.id,
+									novelId,
+									{},
+								);
+							}
+						}
+					}
 					try {
 						await deleteKeywordsById(id);
 					} catch {
@@ -720,6 +741,17 @@ export function useOfflineKeywordMutations(novelId: string) {
 					}
 				}, invalidate);
 			} else {
+				for (const alias of aliases) {
+					if (!isTempId(alias.id)) {
+						await queueOfflineOperation(
+							"keyword",
+							"delete",
+							alias.id,
+							novelId,
+							{},
+						);
+					}
+				}
 				await queueOfflineOperation("keyword", "delete", id, novelId, {});
 			}
 		},

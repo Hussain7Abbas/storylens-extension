@@ -57,6 +57,7 @@ export function ColoringForm({
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	useEffect(() => {
 		if (!imageFile) {
@@ -315,12 +316,12 @@ export function ColoringForm({
 						justify={mode === "edit" ? "space-between" : "flex-end"}
 						mt="md"
 					>
-						{mode === "edit" && (
+						{mode === "edit" && !showDeleteConfirm && (
 							<ActionIcon
 								variant="transparent"
 								color="red"
 								size="lg"
-								onClick={() => handleDelete()}
+								onClick={() => setShowDeleteConfirm(true)}
 							>
 								<IconTrash />
 							</ActionIcon>
@@ -334,6 +335,38 @@ export function ColoringForm({
 							</Button>
 						</Group>
 					</Group>
+
+					{showDeleteConfirm && (
+						<Alert color="red" variant="light">
+							<Stack gap="xs">
+								<Text size="sm">{t("home.confirmDelete")}</Text>
+								{!isAlias && (
+									<Text size="xs" c="dimmed">
+										{t("coloring.deleteAliasesWarning")}
+									</Text>
+								)}
+								<Group grow>
+									<Button
+										variant="outline"
+										size="xs"
+										onClick={() => setShowDeleteConfirm(false)}
+										disabled={deleteMutation.isPending}
+									>
+										{t("_.cancel")}
+									</Button>
+									<Button
+										color="red"
+										variant="outline"
+										size="xs"
+										onClick={handleDelete}
+										loading={deleteMutation.isPending}
+									>
+										{t("_.delete")}
+									</Button>
+								</Group>
+							</Stack>
+						</Alert>
+					)}
 				</Stack>
 			</form>
 		</Stack>

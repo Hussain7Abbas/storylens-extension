@@ -54,7 +54,8 @@
 		"aliases": "Aliases",
 		"addAlias": "Add alias",
 		"noAliases": "No aliases yet",
-		"alias": "Alias"
+		"alias": "Alias",
+		"deleteAliasesWarning": "This will also delete all its aliases."
 	},
 	"replacing": {
 		"from": "From",
