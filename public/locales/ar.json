@@ -53,6 +53,12 @@
 		"aliasOf": "اسم بديل لـ",
 		"aliases": "الأسماء البديلة",
 		"addAlias": "إضافة اسم بديل",
+		"addVersion": "إضافة نسخة",
+		"spoilerVersion": "نسخة مستقبلية — تحذير من الحرق",
+		"version": "نسخة",
+		"versionChapterRange": "نطاق الفصول",
+		"startingChapter": "الفصل الأول",
+		"endingChapter": "الفصل الأخير",
 		"noAliases": "لا توجد أسماء بديلة بعد",
 		"alias": "اسم بديل",
 		"deleteAliasesWarning": "سيؤدي هذا إلى حذف جميع الأسماء البديلة أيضاً."

@@ -330,7 +330,10 @@ export function HomePage() {
 								</Tabs.List>
 							</Stack>
 							<Tabs.Panel value="coloring">
-								<ColoringTab selectedNovelId={selectedNovel?.id} />
+								<ColoringTab
+										selectedNovelId={selectedNovel?.id}
+										currentChapter={detectedChapter}
+									/>
 							</Tabs.Panel>
 							<Tabs.Panel value="replacing">
 								<ReplacingTab selectedNovelId={selectedNovel?.id} />

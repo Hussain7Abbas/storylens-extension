@@ -4,9 +4,9 @@ import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import { getWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
 import {
 	getAllCatalogNovels,
+	getAssembledKeywordsByNovelId,
 	getBiasesByNovelId,
 	getCatalogNovelBySlug,
-	getKeywordsByNovelId,
 	getOfflineNovelBySlug,
 	getReplacementsByNovelId,
 	writeNovelContentCache,
@@ -31,7 +31,7 @@ async function loadLocalNovelContentData(
 	const downloadedNovel = await getOfflineNovelBySlug(novelSlug);
 	if (downloadedNovel) {
 		const [rawKeywords, replacements, biases] = await Promise.all([
-			getKeywordsByNovelId(downloadedNovel.id),
+			getAssembledKeywordsByNovelId(downloadedNovel.id),
 			getReplacementsByNovelId(downloadedNovel.id),
 			getBiasesByNovelId(downloadedNovel.id),
 		]);
@@ -59,7 +59,7 @@ async function loadLocalNovelContentData(
 	}
 
 	const [rawKeywords, replacements, biases] = await Promise.all([
-		getKeywordsByNovelId(catalogNovel.id),
+		getAssembledKeywordsByNovelId(catalogNovel.id),
 		getReplacementsByNovelId(catalogNovel.id),
 		getBiasesByNovelId(catalogNovel.id),
 	]);
@@ -133,6 +133,7 @@ async function loadRemoteNovelContentData(
 
 	const rawKeywords = keywordsResponse.data.data;
 	const biases = biasesResponse.data;
+
 	await writeNovelContentCache(
 		novel,
 		rawKeywords,

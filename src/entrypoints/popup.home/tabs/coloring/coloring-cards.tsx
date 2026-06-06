@@ -13,14 +13,18 @@ import {
 import {
 	IconCloudUpload,
 	IconCornerDownRight,
-	IconPhoto,
+	IconHistory,
 	IconPlus,
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { getKeywords } from "@/api/generated/endpoints/keywords.js";
-import type { GetKeywords200DataItem } from "@/api/generated/schemas";
+import type {
+	GetKeywords200DataItem,
+	GetKeywords200DataItemAliasesItem,
+	GetKeywords200DataItemVersionsItem,
+} from "@/api/generated/schemas";
 import {
 	useOfflineKeywords,
 	useOnlineStatus,
@@ -30,102 +34,49 @@ import { ListItemCard } from "../list-item-card";
 
 type KeywordGroup = {
 	parent: GetKeywords200DataItem;
-	aliases: GetKeywords200DataItem[];
+	aliases: GetKeywords200DataItemAliasesItem[];
+	versions: GetKeywords200DataItemVersionsItem[];
 };
 
-function keywordMatchesSearch(
-	keyword: GetKeywords200DataItem,
-	term: string,
-): boolean {
+function groupMatchesSearch(group: KeywordGroup, term: string): boolean {
 	if (!term) return true;
 	const t = term.toLowerCase();
-	const categoryName = (
-		keyword.category.nameEn ||
-		keyword.category.nameAr ||
-		""
-	).toLowerCase();
-	const natureName = (
-		keyword.nature.nameEn ||
-		keyword.nature.nameAr ||
-		""
-	).toLowerCase();
-	return (
-		keyword.name.toLowerCase().includes(t) ||
-		keyword.description.toLowerCase().includes(t) ||
-		categoryName.includes(t) ||
-		natureName.includes(t)
-	);
-}
-
-function groupAndFilterKeywords(
-	keywords: GetKeywords200DataItem[],
-	search: string,
-): KeywordGroup[] {
-	const term = search.trim().toLowerCase();
-
-	const parentsById = new Map<string, GetKeywords200DataItem>();
-	const aliasesByParentId = new Map<string, GetKeywords200DataItem[]>();
-
-	for (const k of keywords) {
-		if (!k.parentId) {
-			parentsById.set(k.id, k);
-		} else {
-			const existing = aliasesByParentId.get(k.parentId) ?? [];
-			existing.push(k);
-			aliasesByParentId.set(k.parentId, existing);
-		}
-	}
-
-	const allGroups: KeywordGroup[] = [...parentsById.values()].map((parent) => ({
-		parent,
-		aliases: aliasesByParentId.get(parent.id) ?? [],
-	}));
-
-	if (!term) {
-		return allGroups.sort((a, b) => a.parent.name.localeCompare(b.parent.name));
-	}
-
-	const result: KeywordGroup[] = [];
-
-	for (const { parent, aliases } of allGroups) {
-		const parentMatches = keywordMatchesSearch(parent, term);
-		const matchingAliases = aliases.filter((a) =>
-			keywordMatchesSearch(a, term),
-		);
-
-		if (parentMatches) {
-			result.push({ parent, aliases });
-		} else if (matchingAliases.length > 0) {
-			result.push({ parent, aliases: matchingAliases });
-		}
-	}
-
-	return result.sort((a, b) => a.parent.name.localeCompare(b.parent.name));
+	const parentMatches = group.parent.name.toLowerCase().includes(t);
+	if (parentMatches) return true;
+	return group.aliases.some((a) => a.name.toLowerCase().includes(t));
 }
 
 interface ColoringCardsProps extends StackProps {
-	selectedNovelId: string;
+	selectedNovelId: string | undefined;
+	currentChapter: number | undefined;
 	search: string;
-	setKeyword: (
-		keyword: GetKeywords200DataItem,
-		parent?: GetKeywords200DataItem,
-	) => void;
+	onEditKeyword: (keyword: GetKeywords200DataItem) => void;
+	onEditAlias: (alias: GetKeywords200DataItemAliasesItem, parent: GetKeywords200DataItem) => void;
 	onAddAlias?: (parent: GetKeywords200DataItem) => void;
+	onAddVersion?: (parent: GetKeywords200DataItem) => void;
+	onEditVersion?: (
+		version: GetKeywords200DataItemVersionsItem,
+		parent: GetKeywords200DataItem,
+	) => void;
 	readOnly?: boolean;
 }
 
 export function ColoringCards({
 	selectedNovelId,
+	currentChapter,
 	search,
-	setKeyword,
+	onEditKeyword,
+	onEditAlias,
 	onAddAlias,
+	onAddVersion,
+	onEditVersion,
 	readOnly = false,
 	...props
 }: ColoringCardsProps) {
 	const { t } = useTranslation();
 	const online = useOnlineStatus();
 	const pendingEntityIds = usePendingEntityIds();
-	const offline = useOfflineKeywords(selectedNovelId, "");
+	const offline = useOfflineKeywords(selectedNovelId ?? "", "");
 
 	const onlineQuery = useQuery({
 		queryKey: ["keywords", selectedNovelId, "all"],
@@ -140,17 +91,25 @@ export function ColoringCards({
 			);
 			return (response.data.data as GetKeywords200DataItem[]) ?? [];
 		},
-		enabled: !offline.useLocalCache && online,
+		enabled: !offline.useLocalCache && online && !!selectedNovelId,
 	});
 
 	const allItems = offline.useLocalCache
 		? (offline.items ?? [])
 		: (onlineQuery.data ?? []);
 
-	const groups = useMemo(
-		() => groupAndFilterKeywords(allItems, search),
-		[allItems, search],
-	);
+	const groups = useMemo(() => {
+		const term = search.trim().toLowerCase();
+		const all: KeywordGroup[] = allItems
+			.map((parent) => ({
+				parent,
+				aliases: parent.aliases,
+				versions: parent.versions,
+			}))
+			.sort((a, b) => a.parent.name.localeCompare(b.parent.name));
+		if (!term) return all;
+		return all.filter((g) => groupMatchesSearch(g, term));
+	}, [allItems, search]);
 
 	const isLoading = offline.useLocalCache
 		? offline.isLoading
@@ -172,18 +131,33 @@ export function ColoringCards({
 		);
 	}
 
+	const chapter = currentChapter ?? 0;
+
 	return (
 		<Stack gap="xs" {...props}>
-			{groups.map(({ parent, aliases }) => {
+			{groups.map(({ parent, aliases, versions }) => {
 				const isPending =
 					pendingEntityIds.has(parent.id) ||
 					("isDirty" in parent && parent.isDirty === true);
-				const hasImage = Boolean(parent.imageId ?? parent.image?.url);
+
+				const activeVersion =
+					versions.find((v) => {
+						const start = Number(v.startingChapter);
+						const end = v.endingChapter;
+						return start <= chapter && (end === null || end === undefined || Number(end) >= chapter);
+					}) ??
+					[...versions].sort(
+						(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+					)[0];
+
+				const displayCategory = activeVersion?.category;
+				const displayNature = activeVersion?.nature;
+				const hasImage = Boolean(activeVersion?.imageId ?? activeVersion?.image?.url);
 
 				return (
 					<Stack key={parent.id} gap={2}>
 						<ListItemCard
-							onClick={readOnly ? undefined : () => setKeyword(parent)}
+							onClick={readOnly ? undefined : () => onEditKeyword(parent)}
 						>
 							<Group wrap="nowrap" align="flex-start" gap="xs">
 								<Text fw={500} style={{ flex: 1 }}>
@@ -191,12 +165,9 @@ export function ColoringCards({
 								</Text>
 								<Group gap="xs" wrap="nowrap">
 									{hasImage && (
-										<IconPhoto
-											size={14}
-											stroke={1.75}
-											style={{ flexShrink: 0, opacity: 0.7 }}
-											aria-label={t("coloring.hasImage")}
-										/>
+										<Badge size="xs" variant="dot" color="gray">
+											{t("coloring.hasImage")}
+										</Badge>
 									)}
 									{isPending && (
 										<Badge
@@ -208,12 +179,16 @@ export function ColoringCards({
 											{t("offline.pendingSync")}
 										</Badge>
 									)}
-									<Text size="xs" style={{ color: parent.category.color }}>
-										{parent.category.nameEn || parent.category.nameAr}
-									</Text>
-									<Text size="xs" style={{ color: parent.nature.color }}>
-										{parent.nature.nameEn || parent.nature.nameAr}
-									</Text>
+									{displayCategory && (
+										<Text size="xs" style={{ color: displayCategory.color }}>
+											{displayCategory.nameEn || displayCategory.nameAr}
+										</Text>
+									)}
+									{displayNature && (
+										<Text size="xs" style={{ color: displayNature.color }}>
+											{displayNature.nameEn || displayNature.nameAr}
+										</Text>
+									)}
 									{!readOnly && onAddAlias && (
 										<Tooltip label={t("coloring.addAlias")} withArrow>
 											<ActionIcon
@@ -229,18 +204,93 @@ export function ColoringCards({
 											</ActionIcon>
 										</Tooltip>
 									)}
+									{!readOnly && onAddVersion && (
+										<Tooltip label={t("coloring.addVersion")} withArrow>
+											<ActionIcon
+												size="xs"
+												variant="subtle"
+												color="violet"
+												onClick={(e) => {
+													e.stopPropagation();
+													onAddVersion(parent);
+												}}
+											>
+												<IconHistory size={12} />
+											</ActionIcon>
+										</Tooltip>
+									)}
 								</Group>
 							</Group>
-							<Text size="sm" c="dimmed">
-								{parent.description}
-							</Text>
+							{activeVersion?.description && (
+								<Text size="sm" c="dimmed">
+									{activeVersion.description}
+								</Text>
+							)}
 						</ListItemCard>
+
+						{/* Version strip */}
+						{versions.length > 1 && (
+							<Group gap={4} pl="xs" wrap="wrap">
+								{[...versions]
+									.sort(
+										(a, b) =>
+											Number(a.startingChapter) - Number(b.startingChapter),
+									)
+									.map((version) => {
+										const start = Number(version.startingChapter);
+										const end = version.endingChapter;
+										const isFuture = start > chapter;
+										const label =
+											end !== null && end !== undefined ? `ch.${start}–${Number(end)}` : `ch.${start}+`;
+										const versionCategory = version.category;
+
+										return (
+											<Tooltip
+												key={version.id}
+												label={
+													isFuture
+														? t("coloring.spoilerVersion")
+														: `${label}${versionCategory ? ` · ${versionCategory.nameEn || versionCategory.nameAr}` : ""}`
+												}
+												withArrow
+											>
+												<Badge
+													size="xs"
+													variant={isFuture ? "outline" : "light"}
+													color={
+														versionCategory?.color
+															? undefined
+															: "gray"
+													}
+													style={{
+														cursor: readOnly ? "default" : "pointer",
+														textDecoration: isFuture
+															? "line-through"
+															: undefined,
+														opacity: isFuture ? 0.5 : 1,
+														borderColor: versionCategory?.color,
+														color: isFuture
+															? undefined
+															: versionCategory?.color,
+													}}
+													onClick={
+														readOnly || !onEditVersion
+															? undefined
+															: () => onEditVersion(version, parent)
+													}
+												>
+													{label}
+												</Badge>
+											</Tooltip>
+										);
+									})}
+							</Group>
+						)}
 
 						{aliases.map((alias) => {
 							const isAliasPending =
 								pendingEntityIds.has(alias.id) ||
 								("isDirty" in alias && alias.isDirty === true);
-							const aliasHasImage = Boolean(alias.imageId ?? alias.image?.url);
 
 							return (
 								<Group
@@ -263,7 +313,9 @@ export function ColoringCards({
 									<Box style={{ flex: 1, minWidth: 0 }}>
 										<ListItemCard
 											onClick={
-												readOnly ? undefined : () => setKeyword(alias, parent)
+												readOnly
+													? undefined
+													: () => onEditAlias(alias, parent)
 											}
 										>
 											<Group wrap="nowrap" align="flex-start" gap={4}>
@@ -271,14 +323,6 @@ export function ColoringCards({
 													{alias.name}
 												</Text>
 												<Group gap={4} wrap="nowrap">
-													{aliasHasImage && (
-														<IconPhoto
-															size={12}
-															stroke={1.75}
-															style={{ flexShrink: 0, opacity: 0.7 }}
-															aria-label={t("coloring.hasImage")}
-														/>
-													)}
 													{isAliasPending && (
 														<Badge
 															size="xs"
@@ -289,20 +333,29 @@ export function ColoringCards({
 															{t("offline.pendingSync")}
 														</Badge>
 													)}
-													<Text
-														size="xs"
-														style={{ color: alias.category.color }}
-													>
-														{alias.category.nameEn || alias.category.nameAr}
-													</Text>
-													<Text size="xs" style={{ color: alias.nature.color }}>
-														{alias.nature.nameEn || alias.nature.nameAr}
-													</Text>
+													{displayCategory && (
+														<Text
+															size="xs"
+															style={{ color: displayCategory.color }}
+														>
+															{displayCategory.nameEn || displayCategory.nameAr}
+														</Text>
+													)}
+													{displayNature && (
+														<Text
+															size="xs"
+															style={{ color: displayNature.color }}
+														>
+															{displayNature.nameEn || displayNature.nameAr}
+														</Text>
+													)}
 												</Group>
 											</Group>
-											<Text size="xs" c="dimmed">
-												{alias.description}
-											</Text>
+											{alias.description && (
+												<Text size="xs" c="dimmed">
+													{alias.description}
+												</Text>
+											)}
 										</ListItemCard>
 									</Box>
 								</Group>

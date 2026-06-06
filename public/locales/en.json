@@ -53,6 +53,12 @@
 		"aliasOf": "Alias of",
 		"aliases": "Aliases",
 		"addAlias": "Add alias",
+		"addVersion": "Add version",
+		"spoilerVersion": "Future version — spoiler",
+		"version": "Version",
+		"versionChapterRange": "Chapter range",
+		"startingChapter": "Starting chapter",
+		"endingChapter": "Ending chapter",
 		"noAliases": "No aliases yet",
 		"alias": "Alias",
 		"deleteAliasesWarning": "This will also delete all its aliases."

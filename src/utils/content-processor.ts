@@ -8,6 +8,7 @@ import {
 	initKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
 } from "@/utils/keyword-tooltip";
+import { enrichKeywords } from "@/utils/resolve-keyword-version";
 
 const LOG_PREFIX = "[StoryLens]";
 const PROCESS_ATTR = "data-storylens-processed";
@@ -304,7 +305,7 @@ function buildReplacementLookup(
 }
 
 function buildKeywordLookup(
-	keywords: NovelContentData["keywords"],
+	keywords: EnrichedKeyword[],
 ): Map<string, EnrichedKeyword> {
 	const lookup = new Map<string, EnrichedKeyword>();
 	const sortedKeywords = [...keywords].sort(
@@ -312,10 +313,6 @@ function buildKeywordLookup(
 	);
 
 	for (const keyword of sortedKeywords) {
-		if (!keyword.name) {
-			continue;
-		}
-
 		const key = keyword.name.toLowerCase();
 		if (!lookup.has(key)) {
 			lookup.set(key, keyword);
@@ -325,9 +322,7 @@ function buildKeywordLookup(
 	return lookup;
 }
 
-function buildKeywordById(
-	keywords: NovelContentData["keywords"],
-): Map<string, EnrichedKeyword> {
+function buildKeywordById(keywords: EnrichedKeyword[]): Map<string, EnrichedKeyword> {
 	const byId = new Map<string, EnrichedKeyword>();
 	for (const keyword of keywords) {
 		byId.set(keyword.id, keyword);
@@ -366,7 +361,7 @@ function applyReplacements(
 
 function applyKeywordHighlights(
 	root: HTMLElement,
-	keywords: NovelContentData["keywords"],
+	keywords: EnrichedKeyword[],
 ): number {
 	const regex = buildCombinedPattern(
 		keywords.map((keyword) => ({
@@ -387,8 +382,8 @@ function applyKeywordHighlights(
 		highlighted += processTextNodeMatches(textNode, regex, (matchedText) => {
 			const found = findKeywordMatch(matchedText, lookup);
 			if (!found) return null;
-			const parent = found.value.parentId
-				? byId.get(found.value.parentId)
+			const parent = found.value.keywordId
+				? byId.get(found.value.keywordId)
 				: undefined;
 			const keywordEl = createKeywordElement(found.core, found.value, parent);
 			if (!found.prefix) return keywordEl;
@@ -429,8 +424,9 @@ export function applyContentProcessing(
 		contentLength: root.textContent?.length ?? 0,
 	});
 
+	const enriched = enrichKeywords(data.keywords, data.chapterNumber ?? 0);
 	const replacementsApplied = applyReplacements(root, data.replacements);
-	const keywordsHighlighted = applyKeywordHighlights(root, data.keywords);
+	const keywordsHighlighted = applyKeywordHighlights(root, enriched);
 
 	initKeywordTooltipPortal();
 
