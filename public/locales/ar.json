@@ -51,6 +51,7 @@
 		"updateFailed": "فشل تحديث الكلمة المفتاحية",
 		"fullWordMatch": "مطابقة الكلمة كاملة",
 		"aliasOf": "اسم بديل لـ",
+		"overrideStyle": "تجاوز النمط",
 		"aliases": "الأسماء البديلة",
 		"addAlias": "إضافة اسم بديل",
 		"addVersion": "إضافة نسخة",

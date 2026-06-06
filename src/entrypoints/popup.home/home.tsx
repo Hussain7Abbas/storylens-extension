@@ -331,9 +331,9 @@ export function HomePage() {
 							</Stack>
 							<Tabs.Panel value="coloring">
 								<ColoringTab
-										selectedNovelId={selectedNovel?.id}
-										currentChapter={detectedChapter}
-									/>
+									selectedNovelId={selectedNovel?.id}
+									currentChapter={detectedChapter}
+								/>
 							</Tabs.Panel>
 							<Tabs.Panel value="replacing">
 								<ReplacingTab selectedNovelId={selectedNovel?.id} />

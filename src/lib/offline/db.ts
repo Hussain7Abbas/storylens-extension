@@ -179,24 +179,36 @@ export async function getKeywordsByNovelId(
 export async function getAliasesByKeywordId(
 	keywordId: string,
 ): Promise<OfflineKeywordAlias[]> {
-	return offlineDb.keywordAliases.where("keywordId").equals(keywordId).toArray();
+	return offlineDb.keywordAliases
+		.where("keywordId")
+		.equals(keywordId)
+		.toArray();
 }
 
 export async function getVersionsByKeywordId(
 	keywordId: string,
 ): Promise<OfflineKeywordVersion[]> {
-	return offlineDb.keywordVersions.where("keywordId").equals(keywordId).toArray();
+	return offlineDb.keywordVersions
+		.where("keywordId")
+		.equals(keywordId)
+		.toArray();
 }
 
-export async function getKeywordById(id: string): Promise<OfflineKeyword | undefined> {
+export async function getKeywordById(
+	id: string,
+): Promise<OfflineKeyword | undefined> {
 	return offlineDb.keywords.get(id);
 }
 
-export async function getKeywordAliasById(id: string): Promise<OfflineKeywordAlias | undefined> {
+export async function getKeywordAliasById(
+	id: string,
+): Promise<OfflineKeywordAlias | undefined> {
 	return offlineDb.keywordAliases.get(id);
 }
 
-export async function getKeywordVersionById(id: string): Promise<OfflineKeywordVersion | undefined> {
+export async function getKeywordVersionById(
+	id: string,
+): Promise<OfflineKeywordVersion | undefined> {
 	return offlineDb.keywordVersions.get(id);
 }
 
@@ -269,7 +281,10 @@ export async function getOfflineNovelBySlug(
 	if (downloadedIds.length === 0) return undefined;
 
 	const normalized = slug.trim().toLowerCase();
-	const novels = await offlineDb.novels.where("id").anyOf(downloadedIds).toArray();
+	const novels = await offlineDb.novels
+		.where("id")
+		.anyOf(downloadedIds)
+		.toArray();
 	return novels.find((novel) =>
 		novel.slugs.some((entry) => entry.trim().toLowerCase() === normalized),
 	);
@@ -325,17 +340,22 @@ async function replaceKeywordsForNovel(
 			await offlineDb.keywords.where("novelId").equals(novelId).delete();
 			const rootIds = serverKeywords.map((k) => k.id);
 			if (rootIds.length > 0) {
-				await offlineDb.keywordAliases.where("keywordId").anyOf(rootIds).delete();
-				await offlineDb.keywordVersions.where("keywordId").anyOf(rootIds).delete();
+				await offlineDb.keywordAliases
+					.where("keywordId")
+					.anyOf(rootIds)
+					.delete();
+				await offlineDb.keywordVersions
+					.where("keywordId")
+					.anyOf(rootIds)
+					.delete();
 			}
 
-			const merged: OfflineKeyword[] = [
-				...cleanRoots,
-				...dirtyKeywords,
-			];
+			const merged: OfflineKeyword[] = [...cleanRoots, ...dirtyKeywords];
 			if (merged.length > 0) await offlineDb.keywords.bulkPut(merged);
-			if (cleanAliases.length > 0) await offlineDb.keywordAliases.bulkPut(cleanAliases);
-			if (cleanVersions.length > 0) await offlineDb.keywordVersions.bulkPut(cleanVersions);
+			if (cleanAliases.length > 0)
+				await offlineDb.keywordAliases.bulkPut(cleanAliases);
+			if (cleanVersions.length > 0)
+				await offlineDb.keywordVersions.bulkPut(cleanVersions);
 		},
 	);
 }
@@ -347,7 +367,10 @@ async function replaceReplacementsForNovel(
 	const existing = await getReplacementsByNovelId(novelId);
 	const dirtyReplacements = existing.filter((r) => r.isDirty);
 	const dirtyIds = new Set(dirtyReplacements.map((r) => r.id));
-	const pendingDeletes = await getPendingDeletedEntityIds(novelId, "replacement");
+	const pendingDeletes = await getPendingDeletedEntityIds(
+		novelId,
+		"replacement",
+	);
 
 	const merged = [
 		...serverReplacements
@@ -365,7 +388,10 @@ async function replaceReplacementsForNovel(
 export async function getBiasesByNovelId(
 	novelId: string,
 ): Promise<OfflineWebsiteNovelBias[]> {
-	return offlineDb.websiteNovelBiases.where("novelId").equals(novelId).toArray();
+	return offlineDb.websiteNovelBiases
+		.where("novelId")
+		.equals(novelId)
+		.toArray();
 }
 
 export async function replaceBiasesForNovel(
@@ -373,8 +399,12 @@ export async function replaceBiasesForNovel(
 	serverBiases: OfflineWebsiteNovelBias[],
 ): Promise<void> {
 	await offlineDb.transaction("rw", offlineDb.websiteNovelBiases, async () => {
-		await offlineDb.websiteNovelBiases.where("novelId").equals(novelId).delete();
-		if (serverBiases.length > 0) await offlineDb.websiteNovelBiases.bulkPut(serverBiases);
+		await offlineDb.websiteNovelBiases
+			.where("novelId")
+			.equals(novelId)
+			.delete();
+		if (serverBiases.length > 0)
+			await offlineDb.websiteNovelBiases.bulkPut(serverBiases);
 	});
 }
 
@@ -401,11 +431,15 @@ export async function saveKeyword(keyword: OfflineKeyword): Promise<void> {
 	await offlineDb.keywords.put(keyword);
 }
 
-export async function saveKeywordAlias(alias: OfflineKeywordAlias): Promise<void> {
+export async function saveKeywordAlias(
+	alias: OfflineKeywordAlias,
+): Promise<void> {
 	await offlineDb.keywordAliases.put(alias);
 }
 
-export async function saveKeywordVersion(version: OfflineKeywordVersion): Promise<void> {
+export async function saveKeywordVersion(
+	version: OfflineKeywordVersion,
+): Promise<void> {
 	await offlineDb.keywordVersions.put(version);
 }
 
@@ -445,7 +479,9 @@ export async function clearKeywordVersionDirty(id: string): Promise<void> {
 	await offlineDb.keywordVersions.put(cleanOfflineKeywordVersion(version));
 }
 
-export async function saveReplacement(replacement: OfflineReplacement): Promise<void> {
+export async function saveReplacement(
+	replacement: OfflineReplacement,
+): Promise<void> {
 	await offlineDb.replacements.put(replacement);
 }
 
@@ -491,7 +527,9 @@ export async function saveKeywordCategory(
 	await offlineDb.keywordCategories.put(category);
 }
 
-export async function saveKeywordNature(nature: OfflineKeywordNature): Promise<void> {
+export async function saveKeywordNature(
+	nature: OfflineKeywordNature,
+): Promise<void> {
 	await offlineDb.keywordNatures.put(nature);
 }
 
@@ -534,7 +572,11 @@ export async function replaceKeywordCategoryId(
 			await offlineDb.keywordCategories.delete(tempId);
 			await offlineDb.keywordCategories.put(serverCategory);
 			await offlineDb.keywordVersions.bulkPut(
-				versions.map((v) => ({ ...v, categoryId: serverId, category: serverCategory })),
+				versions.map((v) => ({
+					...v,
+					categoryId: serverId,
+					category: serverCategory,
+				})),
 			);
 		},
 	);
@@ -559,7 +601,11 @@ export async function replaceKeywordNatureId(
 			await offlineDb.keywordNatures.delete(tempId);
 			await offlineDb.keywordNatures.put(serverNature);
 			await offlineDb.keywordVersions.bulkPut(
-				versions.map((v) => ({ ...v, natureId: serverId, nature: serverNature })),
+				versions.map((v) => ({
+					...v,
+					natureId: serverId,
+					nature: serverNature,
+				})),
 			);
 		},
 	);
@@ -594,25 +640,43 @@ export async function replaceKeywordId(
 	const keyword = await offlineDb.keywords.get(tempId);
 	if (!keyword) return;
 
-	const aliases = await offlineDb.keywordAliases.where("keywordId").equals(tempId).toArray();
-	const versions = await offlineDb.keywordVersions.where("keywordId").equals(tempId).toArray();
+	const aliases = await offlineDb.keywordAliases
+		.where("keywordId")
+		.equals(tempId)
+		.toArray();
+	const versions = await offlineDb.keywordVersions
+		.where("keywordId")
+		.equals(tempId)
+		.toArray();
 
 	await offlineDb.transaction(
 		"rw",
 		[offlineDb.keywords, offlineDb.keywordAliases, offlineDb.keywordVersions],
 		async () => {
 			await offlineDb.keywords.delete(tempId);
-			await offlineDb.keywords.put(cleanOfflineKeyword({ ...keyword, id: serverId }));
+			await offlineDb.keywords.put(
+				cleanOfflineKeyword({ ...keyword, id: serverId }),
+			);
 			if (aliases.length > 0) {
-				await offlineDb.keywordAliases.where("keywordId").equals(tempId).delete();
+				await offlineDb.keywordAliases
+					.where("keywordId")
+					.equals(tempId)
+					.delete();
 				await offlineDb.keywordAliases.bulkPut(
-					aliases.map((a) => cleanOfflineKeywordAlias({ ...a, keywordId: serverId })),
+					aliases.map((a) =>
+						cleanOfflineKeywordAlias({ ...a, keywordId: serverId }),
+					),
 				);
 			}
 			if (versions.length > 0) {
-				await offlineDb.keywordVersions.where("keywordId").equals(tempId).delete();
+				await offlineDb.keywordVersions
+					.where("keywordId")
+					.equals(tempId)
+					.delete();
 				await offlineDb.keywordVersions.bulkPut(
-					versions.map((v) => cleanOfflineKeywordVersion({ ...v, keywordId: serverId })),
+					versions.map((v) =>
+						cleanOfflineKeywordVersion({ ...v, keywordId: serverId }),
+					),
 				);
 			}
 		},
@@ -628,7 +692,9 @@ export async function replaceKeywordAliasId(
 
 	await offlineDb.transaction("rw", offlineDb.keywordAliases, async () => {
 		await offlineDb.keywordAliases.delete(tempId);
-		await offlineDb.keywordAliases.put(cleanOfflineKeywordAlias({ ...alias, id: serverId }));
+		await offlineDb.keywordAliases.put(
+			cleanOfflineKeywordAlias({ ...alias, id: serverId }),
+		);
 	});
 }
 
@@ -641,7 +707,9 @@ export async function replaceKeywordVersionId(
 
 	await offlineDb.transaction("rw", offlineDb.keywordVersions, async () => {
 		await offlineDb.keywordVersions.delete(tempId);
-		await offlineDb.keywordVersions.put(cleanOfflineKeywordVersion({ ...version, id: serverId }));
+		await offlineDb.keywordVersions.put(
+			cleanOfflineKeywordVersion({ ...version, id: serverId }),
+		);
 	});
 }
 
@@ -674,8 +742,14 @@ export async function clearNovelOfflineData(novelId: string): Promise<void> {
 		],
 		async () => {
 			if (rootIds.length > 0) {
-				await offlineDb.keywordAliases.where("keywordId").anyOf(rootIds).delete();
-				await offlineDb.keywordVersions.where("keywordId").anyOf(rootIds).delete();
+				await offlineDb.keywordAliases
+					.where("keywordId")
+					.anyOf(rootIds)
+					.delete();
+				await offlineDb.keywordVersions
+					.where("keywordId")
+					.anyOf(rootIds)
+					.delete();
 			}
 			await offlineDb.keywords.where("novelId").equals(novelId).delete();
 			await offlineDb.replacements.where("novelId").equals(novelId).delete();

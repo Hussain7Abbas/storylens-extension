@@ -3,7 +3,11 @@ import type {
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
-import type { EnrichedKeyword } from "@/types/content-data";
+import type {
+	EnrichedCategory,
+	EnrichedKeyword,
+	EnrichedNature,
+} from "@/types/content-data";
 
 function toDateString(value: unknown): string {
 	if (typeof value === "string") return value;
@@ -11,10 +15,6 @@ function toDateString(value: unknown): string {
 	return String(value);
 }
 
-/**
- * Finds the version that applies to `currentChapter`.
- * Falls back to the version with the lowest startingChapter.
- */
 function pickVersion(
 	versions: GetKeywords200DataItemVersionsItem[],
 	currentChapter: number,
@@ -24,47 +24,88 @@ function pickVersion(
 	const active = versions.find((v) => {
 		const start = Number(v.startingChapter);
 		const end = v.endingChapter;
-		return start <= currentChapter && (end === null || end === undefined || Number(end) >= currentChapter);
+		return (
+			start <= currentChapter &&
+			(end === null || end === undefined || Number(end) >= currentChapter)
+		);
 	});
 	if (active) return active;
 
-	return [...versions].sort((a, b) => Number(a.startingChapter) - Number(b.startingChapter))[0];
+	return [...versions].sort(
+		(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+	)[0];
 }
 
-function enrichFromVersion(
-	id: string,
-	name: string,
-	matchingType: "FULL" | "PARTIAL",
-	keywordId: string | null,
-	novelId: string,
-	createdById: string | null,
-	createdAt: unknown,
-	updatedAt: unknown,
-	version: GetKeywords200DataItemVersionsItem,
-	descriptionOverride?: string | null,
-): EnrichedKeyword {
+/**
+ * Resolves a nullable field through the priority chain:
+ *   alias (override) → active version → alias (no override) → base version
+ * When called without alias args, behaves as: active → base.
+ */
+function pickField<T>(
+	activeVal: T | null | undefined,
+	baseVal: T | null | undefined,
+	aliasVal?: T | null | undefined,
+	override?: boolean,
+): T | null {
+	if (override && aliasVal != null) return aliasVal;
+	if (activeVal != null) return activeVal;
+	if (aliasVal != null) return aliasVal;
+	return baseVal ?? null;
+}
+
+export type ResolvedStyle = {
+	category: EnrichedCategory;
+	nature: EnrichedNature;
+	description: string | null;
+	imageId: string | null;
+	image: GetKeywords200DataItemVersionsItem["image"];
+};
+
+/**
+ * Resolves the display style for a keyword or alias entry.
+ * Returns null if category or nature cannot be resolved (base version has no style).
+ */
+export function resolveStyle(
+	active: GetKeywords200DataItemVersionsItem | undefined,
+	base: GetKeywords200DataItemVersionsItem | undefined,
+	alias?: GetKeywords200DataItemAliasesItem | null,
+): ResolvedStyle | null {
+	const override = alias?.overrideStyle ?? false;
+
+	const category = pickField(
+		active?.category as EnrichedCategory | null | undefined,
+		base?.category as EnrichedCategory | null | undefined,
+		alias?.category as EnrichedCategory | null | undefined,
+		override,
+	);
+	const nature = pickField(
+		active?.nature as EnrichedNature | null | undefined,
+		base?.nature as EnrichedNature | null | undefined,
+		alias?.nature as EnrichedNature | null | undefined,
+		override,
+	);
+
+	if (!category || !nature) return null;
+
+	const description = pickField(
+		active?.description,
+		base?.description,
+		alias?.description,
+		override,
+	);
+
 	return {
-		id,
-		name,
-		description: descriptionOverride !== undefined ? descriptionOverride : (version.description ?? null),
-		matchingType,
-		categoryId: version.categoryId,
-		natureId: version.natureId,
-		imageId: version.imageId ?? null,
-		keywordId,
-		novelId,
-		createdById,
-		createdAt: toDateString(createdAt),
-		updatedAt: toDateString(updatedAt),
-		category: version.category,
-		nature: version.nature,
-		image: version.image,
+		category,
+		nature,
+		description,
+		imageId: active?.imageId ?? base?.imageId ?? null,
+		image: active?.image ?? base?.image ?? null,
 	};
 }
 
 /**
  * Converts root keywords (with embedded aliases/versions) into EnrichedKeyword[].
- * One EnrichedKeyword per root keyword + one per alias.
+ * Applies the style fallback chain: alias override → active version → alias fallback → base version.
  */
 export function enrichKeywords(
 	keywords: GetKeywords200DataItem[],
@@ -73,38 +114,54 @@ export function enrichKeywords(
 	const enriched: EnrichedKeyword[] = [];
 
 	for (const kw of keywords) {
-		const activeVersion = pickVersion(kw.versions, currentChapter);
-		if (!activeVersion) continue;
-
-		enriched.push(
-			enrichFromVersion(
-				kw.id,
-				kw.name,
-				kw.matchingType,
-				null,
-				kw.novelId,
-				kw.createdById ?? null,
-				kw.createdAt,
-				kw.updatedAt,
-				activeVersion,
-			),
+		const sorted = [...kw.versions].sort(
+			(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
 		);
+		const base = sorted[0];
+		const active = pickVersion(kw.versions, currentChapter);
+
+		const kwStyle = resolveStyle(active, base);
+		if (!kwStyle) continue;
+
+		enriched.push({
+			id: kw.id,
+			name: kw.name,
+			description: kwStyle.description,
+			matchingType: kw.matchingType,
+			categoryId: kwStyle.category.id,
+			natureId: kwStyle.nature.id,
+			imageId: kwStyle.imageId,
+			keywordId: null,
+			novelId: kw.novelId,
+			createdById: kw.createdById ?? null,
+			createdAt: toDateString(kw.createdAt),
+			updatedAt: toDateString(kw.updatedAt),
+			category: kwStyle.category,
+			nature: kwStyle.nature,
+			image: kwStyle.image,
+		});
 
 		for (const alias of kw.aliases) {
-			enriched.push(
-				enrichFromVersion(
-					alias.id,
-					alias.name,
-					alias.matchingType,
-					kw.id,
-					kw.novelId,
-					alias.createdById ?? null,
-					alias.createdAt,
-					alias.updatedAt,
-					activeVersion,
-					alias.description ?? null,
-				),
-			);
+			const aliasStyle = resolveStyle(active, base, alias);
+			if (!aliasStyle) continue;
+
+			enriched.push({
+				id: alias.id,
+				name: alias.name,
+				description: aliasStyle.description,
+				matchingType: alias.matchingType,
+				categoryId: aliasStyle.category.id,
+				natureId: aliasStyle.nature.id,
+				imageId: aliasStyle.imageId,
+				keywordId: kw.id,
+				novelId: kw.novelId,
+				createdById: alias.createdById ?? null,
+				createdAt: toDateString(alias.createdAt),
+				updatedAt: toDateString(alias.updatedAt),
+				category: aliasStyle.category,
+				nature: aliasStyle.nature,
+				image: aliasStyle.image,
+			});
 		}
 	}
 
@@ -121,5 +178,7 @@ export function isVersionFuture(
 	return Number(version.startingChapter) > currentChapter;
 }
 
-export type { GetKeywords200DataItemVersionsItem as KeywordVersion };
-export type { GetKeywords200DataItemAliasesItem as KeywordAlias };
+export type {
+	GetKeywords200DataItemAliasesItem as KeywordAlias,
+	GetKeywords200DataItemVersionsItem as KeywordVersion,
+};

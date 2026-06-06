@@ -30,6 +30,7 @@ import {
 	useOnlineStatus,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
+import { resolveStyle } from "@/utils/resolve-keyword-version";
 import { ListItemCard } from "../list-item-card";
 
 type KeywordGroup = {
@@ -51,7 +52,10 @@ interface ColoringCardsProps extends StackProps {
 	currentChapter: number | undefined;
 	search: string;
 	onEditKeyword: (keyword: GetKeywords200DataItem) => void;
-	onEditAlias: (alias: GetKeywords200DataItemAliasesItem, parent: GetKeywords200DataItem) => void;
+	onEditAlias: (
+		alias: GetKeywords200DataItemAliasesItem,
+		parent: GetKeywords200DataItem,
+	) => void;
 	onAddAlias?: (parent: GetKeywords200DataItem) => void;
 	onAddVersion?: (parent: GetKeywords200DataItem) => void;
 	onEditVersion?: (
@@ -140,19 +144,24 @@ export function ColoringCards({
 					pendingEntityIds.has(parent.id) ||
 					("isDirty" in parent && parent.isDirty === true);
 
+				const sortedVersions = [...versions].sort(
+					(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+				);
+				const baseVersion = sortedVersions[0];
 				const activeVersion =
 					versions.find((v) => {
 						const start = Number(v.startingChapter);
 						const end = v.endingChapter;
-						return start <= chapter && (end === null || end === undefined || Number(end) >= chapter);
-					}) ??
-					[...versions].sort(
-						(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
-					)[0];
+						return (
+							start <= chapter &&
+							(end === null || end === undefined || Number(end) >= chapter)
+						);
+					}) ?? baseVersion;
 
-				const displayCategory = activeVersion?.category;
-				const displayNature = activeVersion?.nature;
-				const hasImage = Boolean(activeVersion?.imageId ?? activeVersion?.image?.url);
+				const kwStyle = resolveStyle(activeVersion, baseVersion);
+				const displayCategory = kwStyle?.category;
+				const displayNature = kwStyle?.nature;
+				const hasImage = Boolean(kwStyle?.imageId ?? kwStyle?.image?.url);
 
 				return (
 					<Stack key={parent.id} gap={2}>
@@ -221,9 +230,9 @@ export function ColoringCards({
 									)}
 								</Group>
 							</Group>
-							{activeVersion?.description && (
+							{kwStyle?.description && (
 								<Text size="sm" c="dimmed">
-									{activeVersion.description}
+									{kwStyle.description}
 								</Text>
 							)}
 						</ListItemCard>
@@ -231,59 +240,49 @@ export function ColoringCards({
 						{/* Version strip */}
 						{versions.length > 1 && (
 							<Group gap={4} pl="xs" wrap="wrap">
-								{[...versions]
-									.sort(
-										(a, b) =>
-											Number(a.startingChapter) - Number(b.startingChapter),
-									)
-									.map((version) => {
-										const start = Number(version.startingChapter);
-										const end = version.endingChapter;
-										const isFuture = start > chapter;
-										const label =
-											end !== null && end !== undefined ? `ch.${start}–${Number(end)}` : `ch.${start}+`;
-										const versionCategory = version.category;
+								{sortedVersions.map((version) => {
+									const start = Number(version.startingChapter);
+									const end = version.endingChapter;
+									const isFuture = start > chapter;
+									const label =
+										end !== null && end !== undefined
+											? `ch.${start}–${Number(end)}`
+											: `ch.${start}+`;
+									const versionStyle = resolveStyle(version, baseVersion);
+									const versionCategory = versionStyle?.category;
 
-										return (
-											<Tooltip
-												key={version.id}
-												label={
-													isFuture
-														? t("coloring.spoilerVersion")
-														: `${label}${versionCategory ? ` · ${versionCategory.nameEn || versionCategory.nameAr}` : ""}`
+									return (
+										<Tooltip
+											key={version.id}
+											label={
+												isFuture
+													? t("coloring.spoilerVersion")
+													: `${label}${versionCategory ? ` · ${versionCategory.nameEn || versionCategory.nameAr}` : ""}`
+											}
+											withArrow
+										>
+											<Badge
+												size="xs"
+												variant={isFuture ? "outline" : "light"}
+												color={versionCategory?.color ? undefined : "gray"}
+												style={{
+													cursor: readOnly ? "default" : "pointer",
+													textDecoration: isFuture ? "line-through" : undefined,
+													opacity: isFuture ? 0.5 : 1,
+													borderColor: versionCategory?.color,
+													color: isFuture ? undefined : versionCategory?.color,
+												}}
+												onClick={
+													readOnly || !onEditVersion
+														? undefined
+														: () => onEditVersion(version, parent)
 												}
-												withArrow
 											>
-												<Badge
-													size="xs"
-													variant={isFuture ? "outline" : "light"}
-													color={
-														versionCategory?.color
-															? undefined
-															: "gray"
-													}
-													style={{
-														cursor: readOnly ? "default" : "pointer",
-														textDecoration: isFuture
-															? "line-through"
-															: undefined,
-														opacity: isFuture ? 0.5 : 1,
-														borderColor: versionCategory?.color,
-														color: isFuture
-															? undefined
-															: versionCategory?.color,
-													}}
-													onClick={
-														readOnly || !onEditVersion
-															? undefined
-															: () => onEditVersion(version, parent)
-													}
-												>
-													{label}
-												</Badge>
-											</Tooltip>
-										);
-									})}
+												{label}
+											</Badge>
+										</Tooltip>
+									);
+								})}
 							</Group>
 						)}
 
@@ -291,6 +290,13 @@ export function ColoringCards({
 							const isAliasPending =
 								pendingEntityIds.has(alias.id) ||
 								("isDirty" in alias && alias.isDirty === true);
+							const aliasStyle = resolveStyle(
+								activeVersion,
+								baseVersion,
+								alias,
+							);
+							const aliasCat = aliasStyle?.category;
+							const aliasNature = aliasStyle?.nature;
 
 							return (
 								<Group
@@ -313,9 +319,7 @@ export function ColoringCards({
 									<Box style={{ flex: 1, minWidth: 0 }}>
 										<ListItemCard
 											onClick={
-												readOnly
-													? undefined
-													: () => onEditAlias(alias, parent)
+												readOnly ? undefined : () => onEditAlias(alias, parent)
 											}
 										>
 											<Group wrap="nowrap" align="flex-start" gap={4}>
@@ -333,27 +337,24 @@ export function ColoringCards({
 															{t("offline.pendingSync")}
 														</Badge>
 													)}
-													{displayCategory && (
-														<Text
-															size="xs"
-															style={{ color: displayCategory.color }}
-														>
-															{displayCategory.nameEn || displayCategory.nameAr}
+													{aliasCat && (
+														<Text size="xs" style={{ color: aliasCat.color }}>
+															{aliasCat.nameEn || aliasCat.nameAr}
 														</Text>
 													)}
-													{displayNature && (
+													{aliasNature && (
 														<Text
 															size="xs"
-															style={{ color: displayNature.color }}
+															style={{ color: aliasNature.color }}
 														>
-															{displayNature.nameEn || displayNature.nameAr}
+															{aliasNature.nameEn || aliasNature.nameAr}
 														</Text>
 													)}
 												</Group>
 											</Group>
-											{alias.description && (
+											{aliasStyle?.description && (
 												<Text size="xs" c="dimmed">
-													{alias.description}
+													{aliasStyle.description}
 												</Text>
 											)}
 										</ListItemCard>

@@ -38,12 +38,12 @@ import type {
 	PostKeywordAliasesBodyOne,
 	PostKeywordCategoriesBodyOne,
 	PostKeywordNaturesBodyOne,
-	PostKeywordVersionsBodyOne,
 	PostKeywordsBodyOne,
+	PostKeywordVersionsBodyOne,
 	PostReplacementsBodyOne,
 	PutKeywordAliasesByIdBodyOne,
-	PutKeywordVersionsByIdBodyOne,
 	PutKeywordsByIdBodyOne,
+	PutKeywordVersionsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
 } from "@/api/generated/schemas";
 import { withBackgroundSync } from "@/lib/offline/background-sync";
@@ -145,9 +145,7 @@ function filterBySearch<
 function sortKeywords(
 	items: GetKeywords200DataItem[],
 ): GetKeywords200DataItem[] {
-	return [...items].sort((left, right) =>
-		left.name.localeCompare(right.name),
-	);
+	return [...items].sort((left, right) => left.name.localeCompare(right.name));
 }
 
 function sortReplacements(
@@ -523,6 +521,24 @@ async function resolveKeywordLookups(
 	return { category, nature };
 }
 
+async function resolveKeywordLookupsOptional(
+	categoryId: string | null | undefined,
+	natureId: string | null | undefined,
+): Promise<{ category: KeywordCategory | null; nature: KeywordNature | null }> {
+	const [categories, natures] = await Promise.all([
+		categoryId
+			? getAllKeywordCategories()
+			: Promise.resolve([] as KeywordCategory[]),
+		natureId ? getAllKeywordNatures() : Promise.resolve([] as KeywordNature[]),
+	]);
+	return {
+		category: categoryId
+			? (categories.find((e) => e.id === categoryId) ?? null)
+			: null,
+		nature: natureId ? (natures.find((e) => e.id === natureId) ?? null) : null,
+	};
+}
+
 async function ensureCatalogNovelCached(novelId: string): Promise<void> {
 	const novel = await getCatalogNovelById(novelId);
 	if (novel) {
@@ -535,7 +551,11 @@ function invalidateOfflineQueries(
 	entity: SyncEntity,
 	scopeId: string,
 ): void {
-	if (entity === "keyword" || entity === "keywordAlias" || entity === "keywordVersion") {
+	if (
+		entity === "keyword" ||
+		entity === "keywordAlias" ||
+		entity === "keywordVersion"
+	) {
 		queryClient.invalidateQueries({
 			queryKey: ["offline", "keywords", scopeId],
 		});
@@ -584,7 +604,10 @@ export function useOfflineKeywordMutations(novelId: string) {
 			const tempId = createTempId();
 			const now = new Date().toISOString();
 
-			const { category, nature } = await resolveKeywordLookups(values.categoryId, values.natureId);
+			const { category, nature } = await resolveKeywordLookups(
+				values.categoryId,
+				values.natureId,
+			);
 
 			const keyword: OfflineKeyword = {
 				id: tempId,
@@ -627,7 +650,9 @@ export function useOfflineKeywordMutations(novelId: string) {
 						const response = await postKeywords(values);
 						const returned = response.data as GetKeywords200DataItem;
 						await deleteKeywordById(tempId); // cascades temp version
-						await saveKeyword(cleanOfflineKeyword({ ...returned, aliases: [], versions: [] }));
+						await saveKeyword(
+							cleanOfflineKeyword({ ...returned, aliases: [], versions: [] }),
+						);
 						for (const alias of returned.aliases) {
 							await saveKeywordAlias(cleanOfflineKeywordAlias(alias));
 						}
@@ -636,11 +661,23 @@ export function useOfflineKeywordMutations(novelId: string) {
 						}
 					} catch {
 						await markKeywordDirty(tempId);
-						await queueOfflineOperation("keyword", "create", tempId, novelId, values as unknown as Record<string, unknown>);
+						await queueOfflineOperation(
+							"keyword",
+							"create",
+							tempId,
+							novelId,
+							values as unknown as Record<string, unknown>,
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keyword", "create", tempId, novelId, values as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"keyword",
+					"create",
+					tempId,
+					novelId,
+					values as unknown as Record<string, unknown>,
+				);
 			}
 
 			return keyword;
@@ -693,11 +730,23 @@ export function useOfflineKeywordMutations(novelId: string) {
 						);
 					} catch {
 						await markKeywordDirty(id);
-						await queueOfflineOperation("keyword", "update", id, novelId, data as unknown as Record<string, unknown>);
+						await queueOfflineOperation(
+							"keyword",
+							"update",
+							id,
+							novelId,
+							data as unknown as Record<string, unknown>,
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keyword", "update", id, novelId, data as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"keyword",
+					"update",
+					id,
+					novelId,
+					data as unknown as Record<string, unknown>,
+				);
 			}
 
 			return updated;
@@ -752,15 +801,25 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 			const tempId = createTempId();
 			const now = new Date().toISOString();
 
+			const { category, nature } = await resolveKeywordLookupsOptional(
+				values.categoryId,
+				values.natureId,
+			);
+
 			const alias: OfflineKeywordAlias = {
 				id: tempId,
 				name: values.name,
 				description: values.description ?? null,
 				matchingType: values.matchingType ?? "FULL",
+				overrideStyle: values.overrideStyle ?? false,
+				categoryId: values.categoryId ?? null,
+				natureId: values.natureId ?? null,
 				keywordId: values.keywordId,
 				createdById: null,
 				createdAt: now,
 				updatedAt: now,
+				category: category,
+				nature: nature,
 				isDirty: !online,
 			};
 			await saveKeywordAlias(alias);
@@ -770,14 +829,30 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 					try {
 						const response = await postKeywordAliases(values);
 						await deleteKeywordAliasById(tempId);
-						await saveKeywordAlias(cleanOfflineKeywordAlias(response.data as GetKeywords200DataItemAliasesItem));
+						await saveKeywordAlias(
+							cleanOfflineKeywordAlias(
+								response.data as GetKeywords200DataItemAliasesItem,
+							),
+						);
 					} catch {
 						await markKeywordAliasDirty(tempId);
-						await queueOfflineOperation("keywordAlias", "create", tempId, novelId, values as unknown as Record<string, unknown>);
+						await queueOfflineOperation(
+							"keywordAlias",
+							"create",
+							tempId,
+							novelId,
+							values as unknown as Record<string, unknown>,
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keywordAlias", "create", tempId, novelId, values as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"keywordAlias",
+					"create",
+					tempId,
+					novelId,
+					values as unknown as Record<string, unknown>,
+				);
 			}
 
 			return alias;
@@ -803,15 +878,33 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 				throw new Error("Alias not found offline");
 			}
 
+			const effectiveCategoryId =
+				data.categoryId !== undefined
+					? data.categoryId
+					: (existing?.categoryId ?? null);
+			const effectiveNatureId =
+				data.natureId !== undefined
+					? data.natureId
+					: (existing?.natureId ?? null);
+			const { category, nature } = await resolveKeywordLookupsOptional(
+				effectiveCategoryId,
+				effectiveNatureId,
+			);
+
 			const updated: OfflineKeywordAlias = {
 				id,
 				name: data.name ?? existing?.name ?? "",
 				description: data.description ?? existing?.description ?? null,
 				matchingType: data.matchingType ?? existing?.matchingType ?? "FULL",
+				overrideStyle: data.overrideStyle ?? existing?.overrideStyle ?? false,
+				categoryId: effectiveCategoryId,
+				natureId: effectiveNatureId,
 				keywordId: existing?.keywordId ?? "",
 				createdById: existing?.createdById ?? null,
 				createdAt: existing?.createdAt ?? new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
+				category: category,
+				nature: nature,
 				isDirty: !online,
 			};
 			await saveKeywordAlias(updated);
@@ -820,14 +913,30 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 				runBackgroundSync(async () => {
 					try {
 						const response = await putKeywordAliasesById(id, data);
-						await saveKeywordAlias(cleanOfflineKeywordAlias(response.data as GetKeywords200DataItemAliasesItem));
+						await saveKeywordAlias(
+							cleanOfflineKeywordAlias(
+								response.data as GetKeywords200DataItemAliasesItem,
+							),
+						);
 					} catch {
 						await markKeywordAliasDirty(id);
-						await queueOfflineOperation("keywordAlias", "update", id, novelId, data as unknown as Record<string, unknown>);
+						await queueOfflineOperation(
+							"keywordAlias",
+							"update",
+							id,
+							novelId,
+							data as unknown as Record<string, unknown>,
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keywordAlias", "update", id, novelId, data as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"keywordAlias",
+					"update",
+					id,
+					novelId,
+					data as unknown as Record<string, unknown>,
+				);
 			}
 
 			return updated;
@@ -847,7 +956,13 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 					try {
 						await deleteKeywordAliasesById(id);
 					} catch {
-						await queueOfflineOperation("keywordAlias", "delete", id, novelId, {});
+						await queueOfflineOperation(
+							"keywordAlias",
+							"delete",
+							id,
+							novelId,
+							{},
+						);
 					}
 				}, invalidate);
 			} else {
@@ -882,8 +997,15 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 			const tempId = createTempId();
 			const now = new Date().toISOString();
 
-			const { category, nature } = await resolveKeywordLookups(values.categoryId, values.natureId);
-			const localStartingChapter = values.startingChapter ?? values.currentChapter ?? 0;
+			const localStartingChapter =
+				values.startingChapter ?? values.currentChapter ?? 0;
+			const { category, nature } =
+				values.categoryId && values.natureId
+					? await resolveKeywordLookups(values.categoryId, values.natureId)
+					: await resolveKeywordLookupsOptional(
+							values.categoryId,
+							values.natureId,
+						);
 
 			const version: OfflineKeywordVersion = {
 				id: tempId,
@@ -891,14 +1013,14 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 				description: values.description ?? null,
 				startingChapter: localStartingChapter,
 				endingChapter: values.endingChapter ?? null,
-				categoryId: values.categoryId,
-				natureId: values.natureId,
+				categoryId: values.categoryId ?? null,
+				natureId: values.natureId ?? null,
 				imageId: values.imageId ?? null,
 				createdById: null,
 				createdAt: now,
 				updatedAt: now,
-				category,
-				nature,
+				category: category,
+				nature: nature,
 				image: null,
 				isDirty: !online,
 			};
@@ -913,7 +1035,10 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 					Number(v.startingChapter) < localStartingChapter,
 			);
 			if (prevOpen) {
-				await saveKeywordVersion({ ...prevOpen, endingChapter: localStartingChapter - 1 });
+				await saveKeywordVersion({
+					...prevOpen,
+					endingChapter: localStartingChapter - 1,
+				});
 			}
 
 			if (online) {
@@ -921,14 +1046,30 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 					try {
 						const response = await postKeywordVersions(values);
 						await deleteKeywordVersionById(tempId);
-						await saveKeywordVersion(cleanOfflineKeywordVersion(response.data as GetKeywords200DataItemVersionsItem));
+						await saveKeywordVersion(
+							cleanOfflineKeywordVersion(
+								response.data as GetKeywords200DataItemVersionsItem,
+							),
+						);
 					} catch {
 						await markKeywordVersionDirty(tempId);
-						await queueOfflineOperation("keywordVersion", "create", tempId, novelId, values as unknown as Record<string, unknown>);
+						await queueOfflineOperation(
+							"keywordVersion",
+							"create",
+							tempId,
+							novelId,
+							values as unknown as Record<string, unknown>,
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keywordVersion", "create", tempId, novelId, values as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"keywordVersion",
+					"create",
+					tempId,
+					novelId,
+					values as unknown as Record<string, unknown>,
+				);
 			}
 
 			return version;
@@ -954,29 +1095,21 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 				throw new Error("Version not found offline");
 			}
 
-			let { category, nature } = {
-				category: existing?.category ?? null,
-				nature: existing?.nature ?? null,
-			};
-			if (
-				(data.categoryId && data.categoryId !== existing?.categoryId) ||
-				(data.natureId && data.natureId !== existing?.natureId)
-			) {
-				const lookups = await resolveKeywordLookups(
-					data.categoryId ?? existing?.categoryId ?? "",
-					data.natureId ?? existing?.natureId ?? "",
-				);
-				category = lookups.category;
-				nature = lookups.nature;
-			}
-			if (!category || !nature) {
-				const lookups = await resolveKeywordLookups(
-					data.categoryId ?? existing?.categoryId ?? "",
-					data.natureId ?? existing?.natureId ?? "",
-				);
-				category = lookups.category;
-				nature = lookups.nature;
-			}
+			const effectiveCategoryId =
+				data.categoryId !== undefined
+					? data.categoryId
+					: (existing?.categoryId ?? null);
+			const effectiveNatureId =
+				data.natureId !== undefined
+					? data.natureId
+					: (existing?.natureId ?? null);
+			const { category, nature } =
+				effectiveCategoryId && effectiveNatureId
+					? await resolveKeywordLookups(effectiveCategoryId, effectiveNatureId)
+					: await resolveKeywordLookupsOptional(
+							effectiveCategoryId,
+							effectiveNatureId,
+						);
 
 			const updated: OfflineKeywordVersion = {
 				id,
@@ -987,14 +1120,14 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 					data.endingChapter !== undefined
 						? data.endingChapter
 						: (existing?.endingChapter ?? null),
-				categoryId: data.categoryId ?? existing?.categoryId ?? "",
-				natureId: data.natureId ?? existing?.natureId ?? "",
+				categoryId: effectiveCategoryId,
+				natureId: effectiveNatureId,
 				imageId: data.imageId ?? existing?.imageId ?? null,
 				createdById: existing?.createdById ?? null,
 				createdAt: existing?.createdAt ?? new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
-				category,
-				nature,
+				category: category,
+				nature: nature,
 				image: existing?.image ?? null,
 				isDirty: !online,
 			};
@@ -1004,14 +1137,30 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 				runBackgroundSync(async () => {
 					try {
 						const response = await putKeywordVersionsById(id, data);
-						await saveKeywordVersion(cleanOfflineKeywordVersion(response.data as GetKeywords200DataItemVersionsItem));
+						await saveKeywordVersion(
+							cleanOfflineKeywordVersion(
+								response.data as GetKeywords200DataItemVersionsItem,
+							),
+						);
 					} catch {
 						await markKeywordVersionDirty(id);
-						await queueOfflineOperation("keywordVersion", "update", id, novelId, data as unknown as Record<string, unknown>);
+						await queueOfflineOperation(
+							"keywordVersion",
+							"update",
+							id,
+							novelId,
+							data as unknown as Record<string, unknown>,
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keywordVersion", "update", id, novelId, data as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"keywordVersion",
+					"update",
+					id,
+					novelId,
+					data as unknown as Record<string, unknown>,
+				);
 			}
 
 			return updated;
@@ -1024,6 +1173,20 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 
 	const deleteMutation = useMutation({
 		mutationFn: async (id: string) => {
+			const version = await getKeywordVersionById(id);
+			if (version) {
+				const versions = await getVersionsByKeywordId(version.keywordId);
+				if (versions.length <= 1) {
+					throw new Error("Cannot delete the only version of a keyword");
+				}
+				const baseVersion = [...versions].sort(
+					(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+				)[0];
+				if (baseVersion?.id === id) {
+					throw new Error("Cannot delete the base version of a keyword");
+				}
+			}
+
 			await deleteKeywordVersionById(id);
 
 			if (online) {
@@ -1031,11 +1194,23 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 					try {
 						await deleteKeywordVersionsById(id);
 					} catch {
-						await queueOfflineOperation("keywordVersion", "delete", id, novelId, {});
+						await queueOfflineOperation(
+							"keywordVersion",
+							"delete",
+							id,
+							novelId,
+							{},
+						);
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("keywordVersion", "delete", id, novelId, {});
+				await queueOfflineOperation(
+					"keywordVersion",
+					"delete",
+					id,
+					novelId,
+					{},
+				);
 			}
 		},
 		onSuccess: async () => {
@@ -1166,7 +1341,13 @@ export function useOfflineReplacementMutations(novelId: string) {
 					}
 				}, invalidate);
 			} else {
-				await queueOfflineOperation("replacement", "update", id, novelId, data as unknown as Record<string, unknown>);
+				await queueOfflineOperation(
+					"replacement",
+					"update",
+					id,
+					novelId,
+					data as unknown as Record<string, unknown>,
+				);
 			}
 
 			return updated;

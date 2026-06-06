@@ -51,6 +51,7 @@
 		"updateFailed": "Failed to update keyword",
 		"fullWordMatch": "Full word match",
 		"aliasOf": "Alias of",
+		"overrideStyle": "Override style",
 		"aliases": "Aliases",
 		"addAlias": "Add alias",
 		"addVersion": "Add version",

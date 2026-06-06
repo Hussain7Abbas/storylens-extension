@@ -14,12 +14,14 @@ export type RawKeyword = GetKeywords200DataItem;
 export type RawKeywordAlias = GetKeywords200DataItemAliasesItem;
 export type RawKeywordVersion = GetKeywords200DataItemVersionsItem;
 
-export type EnrichedCategory = GetKeywords200DataItemVersionsItemCategory;
-export type EnrichedNature = GetKeywords200DataItemVersionsItemNature;
+export type EnrichedCategory =
+	NonNullable<GetKeywords200DataItemVersionsItemCategory>;
+export type EnrichedNature =
+	NonNullable<GetKeywords200DataItemVersionsItemNature>;
 
 /**
  * A keyword ready for display/highlighting after active version resolution.
- * category and nature are guaranteed non-null; name is guaranteed non-null.
+ * category and nature are guaranteed non-null by the resolver; name is non-null.
  */
 export type EnrichedKeyword = {
 	id: string;
@@ -34,8 +36,8 @@ export type EnrichedKeyword = {
 	createdById: string | null;
 	createdAt: string;
 	updatedAt: string;
-	category: GetKeywords200DataItemVersionsItemCategory;
-	nature: GetKeywords200DataItemVersionsItemNature;
+	category: EnrichedCategory;
+	nature: EnrichedNature;
 	image: GetKeywords200DataItemVersionsItemImage;
 };
 

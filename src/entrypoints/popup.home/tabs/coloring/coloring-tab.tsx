@@ -15,9 +15,17 @@ type StackFrame =
 	| { mode: "keyword-add" }
 	| { mode: "keyword-edit"; keyword: GetKeywords200DataItem }
 	| { mode: "alias-add"; parentKeyword: GetKeywords200DataItem }
-	| { mode: "alias-edit"; keyword: GetKeywords200DataItemAliasesItem; parentKeyword: GetKeywords200DataItem }
+	| {
+			mode: "alias-edit";
+			keyword: GetKeywords200DataItemAliasesItem;
+			parentKeyword: GetKeywords200DataItem;
+	  }
 	| { mode: "version-add"; parentKeyword: GetKeywords200DataItem }
-	| { mode: "version-edit"; keyword: GetKeywords200DataItemVersionsItem; parentKeyword: GetKeywords200DataItem };
+	| {
+			mode: "version-edit";
+			keyword: GetKeywords200DataItemVersionsItem;
+			parentKeyword: GetKeywords200DataItem;
+	  };
 
 export function ColoringTab({
 	selectedNovelId,
@@ -87,14 +95,28 @@ export function ColoringTab({
 				selectedNovelId={selectedNovelId}
 				currentChapter={currentChapter}
 				search={search}
-				onEditKeyword={(keyword) => pushFrame({ mode: "keyword-edit", keyword })}
-				onEditAlias={(alias, parent) =>
-					pushFrame({ mode: "alias-edit", keyword: alias, parentKeyword: parent })
+				onEditKeyword={(keyword) =>
+					pushFrame({ mode: "keyword-edit", keyword })
 				}
-				onAddAlias={(parent) => pushFrame({ mode: "alias-add", parentKeyword: parent })}
-				onAddVersion={(parent) => pushFrame({ mode: "version-add", parentKeyword: parent })}
+				onEditAlias={(alias, parent) =>
+					pushFrame({
+						mode: "alias-edit",
+						keyword: alias,
+						parentKeyword: parent,
+					})
+				}
+				onAddAlias={(parent) =>
+					pushFrame({ mode: "alias-add", parentKeyword: parent })
+				}
+				onAddVersion={(parent) =>
+					pushFrame({ mode: "version-add", parentKeyword: parent })
+				}
 				onEditVersion={(version, parent) =>
-					pushFrame({ mode: "version-edit", keyword: version, parentKeyword: parent })
+					pushFrame({
+						mode: "version-edit",
+						keyword: version,
+						parentKeyword: parent,
+					})
 				}
 				readOnly={!canMutate}
 			/>

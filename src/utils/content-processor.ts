@@ -322,7 +322,9 @@ function buildKeywordLookup(
 	return lookup;
 }
 
-function buildKeywordById(keywords: EnrichedKeyword[]): Map<string, EnrichedKeyword> {
+function buildKeywordById(
+	keywords: EnrichedKeyword[],
+): Map<string, EnrichedKeyword> {
 	const byId = new Map<string, EnrichedKeyword>();
 	for (const keyword of keywords) {
 		byId.set(keyword.id, keyword);
