@@ -69,14 +69,18 @@ export function ReplacingCards({
 		enabled: !offline.useLocalCache && online,
 	});
 
-	const items = offline.useLocalCache ? (offline.items ?? []) : onlineList.items;
+	const items = offline.useLocalCache
+		? (offline.items ?? [])
+		: onlineList.items;
 	const isLoading = offline.useLocalCache
 		? offline.isLoading
 		: onlineList.isLoading;
 	const isFetchingNextPage = offline.useLocalCache
 		? false
 		: onlineList.isFetchingNextPage;
-	const loadMoreRef = offline.useLocalCache ? undefined : onlineList.loadMoreRef;
+	const loadMoreRef = offline.useLocalCache
+		? undefined
+		: onlineList.loadMoreRef;
 
 	if (isLoading) {
 		return (

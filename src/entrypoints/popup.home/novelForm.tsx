@@ -42,9 +42,7 @@ async function getNovelNameFromRegex(tabId: number): Promise<string | null> {
 	try {
 		const page = await sendMessage("getPageHtml", undefined, { tabId });
 		const hostname = page?.url ? new URL(page.url).hostname : undefined;
-		const selector = hostname
-			? await loadWebsiteSelector(hostname)
-			: undefined;
+		const selector = hostname ? await loadWebsiteSelector(hostname) : undefined;
 
 		if (!page?.html || !selector?.novel?.xpath?.value) {
 			return null;

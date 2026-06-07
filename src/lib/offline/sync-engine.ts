@@ -58,8 +58,12 @@ import {
 	setLastSyncAt,
 	updatePendingOp,
 } from "@/lib/offline/sync-storage";
-import { isTempId, type SyncOperation } from "@/lib/offline/types";
-import { cleanOfflineKeyword, cleanOfflineReplacement } from "@/lib/offline/types";
+import {
+	cleanOfflineKeyword,
+	cleanOfflineReplacement,
+	isTempId,
+	type SyncOperation,
+} from "@/lib/offline/types";
 import {
 	KEYWORD_LIST_SORTING,
 	REPLACEMENT_LIST_SORTING,
@@ -122,7 +126,9 @@ async function pushKeywordOperation(operation: SyncOperation): Promise<void> {
 			operation.entityId,
 			operation.payload as PutKeywordsByIdBodyOne,
 		);
-		await saveKeyword(cleanOfflineKeyword(response.data as GetKeywords200DataItem));
+		await saveKeyword(
+			cleanOfflineKeyword(response.data as GetKeywords200DataItem),
+		);
 		await clearKeywordDirty(operation.entityId);
 		return;
 	}
@@ -216,7 +222,13 @@ async function pushKeywordNatureOperation(
 }
 
 export async function pullLookupData(): Promise<void> {
-	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const locale = (() => {
+		try {
+			return JSON.parse(localStorage.getItem("locale") ?? '"en"');
+		} catch {
+			return "en";
+		}
+	})();
 	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
 
 	const [categoriesResponse, naturesResponse] = await Promise.all([
@@ -267,7 +279,13 @@ export async function syncPendingOperations(): Promise<SyncResult> {
 }
 
 export async function pullServerData(novelId: string): Promise<void> {
-	const locale = (() => { try { return JSON.parse(localStorage.getItem("locale") ?? '"en"'); } catch { return "en"; } })();
+	const locale = (() => {
+		try {
+			return JSON.parse(localStorage.getItem("locale") ?? '"en"');
+		} catch {
+			return "en";
+		}
+	})();
 	const nameSortCol = locale === "ar" ? "nameAr" : "nameEn";
 
 	const [

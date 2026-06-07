@@ -1,10 +1,12 @@
 import { getKeywords } from "@/api/generated/endpoints/keywords.js";
 import { getNovels } from "@/api/generated/endpoints/novels.js";
 import { getReplacements } from "@/api/generated/endpoints/replacements.js";
+import { getWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
 import {
 	getAllCatalogNovels,
+	getAssembledKeywordsByNovelId,
+	getBiasesByNovelId,
 	getCatalogNovelBySlug,
-	getKeywordsByNovelId,
 	getOfflineNovelBySlug,
 	getReplacementsByNovelId,
 	writeNovelContentCache,
@@ -28,9 +30,10 @@ async function loadLocalNovelContentData(
 ): Promise<NovelContentData | undefined> {
 	const downloadedNovel = await getOfflineNovelBySlug(novelSlug);
 	if (downloadedNovel) {
-		const [rawKeywords, replacements] = await Promise.all([
-			getKeywordsByNovelId(downloadedNovel.id),
+		const [rawKeywords, replacements, biases] = await Promise.all([
+			getAssembledKeywordsByNovelId(downloadedNovel.id),
 			getReplacementsByNovelId(downloadedNovel.id),
+			getBiasesByNovelId(downloadedNovel.id),
 		]);
 
 		const keywords = rawKeywords;
@@ -46,6 +49,7 @@ async function loadLocalNovelContentData(
 			chapterNumber: chapter,
 			keywords,
 			replacements,
+			biases,
 		};
 	}
 
@@ -54,9 +58,10 @@ async function loadLocalNovelContentData(
 		return undefined;
 	}
 
-	const [rawKeywords, replacements] = await Promise.all([
-		getKeywordsByNovelId(catalogNovel.id),
+	const [rawKeywords, replacements, biases] = await Promise.all([
+		getAssembledKeywordsByNovelId(catalogNovel.id),
 		getReplacementsByNovelId(catalogNovel.id),
+		getBiasesByNovelId(catalogNovel.id),
 	]);
 
 	if (rawKeywords.length === 0 && replacements.length === 0) {
@@ -76,6 +81,7 @@ async function loadLocalNovelContentData(
 		chapterNumber: chapter,
 		keywords,
 		replacements,
+		biases,
 	};
 }
 
@@ -102,43 +108,56 @@ async function loadRemoteNovelContentData(
 		return undefined;
 	}
 
-	const [keywordsResponse, replacementsResponse] = await Promise.all([
-		getKeywords(
-			withListQueryParams(
-				{
-					pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-					query: { novelId: novel.id },
-				},
-				KEYWORD_LIST_SORTING,
+	const [keywordsResponse, replacementsResponse, biasesResponse] =
+		await Promise.all([
+			getKeywords(
+				withListQueryParams(
+					{
+						pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
+						query: { novelId: novel.id },
+					},
+					KEYWORD_LIST_SORTING,
+				),
 			),
-		),
-		getReplacements(
-			withListQueryParams(
-				{
-					pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-					query: { novelId: novel.id },
-				},
-				REPLACEMENT_LIST_SORTING,
+			getReplacements(
+				withListQueryParams(
+					{
+						pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
+						query: { novelId: novel.id },
+					},
+					REPLACEMENT_LIST_SORTING,
+				),
 			),
-		),
-	]);
+			getWebsiteNovelBiases({ novelId: novel.id }),
+		]);
 
 	const rawKeywords = keywordsResponse.data.data;
-	await writeNovelContentCache(novel, rawKeywords, replacementsResponse.data.data);
+	const biases = biasesResponse.data;
+
+	await writeNovelContentCache(
+		novel,
+		rawKeywords,
+		replacementsResponse.data.data,
+		biases,
+	);
 
 	const keywords = rawKeywords;
 
-	console.log(`${LOG_PREFIX} Loaded novel content from API and cached locally`, {
-		novelId: novel.id,
-		keywordsCount: keywords.length,
-		replacementsCount: replacementsResponse.data.data.length,
-	});
+	console.log(
+		`${LOG_PREFIX} Loaded novel content from API and cached locally`,
+		{
+			novelId: novel.id,
+			keywordsCount: keywords.length,
+			replacementsCount: replacementsResponse.data.data.length,
+		},
+	);
 
 	return {
 		novel,
 		chapterNumber: meta.chapter,
 		keywords,
 		replacements: replacementsResponse.data.data,
+		biases,
 	};
 }
 

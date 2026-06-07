@@ -2,12 +2,19 @@ import type {
 	GetKeywordCategories200DataItem,
 	GetKeywordNatures200DataItem,
 	GetKeywords200DataItem,
+	GetKeywords200DataItemAliasesItem,
+	GetKeywords200DataItemVersionsItem,
 	GetNovels200DataItem,
 	GetReplacements200DataItem,
+	GetWebsiteNovelBiases200Item,
 } from "@/api/generated/schemas";
+
+export type OfflineWebsiteNovelBias = GetWebsiteNovelBiases200Item;
 
 export type SyncEntity =
 	| "keyword"
+	| "keywordAlias"
+	| "keywordVersion"
 	| "replacement"
 	| "keywordCategory"
 	| "keywordNature";
@@ -47,12 +54,34 @@ export type OfflineKeyword = GetKeywords200DataItem & {
 	isDirty?: boolean;
 };
 
+export type OfflineKeywordAlias = GetKeywords200DataItemAliasesItem & {
+	isDirty?: boolean;
+};
+
+export type OfflineKeywordVersion = GetKeywords200DataItemVersionsItem & {
+	isDirty?: boolean;
+};
+
 export type OfflineReplacement = GetReplacements200DataItem & {
 	isDirty?: boolean;
 };
 
-export function cleanOfflineKeyword(keyword: GetKeywords200DataItem): OfflineKeyword {
+export function cleanOfflineKeyword(
+	keyword: GetKeywords200DataItem,
+): OfflineKeyword {
 	return { ...keyword, isDirty: undefined };
+}
+
+export function cleanOfflineKeywordAlias(
+	alias: GetKeywords200DataItemAliasesItem,
+): OfflineKeywordAlias {
+	return { ...alias, isDirty: undefined };
+}
+
+export function cleanOfflineKeywordVersion(
+	version: GetKeywords200DataItemVersionsItem,
+): OfflineKeywordVersion {
+	return { ...version, isDirty: undefined };
 }
 
 export function cleanOfflineReplacement(

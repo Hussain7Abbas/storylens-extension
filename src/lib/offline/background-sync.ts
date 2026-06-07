@@ -1,7 +1,4 @@
-import {
-	decrementActiveSync,
-	incrementActiveSync,
-} from "@/store/sync-status";
+import { decrementActiveSync, incrementActiveSync } from "@/store/sync-status";
 
 export async function withBackgroundSync(
 	task: () => Promise<void>,

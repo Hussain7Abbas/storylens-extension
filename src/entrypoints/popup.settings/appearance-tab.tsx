@@ -26,9 +26,14 @@ export function AppearanceTab() {
 
 			<Select
 				label={t("settings.appearance.fontFace")}
-				data={FONT_FACE_OPTIONS.map((f) => ({ value: f, label: f === "Default" ? t("settings.appearance.fontDefault") : f }))}
+				data={FONT_FACE_OPTIONS.map((f) => ({
+					value: f,
+					label: f === "Default" ? t("settings.appearance.fontDefault") : f,
+				}))}
 				value={fontFace}
-				onChange={(val) => { if (val) setFontFace(val as FontFace); }}
+				onChange={(val) => {
+					if (val) setFontFace(val as FontFace);
+				}}
 			/>
 
 			<NumberInput
@@ -37,7 +42,9 @@ export function AppearanceTab() {
 				max={22}
 				step={1}
 				value={fontSize}
-				onChange={(val) => { if (typeof val === "number") setFontSize(val); }}
+				onChange={(val) => {
+					if (typeof val === "number") setFontSize(val);
+				}}
 				suffix="px"
 			/>
 		</Stack>

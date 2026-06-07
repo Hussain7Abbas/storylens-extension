@@ -16,33 +16,45 @@ import {
 	IconDotsVertical,
 	IconEdit,
 	IconLink,
+	IconPencil,
 	IconPlus,
 	IconTrash,
 } from "@tabler/icons-react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
+import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
 import { userRoleAtom } from "@/lib/auth";
+import { getBiasesByNovelId } from "@/lib/offline/db";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {
 	useCachedNovelsList,
 	useDownloadedNovelIds,
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
+import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
+import { WebsiteNovelBiasForm } from "./websiteNovelBiasModal";
 
 export function HomePage() {
 	const { t } = useTranslation();
 	const [mode, setMode] = useState<novelFormModes>();
 	const [downloading, setDownloading] = useState(false);
+	const [biasFormOpen, setBiasFormOpen] = useState(false);
+	const [currentHostname, setCurrentHostname] = useState<string>();
+	const [biasesForNovel, setBiasesForNovel] = useState<
+		OfflineWebsiteNovelBias[]
+	>([]);
+	const [biasSelectorId, setBiasSelectorId] = useState<string>();
 	const online = useOnlineStatus();
 	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
@@ -57,6 +69,57 @@ export function HomePage() {
 		availableNovels,
 		availableNovels,
 	);
+
+	useEffect(() => {
+		const getHostname = async () => {
+			const [tab] = await browser.tabs.query({
+				active: true,
+				currentWindow: true,
+			});
+			if (tab?.url) {
+				try {
+					setCurrentHostname(new URL(tab.url).hostname);
+				} catch {
+					// invalid URL
+				}
+			}
+		};
+		void getHostname();
+	}, []);
+
+	useEffect(() => {
+		if (!selectedNovel?.id) {
+			setBiasesForNovel([]);
+			return;
+		}
+		void getBiasesByNovelId(selectedNovel.id).then(setBiasesForNovel);
+	}, [selectedNovel?.id]);
+
+	const currentBiasEntry = currentHostname
+		? biasesForNovel.find((b) => b.websiteSelector.website === currentHostname)
+		: undefined;
+	const currentBiasValue = Number(currentBiasEntry?.biasValue ?? 0);
+	const detectedChapter = currentTabNovel?.chapter;
+	const biasedChapter =
+		detectedChapter !== undefined && currentBiasValue !== 0
+			? detectedChapter + currentBiasValue
+			: undefined;
+
+	const handleOpenBiasModal = async () => {
+		if (!selectedNovel?.id || !currentHostname) return;
+		if (currentBiasEntry) {
+			setBiasSelectorId(currentBiasEntry.websiteSelectorId);
+			setBiasFormOpen(true);
+			return;
+		}
+		try {
+			const response = await getWebsiteSelectorsByWebsite(currentHostname);
+			setBiasSelectorId(response.data.id);
+			setBiasFormOpen(true);
+		} catch {
+			// no selector for this website
+		}
+	};
 
 	const isSelectedDownloaded = selectedNovel?.id
 		? downloadedIds.has(selectedNovel.id)
@@ -94,7 +157,23 @@ export function HomePage() {
 
 	return (
 		<Container p="md">
-			{mode !== undefined ? (
+			{biasFormOpen && selectedNovel?.id && biasSelectorId ? (
+				<WebsiteNovelBiasForm
+					novelId={selectedNovel.id}
+					websiteSelectorId={biasSelectorId}
+					websiteName={currentHostname ?? ""}
+					currentBias={currentBiasValue}
+					onClose={() => setBiasFormOpen(false)}
+					onSaved={(updated) => {
+						setBiasesForNovel((prev) => {
+							const filtered = prev.filter(
+								(b) => b.websiteSelectorId !== biasSelectorId,
+							);
+							return [...filtered, ...updated];
+						});
+					}}
+				/>
+			) : mode !== undefined ? (
 				<NovelForm
 					refetchNovels={refreshNovelsCatalog}
 					selectedNovel={selectedNovel}
@@ -177,9 +256,36 @@ export function HomePage() {
 									</ActionIcon>
 								</Tooltip>
 							)}
-							<Text flex={1} ta="center">
-								{currentTabNovel?.chapter}
-							</Text>
+							<Group
+								flex={1}
+								justify="center"
+								align="center"
+								gap={4}
+								wrap="nowrap"
+							>
+								{biasedChapter !== undefined ? (
+									<>
+										<Text size="xs" td="line-through" c="dimmed">
+											{detectedChapter}
+										</Text>
+										<Text>{biasedChapter}</Text>
+									</>
+								) : (
+									<Text>{detectedChapter}</Text>
+								)}
+								{role === "admin" && currentTabNovel && (
+									<ActionIcon
+										size="xs"
+										variant="subtle"
+										onClick={() => {
+											void handleOpenBiasModal();
+										}}
+										aria-label={t("home.chapterBias")}
+									>
+										<IconPencil size={12} />
+									</ActionIcon>
+								)}
+							</Group>
 							{role !== "guest" && (
 								<NovelMenu
 									currentTabNovel={currentTabNovel}
@@ -192,6 +298,12 @@ export function HomePage() {
 								/>
 							)}
 						</Group>
+					)}
+
+					{selectedNovel?.id && !isSelectedDownloaded && (
+						<Text size="xs" c="orange" mt="xs">
+							{t("offline.novelNotDownloaded")}
+						</Text>
 					)}
 
 					{selectedNovel?.id && (
@@ -218,7 +330,10 @@ export function HomePage() {
 								</Tabs.List>
 							</Stack>
 							<Tabs.Panel value="coloring">
-								<ColoringTab selectedNovelId={selectedNovel?.id} />
+								<ColoringTab
+									selectedNovelId={selectedNovel?.id}
+									currentChapter={detectedChapter}
+								/>
 							</Tabs.Panel>
 							<Tabs.Panel value="replacing">
 								<ReplacingTab selectedNovelId={selectedNovel?.id} />

@@ -2,12 +2,15 @@ import type {
 	ContentProcessingStats,
 	EnrichedKeyword,
 	NovelContentData,
+	RawKeyword,
+	RawKeywordAlias,
 } from "@/types/content-data";
 import {
 	destroyKeywordTooltipPortal,
 	initKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
 } from "@/utils/keyword-tooltip";
+import { enrichKeywords } from "@/utils/resolve-keyword-version";
 
 const LOG_PREFIX = "[StoryLens]";
 const PROCESS_ATTR = "data-storylens-processed";
@@ -37,16 +40,16 @@ type TermWithMatching = {
 };
 
 function sortTermsByLengthDesc(terms: TermWithMatching[]): TermWithMatching[] {
-	return [...terms].sort(
-		(left, right) => right.term.length - left.term.length,
-	);
+	return [...terms].sort((left, right) => right.term.length - left.term.length);
 }
 
 function escapeRegex(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function dedupeTermsCaseInsensitive(terms: TermWithMatching[]): TermWithMatching[] {
+function dedupeTermsCaseInsensitive(
+	terms: TermWithMatching[],
+): TermWithMatching[] {
 	const seen = new Set<string>();
 	const deduped: TermWithMatching[] = [];
 
@@ -63,7 +66,49 @@ function dedupeTermsCaseInsensitive(terms: TermWithMatching[]): TermWithMatching
 	return deduped;
 }
 
-function wrapFullTermPattern(escaped: string): string {
+// Single-letter Arabic proclitics that prefix words with no space.
+const ARABIC_SINGLE_LETTER_PREFIXES = new Set(["و", "ف", "ب", "ل", "ك", "س"]);
+
+// Letters that visually connect to the following character in Arabic script.
+// و and ا (bare alif) are non-connecting, so they are excluded.
+const ARABIC_CONNECTING_LETTERS = new Set(["ب", "ف", "ل", "ك", "س"]);
+
+function withTatweel(prefix: string): string {
+	if (!prefix) return prefix;
+	const last = prefix[prefix.length - 1];
+	return ARABIC_CONNECTING_LETTERS.has(last) ? `${prefix}ـ` : prefix;
+}
+
+function findKeywordMatch<T>(
+	matchedText: string,
+	lookup: Map<string, T>,
+): { prefix: string; core: string; value: T } | null {
+	// Form 1: bare keyword — exact match, always tried first.
+	const exact = lookup.get(matchedText.toLowerCase());
+	if (exact) return { prefix: "", core: matchedText, value: exact };
+
+	// Form 2: ال + keyword.
+	if (matchedText.startsWith("ال")) {
+		const core = matchedText.slice(2);
+		const value = lookup.get(core.toLowerCase());
+		if (value) return { prefix: "ال", core, value };
+	}
+
+	// Forms 3–8: single-letter proclitic + keyword.
+	const first = matchedText[0];
+	if (first && ARABIC_SINGLE_LETTER_PREFIXES.has(first)) {
+		const core = matchedText.slice(1);
+		const value = lookup.get(core.toLowerCase());
+		if (value) return { prefix: first, core, value };
+	}
+
+	return null;
+}
+
+function wrapFullTermPattern(escaped: string, term: string): string {
+	if (/^\p{Script=Arabic}/u.test(term)) {
+		return `(?<![\\p{L}\\p{N}_])(?:ال|[وفبلكس])?${escaped}(?![\\p{L}\\p{N}_])`;
+	}
 	return `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`;
 }
 
@@ -78,7 +123,9 @@ function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
 	const pattern = uniqueTerms
 		.map(({ term, matchingType }) => {
 			const escaped = escapeRegex(term);
-			return matchingType === "FULL" ? wrapFullTermPattern(escaped) : escaped;
+			return matchingType === "FULL"
+				? wrapFullTermPattern(escaped, term)
+				: escaped;
 		})
 		.join("|");
 
@@ -145,7 +192,7 @@ function collectTextNodes(
 function processTextNodeMatches(
 	textNode: Text,
 	regex: RegExp,
-	handler: (matchedText: string) => Node | null,
+	handler: (matchedText: string) => Node | Node[] | null,
 ): number {
 	const text = textNode.textContent ?? "";
 	if (!text) {
@@ -173,9 +220,14 @@ function processTextNodeMatches(
 			);
 		}
 
-		const replacementNode = handler(matchedText);
-		if (replacementNode) {
-			fragment.appendChild(replacementNode);
+		const replacementNodes = handler(matchedText);
+		if (replacementNodes) {
+			const nodes = Array.isArray(replacementNodes)
+				? replacementNodes
+				: [replacementNodes];
+			for (const node of nodes) {
+				fragment.appendChild(node);
+			}
 			occurrences += 1;
 		} else {
 			fragment.appendChild(document.createTextNode(matchedText));
@@ -209,10 +261,30 @@ function createReplacedElement(replacementText: string): HTMLSpanElement {
 	return span;
 }
 
+function buildRawContextLookup(
+	keywords: RawKeyword[],
+): Map<string, { raw: RawKeyword; alias: RawKeywordAlias | null }> {
+	const lookup = new Map<
+		string,
+		{ raw: RawKeyword; alias: RawKeywordAlias | null }
+	>();
+	for (const kw of keywords) {
+		lookup.set(kw.id, { raw: kw, alias: null });
+		for (const alias of kw.aliases) {
+			lookup.set(alias.id, { raw: kw, alias });
+		}
+	}
+	return lookup;
+}
+
 function createKeywordElement(
 	matchedText: string,
 	keyword: EnrichedKeyword,
-	parent: EnrichedKeyword | undefined,
+	rawContextLookup: Map<
+		string,
+		{ raw: RawKeyword; alias: RawKeywordAlias | null }
+	>,
+	currentChapter: number,
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
@@ -230,7 +302,16 @@ function createKeywordElement(
 	span.append(natureIndicator);
 	span.append(document.createTextNode(matchedText));
 
-	registerKeywordTooltipAnchor(span, keyword, parent);
+	const rawCtx = rawContextLookup.get(keyword.id);
+	if (rawCtx) {
+		registerKeywordTooltipAnchor(
+			span,
+			keyword,
+			rawCtx.raw,
+			rawCtx.alias,
+			currentChapter,
+		);
+	}
 
 	return span;
 }
@@ -255,7 +336,7 @@ function buildReplacementLookup(
 }
 
 function buildKeywordLookup(
-	keywords: NovelContentData["keywords"],
+	keywords: EnrichedKeyword[],
 ): Map<string, EnrichedKeyword> {
 	const lookup = new Map<string, EnrichedKeyword>();
 	const sortedKeywords = [...keywords].sort(
@@ -263,10 +344,6 @@ function buildKeywordLookup(
 	);
 
 	for (const keyword of sortedKeywords) {
-		if (!keyword.name) {
-			continue;
-		}
-
 		const key = keyword.name.toLowerCase();
 		if (!lookup.has(key)) {
 			lookup.set(key, keyword);
@@ -274,16 +351,6 @@ function buildKeywordLookup(
 	}
 
 	return lookup;
-}
-
-function buildKeywordById(
-	keywords: NovelContentData["keywords"],
-): Map<string, EnrichedKeyword> {
-	const byId = new Map<string, EnrichedKeyword>();
-	for (const keyword of keywords) {
-		byId.set(keyword.id, keyword);
-	}
-	return byId;
 }
 
 function applyReplacements(
@@ -306,12 +373,9 @@ function applyReplacements(
 
 	for (const textNode of textNodes) {
 		applied += processTextNodeMatches(textNode, regex, (matchedText) => {
-			const replacement = lookup.get(matchedText.toLowerCase());
-			if (!replacement) {
-				return null;
-			}
-
-			return createReplacedElement(replacement.to);
+			const found = findKeywordMatch(matchedText, lookup);
+			if (!found) return null;
+			return createReplacedElement(found.prefix + found.value.to);
 		});
 	}
 
@@ -320,7 +384,12 @@ function applyReplacements(
 
 function applyKeywordHighlights(
 	root: HTMLElement,
-	keywords: NovelContentData["keywords"],
+	keywords: EnrichedKeyword[],
+	rawContextLookup: Map<
+		string,
+		{ raw: RawKeyword; alias: RawKeywordAlias | null }
+	>,
+	currentChapter: number,
 ): number {
 	const regex = buildCombinedPattern(
 		keywords.map((keyword) => ({
@@ -333,19 +402,21 @@ function applyKeywordHighlights(
 	}
 
 	const lookup = buildKeywordLookup(keywords);
-	const byId = buildKeywordById(keywords);
 	const textNodes = collectTextNodes(root, DEFAULT_MARKUP_SKIP_SELECTOR);
 	let highlighted = 0;
 
 	for (const textNode of textNodes) {
 		highlighted += processTextNodeMatches(textNode, regex, (matchedText) => {
-			const keyword = lookup.get(matchedText.toLowerCase());
-			if (!keyword) {
-				return null;
-			}
-
-			const parent = keyword.parentId ? byId.get(keyword.parentId) : undefined;
-			return createKeywordElement(matchedText, keyword, parent);
+			const found = findKeywordMatch(matchedText, lookup);
+			if (!found) return null;
+			const keywordEl = createKeywordElement(
+				found.core,
+				found.value,
+				rawContextLookup,
+				currentChapter,
+			);
+			if (!found.prefix) return keywordEl;
+			return [document.createTextNode(withTatweel(found.prefix)), keywordEl];
 		});
 	}
 
@@ -382,8 +453,16 @@ export function applyContentProcessing(
 		contentLength: root.textContent?.length ?? 0,
 	});
 
+	const chapter = data.chapterNumber ?? 0;
+	const enriched = enrichKeywords(data.keywords, chapter);
+	const rawContextLookup = buildRawContextLookup(data.keywords);
 	const replacementsApplied = applyReplacements(root, data.replacements);
-	const keywordsHighlighted = applyKeywordHighlights(root, data.keywords);
+	const keywordsHighlighted = applyKeywordHighlights(
+		root,
+		enriched,
+		rawContextLookup,
+		chapter,
+	);
 
 	initKeywordTooltipPortal();
 
