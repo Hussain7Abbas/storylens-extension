@@ -1,12 +1,25 @@
-import type { EnrichedKeyword } from "@/types/content-data";
+import type {
+	EnrichedCategory,
+	EnrichedKeyword,
+	EnrichedNature,
+	RawKeyword,
+	RawKeywordAlias,
+} from "@/types/content-data";
+import {
+	type FieldInfo,
+	pickBaseVersion,
+	resolveKeywordInfo,
+} from "@/utils/resolve-keyword-version";
 
 const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;
 const HIDE_DELAY_MS = 80;
 
 type AnchorData = {
-	keyword: EnrichedKeyword;
-	parent: EnrichedKeyword | undefined;
+	enriched: EnrichedKeyword;
+	raw: RawKeyword;
+	alias: RawKeywordAlias | null;
+	currentChapter: number;
 };
 
 const anchorDataMap = new WeakMap<HTMLElement, AnchorData>();
@@ -18,8 +31,22 @@ let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 let scrollListenerAttached = false;
 
 const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
-	en: { original: "Original" },
-	ar: { original: "الأصلي" },
+	en: {
+		info: "Info",
+		aliases: "Aliases",
+		versions: "Versions",
+		keyword: "Keyword",
+		alias: "Alias",
+		showMore: "↗",
+	},
+	ar: {
+		info: "معلومات",
+		aliases: "الأسماء البديلة",
+		versions: "النسخ",
+		keyword: "الكلمة",
+		alias: "الاسم البديل",
+		showMore: "↗",
+	},
 };
 
 let cachedLocale = "en";
@@ -85,90 +112,374 @@ function getTooltipRoot(): HTMLElement {
 	return root;
 }
 
-function buildKeywordBody(keyword: EnrichedKeyword): HTMLElement {
-	const container = document.createElement("div");
-
-	if (keyword.image?.url) {
-		const image = document.createElement("img");
-		image.className = "storylens-keyword-image";
-		image.src = keyword.image.url;
-		image.alt = keyword.name;
-		image.loading = "lazy";
-		container.append(image);
-	}
-
-	const title = document.createElement("strong");
-	title.textContent = keyword.name;
-	container.append(title);
-
-	if (keyword.description) {
-		const description = document.createElement("p");
-		description.textContent = keyword.description;
-		container.append(description);
-	}
-
-	const meta = document.createElement("div");
-	meta.className = "storylens-keyword-meta";
-
-	const category = document.createElement("span");
-	category.className = "storylens-category";
-	category.textContent = getLocalizedName(keyword.category);
-	category.style.setProperty("color", keyword.category.color, "important");
-	meta.append(category);
-
-	const nature = document.createElement("span");
-	nature.className = "storylens-nature";
-	nature.textContent = getLocalizedName(keyword.nature);
-	nature.style.setProperty("color", keyword.nature.color, "important");
-	meta.append(nature);
-
-	container.append(meta);
-	return container;
-}
-
-function buildCollapsibleOriginal(
-	parent: EnrichedKeyword,
+// Build a "show more" toggle with expandable provenance rows.
+function buildShowMoreToggle<T>(
+	info: FieldInfo<T>,
+	renderValue: (v: T | null) => string | null,
 	onToggle: () => void,
-): HTMLElement {
-	const wrapper = document.createElement("div");
-	wrapper.className = "storylens-original-section";
+): HTMLElement | null {
+	const relevantOverrides = info.overrides
+		.map((o) => ({ source: o.source, displayValue: renderValue(o.value) }))
+		.filter((o) => o.displayValue !== null && o.displayValue !== "");
+	if (relevantOverrides.length === 0) return null;
 
-	const toggle = document.createElement("button");
-	toggle.type = "button";
-	toggle.className = "storylens-original-toggle";
-	toggle.dataset.open = "false";
+	const wrapper = document.createElement("span");
 
-	const arrow = document.createElement("span");
-	arrow.className = "storylens-original-arrow";
-	arrow.textContent = "▶";
-	toggle.append(arrow);
+	const btn = document.createElement("button");
+	btn.type = "button";
+	btn.className = "storylens-show-more-btn";
+	btn.textContent = tt("showMore");
+	btn.dataset.open = "false";
 
-	const label = document.createElement("span");
-	label.textContent = ` ${tt("original")}: ${parent.name}`;
-	toggle.append(label);
+	const detail = document.createElement("div");
+	detail.className = "storylens-show-more-detail";
+	detail.style.display = "none";
 
-	const content = document.createElement("div");
-	content.className = "storylens-original-content";
-	content.style.display = "none";
-	content.append(buildKeywordBody(parent));
+	for (const o of relevantOverrides) {
+		const row = document.createElement("div");
+		row.className = "storylens-override-row";
+		const sourceLabel = document.createElement("span");
+		sourceLabel.className = "storylens-override-source";
+		sourceLabel.textContent =
+			o.source === "alias" ? tt("alias") : tt("keyword");
+		const colon = document.createTextNode(": ");
+		const val = document.createElement("span");
+		val.textContent = o.displayValue;
+		row.append(sourceLabel, colon, val);
+		detail.append(row);
+	}
 
-	toggle.addEventListener("click", (event) => {
-		event.stopPropagation();
-		const isOpen = toggle.dataset.open === "true";
-		toggle.dataset.open = isOpen ? "false" : "true";
-		arrow.textContent = isOpen ? "▶" : "▼";
-		content.style.display = isOpen ? "none" : "block";
+	btn.addEventListener("click", (e) => {
+		e.stopPropagation();
+		const isOpen = btn.dataset.open === "true";
+		btn.dataset.open = isOpen ? "false" : "true";
+		detail.style.display = isOpen ? "none" : "block";
 		onToggle();
 	});
 
-	wrapper.append(toggle);
-	wrapper.append(content);
+	wrapper.append(btn, detail);
+	return wrapper;
+}
+
+// A field row: label block + optional show-more, all in one container.
+function buildInfoFieldBlock(
+	mainContent: HTMLElement,
+	showMoreEl: HTMLElement | null,
+): HTMLElement {
+	const block = document.createElement("div");
+	block.className = "storylens-info-field-block";
+	const mainRow = document.createElement("div");
+	mainRow.className = "storylens-info-field-main";
+	mainRow.append(mainContent);
+	if (showMoreEl) mainRow.append(showMoreEl);
+	block.append(mainRow);
+	return block;
+}
+
+function buildInfoPanel(
+	data: AnchorData,
+	onLayoutChange: () => void,
+): HTMLElement {
+	const panel = document.createElement("div");
+	const info = resolveKeywordInfo(data.raw, data.alias, data.currentChapter);
+	const base = pickBaseVersion(data.raw.versions);
+
+	// Image from base version
+	if (base?.image?.url) {
+		const image = document.createElement("img");
+		image.className = "storylens-keyword-image";
+		image.src = base.image.url;
+		image.alt = data.raw.name;
+		image.loading = "lazy";
+		panel.append(image);
+	}
+
+	// Name
+	const nameEl = document.createElement("strong");
+	nameEl.textContent = info.name.value ?? data.raw.name;
+	const nameShowMore =
+		info.name.source !== "keyword"
+			? buildShowMoreToggle(info.name, (v) => v, onLayoutChange)
+			: null;
+	panel.append(buildInfoFieldBlock(nameEl, nameShowMore));
+
+	// Description (only if value exists)
+	if (info.description.value) {
+		const descEl = document.createElement("p");
+		descEl.textContent = info.description.value;
+		const descShowMore =
+			info.description.source !== "keyword"
+				? buildShowMoreToggle(info.description, (v) => v, onLayoutChange)
+				: null;
+		panel.append(buildInfoFieldBlock(descEl, descShowMore));
+	}
+
+	// Meta: category + nature
+	const meta = document.createElement("div");
+	meta.className = "storylens-keyword-meta";
+
+	if (info.category.value) {
+		const catEl = document.createElement("span");
+		catEl.className = "storylens-category";
+		catEl.textContent = getLocalizedName(info.category.value);
+		catEl.style.setProperty("color", info.category.value.color, "important");
+		const catShowMore =
+			info.category.source !== "keyword"
+				? buildShowMoreToggle(
+						info.category as FieldInfo<EnrichedCategory>,
+						(v) => (v ? getLocalizedName(v) : null),
+						onLayoutChange,
+					)
+				: null;
+		const catBlock = document.createElement("span");
+		catBlock.append(catEl);
+		if (catShowMore) catBlock.append(catShowMore);
+		meta.append(catBlock);
+	}
+
+	if (info.nature.value) {
+		const natEl = document.createElement("span");
+		natEl.className = "storylens-nature";
+		natEl.textContent = getLocalizedName(info.nature.value);
+		natEl.style.setProperty("color", info.nature.value.color, "important");
+		const natShowMore =
+			info.nature.source !== "keyword"
+				? buildShowMoreToggle(
+						info.nature as FieldInfo<EnrichedNature>,
+						(v) => (v ? getLocalizedName(v) : null),
+						onLayoutChange,
+					)
+				: null;
+		const natBlock = document.createElement("span");
+		natBlock.append(natEl);
+		if (natShowMore) natBlock.append(natShowMore);
+		meta.append(natBlock);
+	}
+
+	if (meta.children.length > 0) panel.append(meta);
+
+	return panel;
+}
+
+function buildAliasesPanel(raw: RawKeyword): HTMLElement {
+	const panel = document.createElement("div");
+	const base = pickBaseVersion(raw.versions);
+
+	for (const alias of raw.aliases) {
+		const item = document.createElement("div");
+		item.className = "storylens-panel-item";
+
+		// Name row with optional override badge
+		const nameRow = document.createElement("div");
+		nameRow.className = "storylens-panel-item-name";
+		const nameText = document.createElement("span");
+		nameText.textContent = alias.name;
+		nameRow.append(nameText);
+		if (alias.overrideStyle) {
+			const badge = document.createElement("span");
+			badge.className = "storylens-override-badge";
+			badge.textContent = "override";
+			nameRow.append(badge);
+		}
+		item.append(nameRow);
+
+		// Category / Nature
+		const ownCat = alias.category as EnrichedCategory | null;
+		const ownNat = alias.nature as EnrichedNature | null;
+		const inheritedCat = base?.category as EnrichedCategory | null | undefined;
+		const inheritedNat = base?.nature as EnrichedNature | null | undefined;
+		const displayCat = ownCat ?? inheritedCat ?? null;
+		const displayNat = ownNat ?? inheritedNat ?? null;
+
+		if (displayCat || displayNat) {
+			const metaRow = document.createElement("div");
+			metaRow.className = "storylens-panel-item-meta";
+			if (displayCat) {
+				const catEl = document.createElement("span");
+				catEl.textContent = getLocalizedName(displayCat);
+				catEl.style.setProperty(
+					"color",
+					!ownCat ? "inherit" : displayCat.color,
+					"important",
+				);
+				if (!ownCat) catEl.className = "storylens-inherited";
+				metaRow.append(catEl);
+			}
+			if (displayNat) {
+				const natEl = document.createElement("span");
+				natEl.textContent = getLocalizedName(displayNat);
+				natEl.style.setProperty(
+					"color",
+					!ownNat ? "inherit" : displayNat.color,
+					"important",
+				);
+				if (!ownNat) natEl.className = "storylens-inherited";
+				metaRow.append(natEl);
+			}
+			item.append(metaRow);
+		}
+
+		// Description
+		const ownDesc = alias.description ?? null;
+		const displayDesc = ownDesc ?? base?.description ?? null;
+		const isInherited = !ownDesc && !!displayDesc;
+		if (displayDesc) {
+			const descEl = document.createElement("div");
+			descEl.className =
+				"storylens-panel-item-desc" +
+				(isInherited ? " storylens-inherited" : "");
+			descEl.textContent = displayDesc;
+			item.append(descEl);
+		}
+
+		panel.append(item);
+	}
+
+	return panel;
+}
+
+function buildVersionsPanel(raw: RawKeyword): HTMLElement {
+	const panel = document.createElement("div");
+	const sortedVersions = [...raw.versions].sort(
+		(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+	);
+	const base = sortedVersions[0];
+
+	for (const version of sortedVersions) {
+		const item = document.createElement("div");
+		item.className = "storylens-panel-item";
+		const isBase = version.id === base?.id;
+
+		// Chapter range label
+		const start = Number(version.startingChapter);
+		const end = version.endingChapter;
+		const label =
+			end !== null && end !== undefined
+				? `ch.${start}–${Number(end)}`
+				: `ch.${start}+`;
+		const labelEl = document.createElement("div");
+		labelEl.className = "storylens-panel-item-name";
+		const labelSpan = document.createElement("span");
+		labelSpan.textContent = label;
+		labelEl.append(labelSpan);
+		if (version.imageId ?? version.image?.url) {
+			const imgBadge = document.createElement("span");
+			imgBadge.className = "storylens-override-badge";
+			imgBadge.textContent = "img";
+			labelEl.append(imgBadge);
+		}
+		item.append(labelEl);
+
+		// Category / Nature (own + inherited from base if not base)
+		const ownCat = version.category as EnrichedCategory | null;
+		const ownNat = version.nature as EnrichedNature | null;
+		const inheritedCat = (!isBase ? base?.category : null) as
+			| EnrichedCategory
+			| null
+			| undefined;
+		const inheritedNat = (!isBase ? base?.nature : null) as
+			| EnrichedNature
+			| null
+			| undefined;
+		const displayCat = ownCat ?? inheritedCat ?? null;
+		const displayNat = ownNat ?? inheritedNat ?? null;
+
+		if (displayCat || displayNat) {
+			const metaRow = document.createElement("div");
+			metaRow.className = "storylens-panel-item-meta";
+			if (displayCat) {
+				const catEl = document.createElement("span");
+				catEl.textContent = getLocalizedName(displayCat);
+				catEl.style.setProperty(
+					"color",
+					!ownCat ? "inherit" : displayCat.color,
+					"important",
+				);
+				if (!ownCat) catEl.className = "storylens-inherited";
+				metaRow.append(catEl);
+			}
+			if (displayNat) {
+				const natEl = document.createElement("span");
+				natEl.textContent = getLocalizedName(displayNat);
+				natEl.style.setProperty(
+					"color",
+					!ownNat ? "inherit" : displayNat.color,
+					"important",
+				);
+				if (!ownNat) natEl.className = "storylens-inherited";
+				metaRow.append(natEl);
+			}
+			item.append(metaRow);
+		}
+
+		// Description (own + inherited from base)
+		const ownDesc = version.description ?? null;
+		const inheritedDesc =
+			!ownDesc && !isBase ? (base?.description ?? null) : null;
+		const displayDesc = ownDesc ?? inheritedDesc;
+		const isInherited = !ownDesc && !!inheritedDesc;
+		if (displayDesc) {
+			const descEl = document.createElement("div");
+			descEl.className =
+				"storylens-panel-item-desc" +
+				(isInherited ? " storylens-inherited" : "");
+			descEl.textContent = displayDesc;
+			item.append(descEl);
+		}
+
+		panel.append(item);
+	}
+
+	return panel;
+}
+
+type TabDef = { label: string; content: HTMLElement };
+
+function buildTabSystem(
+	tabs: TabDef[],
+	onLayoutChange: () => void,
+): HTMLElement {
+	const wrapper = document.createElement("div");
+
+	const tabBar = document.createElement("div");
+	tabBar.className = "storylens-tab-bar";
+
+	const panels: HTMLElement[] = [];
+	const buttons: HTMLButtonElement[] = [];
+
+	for (let i = 0; i < tabs.length; i++) {
+		const tab = tabs[i];
+
+		const btn = document.createElement("button");
+		btn.type = "button";
+		btn.className =
+			"storylens-tab-btn" + (i === 0 ? " storylens-tab-btn--active" : "");
+		btn.textContent = tab.label;
+		tabBar.append(btn);
+		buttons.push(btn);
+
+		const panel = document.createElement("div");
+		panel.className = "storylens-tab-panel";
+		panel.style.display = i === 0 ? "block" : "none";
+		panel.append(tab.content);
+		panels.push(panel);
+
+		btn.addEventListener("click", () => {
+			for (let j = 0; j < tabs.length; j++) {
+				buttons[j].classList.toggle("storylens-tab-btn--active", j === i);
+				panels[j].style.display = j === i ? "block" : "none";
+			}
+			onLayoutChange();
+		});
+	}
+
+	wrapper.append(tabBar);
+	for (const panel of panels) wrapper.append(panel);
 	return wrapper;
 }
 
 function buildKeywordTooltipContent(
-	keyword: EnrichedKeyword,
-	parent: EnrichedKeyword | undefined,
+	data: AnchorData,
 	onLayoutChange: () => void,
 ): HTMLElement {
 	const tooltip = document.createElement("div");
@@ -176,10 +487,32 @@ function buildKeywordTooltipContent(
 		"storylens-tooltip-text storylens-keyword-info storylens-tooltip-text--floating";
 	tooltip.setAttribute("role", "tooltip");
 
-	tooltip.append(buildKeywordBody(keyword));
+	const tabs: TabDef[] = [
+		{
+			label: tt("info"),
+			content: buildInfoPanel(data, onLayoutChange),
+		},
+	];
 
-	if (parent) {
-		tooltip.append(buildCollapsibleOriginal(parent, onLayoutChange));
+	if (data.raw.aliases.length > 0) {
+		tabs.push({
+			label: tt("aliases"),
+			content: buildAliasesPanel(data.raw),
+		});
+	}
+
+	if (data.raw.versions.length > 1) {
+		tabs.push({
+			label: tt("versions"),
+			content: buildVersionsPanel(data.raw),
+		});
+	}
+
+	if (tabs.length === 1) {
+		// No tabs needed — just show the info panel directly
+		tooltip.append(tabs[0].content);
+	} else {
+		tooltip.append(buildTabSystem(tabs, onLayoutChange));
 	}
 
 	return tooltip;
@@ -247,7 +580,7 @@ function showTooltip(anchor: HTMLElement): void {
 	hideActiveTooltip();
 	activeAnchor = anchor;
 
-	const tooltip = buildKeywordTooltipContent(data.keyword, data.parent, () => {
+	const tooltip = buildKeywordTooltipContent(data, () => {
 		if (activeAnchor && activeTooltip) {
 			positionTooltip(activeAnchor, activeTooltip);
 		}
@@ -288,10 +621,12 @@ function detachScrollListener(): void {
 
 export function registerKeywordTooltipAnchor(
 	anchor: HTMLElement,
-	keyword: EnrichedKeyword,
-	parent?: EnrichedKeyword,
+	enriched: EnrichedKeyword,
+	raw: RawKeyword,
+	alias: RawKeywordAlias | null,
+	currentChapter: number,
 ): void {
-	anchorDataMap.set(anchor, { keyword, parent });
+	anchorDataMap.set(anchor, { enriched, raw, alias, currentChapter });
 
 	anchor.addEventListener("mouseenter", () => {
 		showTooltip(anchor);

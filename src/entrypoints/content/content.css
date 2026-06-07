@@ -124,41 +124,128 @@
 	background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Original keyword collapsible section */
-.storylens-original-section {
-	margin-top: 8px;
-	border-top: 1px solid rgba(255, 255, 255, 0.15);
-	padding-top: 6px;
+/* Tab system */
+.storylens-tab-bar {
+	display: flex;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	margin-bottom: 8px;
+	gap: 2px;
 }
 
-.storylens-original-toggle {
-	display: flex;
-	align-items: center;
-	gap: 4px;
+.storylens-tab-btn {
+	flex: 1;
 	background: none;
 	border: none;
-	color: rgba(255, 255, 255, 0.7);
-	font-size: 0.79em;
+	border-bottom: 2px solid transparent;
+	color: rgba(255, 255, 255, 0.6);
+	font-size: 0.75em;
 	cursor: pointer;
-	padding: 2px 0;
-	width: 100%;
-	text-align: left;
+	padding: 4px 4px 3px;
 	pointer-events: auto;
+	margin-bottom: -1px;
+	white-space: nowrap;
 }
 
-.storylens-original-toggle:hover {
+.storylens-tab-btn:hover {
 	color: #fff;
 }
 
-.storylens-original-arrow {
-	font-size: 0.82em;
+.storylens-tab-btn--active {
+	color: #fff;
+	border-bottom-color: #fff;
+}
+
+/* Info panel field blocks */
+.storylens-info-field-block {
+	margin-bottom: 2px;
+}
+
+.storylens-info-field-main {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+/* Show more toggle */
+.storylens-show-more-btn {
+	background: none;
+	border: none;
+	color: rgba(255, 255, 255, 0.45);
+	font-size: 0.75em;
+	cursor: pointer;
+	padding: 0 2px;
+	pointer-events: auto;
+	line-height: 1;
 	flex-shrink: 0;
 }
 
-.storylens-original-content {
-	margin-top: 6px;
-	padding-top: 6px;
-	border-top: 1px solid rgba(255, 255, 255, 0.1);
+.storylens-show-more-btn:hover {
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.storylens-show-more-detail {
+	margin-top: 3px;
+	font-size: 0.75em;
+	border-left: 2px solid rgba(255, 255, 255, 0.2);
+	padding-left: 6px;
+}
+
+.storylens-override-row {
+	margin: 2px 0;
+	opacity: 0.85;
+}
+
+.storylens-override-source {
+	opacity: 0.65;
+	font-style: italic;
+}
+
+/* Aliases / Versions panel items */
+.storylens-panel-item {
+	padding: 5px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.storylens-panel-item:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.storylens-panel-item-name {
+	font-weight: bold;
+	font-size: 0.93em;
+	margin-bottom: 3px;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	flex-wrap: wrap;
+}
+
+.storylens-panel-item-meta {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	font-size: 0.71em;
+}
+
+.storylens-panel-item-desc {
+	font-size: 0.82em;
+	opacity: 0.75;
+	margin-top: 2px;
+	line-height: 1.3;
+}
+
+.storylens-inherited {
+	opacity: 0.4 !important;
+}
+
+.storylens-override-badge {
+	font-size: 0.71em;
+	font-weight: normal;
+	background: rgba(100, 150, 255, 0.25);
+	padding: 1px 5px;
+	border-radius: 3px;
 }
 
 /* Content formatting */

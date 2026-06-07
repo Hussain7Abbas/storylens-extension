@@ -2,6 +2,8 @@ import type {
 	ContentProcessingStats,
 	EnrichedKeyword,
 	NovelContentData,
+	RawKeyword,
+	RawKeywordAlias,
 } from "@/types/content-data";
 import {
 	destroyKeywordTooltipPortal,
@@ -259,10 +261,30 @@ function createReplacedElement(replacementText: string): HTMLSpanElement {
 	return span;
 }
 
+function buildRawContextLookup(
+	keywords: RawKeyword[],
+): Map<string, { raw: RawKeyword; alias: RawKeywordAlias | null }> {
+	const lookup = new Map<
+		string,
+		{ raw: RawKeyword; alias: RawKeywordAlias | null }
+	>();
+	for (const kw of keywords) {
+		lookup.set(kw.id, { raw: kw, alias: null });
+		for (const alias of kw.aliases) {
+			lookup.set(alias.id, { raw: kw, alias });
+		}
+	}
+	return lookup;
+}
+
 function createKeywordElement(
 	matchedText: string,
 	keyword: EnrichedKeyword,
-	parent: EnrichedKeyword | undefined,
+	rawContextLookup: Map<
+		string,
+		{ raw: RawKeyword; alias: RawKeywordAlias | null }
+	>,
+	currentChapter: number,
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
@@ -280,7 +302,16 @@ function createKeywordElement(
 	span.append(natureIndicator);
 	span.append(document.createTextNode(matchedText));
 
-	registerKeywordTooltipAnchor(span, keyword, parent);
+	const rawCtx = rawContextLookup.get(keyword.id);
+	if (rawCtx) {
+		registerKeywordTooltipAnchor(
+			span,
+			keyword,
+			rawCtx.raw,
+			rawCtx.alias,
+			currentChapter,
+		);
+	}
 
 	return span;
 }
@@ -322,16 +353,6 @@ function buildKeywordLookup(
 	return lookup;
 }
 
-function buildKeywordById(
-	keywords: EnrichedKeyword[],
-): Map<string, EnrichedKeyword> {
-	const byId = new Map<string, EnrichedKeyword>();
-	for (const keyword of keywords) {
-		byId.set(keyword.id, keyword);
-	}
-	return byId;
-}
-
 function applyReplacements(
 	root: HTMLElement,
 	replacements: NovelContentData["replacements"],
@@ -364,6 +385,11 @@ function applyReplacements(
 function applyKeywordHighlights(
 	root: HTMLElement,
 	keywords: EnrichedKeyword[],
+	rawContextLookup: Map<
+		string,
+		{ raw: RawKeyword; alias: RawKeywordAlias | null }
+	>,
+	currentChapter: number,
 ): number {
 	const regex = buildCombinedPattern(
 		keywords.map((keyword) => ({
@@ -376,7 +402,6 @@ function applyKeywordHighlights(
 	}
 
 	const lookup = buildKeywordLookup(keywords);
-	const byId = buildKeywordById(keywords);
 	const textNodes = collectTextNodes(root, DEFAULT_MARKUP_SKIP_SELECTOR);
 	let highlighted = 0;
 
@@ -384,10 +409,12 @@ function applyKeywordHighlights(
 		highlighted += processTextNodeMatches(textNode, regex, (matchedText) => {
 			const found = findKeywordMatch(matchedText, lookup);
 			if (!found) return null;
-			const parent = found.value.keywordId
-				? byId.get(found.value.keywordId)
-				: undefined;
-			const keywordEl = createKeywordElement(found.core, found.value, parent);
+			const keywordEl = createKeywordElement(
+				found.core,
+				found.value,
+				rawContextLookup,
+				currentChapter,
+			);
 			if (!found.prefix) return keywordEl;
 			return [document.createTextNode(withTatweel(found.prefix)), keywordEl];
 		});
@@ -426,9 +453,16 @@ export function applyContentProcessing(
 		contentLength: root.textContent?.length ?? 0,
 	});
 
-	const enriched = enrichKeywords(data.keywords, data.chapterNumber ?? 0);
+	const chapter = data.chapterNumber ?? 0;
+	const enriched = enrichKeywords(data.keywords, chapter);
+	const rawContextLookup = buildRawContextLookup(data.keywords);
 	const replacementsApplied = applyReplacements(root, data.replacements);
-	const keywordsHighlighted = applyKeywordHighlights(root, enriched);
+	const keywordsHighlighted = applyKeywordHighlights(
+		root,
+		enriched,
+		rawContextLookup,
+		chapter,
+	);
 
 	initKeywordTooltipPortal();
 

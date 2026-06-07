@@ -182,3 +182,105 @@ export type {
 	GetKeywords200DataItemAliasesItem as KeywordAlias,
 	GetKeywords200DataItemVersionsItem as KeywordVersion,
 };
+
+export function pickBaseVersion(
+	versions: GetKeywords200DataItemVersionsItem[],
+): GetKeywords200DataItemVersionsItem | undefined {
+	if (versions.length === 0) return undefined;
+	return [...versions].sort(
+		(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+	)[0];
+}
+
+export type InfoSource = "keyword" | "version" | "alias";
+
+export type FieldInfo<T> = {
+	value: T | null;
+	source: InfoSource;
+	overrides: { source: "alias" | "keyword"; value: T | null }[];
+};
+
+export type ResolvedInfo = {
+	name: FieldInfo<string>;
+	category: FieldInfo<EnrichedCategory>;
+	nature: FieldInfo<EnrichedNature>;
+	description: FieldInfo<string>;
+};
+
+function resolveFieldInfo<T>(
+	activeVal: T | null | undefined,
+	baseVal: T | null | undefined,
+	aliasVal: T | null | undefined,
+	override: boolean,
+	activeIsBase: boolean,
+): FieldInfo<T> {
+	if (override && aliasVal != null) {
+		return {
+			value: aliasVal,
+			source: "alias",
+			overrides: [{ source: "keyword", value: baseVal ?? null }],
+		};
+	}
+	if (activeVal != null && !activeIsBase) {
+		const overrides: { source: "alias" | "keyword"; value: T | null }[] = [];
+		if (aliasVal != null) overrides.push({ source: "alias", value: aliasVal });
+		overrides.push({ source: "keyword", value: baseVal ?? null });
+		return { value: activeVal, source: "version", overrides };
+	}
+	if (activeVal != null) {
+		return { value: activeVal, source: "keyword", overrides: [] };
+	}
+	if (aliasVal != null) {
+		return {
+			value: aliasVal,
+			source: "alias",
+			overrides: [{ source: "keyword", value: baseVal ?? null }],
+		};
+	}
+	return { value: baseVal ?? null, source: "keyword", overrides: [] };
+}
+
+export function resolveKeywordInfo(
+	keyword: GetKeywords200DataItem,
+	alias: GetKeywords200DataItemAliasesItem | null,
+	currentChapter: number,
+): ResolvedInfo {
+	const base = pickBaseVersion(keyword.versions);
+	const active = pickVersion(keyword.versions, currentChapter);
+	const activeIsBase = !active || !base || active.id === base.id;
+	const override = alias?.overrideStyle ?? false;
+
+	const name: FieldInfo<string> = alias
+		? {
+				value: alias.name,
+				source: "alias",
+				overrides: [{ source: "keyword", value: keyword.name }],
+			}
+		: { value: keyword.name, source: "keyword", overrides: [] };
+
+	const category = resolveFieldInfo<EnrichedCategory>(
+		active?.category as EnrichedCategory | null | undefined,
+		base?.category as EnrichedCategory | null | undefined,
+		alias?.category as EnrichedCategory | null | undefined,
+		override,
+		activeIsBase,
+	);
+
+	const nature = resolveFieldInfo<EnrichedNature>(
+		active?.nature as EnrichedNature | null | undefined,
+		base?.nature as EnrichedNature | null | undefined,
+		alias?.nature as EnrichedNature | null | undefined,
+		override,
+		activeIsBase,
+	);
+
+	const description = resolveFieldInfo<string>(
+		active?.description,
+		base?.description,
+		alias?.description,
+		override,
+		activeIsBase,
+	);
+
+	return { name, category, nature, description };
+}

@@ -10,12 +10,7 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import {
-	IconCloudUpload,
-	IconCornerDownRight,
-	IconHistory,
-	IconPlus,
-} from "@tabler/icons-react";
+import { IconCloudUpload, IconHistory, IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,7 +25,7 @@ import {
 	useOnlineStatus,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
-import { resolveStyle } from "@/utils/resolve-keyword-version";
+import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { ListItemCard } from "../list-item-card";
 
 type KeywordGroup = {
@@ -63,6 +58,211 @@ interface ColoringCardsProps extends StackProps {
 		parent: GetKeywords200DataItem,
 	) => void;
 	readOnly?: boolean;
+}
+
+function CategoryNatureRow({
+	ownCategory,
+	ownNature,
+	inheritedCategory,
+	inheritedNature,
+}: {
+	ownCategory: EnrichedCategory | null | undefined;
+	ownNature: EnrichedNature | null | undefined;
+	inheritedCategory: EnrichedCategory | null | undefined;
+	inheritedNature: EnrichedNature | null | undefined;
+}) {
+	const displayCategory = ownCategory ?? inheritedCategory ?? null;
+	const isCatInherited = !ownCategory && !!inheritedCategory;
+	const displayNature = ownNature ?? inheritedNature ?? null;
+	const isNatInherited = !ownNature && !!inheritedNature;
+
+	if (!displayCategory && !displayNature) return null;
+
+	return (
+		<Group gap={4} wrap="wrap">
+			{displayCategory && (
+				<Text
+					size="xs"
+					style={{
+						color: isCatInherited ? undefined : displayCategory.color,
+						opacity: isCatInherited ? 0.45 : 1,
+					}}
+					c={isCatInherited ? "dimmed" : undefined}
+				>
+					{displayCategory.nameEn || displayCategory.nameAr}
+				</Text>
+			)}
+			{displayNature && (
+				<Text
+					size="xs"
+					style={{
+						color: isNatInherited ? undefined : displayNature.color,
+						opacity: isNatInherited ? 0.45 : 1,
+					}}
+					c={isNatInherited ? "dimmed" : undefined}
+				>
+					{displayNature.nameEn || displayNature.nameAr}
+				</Text>
+			)}
+		</Group>
+	);
+}
+
+function VersionCard({
+	version,
+	baseVersion,
+	currentChapter,
+	onClick,
+	readOnly,
+}: {
+	version: GetKeywords200DataItemVersionsItem;
+	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
+	currentChapter: number;
+	onClick?: () => void;
+	readOnly: boolean;
+}) {
+	const { t } = useTranslation();
+	const start = Number(version.startingChapter);
+	const end = version.endingChapter;
+	const isFuture = start > currentChapter;
+	const label =
+		end !== null && end !== undefined
+			? `ch.${start}–${Number(end)}`
+			: `ch.${start}+`;
+
+	const isBase = version.id === baseVersion?.id;
+	const ownCategory = version.category as EnrichedCategory | null;
+	const ownNature = version.nature as EnrichedNature | null;
+	const inheritedCategory = (!isBase ? baseVersion?.category : null) as
+		| EnrichedCategory
+		| null
+		| undefined;
+	const inheritedNature = (!isBase ? baseVersion?.nature : null) as
+		| EnrichedNature
+		| null
+		| undefined;
+
+	const hasOwnImage = Boolean(version.imageId ?? version.image?.url);
+	const ownDescription = version.description ?? null;
+	const inheritedDescription =
+		!ownDescription && !isBase ? (baseVersion?.description ?? null) : null;
+	const displayDescription = ownDescription ?? inheritedDescription;
+	const isDescInherited = !ownDescription && !!inheritedDescription;
+
+	return (
+		<ListItemCard onClick={readOnly ? undefined : onClick}>
+			<Group wrap="nowrap" align="center" gap={4}>
+				<Text
+					size="xs"
+					fw={600}
+					style={{
+						flex: 1,
+						opacity: isFuture ? 0.5 : 1,
+						textDecoration: isFuture ? "line-through" : undefined,
+					}}
+				>
+					{label}
+				</Text>
+				{hasOwnImage && (
+					<Badge size="xs" variant="dot" color="gray" style={{ flexShrink: 0 }}>
+						{t("coloring.hasImage")}
+					</Badge>
+				)}
+			</Group>
+			<CategoryNatureRow
+				ownCategory={ownCategory}
+				ownNature={ownNature}
+				inheritedCategory={inheritedCategory}
+				inheritedNature={inheritedNature}
+			/>
+			{displayDescription && (
+				<Text
+					size="xs"
+					c={isDescInherited ? "dimmed" : undefined}
+					style={{ opacity: isDescInherited ? 0.45 : 1 }}
+					lineClamp={2}
+				>
+					{displayDescription}
+				</Text>
+			)}
+		</ListItemCard>
+	);
+}
+
+function AliasCard({
+	alias,
+	baseVersion,
+	onClick,
+	readOnly,
+	isPending,
+}: {
+	alias: GetKeywords200DataItemAliasesItem;
+	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
+	onClick?: () => void;
+	readOnly: boolean;
+	isPending: boolean;
+}) {
+	const { t } = useTranslation();
+	const ownCategory = alias.category as EnrichedCategory | null;
+	const ownNature = alias.nature as EnrichedNature | null;
+	const inheritedCategory = baseVersion?.category as
+		| EnrichedCategory
+		| null
+		| undefined;
+	const inheritedNature = baseVersion?.nature as
+		| EnrichedNature
+		| null
+		| undefined;
+
+	const ownDescription = alias.description ?? null;
+	const inheritedDescription = !ownDescription
+		? (baseVersion?.description ?? null)
+		: null;
+	const displayDescription = ownDescription ?? inheritedDescription;
+	const isDescInherited = !ownDescription && !!inheritedDescription;
+
+	return (
+		<ListItemCard onClick={readOnly ? undefined : onClick}>
+			<Group wrap="nowrap" align="flex-start" gap={4}>
+				<Text fw={500} size="xs" style={{ flex: 1 }}>
+					{alias.name}
+				</Text>
+				<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+					{isPending && (
+						<Badge
+							size="xs"
+							color="orange"
+							variant="light"
+							leftSection={<IconCloudUpload size={10} />}
+						>
+							{t("offline.pendingSync")}
+						</Badge>
+					)}
+					{alias.overrideStyle && (
+						<Badge size="xs" variant="light" color="blue">
+							{t("coloring.overrideStyle")}
+						</Badge>
+					)}
+				</Group>
+			</Group>
+			<CategoryNatureRow
+				ownCategory={ownCategory}
+				ownNature={ownNature}
+				inheritedCategory={inheritedCategory}
+				inheritedNature={inheritedNature}
+			/>
+			{displayDescription && (
+				<Text
+					size="xs"
+					c={isDescInherited ? "dimmed" : undefined}
+					style={{ opacity: isDescInherited ? 0.45 : 1 }}
+					lineClamp={2}
+				>
+					{displayDescription}
+				</Text>
+			)}
+		</ListItemCard>
+	);
 }
 
 export function ColoringCards({
@@ -148,23 +348,21 @@ export function ColoringCards({
 					(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
 				);
 				const baseVersion = sortedVersions[0];
-				const activeVersion =
-					versions.find((v) => {
-						const start = Number(v.startingChapter);
-						const end = v.endingChapter;
-						return (
-							start <= chapter &&
-							(end === null || end === undefined || Number(end) >= chapter)
-						);
-					}) ?? baseVersion;
-
-				const kwStyle = resolveStyle(activeVersion, baseVersion);
-				const displayCategory = kwStyle?.category;
-				const displayNature = kwStyle?.nature;
-				const hasImage = Boolean(kwStyle?.imageId ?? kwStyle?.image?.url);
+				const baseCategory = baseVersion?.category as
+					| EnrichedCategory
+					| null
+					| undefined;
+				const baseNature = baseVersion?.nature as
+					| EnrichedNature
+					| null
+					| undefined;
+				const hasBaseImage = Boolean(
+					baseVersion?.imageId ?? baseVersion?.image?.url,
+				);
 
 				return (
 					<Stack key={parent.id} gap={2}>
+						{/* Keyword card — shows base/original details */}
 						<ListItemCard
 							onClick={readOnly ? undefined : () => onEditKeyword(parent)}
 						>
@@ -173,7 +371,7 @@ export function ColoringCards({
 									{parent.name}
 								</Text>
 								<Group gap="xs" wrap="nowrap">
-									{hasImage && (
+									{hasBaseImage && (
 										<Badge size="xs" variant="dot" color="gray">
 											{t("coloring.hasImage")}
 										</Badge>
@@ -188,14 +386,14 @@ export function ColoringCards({
 											{t("offline.pendingSync")}
 										</Badge>
 									)}
-									{displayCategory && (
-										<Text size="xs" style={{ color: displayCategory.color }}>
-											{displayCategory.nameEn || displayCategory.nameAr}
+									{baseCategory && (
+										<Text size="xs" style={{ color: baseCategory.color }}>
+											{baseCategory.nameEn || baseCategory.nameAr}
 										</Text>
 									)}
-									{displayNature && (
-										<Text size="xs" style={{ color: displayNature.color }}>
-											{displayNature.nameEn || displayNature.nameAr}
+									{baseNature && (
+										<Text size="xs" style={{ color: baseNature.color }}>
+											{baseNature.nameEn || baseNature.nameAr}
 										</Text>
 									)}
 									{!readOnly && onAddAlias && (
@@ -230,138 +428,70 @@ export function ColoringCards({
 									)}
 								</Group>
 							</Group>
-							{kwStyle?.description && (
+							{baseVersion?.description && (
 								<Text size="sm" c="dimmed">
-									{kwStyle.description}
+									{baseVersion.description}
 								</Text>
 							)}
 						</ListItemCard>
 
-						{/* Version strip */}
-						{versions.length > 1 && (
-							<Group gap={4} pl="xs" wrap="wrap">
-								{sortedVersions.map((version) => {
-									const start = Number(version.startingChapter);
-									const end = version.endingChapter;
-									const isFuture = start > chapter;
-									const label =
-										end !== null && end !== undefined
-											? `ch.${start}–${Number(end)}`
-											: `ch.${start}+`;
-									const versionStyle = resolveStyle(version, baseVersion);
-									const versionCategory = versionStyle?.category;
-
-									return (
-										<Tooltip
-											key={version.id}
-											label={
-												isFuture
-													? t("coloring.spoilerVersion")
-													: `${label}${versionCategory ? ` · ${versionCategory.nameEn || versionCategory.nameAr}` : ""}`
-											}
-											withArrow
-										>
-											<Badge
-												size="xs"
-												variant={isFuture ? "outline" : "light"}
-												color={versionCategory?.color ? undefined : "gray"}
-												style={{
-													cursor: readOnly ? "default" : "pointer",
-													textDecoration: isFuture ? "line-through" : undefined,
-													opacity: isFuture ? 0.5 : 1,
-													borderColor: versionCategory?.color,
-													color: isFuture ? undefined : versionCategory?.color,
-												}}
-												onClick={
-													readOnly || !onEditVersion
-														? undefined
-														: () => onEditVersion(version, parent)
-												}
-											>
-												{label}
-											</Badge>
-										</Tooltip>
-									);
-								})}
-							</Group>
-						)}
-
-						{aliases.map((alias) => {
-							const isAliasPending =
-								pendingEntityIds.has(alias.id) ||
-								("isDirty" in alias && alias.isDirty === true);
-							const aliasStyle = resolveStyle(
-								activeVersion,
-								baseVersion,
-								alias,
-							);
-							const aliasCat = aliasStyle?.category;
-							const aliasNature = aliasStyle?.nature;
-
-							return (
+						{/* 2-column grid: Versions (left) + Aliases (right) */}
+						{(versions.length > 1 || aliases.length > 0) && (
+							<Box pl="sm">
 								<Group
-									key={alias.id}
-									gap="xs"
-									wrap="nowrap"
-									pl="md"
-									align="stretch"
+									gap={8}
+									align="flex-start"
+									wrap="wrap"
+									style={{ rowGap: 4 }}
 								>
-									<Box
-										style={{
-											display: "flex",
-											alignItems: "center",
-											color: "var(--mantine-color-dimmed)",
-											flexShrink: 0,
-										}}
-									>
-										<IconCornerDownRight size={14} stroke={1.5} />
-									</Box>
-									<Box style={{ flex: 1, minWidth: 0 }}>
-										<ListItemCard
-											onClick={
-												readOnly ? undefined : () => onEditAlias(alias, parent)
-											}
-										>
-											<Group wrap="nowrap" align="flex-start" gap={4}>
-												<Text fw={500} size="xs" style={{ flex: 1 }}>
-													{alias.name}
-												</Text>
-												<Group gap={4} wrap="nowrap">
-													{isAliasPending && (
-														<Badge
-															size="xs"
-															color="orange"
-															variant="light"
-															leftSection={<IconCloudUpload size={12} />}
-														>
-															{t("offline.pendingSync")}
-														</Badge>
-													)}
-													{aliasCat && (
-														<Text size="xs" style={{ color: aliasCat.color }}>
-															{aliasCat.nameEn || aliasCat.nameAr}
-														</Text>
-													)}
-													{aliasNature && (
-														<Text
-															size="xs"
-															style={{ color: aliasNature.color }}
-														>
-															{aliasNature.nameEn || aliasNature.nameAr}
-														</Text>
-													)}
-												</Group>
-											</Group>
-											{aliasStyle?.description && (
-												<Text size="xs" c="dimmed">
-													{aliasStyle.description}
-												</Text>
-											)}
-										</ListItemCard>
-									</Box>
+									{/* Versions column — only when multiple versions exist */}
+									{versions.length > 1 && (
+										<Stack gap={4} style={{ flex: 1, minWidth: 140 }}>
+											<Text size="xs" c="dimmed" fw={500}>
+												{t("coloring.versions")}
+											</Text>
+											{sortedVersions.map((version) => (
+												<VersionCard
+													key={version.id}
+													version={version}
+													baseVersion={baseVersion}
+													currentChapter={chapter}
+													readOnly={readOnly}
+													onClick={
+														onEditVersion
+															? () => onEditVersion(version, parent)
+															: undefined
+													}
+												/>
+											))}
+										</Stack>
+									)}
+									{/* Aliases column */}
+									{aliases.length > 0 && (
+										<Stack gap={4} style={{ flex: 1, minWidth: 140 }}>
+											<Text size="xs" c="dimmed" fw={500}>
+												{t("coloring.aliases")}
+											</Text>
+											{aliases.map((alias) => {
+												const isAliasPending =
+													pendingEntityIds.has(alias.id) ||
+													("isDirty" in alias && alias.isDirty === true);
+												return (
+													<AliasCard
+														key={alias.id}
+														alias={alias}
+														baseVersion={baseVersion}
+														readOnly={readOnly}
+														isPending={isAliasPending}
+														onClick={() => onEditAlias(alias, parent)}
+													/>
+												);
+											})}
+										</Stack>
+									)}
 								</Group>
-							);
-						})}
+							</Box>
+						)}
 					</Stack>
 				);
 			})}

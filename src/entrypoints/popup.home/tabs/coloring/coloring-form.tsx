@@ -71,6 +71,7 @@ type KeywordFormValues = {
 	categoryId: string;
 	natureId: string;
 	description: string;
+	imageId?: string;
 };
 
 function KeywordForm({
@@ -84,40 +85,81 @@ function KeywordForm({
 }) {
 	const { t } = useTranslation();
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+	const [isUploadingImage, setIsUploadingImage] = useState(false);
+	const [uploadError, setUploadError] = useState<string | null>(null);
+
 	const keyword = "keyword" in frame ? frame.keyword : undefined;
+
+	const baseVersion = keyword?.versions.length
+		? [...keyword.versions].sort(
+				(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
+			)[0]
+		: undefined;
+
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordMutations(selectedNovelId);
+	const { updateMutation: updateVersionMutation } =
+		useOfflineKeywordVersionMutations(selectedNovelId);
 
 	const { data: categoriesData, isLoading: categoriesLoading } =
 		useOfflineKeywordCategories();
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
 
+	useEffect(() => {
+		if (!imageFile) {
+			setImagePreviewUrl(null);
+			return;
+		}
+		const url = URL.createObjectURL(imageFile);
+		setImagePreviewUrl(url);
+		return () => URL.revokeObjectURL(url);
+	}, [imageFile]);
+
 	const form = useForm<KeywordFormValues>({
 		initialValues: {
 			name: keyword?.name ?? "",
 			matchingType: keyword?.matchingType ?? "FULL",
-			categoryId: "",
-			natureId: "",
-			description: "",
+			categoryId: baseVersion?.categoryId ?? "",
+			natureId: baseVersion?.natureId ?? "",
+			description: baseVersion?.description ?? "",
+			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
 		},
 		validate: {
 			name: (v) => (!v ? t("home.nameRequired") : null),
-			...(frame.mode === "keyword-add"
-				? {
-						categoryId: (v) => (!v ? t("home.categoryRequired") : null),
-						natureId: (v) => (!v ? t("home.natureRequired") : null),
-					}
-				: {}),
+			categoryId: (v) => (!v ? t("home.categoryRequired") : null),
+			natureId: (v) => (!v ? t("home.natureRequired") : null),
 		},
 	});
 
 	const isPending =
+		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
+		updateVersionMutation.isPending ||
 		deleteMutation.isPending;
 
-	const handleSubmit = (values: KeywordFormValues) => {
+	const handleSubmit = async (values: KeywordFormValues) => {
+		setUploadError(null);
+		let imageId = values.imageId;
+		if (imageFile) {
+			setIsUploadingImage(true);
+			try {
+				imageId = await uploadImageFile(imageFile);
+			} catch (error) {
+				setUploadError(
+					error instanceof Error
+						? error.message
+						: t("coloring.imageUploadFailed"),
+				);
+				return;
+			} finally {
+				setIsUploadingImage(false);
+			}
+		}
+
 		if (frame.mode === "keyword-add") {
 			const payload: PostKeywordsBodyOne = {
 				novelId: selectedNovelId,
@@ -130,25 +172,40 @@ function KeywordForm({
 			createMutation.mutate(payload, {
 				onSuccess: () => {
 					form.reset();
+					setImageFile(null);
 					onClose();
 				},
 			});
 		} else if (keyword) {
-			const data: PutKeywordsByIdBodyOne = {
-				name: values.name,
-				matchingType: values.matchingType,
-			};
-			updateMutation.mutate(
-				{ id: keyword.id, data },
-				{
-					onSuccess: () => {
-						form.reset();
-						onClose();
-					},
-				},
-			);
+			try {
+				await updateMutation.mutateAsync({
+					id: keyword.id,
+					data: {
+						name: values.name,
+						matchingType: values.matchingType,
+					} satisfies PutKeywordsByIdBodyOne,
+				});
+				if (baseVersion) {
+					await updateVersionMutation.mutateAsync({
+						id: baseVersion.id,
+						data: {
+							description: values.description || undefined,
+							categoryId: values.categoryId || undefined,
+							natureId: values.natureId || undefined,
+							imageId,
+						} satisfies PutKeywordVersionsByIdBodyOne,
+					});
+				}
+				form.reset();
+				setImageFile(null);
+				onClose();
+			} catch {
+				// errors shown via mutation.isError below
+			}
 		}
 	};
+
+	const displayedImageUrl = imagePreviewUrl ?? baseVersion?.image?.url ?? null;
 
 	return (
 		<Stack gap="xs" p="xs">
@@ -169,58 +226,76 @@ function KeywordForm({
 							)
 						}
 					/>
-					{frame.mode === "keyword-add" && (
-						<>
-							<Select
-								label={t("coloring.category")}
-								placeholder={t("coloring.selectCategory")}
-								allowDeselect={false}
-								data={categoriesData?.map((cat: KeywordCategory) => ({
-									value: cat.id,
-									label: cat.nameEn || cat.nameAr || "",
-								}))}
-								{...form.getInputProps("categoryId")}
-								required
-								leftSection={
-									categoriesLoading ? (
-										<Loader size="xs" />
-									) : (
-										<IconCategory size={16} />
-									)
-								}
-							/>
-							<Select
-								label={t("coloring.nature")}
-								placeholder={t("coloring.selectNature")}
-								allowDeselect={false}
-								data={naturesData?.map((n: KeywordNature) => ({
-									value: n.id,
-									label: n.nameEn || n.nameAr || "",
-								}))}
-								{...form.getInputProps("natureId")}
-								required
-								leftSection={
-									naturesLoading ? (
-										<Loader size="xs" />
-									) : (
-										<IconMasksTheater size={16} />
-									)
-								}
-							/>
-							<TextInput
-								label={t("coloring.description")}
-								{...form.getInputProps("description")}
-							/>
-						</>
+					<Select
+						label={t("coloring.category")}
+						placeholder={t("coloring.selectCategory")}
+						allowDeselect={false}
+						data={categoriesData?.map((cat: KeywordCategory) => ({
+							value: cat.id,
+							label: cat.nameEn || cat.nameAr || "",
+						}))}
+						{...form.getInputProps("categoryId")}
+						required
+						leftSection={
+							categoriesLoading ? (
+								<Loader size="xs" />
+							) : (
+								<IconCategory size={16} />
+							)
+						}
+					/>
+					<Select
+						label={t("coloring.nature")}
+						placeholder={t("coloring.selectNature")}
+						allowDeselect={false}
+						data={naturesData?.map((n: KeywordNature) => ({
+							value: n.id,
+							label: n.nameEn || n.nameAr || "",
+						}))}
+						{...form.getInputProps("natureId")}
+						required
+						leftSection={
+							naturesLoading ? (
+								<Loader size="xs" />
+							) : (
+								<IconMasksTheater size={16} />
+							)
+						}
+					/>
+					<TextInput
+						label={t("coloring.description")}
+						{...form.getInputProps("description")}
+					/>
+					<FileInput
+						label={t("coloring.image")}
+						accept="image/*"
+						value={imageFile}
+						onChange={setImageFile}
+						placeholder={t("coloring.imageOptional")}
+						clearable
+					/>
+					{displayedImageUrl && (
+						<Image
+							src={displayedImageUrl}
+							alt={t("coloring.imagePreview")}
+							radius="md"
+							fit="contain"
+							maw="16rem"
+							mah="16rem"
+							w="auto"
+							style={{ alignSelf: "flex-start" }}
+						/>
 					)}
+					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">
 							{t("coloring.createFailed")}: {createMutation.error?.message}
 						</Alert>
 					)}
-					{updateMutation.isError && (
+					{(updateMutation.isError || updateVersionMutation.isError) && (
 						<Alert color="red">
-							{t("coloring.updateFailed")}: {updateMutation.error?.message}
+							{t("coloring.updateFailed")}:{" "}
+							{(updateMutation.error ?? updateVersionMutation.error)?.message}
 						</Alert>
 					)}
 					<Group
