@@ -370,6 +370,7 @@ type AliasFormValues = {
 	matchingType: "FULL" | "PARTIAL";
 	categoryId: string | null;
 	natureId: string | null;
+	imageId?: string;
 	overrideStyle: boolean;
 };
 
@@ -383,15 +384,31 @@ function AliasForm({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+	const [isUploadingImage, setIsUploadingImage] = useState(false);
+	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const alias = "keyword" in frame ? frame.keyword : undefined;
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordAliasMutations(selectedNovelId);
 
+	useEffect(() => {
+		if (!imageFile) {
+			setImagePreviewUrl(null);
+			return;
+		}
+		const url = URL.createObjectURL(imageFile);
+		setImagePreviewUrl(url);
+		return () => URL.revokeObjectURL(url);
+	}, [imageFile]);
+
 	const { data: categoriesData, isLoading: categoriesLoading } =
 		useOfflineKeywordCategories();
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
+
+	const displayedImageUrl = imagePreviewUrl ?? alias?.image?.url ?? null;
 
 	const form = useForm<AliasFormValues>({
 		initialValues: {
@@ -400,6 +417,7 @@ function AliasForm({
 			matchingType: alias?.matchingType ?? "FULL",
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
+			imageId: (alias?.imageId as string | undefined) ?? undefined,
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
 		validate: {
@@ -408,11 +426,30 @@ function AliasForm({
 	});
 
 	const isPending =
+		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
 		deleteMutation.isPending;
 
-	const handleSubmit = (values: AliasFormValues) => {
+	const handleSubmit = async (values: AliasFormValues) => {
+		setUploadError(null);
+		let imageId = values.imageId;
+		if (imageFile) {
+			setIsUploadingImage(true);
+			try {
+				imageId = await uploadImageFile(imageFile);
+			} catch (error) {
+				setUploadError(
+					error instanceof Error
+						? error.message
+						: t("coloring.imageUploadFailed"),
+				);
+				return;
+			} finally {
+				setIsUploadingImage(false);
+			}
+		}
+
 		if (frame.mode === "alias-add") {
 			const payload: PostKeywordAliasesBodyOne = {
 				keywordId: frame.parentKeyword.id,
@@ -421,6 +458,7 @@ function AliasForm({
 				matchingType: values.matchingType,
 				categoryId: values.categoryId,
 				natureId: values.natureId,
+				imageId,
 				overrideStyle: values.overrideStyle,
 			};
 			createMutation.mutate(payload, {
@@ -436,6 +474,7 @@ function AliasForm({
 				matchingType: values.matchingType,
 				categoryId: values.categoryId,
 				natureId: values.natureId,
+				imageId,
 				overrideStyle: values.overrideStyle,
 			};
 			updateMutation.mutate(
@@ -525,6 +564,27 @@ function AliasForm({
 							)
 						}
 					/>
+					<FileInput
+						label={t("coloring.image")}
+						accept="image/*"
+						value={imageFile}
+						onChange={setImageFile}
+						placeholder={t("coloring.imageOptional")}
+						clearable
+					/>
+					{displayedImageUrl && (
+						<Image
+							src={displayedImageUrl}
+							alt={t("coloring.imagePreview")}
+							radius="md"
+							fit="contain"
+							maw="16rem"
+							mah="16rem"
+							w="auto"
+							style={{ alignSelf: "flex-start" }}
+						/>
+					)}
+					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					<Switch
 						label={t("coloring.overrideStyle")}
 						checked={form.values.overrideStyle}

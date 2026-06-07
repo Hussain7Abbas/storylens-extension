@@ -203,6 +203,7 @@ function AliasCard({
 	isPending: boolean;
 }) {
 	const { t } = useTranslation();
+	const hasOwnImage = Boolean(alias.imageId ?? alias.image?.url);
 	const ownCategory = alias.category as EnrichedCategory | null;
 	const ownNature = alias.nature as EnrichedNature | null;
 	const inheritedCategory = baseVersion?.category as
@@ -228,6 +229,11 @@ function AliasCard({
 					{alias.name}
 				</Text>
 				<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+					{hasOwnImage && (
+						<Badge size="xs" variant="dot" color="gray">
+							{t("coloring.hasImage")}
+						</Badge>
+					)}
 					{isPending && (
 						<Badge
 							size="xs"

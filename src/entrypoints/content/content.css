@@ -100,14 +100,36 @@
 	text-align: right;
 }
 
+.storylens-image-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
 .storylens-keyword-info .storylens-keyword-image {
 	display: block;
 	width: auto;
 	max-width: 16rem;
-	max-height: 16rem;
+	max-height: 12rem;
 	object-fit: contain;
 	border-radius: 8px;
-	margin: 0 0 6px;
+	margin: 0 auto;
+}
+
+.storylens-image-override-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.storylens-show-more-thumb {
+	display: block;
+	width: auto;
+	max-height: 3rem;
+	max-width: 6rem;
+	object-fit: contain;
+	border-radius: 4px;
 }
 
 .storylens-keyword-meta {

@@ -197,14 +197,17 @@ export type InfoSource = "keyword" | "version" | "alias";
 export type FieldInfo<T> = {
 	value: T | null;
 	source: InfoSource;
-	overrides: { source: "alias" | "keyword"; value: T | null }[];
+	overrides: { source: "alias" | "keyword" | "version"; value: T | null }[];
 };
+
+export type RawImage = GetKeywords200DataItemVersionsItem["image"];
 
 export type ResolvedInfo = {
 	name: FieldInfo<string>;
 	category: FieldInfo<EnrichedCategory>;
 	nature: FieldInfo<EnrichedNature>;
 	description: FieldInfo<string>;
+	image: FieldInfo<RawImage>;
 };
 
 function resolveFieldInfo<T>(
@@ -214,28 +217,30 @@ function resolveFieldInfo<T>(
 	override: boolean,
 	activeIsBase: boolean,
 ): FieldInfo<T> {
+	type Override = { source: "alias" | "keyword" | "version"; value: T | null };
+	const hasDistinctVersion = !activeIsBase && activeVal != null;
+
 	if (override && aliasVal != null) {
-		return {
-			value: aliasVal,
-			source: "alias",
-			overrides: [{ source: "keyword", value: baseVal ?? null }],
-		};
+		const overrides: Override[] = [];
+		if (hasDistinctVersion) overrides.push({ source: "version", value: activeVal ?? null });
+		overrides.push({ source: "keyword", value: baseVal ?? null });
+		return { value: aliasVal, source: "alias", overrides };
 	}
 	if (activeVal != null && !activeIsBase) {
-		const overrides: { source: "alias" | "keyword"; value: T | null }[] = [];
-		if (aliasVal != null) overrides.push({ source: "alias", value: aliasVal });
-		overrides.push({ source: "keyword", value: baseVal ?? null });
+		// Always include alias in the chain (even if null) so the full provenance is visible.
+		const overrides: Override[] = [
+			{ source: "alias", value: aliasVal ?? null },
+			{ source: "keyword", value: baseVal ?? null },
+		];
 		return { value: activeVal, source: "version", overrides };
 	}
 	if (activeVal != null) {
 		return { value: activeVal, source: "keyword", overrides: [] };
 	}
 	if (aliasVal != null) {
-		return {
-			value: aliasVal,
-			source: "alias",
-			overrides: [{ source: "keyword", value: baseVal ?? null }],
-		};
+		// In this branch activeVal is always null, so hasDistinctVersion is false — no version entry.
+		const overrides: Override[] = [{ source: "keyword", value: baseVal ?? null }];
+		return { value: aliasVal, source: "alias", overrides };
 	}
 	return { value: baseVal ?? null, source: "keyword", overrides: [] };
 }
@@ -282,5 +287,13 @@ export function resolveKeywordInfo(
 		activeIsBase,
 	);
 
-	return { name, category, nature, description };
+	const image = resolveFieldInfo<RawImage>(
+		active?.image as RawImage | null | undefined,
+		base?.image as RawImage | null | undefined,
+		alias?.image as RawImage | null | undefined,
+		override,
+		activeIsBase,
+	);
+
+	return { name, category, nature, description, image };
 }

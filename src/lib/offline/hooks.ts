@@ -814,6 +814,8 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 				overrideStyle: values.overrideStyle ?? false,
 				categoryId: values.categoryId ?? null,
 				natureId: values.natureId ?? null,
+				imageId: values.imageId ?? null,
+				image: null,
 				keywordId: values.keywordId,
 				createdById: null,
 				createdAt: now,
@@ -891,6 +893,8 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 				effectiveNatureId,
 			);
 
+			const effectiveImageId =
+				data.imageId !== undefined ? data.imageId : (existing?.imageId ?? null);
 			const updated: OfflineKeywordAlias = {
 				id,
 				name: data.name ?? existing?.name ?? "",
@@ -899,6 +903,8 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 				overrideStyle: data.overrideStyle ?? existing?.overrideStyle ?? false,
 				categoryId: effectiveCategoryId,
 				natureId: effectiveNatureId,
+				imageId: effectiveImageId,
+				image: existing?.image ?? null,
 				keywordId: existing?.keywordId ?? "",
 				createdById: existing?.createdById ?? null,
 				createdAt: existing?.createdAt ?? new Date().toISOString(),

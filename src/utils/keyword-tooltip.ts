@@ -35,17 +35,21 @@ const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
 		info: "Info",
 		aliases: "Aliases",
 		versions: "Versions",
+		version: "Version",
 		keyword: "Keyword",
 		alias: "Alias",
 		showMore: "↗",
+		noImage: "—",
 	},
 	ar: {
 		info: "معلومات",
 		aliases: "الأسماء البديلة",
 		versions: "النسخ",
+		version: "النسخة",
 		keyword: "الكلمة",
 		alias: "الاسم البديل",
 		showMore: "↗",
+		noImage: "—",
 	},
 };
 
@@ -141,7 +145,11 @@ function buildShowMoreToggle<T>(
 		const sourceLabel = document.createElement("span");
 		sourceLabel.className = "storylens-override-source";
 		sourceLabel.textContent =
-			o.source === "alias" ? tt("alias") : tt("keyword");
+			o.source === "alias"
+				? tt("alias")
+				: o.source === "version"
+					? tt("version")
+					: tt("keyword");
 		const colon = document.createTextNode(": ");
 		const val = document.createElement("span");
 		val.textContent = o.displayValue;
@@ -182,16 +190,70 @@ function buildInfoPanel(
 ): HTMLElement {
 	const panel = document.createElement("div");
 	const info = resolveKeywordInfo(data.raw, data.alias, data.currentChapter);
-	const base = pickBaseVersion(data.raw.versions);
 
-	// Image from base version
-	if (base?.image?.url) {
+	// Resolved image with provenance show-more
+	if (info.image.value?.url) {
+		const imageWrapper = document.createElement("div");
+		imageWrapper.className = "storylens-image-wrapper";
+
 		const image = document.createElement("img");
 		image.className = "storylens-keyword-image";
-		image.src = base.image.url;
+		image.src = info.image.value.url;
 		image.alt = data.raw.name;
 		image.loading = "lazy";
-		panel.append(image);
+		imageWrapper.append(image);
+
+		if (info.image.source !== "keyword" && info.image.overrides.length > 0) {
+			const btn = document.createElement("button");
+			btn.type = "button";
+			btn.className = "storylens-show-more-btn";
+			btn.textContent = tt("showMore");
+			btn.dataset.open = "false";
+
+			const detail = document.createElement("div");
+			detail.className = "storylens-show-more-detail";
+			detail.style.display = "none";
+
+			// Show every override entry — including those without an image (displayed as "—").
+			for (const o of info.image.overrides) {
+				const row = document.createElement("div");
+				row.className = "storylens-override-row storylens-image-override-row";
+				const sourceLabel = document.createElement("span");
+				sourceLabel.className = "storylens-override-source";
+				sourceLabel.textContent =
+					o.source === "alias"
+						? tt("alias")
+						: o.source === "version"
+							? tt("version")
+							: tt("keyword");
+				if (o.value?.url) {
+					const thumb = document.createElement("img");
+					thumb.className = "storylens-show-more-thumb";
+					thumb.src = o.value.url;
+					thumb.alt = sourceLabel.textContent;
+					thumb.loading = "lazy";
+					row.append(sourceLabel, thumb);
+				} else {
+					const placeholder = document.createElement("span");
+					placeholder.textContent = tt("noImage");
+					placeholder.style.opacity = "0.5";
+					row.append(sourceLabel, placeholder);
+				}
+				detail.append(row);
+			}
+
+			btn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				const isOpen = btn.dataset.open === "true";
+				btn.dataset.open = isOpen ? "false" : "true";
+				detail.style.display = isOpen ? "none" : "block";
+				onLayoutChange();
+			});
+
+			imageWrapper.append(btn, detail);
+		}
+
+		panel.append(imageWrapper);
 	}
 
 	// Name
@@ -280,6 +342,12 @@ function buildAliasesPanel(raw: RawKeyword): HTMLElement {
 			badge.className = "storylens-override-badge";
 			badge.textContent = "override";
 			nameRow.append(badge);
+		}
+		if (alias.imageId ?? alias.image?.url) {
+			const imgBadge = document.createElement("span");
+			imgBadge.className = "storylens-override-badge";
+			imgBadge.textContent = "img";
+			nameRow.append(imgBadge);
 		}
 		item.append(nameRow);
 
