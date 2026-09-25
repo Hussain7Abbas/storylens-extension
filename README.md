@@ -7,10 +7,17 @@ Browser extension for Story Lens, built with [WXT](https://wxt.dev/) and React.
 Complete the monorepo setup first from the repository root:
 
 ```bash
-make init-env
+make install
+cp apps/backend/.env.example apps/backend/.env
+cp apps/extension/.env.example apps/extension/.env
 make setup
-make dev
+make dev-backend
+make dev-extension
 ```
+
+The backend defaults to port 3000, while the extension's development API URL
+example uses port 7001. Configure `WXT_API_URL` or the backend `PORT` so they
+match. See the umbrella [development guide](../../docs/development.md).
 
 Or run the extension on its own after dependencies and the database are ready:
 
