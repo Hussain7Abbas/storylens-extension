@@ -1,5 +1,9 @@
 import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
+import {
+	clearPageSummary,
+	startPageSummary,
+} from "@/lib/desktop-client/page-summary";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { removeExtensionMarkup } from "@/utils/content-processor";
@@ -103,6 +107,7 @@ export async function refreshPageContent(): Promise<void> {
 export async function runContentScript(
 	ctx: ContentScriptContext,
 ): Promise<void> {
+	onMessage("summarizePage", ({ data }) => startPageSummary(data));
 	onMessage("websiteSelectorUpdated", ({ data }) => {
 		if (data.website !== window.location.hostname) {
 			return;
@@ -195,6 +200,7 @@ export async function runContentScript(
 	});
 
 	ctx.addEventListener(window, "wxt:locationchange", () => {
+		clearPageSummary();
 		console.log(`${LOG_PREFIX} Location changed`, window.location.href);
 		lastProcessedKey = undefined;
 		void loadWebsiteSelector()

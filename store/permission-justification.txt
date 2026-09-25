@@ -3,11 +3,11 @@ Copy each section below into the matching dashboard field (1,000 character limit
 
 --- tabs justification ---
 
-StoryLens uses the tabs permission to read the active tab’s URL so it can detect which web novel and chapter the user is reading. The background service worker maps that detected metadata to the tab ID so the popup can show the correct novel context. When the user edits keywords or replacements in the popup, StoryLens sends a refresh message to the active tab so highlights and text replacements update on the page without a manual reload. The tabs permission is also used to clean up cached per-tab data when a tab is closed.
+StoryLens uses the tabs permission to read the active tab’s URL so it can detect which web novel and chapter the user is reading. The background service worker maps that detected metadata to the tab ID so the popup can show the correct novel context. When the user edits keywords or replacements in the popup, StoryLens sends a refresh message to the active tab so highlights and text replacements update on the page without a manual reload. The tabs permission is also used to clean up cached per-tab data when a tab is closed and to target the active page when the user clicks Summarize.
 
 --- storage justification ---
 
-StoryLens uses chrome.storage.local to persist extension settings and state between sessions. This includes the user’s auth session token, onboarding completion status, and offline sync metadata such as pending glossary changes waiting to upload and the list of novels downloaded for offline reading. Storage is used only to keep the user’s StoryLens data available across browser restarts and to support offline edits that sync when the network is available again.
+StoryLens uses chrome.storage.local to persist extension settings and state between sessions. This includes the user’s auth session token, optional desktop pairing token and model choice, onboarding completion status, and offline sync metadata such as pending glossary changes waiting to upload and the list of novels downloaded for offline reading. Storage is used only to keep the user’s StoryLens data available across browser restarts and to support offline edits that sync when the network is available again.
 
 --- alarms justification ---
 
@@ -22,3 +22,5 @@ StoryLens users may build large glossaries with many keywords, replacements, cat
 StoryLens needs access to the web novel page the user is reading so its content script can locate chapter text and apply the user’s keyword highlights and text replacements on that page. Novel sites use many different domains and URL structures, so the extension must run on whichever reading page the user opens. StoryLens reads visible chapter content only to apply the user’s own glossary settings locally on the active page; it does not collect or sell full page content.
 
 StoryLens also needs host access to https://storylens-api.iscoded.com so the background service worker can sync the user’s novels, keywords, categories, replacements, and settings with the StoryLens backend over HTTPS.
+
+StoryLens also needs access to http://127.0.0.1/* so the background worker can contact the user’s paired desktop client. Only an explicit Summarize action sends the active page body to the local client and selected AI provider; the result appears on that page.

@@ -2,6 +2,8 @@
 
 Browser extension for Story Lens, built with [WXT](https://wxt.dev/) and React.
 
+The popup's Desktop client panel can pair with the local [Story Lens Client](../../docs/client.md). Once paired, choose a Claude/Codex model and click **Summarize page** to show the answer on the active website. This action works without novel detection or backend login.
+
 ## Getting Started
 
 Complete the monorepo setup first from the repository root:

@@ -256,5 +256,23 @@
 		"detectFailedUnsupportedTab": "Auto-detect only works on regular web pages. Open a novel chapter page in the active tab.",
 		"detectFailedNoContentScript": "Could not read the current tab. Refresh the chapter page, then try again.",
 		"noData": "There is no websites to show"
+	},
+	"desktop": {
+		"summarize": "Summarize page",
+		"settings": "Desktop client",
+		"disclosure": "Clicking Summarize sends this page’s content through the desktop client to your selected AI provider.",
+		"port": "Local port",
+		"token": "Pairing token",
+		"connect": "Connect / refresh models",
+		"model": "Model",
+		"effort": "Effort",
+		"connected": "Connected; models",
+		"connectionFailed": "Could not connect to desktop client.",
+		"selectModel": "Connect and choose a model first.",
+		"unsupportedPage": "Open an HTTP or HTTPS page first.",
+		"summaryStarted": "Summary started on the page.",
+		"summaryRunning": "A summary is already running on this page.",
+		"summaryFailed": "Could not start the summary.",
+		"modelUnavailable": "Saved model is unavailable. Choose another model."
 	}
 }

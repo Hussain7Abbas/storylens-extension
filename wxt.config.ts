@@ -14,7 +14,10 @@ function apiHostPermission(url: string): string {
 }
 
 const devHostPermissions = ["http://localhost/*", "http://127.0.0.1/*"];
-const productionHostPermissions = [apiHostPermission(apiUrl)];
+const productionHostPermissions = [
+	apiHostPermission(apiUrl),
+	"http://127.0.0.1/*",
+];
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({

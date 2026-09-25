@@ -1,4 +1,8 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type {
+	DesktopCapabilities,
+	ExecutePromptInput,
+} from "@/lib/desktop-client/types";
 import type { SyncResult } from "@/lib/offline/sync-engine";
 import type { currentNovelMeta } from "@/types";
 import type { ApiProxyRequest, ApiProxyResponse } from "@/types/api-proxy";
@@ -6,6 +10,12 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	desktopCapabilities(): DesktopCapabilities;
+	executeDesktopPrompt(data: ExecutePromptInput): string;
+	cancelDesktopPrompt(requestId: string): void;
+	summarizePage(data: { model: string; effort: string; locale: string }): {
+		started: boolean;
+	};
 	getCurrentNovel(): currentNovelMeta | undefined;
 	getPageHtml(): { url: string; html: string } | undefined;
 	reportCurrentNovel(data: currentNovelMeta): void;

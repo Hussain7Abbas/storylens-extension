@@ -2,6 +2,12 @@ import { defineBackground } from "wxt/utils/define-background";
 import { browser } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { setupAuthInterceptor } from "@/lib/auth/auth-service";
+import {
+	cancelPrompt,
+	cancelTabPrompts,
+	executeDesktopPrompt,
+	loadDesktopCapabilities,
+} from "@/lib/desktop-client/background";
 import { updateSyncBadge } from "@/lib/offline/badge";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
 import { isOnline } from "@/lib/offline/online-status";
@@ -85,6 +91,17 @@ export default defineBackground(() => {
 
 	browser.tabs.onRemoved.addListener((tabId) => {
 		tabNovels.delete(tabId);
+		cancelTabPrompts(tabId);
+	});
+
+	onMessage("desktopCapabilities", () => loadDesktopCapabilities());
+	onMessage("executeDesktopPrompt", ({ data, sender }) => {
+		if (sender.tab?.id === undefined)
+			throw new Error("Only a page content script can request execution.");
+		return executeDesktopPrompt(data, sender.tab.id);
+	});
+	onMessage("cancelDesktopPrompt", ({ data, sender }) => {
+		if (sender.tab?.id !== undefined) cancelPrompt(data, sender.tab.id);
 	});
 
 	browser.alarms.onAlarm.addListener((alarm) => {
