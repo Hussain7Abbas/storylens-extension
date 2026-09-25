@@ -34,6 +34,7 @@ function extractBodyHtml(): string {
 	if (!document.body) throw new Error("This page has no body to summarize.");
 	const clone = document.body.cloneNode(true) as HTMLElement;
 	clone.querySelector(`#${PANEL_ID}`)?.remove();
+	clone.querySelector("#storylens-page-launcher")?.remove();
 	for (const element of clone.querySelectorAll(
 		"script, style, noscript, iframe, frame, object, embed, form, input, textarea, select, button, template, [hidden], [aria-hidden='true']",
 	))
@@ -109,7 +110,7 @@ export function startPageSummary(data: {
 	effort: string;
 	locale: string;
 }): { started: boolean } {
-	const locale = data.locale === "ar" ? "ar" : "en";
+	const locale = data.locale.toLowerCase().startsWith("ar") ? "ar" : "en";
 	const url = window.location.href;
 	if (current?.url === url && current.host.isConnected && current.running)
 		return { started: false };
@@ -143,6 +144,7 @@ export function startPageSummary(data: {
 		prompt,
 		model: data.model,
 		effort: data.effort,
+		responseLanguage: locale,
 	})
 		.then((output) => {
 			if (current?.id === id) current.running = false;

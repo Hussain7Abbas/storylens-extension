@@ -53,6 +53,12 @@ export default defineConfig({
 		description: "__MSG_extDescription__",
 		default_locale: "en",
 		permissions: ["tabs", "storage", "alarms", "unlimitedStorage"],
+		web_accessible_resources: [
+			{
+				resources: ["popup.html"],
+				matches: ["http://*/*", "https://*/*"],
+			},
+		],
 		host_permissions:
 			process.env.NODE_ENV === "development"
 				? [...devHostPermissions, ...productionHostPermissions]

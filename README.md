@@ -2,7 +2,7 @@
 
 Browser extension for Story Lens, built with [WXT](https://wxt.dev/) and React.
 
-The popup's Desktop client panel can pair with the local [Story Lens Client](../../docs/client.md). Once paired, choose a Claude/Codex model and click **Summarize page** to show the answer on the active website. This action works without novel detection or backend login.
+The popup's Desktop client panel can pair with the local [Story Lens Client](../../docs/client.md). Once paired, choose a Claude/Codex model and click **Summarize page** to show the answer on the active website in the extension's selected language. This action works without novel detection or backend login. On a configured novel-site domain, a circular **SL** button in the page's top-right corner opens the same popup in an overlay.
 
 ## Getting Started
 

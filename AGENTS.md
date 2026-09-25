@@ -4,8 +4,8 @@ Follow [shared repository rules](../../AGENTS.md). This submodule is the WXT bro
 
 ## Structure and conventions
 
-- `src/entrypoints/background/` owns service worker messaging, API proxying, and sync alarms. `src/entrypoints/content/` handles page detection and highlighting. `popup/`, `popup.home/`, `popup.profile/`, `popup.settings/`, and `options/` supply React UI entry points and screens.
-- `src/lib/desktop-client/` owns local AI transport and in-page summaries. Keep this separate from the generated backend API client; background handles the network requests, while the popup gets model/effort choices from the client's capabilities response.
+- `src/entrypoints/background/` owns service worker messaging, API proxying, and sync alarms. `src/entrypoints/content/` handles page detection, highlighting, and the novel-site popup launcher. `popup/`, `popup.home/`, `popup.profile/`, `popup.settings/`, and `options/` supply React UI entry points and screens.
+- `src/lib/desktop-client/` owns local AI transport and in-page summaries. Keep this separate from the generated backend API client; background handles the network requests, while the popup gets model/effort choices from the client's capabilities response. Every desktop AI request carries the selected extension language as `responseLanguage`.
 - `src/components/`, `src/hooks/`, `src/store/`, and `src/utils/` hold reusable UI, hooks, Jotai atoms, and utilities. Keep related components and styles together; use Mantine components and `@mantine/form` for existing form flows.
 - Use `@/` for source imports. WXT entry points and framework configs may need default exports. `wxt.config.ts` sets `imports: false`, so import WXT helpers explicitly from `#imports` or WXT modules as the surrounding file does.
 - React UI uses React Router, TanStack Query, Jotai, and i18next. Keep user-visible strings localized. `bun run i18n:parse` writes extracted messages to `src/i18n/messages/`; browser manifest messages live in `public/_locales/`.

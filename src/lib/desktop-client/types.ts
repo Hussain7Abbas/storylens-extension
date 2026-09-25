@@ -8,7 +8,7 @@ export type DesktopModel = {
 	aliases: string[];
 };
 export type DesktopCapabilities = {
-	protocolVersion: 1;
+	protocolVersion: 2;
 	models: DesktopModel[];
 	providers: {
 		provider: "claude" | "codex";
@@ -27,6 +27,7 @@ export type ExecutePromptInput = {
 	prompt: string;
 	model: string;
 	effort: string;
+	responseLanguage: "en" | "ar";
 };
 export type DesktopSettings = {
 	port: number;

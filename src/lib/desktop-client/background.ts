@@ -16,7 +16,7 @@ function isCapabilities(value: unknown): value is DesktopCapabilities {
 	if (!value || typeof value !== "object") return false;
 	const data = value as Partial<DesktopCapabilities>;
 	return (
-		data.protocolVersion === 1 &&
+		data.protocolVersion === 2 &&
 		Array.isArray(data.models) &&
 		data.models.every(
 			(model) =>
@@ -119,6 +119,7 @@ export async function executeDesktopPrompt(
 				prompt: data.prompt,
 				model: data.model,
 				effort: data.effort,
+				responseLanguage: data.responseLanguage,
 			}),
 		});
 		if (!response.body)
