@@ -14,9 +14,12 @@ function apiHostPermission(url: string): string {
 }
 
 const devHostPermissions = ["http://localhost/*", "http://127.0.0.1/*"];
+// GA4 Measurement Protocol endpoint used by src/lib/analytics/background.ts.
+const analyticsHostPermission = "https://www.google-analytics.com/*";
 const productionHostPermissions = [
 	apiHostPermission(apiUrl),
 	"http://127.0.0.1/*",
+	analyticsHostPermission,
 ];
 
 // See https://wxt.dev/api/config.html

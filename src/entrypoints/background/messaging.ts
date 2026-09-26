@@ -1,4 +1,5 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type { AnalyticsEvent } from "@/lib/analytics/types";
 import type {
 	DesktopCapabilities,
 	ExecutePromptInput,
@@ -34,6 +35,7 @@ interface ProtocolMap {
 	}): NovelContentData | undefined;
 	getNovelContentData(data: currentNovelMeta): NovelContentData | undefined;
 	triggerFullSync(): SyncResult;
+	trackAnalyticsEvent(data: AnalyticsEvent): void;
 }
 
 export const { sendMessage, onMessage } =

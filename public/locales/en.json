@@ -162,7 +162,9 @@
 		},
 		"inSitePopup": "In site popup",
 		"show": "Show",
-		"hide": "Hide"
+		"hide": "Hide",
+		"usageAnalytics": "Anonymous usage analytics",
+		"usageAnalyticsDescription": "Send anonymous feature usage to Google Analytics to help improve Story Lens. No page content or account details are sent."
 	},
 	"category": {
 		"noRecords": "There is no categories to show"

@@ -218,7 +218,9 @@
 		},
 		"inSitePopup": "النافذة داخل الموقع",
 		"show": "إظهار",
-		"hide": "إخفاء"
+		"hide": "إخفاء",
+		"usageAnalytics": "إحصاءات استخدام مجهولة",
+		"usageAnalyticsDescription": "إرسال بيانات استخدام مجهولة إلى Google Analytics للمساعدة في تحسين Story Lens. لا يتم إرسال محتوى الصفحات أو بيانات الحساب."
 	},
 	"category": {
 		"noRecords": "لا توجد تصنيفات لعرضها"
