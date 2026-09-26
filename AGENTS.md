@@ -27,3 +27,5 @@ For a field that needs offline support, update its row type and store, download 
 From this directory: `bun run dev`, `bun run dev:firefox`, `bun run build`, `bun run build:firefox`, `bun run zip`, `bun run zip:firefox`, `bun run typecheck`, `bun run orval`, and `bun run i18n:parse`. `make release-chrome` builds the store zip and `make submit-chrome` uploads the current `package.json` version's zip through `wxt submit`. `.github/workflows/publish-chrome.yml` runs both on `v*` tags (the tag must match `package.json`) or by manual dispatch, then dispatches `extension-submitted` to the backend repo, whose workflow sets `Review_Version`. Bump the version before each release. Run the backend first for Orval and ensure `WXT_API_URL` points to it; the checked-in development example uses port 7001 while the backend default is 3000.
 
 Keep this file and the [extension guide](../../docs/extension.md) current when extension rules, entry points, commands, or behavior change, following the root maintenance rule.
+
+General settings exposes locale-matched website, privacy, and terms links on `storylens.iscoded.com`; keep these links and public locale strings synchronized.

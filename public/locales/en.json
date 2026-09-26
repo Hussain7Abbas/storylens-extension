@@ -162,7 +162,11 @@
 		},
 		"inSitePopup": "In site popup",
 		"show": "Show",
-		"hide": "Hide"
+		"hide": "Hide",
+		"aboutStoryLens": "About Story Lens",
+		"website": "Website",
+		"privacyPolicy": "Privacy Policy",
+		"termsOfUse": "Terms of Use"
 	},
 	"category": {
 		"noRecords": "There is no categories to show"

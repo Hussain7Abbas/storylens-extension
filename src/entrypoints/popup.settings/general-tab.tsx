@@ -1,7 +1,7 @@
 import { Button, Fieldset, Group, Stack, Switch, Text } from "@mantine/core";
 import { useAtom } from "jotai";
-import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import { localeAtom } from "@/store/locale";
@@ -52,6 +52,37 @@ export function GeneralTab() {
 					setPopupVisible(visible);
 				}}
 			/>
+			<Fieldset legend={t("settings.aboutStoryLens")}>
+				<Group gap="sm">
+					<Button
+						component="a"
+						href={`https://storylens.iscoded.com/${locale}/`}
+						target="_blank"
+						rel="noopener noreferrer"
+						variant="subtle"
+					>
+						{t("settings.website")}
+					</Button>
+					<Button
+						component="a"
+						href={`https://storylens.iscoded.com/${locale}/privacy/`}
+						target="_blank"
+						rel="noopener noreferrer"
+						variant="subtle"
+					>
+						{t("settings.privacyPolicy")}
+					</Button>
+					<Button
+						component="a"
+						href={`https://storylens.iscoded.com/${locale}/terms/`}
+						target="_blank"
+						rel="noopener noreferrer"
+						variant="subtle"
+					>
+						{t("settings.termsOfUse")}
+					</Button>
+				</Group>
+			</Fieldset>
 			<Fieldset legend={t("nodeSelector.nodeSelector")}>
 				<NodeSelector />
 			</Fieldset>
