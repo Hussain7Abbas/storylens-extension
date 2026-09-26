@@ -10,6 +10,15 @@ const POPUP_HEIGHT = 640;
 const ACTION_SIZE = 36;
 const ACTION_SHOW_DELAY = 200;
 const ACTION_HIDE_DELAY = 300;
+const UNLOCK_STYLE_ID = "storylens-selection-unlock";
+// Page handlers for these events can cancel or clear a selection; skip them while picking.
+const SELECTION_GUARD_EVENTS = [
+	"selectstart",
+	"selectionchange",
+	"mousedown",
+	"mouseup",
+	"dragstart",
+] as const;
 
 type Position = { x: number; y: number };
 type Launcher = {
@@ -64,6 +73,27 @@ function storedPosition(value: unknown): Position | undefined {
 		Number.isFinite(position.y)
 		? { x: position.x, y: position.y }
 		: undefined;
+}
+
+function stopPageSelectionGuard(event: Event): void {
+	event.stopImmediatePropagation();
+}
+
+/** Lifts copy-protection (CSS `user-select:none`, cancelled `selectstart`) while picking text. */
+function setPageSelectionUnlocked(unlocked: boolean): void {
+	document.getElementById(UNLOCK_STYLE_ID)?.remove();
+	for (const type of SELECTION_GUARD_EVENTS)
+		window.removeEventListener(type, stopPageSelectionGuard, true);
+	if (!unlocked) return;
+	const style = document.createElement("style");
+	style.id = UNLOCK_STYLE_ID;
+	style.setAttribute("data-storylens-skip", "");
+	style.textContent =
+		"*,*::before,*::after{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}*::selection{background:#d8a960!important;color:#102033!important}";
+	(document.head ?? document.documentElement).append(style);
+	// Window capture runs before any document or element listener the page registers.
+	for (const type of SELECTION_GUARD_EVENTS)
+		window.addEventListener(type, stopPageSelectionGuard, true);
 }
 
 function createLauncher(locale: string): Launcher {
@@ -324,6 +354,7 @@ function createLauncher(locale: string): Launcher {
 	const close = () => {
 		hideAction();
 		selecting = false;
+		setPageSelectionUnlocked(false);
 		hint.hidden = true;
 		selectionStart = undefined;
 		panel.hidden = true;
@@ -334,6 +365,7 @@ function createLauncher(locale: string): Launcher {
 	const open = (search?: string) => {
 		hideAction();
 		selecting = false;
+		setPageSelectionUnlocked(false);
 		hint.hidden = true;
 		selectionStart = undefined;
 		const frame = document.createElement("iframe");
@@ -450,8 +482,6 @@ function createLauncher(locale: string): Launcher {
 				}
 			}
 			if (!text) return;
-			selecting = false;
-			hint.hidden = true;
 			open(text);
 		}, 0);
 	};
@@ -472,6 +502,7 @@ function createLauncher(locale: string): Launcher {
 	const selectText = () => {
 		close();
 		selecting = true;
+		setPageSelectionUnlocked(true);
 		hint.hidden = false;
 		window.getSelection()?.removeAllRanges();
 	};
