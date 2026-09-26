@@ -12,6 +12,7 @@
 		"build:firefox": "wxt build -b firefox",
 		"zip": "wxt zip",
 		"zip:firefox": "wxt zip -b firefox",
+		"submit:chrome": "wxt submit",
 		"typecheck": "tsc --noEmit",
 		"check": "biome check --write",
 		"format": "biome format --write",

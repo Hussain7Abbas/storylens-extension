@@ -49,6 +49,8 @@ Run from `apps/extension/` or use the root Makefile aliases (`make dev-extension
 | `make build-firefox` | Production build for Firefox |
 | `make zip` | Build and zip the Chrome extension for distribution |
 | `make zip-firefox` | Build and zip the Firefox extension for distribution |
+| `make release-chrome` | Production Chrome Web Store zip |
+| `make submit-chrome` | Upload the current version's zip with `wxt submit` (needs `CHROME_*` credentials) |
 | `make typecheck` | Type-check the extension |
 | `make i18n-parse` | Extract i18n keys from source files |
 | `make help` | Show all extension Make targets |

@@ -1,4 +1,4 @@
-.PHONY: help install dev dev-firefox build build-firefox zip zip-firefox release-chrome typecheck orval i18n-parse
+.PHONY: help install dev dev-firefox build build-firefox zip zip-firefox release-chrome submit-chrome typecheck orval i18n-parse
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
@@ -23,6 +23,7 @@ help:
 	@echo "  $(GREEN)zip$(RESET)            build + zip for Chrome"
 	@echo "  $(GREEN)zip-firefox$(RESET)    build + zip for Firefox"
 	@echo "  $(GREEN)release-chrome$(RESET) production API client + Chrome store zip"
+	@echo "  $(GREEN)submit-chrome$(RESET)  upload current version's zip to the Chrome Web Store"
 	@echo "  $(GREEN)typecheck$(RESET)      TypeScript check"
 	@echo "  $(GREEN)orval$(RESET)          regenerate API client from backend OpenAPI"
 	@echo "  $(GREEN)i18n-parse$(RESET)     extract i18n keys"
@@ -51,6 +52,12 @@ zip-firefox: build-firefox
 
 release-chrome:
 	@cd "$(ROOT)" && WXT_API_URL="https://storylens-api.iscoded.com" bun run zip
+
+submit-chrome:
+	@cd "$(ROOT)" && VERSION="$$(bun -p 'require("./package.json").version')" && \
+		ZIP=".output/storylens-extension-$$VERSION-chrome.zip" && \
+		test -f "$$ZIP" || { echo "Missing $$ZIP; run make release-chrome first"; exit 1; } && \
+		bun run submit:chrome --chrome-zip "$$ZIP"
 
 typecheck:
 	@cd "$(ROOT)" && bun run typecheck
