@@ -16,7 +16,7 @@ Follow [shared repository rules](../../AGENTS.md). This submodule is the WXT bro
 
 ## API and offline data
 
-`orval.config.ts` generates React Query endpoints and schemas into `src/api/generated/` from the running backend's `/openapi.json`. Import generated types and functions from those paths; do not edit generated files manually. The custom Axios client is `src/api/axios-instance.ts`. Use query hooks in React UI and the existing direct/proxied API flow in extension contexts.
+`orval.config.ts` generates React Query endpoints and schemas into `src/api/generated/` from the running backend's `/openapi.json`. Import generated types and functions from those paths; do not edit generated files manually. The generated output is committed because CI typechecks and builds without a running backend; after backend API changes, rerun `make orval` and commit the regenerated files. The custom Axios client is `src/api/axios-instance.ts`. Use query hooks in React UI and the existing direct/proxied API flow in extension contexts.
 
 Offline data spans `src/lib/offline/db.ts` (Dexie), `download.ts`, `hooks.ts`, `sync-engine.ts`, and `sync-storage.ts`. When changing a persisted field used by forms, lists, downloads, or API responses, check every affected layer and ask if intended offline behavior is unclear. Keep temporary IDs, queued operations, and downloaded novel data consistent. Background sync and badge behavior live alongside those layers. Count all unresolved operations, including in-flight writes. Manual sync must report failed or skipped uploads and failed pulls, retain unresolved writes, and explicitly retry exhausted operations; do not show success for incomplete sync. Aliases and versions have separate sync endpoints.
 
