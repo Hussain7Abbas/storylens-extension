@@ -7,8 +7,8 @@ Yes
 --- Data types ---
 
 [YES] Website content
-Purpose: Read visible chapter text on the novel page the user is reading so StoryLens can apply keyword highlights and text replacements configured by the user.
-Required? Partially — required to enhance the active reading page; not uploaded as full page content for unrelated use.
+Purpose: Read chapter text for highlighting and replacement. Optional Summarize sends the active page body to the selected Claude/Codex AI provider through Story Lens Client and shows the answer on that page.
+Required? Partially — highlighting uses page content locally; optional Summarize sends the active page body to the selected AI provider through the local client only after a click.
 
 [YES] User activity
 Purpose: Store and sync user-created glossary data (novels, keywords, categories, replacements, colors, and related settings) with the StoryLens API so it persists across sessions.
@@ -19,7 +19,7 @@ Purpose: Support optional account registration and profile management. If the us
 Required? Optional — guest access is created automatically; registration with email/name is voluntary.
 
 [YES] Authentication information
-Purpose: Create and maintain user sessions. StoryLens stores a session token locally and transmits credentials (email and password) only when the user chooses to register or sign in.
+Purpose: Create and maintain user sessions and optionally pair the extension with Story Lens Client. StoryLens stores session and optional desktop pairing tokens locally; it transmits email/password only when the user registers or signs in.
 Required? Partially — a guest session token is created automatically so the API can associate glossary data with the user; email/password are only collected if the user registers or logs in.
 
 [NO] Health information
@@ -27,27 +27,28 @@ Required? Partially — a guest session token is created automatically so the AP
 [NO] Personal communications
 [NO] Location
 [NO] Web history
-Reason for Web history = No: StoryLens does not collect or transmit a record of sites the user has visited. It only reads content on the page the user is currently reading for in-page highlighting.
+Reason for Web history = No: StoryLens does not collect a history of visited sites. Optional Summarize sends only the current page URL/body to the selected AI provider through the local client.
 
 --- Certifications ---
 
 Is the data encrypted in transit?
-Yes — data is transmitted to https://storylens-api.iscoded.com over HTTPS.
+StoryLens API data uses HTTPS. Optional summaries use loopback HTTP to the desktop app on the same device, followed by the installed provider CLI to its AI service.
 
 Is the data sold to third parties?
 No
 
 Is the data used for purposes unrelated to the item's core functionality?
-No — data is used only to provide novel glossary highlighting, account/session management, and syncing.
+No — data is used only for glossary reading features, account/session management, syncing, and user-requested page summaries.
 
 Is the data transferred to third parties?
-No — aside from operating the StoryLens backend needed to provide the service.
+Optional summarization sends page content to the selected Claude/Codex AI provider. Other synced data uses the StoryLens backend.
 
 Is collection required for the Extension to work?
 Partially optional:
 • Reading visible chapter content on the active page is required for in-page highlights and replacements
 • A guest session is created automatically to sync glossary data with the StoryLens API
 • Registering with email, name, or password is optional
+• AI summarization is optional and requires clicking Summarize
 
 Privacy policy URL
 https://github.com/Hussain7Abbas/storylens/blob/main/apps/extension/store/privacy-policy.en.txt

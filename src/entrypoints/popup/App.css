@@ -16,3 +16,14 @@ body {
 	display: flex;
 	place-items: center;
 }
+
+/* Popup embedded by the page launcher: fill its iframe instead of 24rem × 32rem. */
+html[data-embedded],
+html[data-embedded] body,
+html[data-embedded] #root {
+	width: 100%;
+	min-width: 0;
+	max-width: none;
+	height: 100%;
+	min-height: 0;
+}

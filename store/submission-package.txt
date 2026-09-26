@@ -51,4 +51,4 @@ Website: https://github.com/Hussain7Abbas/storylens
 
 === REVIEW NOTES (optional field in dashboard) ===
 
-StoryLens enhances web novel reading by applying user-configured keyword highlights and text replacements on supported novel pages. The Extension syncs glossary data with https://storylens-api.iscoded.com. Test by opening a supported web novel chapter, clicking the StoryLens toolbar icon, and adding a keyword with a highlight color.
+StoryLens enhances web novel reading with keyword highlights, text replacements, and optional user-requested summaries. Glossary data syncs with https://storylens-api.iscoded.com. Test reading features by opening a supported chapter, clicking the toolbar icon, and adding a colored keyword. For Summarize, separately install Story Lens Client, sign in to Claude Code or Codex CLI, pair the token in the popup, choose a model, and click Summarize on any HTTP(S) page. Page content is sent to the selected provider only for that explicit action; the result appears on the page.

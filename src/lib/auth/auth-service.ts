@@ -1,5 +1,6 @@
 import { browser } from "#imports";
 import { axiosInstance } from "@/api/axios-instance";
+import { postAuthChangePassword } from "@/api/generated/endpoints/auth";
 import type { AuthUser } from "./auth-store";
 import { generateGuestUsername } from "./guest-names";
 
@@ -104,5 +105,15 @@ export function setupAuthInterceptor(): void {
 			config.headers.Authorization = `Bearer ${token}`;
 		}
 		return config;
+	});
+}
+
+export async function changePassword(
+	currentPassword: string,
+	newPassword: string,
+): Promise<void> {
+	await postAuthChangePassword({
+		currentPassword,
+		newPassword,
 	});
 }

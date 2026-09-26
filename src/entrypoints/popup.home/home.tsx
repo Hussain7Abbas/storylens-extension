@@ -1,5 +1,6 @@
 import {
 	ActionIcon,
+	Button,
 	Container,
 	Group,
 	Menu,
@@ -28,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
+import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
 import { getBiasesByNovelId } from "@/lib/offline/db";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
@@ -40,6 +42,7 @@ import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
+import { DesktopClientPanel } from "../popup/desktop-client-panel";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
@@ -55,6 +58,7 @@ export function HomePage() {
 		OfflineWebsiteNovelBias[]
 	>([]);
 	const [biasSelectorId, setBiasSelectorId] = useState<string>();
+	const [activeTab, setActiveTab] = useState<string | null>(null);
 	const online = useOnlineStatus();
 	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
@@ -185,6 +189,27 @@ export function HomePage() {
 				/>
 			) : (
 				<Stack gap={0}>
+					<Button
+						variant="light"
+						mb="xs"
+						onClick={async () => {
+							try {
+								const [tab] = await browser.tabs.query({
+									active: true,
+									currentWindow: true,
+								});
+								if (tab?.id === undefined) throw new Error();
+								await sendMessage("selectPageText", undefined, {
+									tabId: tab.id,
+								});
+								if (window.parent === window) window.close();
+							} catch {
+								toast.error(t("home.selectionUnavailable"));
+							}
+						}}
+					>
+						{t("home.selectPageText")}
+					</Button>
 					{!online && (
 						<Text size="xs" c="orange" mb="xs">
 							{t("offline.banner")}
@@ -306,40 +331,60 @@ export function HomePage() {
 						</Text>
 					)}
 
-					{selectedNovel?.id && (
-						<Tabs defaultValue="coloring" variant="outline">
-							<Stack
-								gap="xs"
-								pos="sticky"
-								top={0}
-								style={{
-									zIndex: 2,
-									["--popup-tabs-sticky-height" as string]:
-										"calc(var(--mantine-spacing-xs) + 36px)",
-								}}
-								pt="xs"
-								styles={{
-									root: {
-										backgroundColor: "var(--mantine-color-body)",
-									},
-								}}
-							>
-								<Tabs.List grow>
-									<Tabs.Tab value="coloring">{t("tabs.coloring")}</Tabs.Tab>
-									<Tabs.Tab value="replacing">{t("tabs.replacing")}</Tabs.Tab>
-								</Tabs.List>
-							</Stack>
-							<Tabs.Panel value="coloring">
-								<ColoringTab
-									selectedNovelId={selectedNovel?.id}
-									currentChapter={detectedChapter}
-								/>
-							</Tabs.Panel>
-							<Tabs.Panel value="replacing">
-								<ReplacingTab selectedNovelId={selectedNovel?.id} />
-							</Tabs.Panel>
-						</Tabs>
-					)}
+					<Tabs
+						// Controlled because the novel loads asynchronously; Coloring is the
+						// default once a novel is selected or a page search is carried over.
+						value={
+							activeTab ??
+							(selectedNovel?.id ||
+							new URLSearchParams(window.location.search).has("search")
+								? "coloring"
+								: "ai")
+						}
+						onChange={setActiveTab}
+						variant="outline"
+					>
+						<Stack
+							gap="xs"
+							pos="sticky"
+							top={0}
+							style={{
+								zIndex: 2,
+								["--popup-tabs-sticky-height" as string]:
+									"calc(var(--mantine-spacing-xs) + 36px)",
+							}}
+							pt="xs"
+							styles={{
+								root: {
+									backgroundColor: "var(--mantine-color-body)",
+								},
+							}}
+						>
+							<Tabs.List grow>
+								<Tabs.Tab value="coloring" disabled={!selectedNovel?.id}>
+									{t("tabs.coloring")}
+								</Tabs.Tab>
+								<Tabs.Tab value="replacing" disabled={!selectedNovel?.id}>
+									{t("tabs.replacing")}
+								</Tabs.Tab>
+								<Tabs.Tab value="ai">{t("tabs.ai")}</Tabs.Tab>
+							</Tabs.List>
+						</Stack>
+						<Tabs.Panel value="ai">
+							<DesktopClientPanel />
+						</Tabs.Panel>
+						<Tabs.Panel value="coloring">
+							<ColoringTab
+								selectedNovelId={selectedNovel?.id}
+								currentChapter={detectedChapter}
+							/>
+						</Tabs.Panel>
+						<Tabs.Panel value="replacing">
+							{selectedNovel?.id && (
+								<ReplacingTab selectedNovelId={selectedNovel.id} />
+							)}
+						</Tabs.Panel>
+					</Tabs>
 				</Stack>
 			)}
 		</Container>

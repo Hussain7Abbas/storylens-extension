@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import {
 	deleteKeywordCategoriesById,
 	getKeywordCategories,
@@ -11,10 +12,16 @@ import {
 	putKeywordNaturesById,
 } from "@/api/generated/endpoints/keyword-natures.js";
 import {
+	deleteKeywordAliasesById,
 	deleteKeywordsById,
+	deleteKeywordVersionsById,
 	getKeywords,
+	postKeywordAliases,
 	postKeywords,
+	postKeywordVersions,
+	putKeywordAliasesById,
 	putKeywordsById,
+	putKeywordVersionsById,
 } from "@/api/generated/endpoints/keywords.js";
 import {
 	deleteReplacementsById,
@@ -26,13 +33,17 @@ import type {
 	GetKeywordCategories200DataItem,
 	GetKeywordNatures200DataItem,
 	GetKeywords200DataItem,
+	PostKeywordAliasesBodyOne,
 	PostKeywordCategoriesBodyOne,
 	PostKeywordNaturesBodyOne,
 	PostKeywordsBodyOne,
+	PostKeywordVersionsBodyOne,
 	PostReplacementsBodyOne,
+	PutKeywordAliasesByIdBodyOne,
 	PutKeywordCategoriesByIdBodyOne,
 	PutKeywordNaturesByIdBodyOne,
 	PutKeywordsByIdBodyOne,
+	PutKeywordVersionsByIdBodyOne,
 	PutReplacementsByIdBodyOne,
 } from "@/api/generated/schemas";
 import {
@@ -40,11 +51,15 @@ import {
 	bulkPutKeywordNatures,
 	clearKeywordDirty,
 	clearReplacementDirty,
+	replaceKeywordAliasId,
 	replaceKeywordCategoryId,
 	replaceKeywordId,
 	replaceKeywordNatureId,
+	replaceKeywordVersionId,
 	replaceReplacementId,
 	saveKeyword,
+	saveKeywordAlias,
+	saveKeywordVersion,
 	saveReplacement,
 	writeNovelOfflineBundle,
 } from "@/lib/offline/db";
@@ -52,7 +67,7 @@ import { downloadNovel } from "@/lib/offline/download";
 import { isOnline } from "@/lib/offline/online-status";
 import {
 	getDownloadedNovelIds,
-	getPendingOps,
+	getSyncState,
 	removePendingOp,
 	replacePendingEntityId,
 	setLastSyncAt,
@@ -60,6 +75,8 @@ import {
 } from "@/lib/offline/sync-storage";
 import {
 	cleanOfflineKeyword,
+	cleanOfflineKeywordAlias,
+	cleanOfflineKeywordVersion,
 	cleanOfflineReplacement,
 	isTempId,
 	type SyncOperation,
@@ -76,7 +93,26 @@ export type SyncResult = {
 	pushed: number;
 	failed: number;
 	pulled: number;
+	remaining: number;
+	errors: {
+		entity: string;
+		entityId: string;
+		message: string;
+		status?: number;
+	}[];
 };
+
+function describeSyncError(error: unknown): {
+	message: string;
+	status?: number;
+} {
+	if (isAxiosError<{ message?: string }>(error))
+		return {
+			message: error.response?.data?.message || error.message,
+			status: error.response?.status,
+		};
+	return { message: error instanceof Error ? error.message : "Sync failed" };
+}
 
 async function pushOperation(operation: SyncOperation): Promise<void> {
 	await updatePendingOp(operation.id, { status: "syncing" });
@@ -84,22 +120,29 @@ async function pushOperation(operation: SyncOperation): Promise<void> {
 	try {
 		if (operation.entity === "keyword") {
 			await pushKeywordOperation(operation);
+		} else if (operation.entity === "keywordAlias") {
+			await pushKeywordAliasOperation(operation);
+		} else if (operation.entity === "keywordVersion") {
+			await pushKeywordVersionOperation(operation);
 		} else if (operation.entity === "replacement") {
 			await pushReplacementOperation(operation);
 		} else if (operation.entity === "keywordCategory") {
 			await pushKeywordCategoryOperation(operation);
-		} else {
+		} else if (operation.entity === "keywordNature") {
 			await pushKeywordNatureOperation(operation);
+		} else {
+			throw new Error(`Unsupported sync entity: ${operation.entity}`);
 		}
 
 		await removePendingOp(operation.id);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Sync failed";
+		const { message, status } = describeSyncError(error);
 		const retryCount = operation.retryCount + 1;
 		await updatePendingOp(operation.id, {
 			status: retryCount >= MAX_SYNC_RETRIES ? "failed" : "pending",
 			retryCount,
 			lastError: message,
+			lastErrorStatus: status,
 		});
 		throw error;
 	}
@@ -134,6 +177,50 @@ async function pushKeywordOperation(operation: SyncOperation): Promise<void> {
 	}
 
 	await deleteKeywordsById(operation.entityId);
+}
+
+async function pushKeywordAliasOperation(
+	operation: SyncOperation,
+): Promise<void> {
+	if (operation.action === "delete") {
+		await deleteKeywordAliasesById(operation.entityId);
+		return;
+	}
+	const response =
+		operation.action === "create"
+			? await postKeywordAliases(operation.payload as PostKeywordAliasesBodyOne)
+			: await putKeywordAliasesById(
+					operation.entityId,
+					operation.payload as PutKeywordAliasesByIdBodyOne,
+				);
+	if (isTempId(operation.entityId)) {
+		await replaceKeywordAliasId(operation.entityId, response.data.id);
+		await replacePendingEntityId(operation.entityId, response.data.id);
+	}
+	await saveKeywordAlias(cleanOfflineKeywordAlias(response.data));
+}
+
+async function pushKeywordVersionOperation(
+	operation: SyncOperation,
+): Promise<void> {
+	if (operation.action === "delete") {
+		await deleteKeywordVersionsById(operation.entityId);
+		return;
+	}
+	const response =
+		operation.action === "create"
+			? await postKeywordVersions(
+					operation.payload as PostKeywordVersionsBodyOne,
+				)
+			: await putKeywordVersionsById(
+					operation.entityId,
+					operation.payload as PutKeywordVersionsByIdBodyOne,
+				);
+	if (isTempId(operation.entityId)) {
+		await replaceKeywordVersionId(operation.entityId, response.data.id);
+		await replacePendingEntityId(operation.entityId, response.data.id);
+	}
+	await saveKeywordVersion(cleanOfflineKeywordVersion(response.data));
 }
 
 async function pushReplacementOperation(
@@ -250,32 +337,62 @@ export async function pullLookupData(): Promise<void> {
 	await bulkPutKeywordNatures(naturesResponse.data.data);
 }
 
-export async function syncPendingOperations(): Promise<SyncResult> {
-	if (!isOnline()) {
-		return { pushed: 0, failed: 0, pulled: 0 };
-	}
+let pendingSync: Promise<SyncResult> | undefined;
 
-	const operations = await getPendingOps();
+export function syncPendingOperations(
+	retryFailed = false,
+): Promise<SyncResult> {
+	if (pendingSync) return pendingSync;
+	pendingSync = pushPendingOperations(retryFailed).finally(() => {
+		pendingSync = undefined;
+	});
+	return pendingSync;
+}
+
+async function pushPendingOperations(
+	retryFailed: boolean,
+): Promise<SyncResult> {
+	if (!isOnline()) throw new Error("Sync requires an internet connection");
+	const operations = (await getSyncState()).pendingOps;
 	let pushed = 0;
-	let failed = 0;
-
-	for (const operation of operations) {
+	const errors: SyncResult["errors"] = [];
+	for (const queued of operations) {
+		// Reload so dependent operations use IDs mapped by earlier creates.
+		const operation = (await getSyncState()).pendingOps.find(
+			(op) => op.id === queued.id,
+		);
+		if (!operation) continue;
 		if (
+			!retryFailed &&
 			operation.status === "failed" &&
 			operation.retryCount >= MAX_SYNC_RETRIES
 		) {
+			errors.push({
+				entity: operation.entity,
+				entityId: operation.entityId,
+				message: operation.lastError || "Retry limit reached",
+				status: operation.lastErrorStatus,
+			});
 			continue;
 		}
-
 		try {
 			await pushOperation(operation);
 			pushed += 1;
-		} catch {
-			failed += 1;
+		} catch (error) {
+			errors.push({
+				entity: operation.entity,
+				entityId: operation.entityId,
+				...describeSyncError(error),
+			});
 		}
 	}
-
-	return { pushed, failed, pulled: 0 };
+	return {
+		pushed,
+		failed: errors.length,
+		pulled: 0,
+		remaining: (await getSyncState()).pendingOps.length,
+		errors,
+	};
 }
 
 export async function pullServerData(novelId: string): Promise<void> {
@@ -341,36 +458,65 @@ export async function pullServerData(novelId: string): Promise<void> {
 	});
 }
 
-export async function fullSync(): Promise<SyncResult> {
+let activeFullSync: Promise<SyncResult> | undefined;
+
+export function fullSync(retryFailed = false): Promise<SyncResult> {
+	if (activeFullSync) return activeFullSync;
+	activeFullSync = runFullSync(retryFailed).finally(() => {
+		activeFullSync = undefined;
+	});
+	return activeFullSync;
+}
+
+async function runFullSync(retryFailed: boolean): Promise<SyncResult> {
 	if (!isOnline()) {
-		return { pushed: 0, failed: 0, pulled: 0 };
+		throw new Error("Sync requires an internet connection");
 	}
 
-	const pushResult = await syncPendingOperations();
+	const pushResult = await syncPendingOperations(retryFailed);
+	const errors = [...pushResult.errors];
+	const unresolved = (await getSyncState()).pendingOps;
+	const hasUnresolvedLookups = unresolved.some(
+		(op) => op.entity === "keywordCategory" || op.entity === "keywordNature",
+	);
 
 	try {
-		await pullLookupData();
-	} catch {
-		// Lookup pull failed; continue with novel pulls.
+		if (!hasUnresolvedLookups) await pullLookupData();
+	} catch (error) {
+		errors.push({
+			entity: "lookups",
+			entityId: "global",
+			...describeSyncError(error),
+		});
 	}
 
 	const downloadedNovelIds = await getDownloadedNovelIds();
 	let pulled = 0;
 
 	for (const novelId of downloadedNovelIds) {
+		// Preserve local aliases and versions while their writes remain unresolved.
+		if (hasUnresolvedLookups || unresolved.some((op) => op.novelId === novelId))
+			continue;
 		try {
 			await pullServerData(novelId);
 			pulled += 1;
-		} catch {
-			// Server-wins pull failed for this novel; continue with others.
+		} catch (error) {
+			errors.push({
+				entity: "novel",
+				entityId: novelId,
+				...describeSyncError(error),
+			});
 		}
 	}
 
-	await setLastSyncAt(Date.now());
+	const remaining = (await getSyncState()).pendingOps.length;
+	if (errors.length === 0 && remaining === 0) await setLastSyncAt(Date.now());
 
 	return {
 		pushed: pushResult.pushed,
-		failed: pushResult.failed,
+		failed: errors.length,
+		errors,
+		remaining,
 		pulled,
 	};
 }

@@ -41,15 +41,23 @@ import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { uploadImageFile } from "@/utils/upload-image-file";
 
 type StackFrame =
-	| { mode: "keyword-add" }
+	| { mode: "keyword-add"; initialText?: string }
 	| { mode: "keyword-edit"; keyword: GetKeywords200DataItem }
-	| { mode: "alias-add"; parentKeyword: GetKeywords200DataItem }
+	| {
+			mode: "alias-add";
+			initialText?: string;
+			parentKeyword: GetKeywords200DataItem;
+	  }
 	| {
 			mode: "alias-edit";
 			keyword: GetKeywords200DataItemAliasesItem;
 			parentKeyword: GetKeywords200DataItem;
 	  }
-	| { mode: "version-add"; parentKeyword: GetKeywords200DataItem }
+	| {
+			mode: "version-add";
+			initialText?: string;
+			parentKeyword: GetKeywords200DataItem;
+	  }
 	| {
 			mode: "version-edit";
 			keyword: GetKeywords200DataItemVersionsItem;
@@ -120,7 +128,9 @@ function KeywordForm({
 
 	const form = useForm<KeywordFormValues>({
 		initialValues: {
-			name: keyword?.name ?? "",
+			name:
+				keyword?.name ??
+				(frame.mode === "keyword-add" ? (frame.initialText ?? "") : ""),
 			matchingType: keyword?.matchingType ?? "FULL",
 			categoryId: baseVersion?.categoryId ?? "",
 			natureId: baseVersion?.natureId ?? "",
@@ -412,7 +422,9 @@ function AliasForm({
 
 	const form = useForm<AliasFormValues>({
 		initialValues: {
-			name: alias?.name ?? "",
+			name:
+				alias?.name ??
+				(frame.mode === "alias-add" ? (frame.initialText ?? "") : ""),
 			description: alias?.description ?? "",
 			matchingType: alias?.matchingType ?? "FULL",
 			categoryId: alias?.categoryId ?? null,
@@ -716,7 +728,9 @@ function VersionForm({
 
 	const form = useForm<VersionFormValues>({
 		initialValues: {
-			description: version?.description ?? "",
+			description:
+				version?.description ??
+				(frame.mode === "version-add" ? (frame.initialText ?? "") : ""),
 			categoryId: version?.categoryId ?? null,
 			natureId: version?.natureId ?? null,
 			imageId: (version?.imageId as string | undefined) ?? undefined,

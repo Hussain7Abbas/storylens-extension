@@ -8,21 +8,16 @@ import {
 	Text,
 } from "@mantine/core";
 import { IconCloudUpload } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { getReplacements } from "@/api/generated/endpoints/replacements.js";
-import type {
-	GetReplacements200DataItem,
-	GetReplacementsParams,
-} from "@/api/generated/schemas";
-import {
-	INFINITE_SCROLL_PAGE_SIZE,
-	useInfiniteScrollList,
-} from "@/hooks/use-infinite-scroll-list";
+import type { GetReplacements200DataItem } from "@/api/generated/schemas";
 import {
 	useOfflineReplacements,
 	useOnlineStatus,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
+import { fuzzyMatches } from "@/utils/fuzzy-search";
 import { ListItemCard } from "../list-item-card";
 import type { ReplacingFormModesType } from "./replacing-form";
 
@@ -45,42 +40,35 @@ export function ReplacingCards({
 	const { t } = useTranslation();
 	const online = useOnlineStatus();
 	const pendingEntityIds = usePendingEntityIds();
-	const offline = useOfflineReplacements(selectedNovelId, search);
+	const offline = useOfflineReplacements(selectedNovelId, "");
 
-	const onlineList = useInfiniteScrollList<
-		GetReplacementsParams,
-		GetReplacements200DataItem
-	>({
-		queryKey: [
-			"replacements",
-			selectedNovelId,
-			{ column: "from", direction: "asc" },
-		],
-		fetchPage: (params, signal) => getReplacements(params, undefined, signal),
-		getParams: (page, debouncedSearch) => ({
-			pagination: { page, pageSize: INFINITE_SCROLL_PAGE_SIZE },
-			sorting: { column: "from", direction: "asc" },
-			query: {
-				novelId: selectedNovelId,
-				search: debouncedSearch || undefined,
-			},
-		}),
-		search,
+	const onlineQuery = useQuery({
+		queryKey: ["replacements", selectedNovelId, "all"],
+		queryFn: async ({ signal }) => {
+			const items: GetReplacements200DataItem[] = [];
+			for (let page = 1; ; page++) {
+				const response = await getReplacements(
+					{
+						pagination: { page, pageSize: 500 },
+						sorting: { column: "from", direction: "asc" },
+						query: { novelId: selectedNovelId },
+					},
+					undefined,
+					signal,
+				);
+				items.push(...response.data.data);
+				if (!response.data.data.length || items.length >= response.data.total)
+					return items;
+			}
+		},
 		enabled: !offline.useLocalCache && online,
 	});
-
-	const items = offline.useLocalCache
-		? (offline.items ?? [])
-		: onlineList.items;
+	const items = (
+		offline.useLocalCache ? (offline.items ?? []) : (onlineQuery.data ?? [])
+	).filter((item) => fuzzyMatches(search, [item.from, item.to]));
 	const isLoading = offline.useLocalCache
 		? offline.isLoading
-		: onlineList.isLoading;
-	const isFetchingNextPage = offline.useLocalCache
-		? false
-		: onlineList.isFetchingNextPage;
-	const loadMoreRef = offline.useLocalCache
-		? undefined
-		: onlineList.loadMoreRef;
+		: onlineQuery.isLoading;
 
 	if (isLoading) {
 		return (
@@ -138,12 +126,6 @@ export function ReplacingCards({
 					</ListItemCard>
 				);
 			})}
-			{loadMoreRef && <div ref={loadMoreRef} />}
-			{isFetchingNextPage && (
-				<Center>
-					<Loader size="sm" />
-				</Center>
-			)}
 		</Stack>
 	);
 }

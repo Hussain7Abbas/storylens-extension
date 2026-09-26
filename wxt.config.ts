@@ -14,7 +14,10 @@ function apiHostPermission(url: string): string {
 }
 
 const devHostPermissions = ["http://localhost/*", "http://127.0.0.1/*"];
-const productionHostPermissions = [apiHostPermission(apiUrl)];
+const productionHostPermissions = [
+	apiHostPermission(apiUrl),
+	"http://127.0.0.1/*",
+];
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -50,6 +53,12 @@ export default defineConfig({
 		description: "__MSG_extDescription__",
 		default_locale: "en",
 		permissions: ["tabs", "storage", "alarms", "unlimitedStorage"],
+		web_accessible_resources: [
+			{
+				resources: ["popup.html", "icons/128.png"],
+				matches: ["http://*/*", "https://*/*"],
+			},
+		],
 		host_permissions:
 			process.env.NODE_ENV === "development"
 				? [...devHostPermissions, ...productionHostPermissions]
@@ -62,6 +71,6 @@ export default defineConfig({
 		},
 		chromiumArgs: ["--user-data-dir=./.wxt/chromium-data"],
 		keepProfileChanges: true,
-		startUrls: ["https://mknov.com/novel/984/chapter/364122"],
+		startUrls: ["https://seanovel.org/novels/shadow-slave/chapters/235"],
 	},
 });

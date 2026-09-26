@@ -38,13 +38,14 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 	const { loading } = useAuthInit();
 	const onboardingCompleted = useAtomValue(onboardingCompletedAtom);
 	const locale = useAtomValue(localeAtom);
+	// The page launcher embeds the popup in a larger iframe; fill it there.
+	const fill = type === "options" || window.parent !== window;
+	const height = fill ? "100vh" : "32rem";
+	const width = fill ? "100vw" : "24rem";
 
 	if (loading) {
 		return (
-			<Center
-				h={type === "popup" ? "32rem" : "100vh"}
-				w={type === "popup" ? "24rem" : "100vw"}
-			>
+			<Center h={height} w={width}>
 				<Loader />
 			</Center>
 		);
@@ -52,12 +53,7 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 
 	if (!onboardingCompleted) {
 		return (
-			<Stack
-				h={type === "popup" ? "32rem" : "100vh"}
-				w={type === "popup" ? "24rem" : "100vw"}
-				gap={0}
-				dir={locale === "ar" ? "rtl" : "ltr"}
-			>
+			<Stack h={height} w={width} gap={0} dir={locale === "ar" ? "rtl" : "ltr"}>
 				<Onboarding />
 			</Stack>
 		);
@@ -66,12 +62,7 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 	return (
 		<>
 			<PopupAutoSync enabled={type === "popup"} />
-			<Stack
-				h={type === "popup" ? "32rem" : "100vh"}
-				w={type === "popup" ? "24rem" : "100vw"}
-				gap={0}
-				dir={locale === "ar" ? "rtl" : "ltr"}
-			>
+			<Stack h={height} w={width} gap={0} dir={locale === "ar" ? "rtl" : "ltr"}>
 				<Navbar />
 				<ScrollArea flex={1} type="auto">
 					<Router />

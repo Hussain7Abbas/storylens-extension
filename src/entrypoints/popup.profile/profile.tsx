@@ -14,6 +14,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { IconPencil } from "@tabler/icons-react";
+import { isAxiosError } from "axios";
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -22,6 +23,7 @@ import { useRoutes } from "@/hooks/useRoutes";
 import {
 	type AuthUser,
 	authStateAtom,
+	changePassword,
 	checkUsernameAvailability,
 	clearAuth,
 	loginWithEmail,
@@ -30,7 +32,7 @@ import {
 	userRoleAtom,
 } from "@/lib/auth";
 
-type AuthView = "profile" | "login" | "register";
+type AuthView = "profile" | "login" | "register" | "password";
 
 export function ProfilePage() {
 	const { t } = useTranslation();
@@ -46,6 +48,14 @@ export function ProfilePage() {
 		setAuthState({ user: null, token: null });
 		toast.success(t("auth.logoutSuccess"));
 	};
+
+	if (view === "password" && user && role !== "guest") {
+		return (
+			<Container p="md">
+				<ChangePasswordForm onBack={() => setView("profile")} />
+			</Container>
+		);
+	}
 
 	if (view === "login") {
 		return (
@@ -138,13 +148,18 @@ export function ProfilePage() {
 						</Group>
 					</Stack>
 				) : (
-					<Button
-						variant="light"
-						color="red"
-						onClick={() => void handleLogout()}
-					>
-						{t("auth.logout")}
-					</Button>
+					<Stack gap="xs">
+						<Button variant="light" onClick={() => setView("password")}>
+							{t("auth.changePassword")}
+						</Button>
+						<Button
+							variant="light"
+							color="red"
+							onClick={() => void handleLogout()}
+						>
+							{t("auth.logout")}
+						</Button>
+					</Stack>
 				)}
 			</Stack>
 		</Container>
@@ -418,6 +433,77 @@ function RegisterForm({
 					</Button>
 					<Button type="submit" loading={loading}>
 						{t("auth.register")}
+					</Button>
+				</Group>
+			</Stack>
+		</form>
+	);
+}
+
+function ChangePasswordForm({ onBack }: { onBack: () => void }) {
+	const { t } = useTranslation();
+	const [loading, setLoading] = useState(false);
+	const form = useForm({
+		initialValues: {
+			currentPassword: "",
+			newPassword: "",
+			confirmPassword: "",
+		},
+		validate: {
+			currentPassword: (value) =>
+				!value ? t("auth.currentPasswordRequired") : null,
+			newPassword: (value) =>
+				value.length < 8 || value.length > 72 ? t("auth.passwordLength") : null,
+			confirmPassword: (value, values) =>
+				value !== values.newPassword ? t("auth.passwordMismatch") : null,
+		},
+	});
+	const submit = async (values: typeof form.values) => {
+		setLoading(true);
+		try {
+			await changePassword(values.currentPassword, values.newPassword);
+			form.reset();
+			toast.success(t("auth.passwordChanged"));
+			onBack();
+		} catch (error) {
+			const message = isAxiosError<{ message?: string }>(error)
+				? error.response?.data?.message
+				: undefined;
+			toast.error(message || t("auth.passwordChangeFailed"));
+		} finally {
+			setLoading(false);
+		}
+	};
+	return (
+		<form onSubmit={form.onSubmit((values) => void submit(values))}>
+			<Stack gap="sm">
+				<Title order={4}>{t("auth.changePassword")}</Title>
+				<PasswordInput
+					label={t("auth.currentPassword")}
+					autoComplete="current-password"
+					{...form.getInputProps("currentPassword")}
+				/>
+				<PasswordInput
+					label={t("auth.newPassword")}
+					autoComplete="new-password"
+					{...form.getInputProps("newPassword")}
+				/>
+				<PasswordInput
+					label={t("auth.confirmPassword")}
+					autoComplete="new-password"
+					{...form.getInputProps("confirmPassword")}
+				/>
+				<Group grow>
+					<Button
+						type="button"
+						variant="outline"
+						disabled={loading}
+						onClick={onBack}
+					>
+						{t("_.cancel")}
+					</Button>
+					<Button type="submit" loading={loading}>
+						{t("_.save")}
 					</Button>
 				</Group>
 			</Stack>

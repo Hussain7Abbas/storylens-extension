@@ -1,5 +1,10 @@
 import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
+import {
+	clearPageSummary,
+	startPageSummary,
+} from "@/lib/desktop-client/page-summary";
+import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { removeExtensionMarkup } from "@/utils/content-processor";
@@ -11,11 +16,18 @@ import {
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { getAllNovelData } from "@/utils/site-detection";
+import {
+	closePagePopupLauncher,
+	setPagePopupLauncher,
+	startPageTextSelection,
+} from "./page-popup-launcher";
 
 const LOG_PREFIX = "[StoryLens]";
 
 let websiteSelector: WebsiteSelector | undefined;
 let lastProcessedKey: string | undefined;
+let currentLocale = "en";
+let pagePopupVisible = true;
 
 function buildDetectedNovelKey(meta: currentNovelMeta): string {
 	return `${meta.novelSlug}:${meta.chapter ?? "unknown"}`;
@@ -25,11 +37,13 @@ async function loadWebsiteSelector(): Promise<void> {
 	const website = window.location.hostname;
 	if (!website) {
 		websiteSelector = undefined;
+		setPagePopupLauncher(false, currentLocale);
 		return;
 	}
 
 	try {
 		websiteSelector = await sendMessage("getWebsiteSelector", website);
+		setPagePopupLauncher(!!websiteSelector && pagePopupVisible, currentLocale);
 		console.log(`${LOG_PREFIX} Website selector loaded`, {
 			website,
 			hasSelector: !!websiteSelector,
@@ -37,6 +51,7 @@ async function loadWebsiteSelector(): Promise<void> {
 	} catch (error) {
 		console.error(`${LOG_PREFIX} Failed to load website selector`, error);
 		websiteSelector = undefined;
+		setPagePopupLauncher(false, currentLocale);
 	}
 }
 
@@ -103,12 +118,18 @@ export async function refreshPageContent(): Promise<void> {
 export async function runContentScript(
 	ctx: ContentScriptContext,
 ): Promise<void> {
+	onMessage("selectPageText", () => {
+		setPagePopupLauncher(true, currentLocale);
+		startPageTextSelection();
+	});
+	onMessage("summarizePage", ({ data }) => startPageSummary(data));
 	onMessage("websiteSelectorUpdated", ({ data }) => {
 		if (data.website !== window.location.hostname) {
 			return;
 		}
 
 		websiteSelector = data.selector;
+		setPagePopupLauncher(!!websiteSelector && pagePopupVisible, currentLocale);
 		console.log(`${LOG_PREFIX} Website selector updated from background`, {
 			website: data.website,
 			hasSelector: !!websiteSelector,
@@ -150,12 +171,15 @@ export async function runContentScript(
 	});
 
 	const stored = await browser.storage.local.get([
+		PAGE_POPUP_VISIBLE_KEY,
 		"storylens-locale",
 		"storylens-font-face",
 		"storylens-font-size",
 	]);
+	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
 	if (typeof stored["storylens-locale"] === "string") {
-		setTooltipLocale(stored["storylens-locale"]);
+		currentLocale = stored["storylens-locale"];
+		setTooltipLocale(currentLocale);
 	}
 	if (typeof stored["storylens-font-face"] === "string") {
 		setTooltipFontFace(stored["storylens-font-face"]);
@@ -164,9 +188,22 @@ export async function runContentScript(
 		setTooltipFontSize(stored["storylens-font-size"]);
 	}
 
-	browser.storage.onChanged.addListener((changes) => {
+	browser.storage.onChanged.addListener((changes, area) => {
+		if (area !== "local") return;
+		if (PAGE_POPUP_VISIBLE_KEY in changes) {
+			pagePopupVisible = changes[PAGE_POPUP_VISIBLE_KEY].newValue !== false;
+			setPagePopupLauncher(
+				!!websiteSelector && pagePopupVisible,
+				currentLocale,
+			);
+		}
 		if (typeof changes["storylens-locale"]?.newValue === "string") {
-			setTooltipLocale(changes["storylens-locale"].newValue as string);
+			currentLocale = changes["storylens-locale"].newValue as string;
+			setTooltipLocale(currentLocale);
+			setPagePopupLauncher(
+				!!websiteSelector && pagePopupVisible,
+				currentLocale,
+			);
 		}
 		if (typeof changes["storylens-font-face"]?.newValue === "string") {
 			setTooltipFontFace(changes["storylens-font-face"].newValue as string);
@@ -195,6 +232,8 @@ export async function runContentScript(
 	});
 
 	ctx.addEventListener(window, "wxt:locationchange", () => {
+		clearPageSummary();
+		closePagePopupLauncher();
 		console.log(`${LOG_PREFIX} Location changed`, window.location.href);
 		lastProcessedKey = undefined;
 		void loadWebsiteSelector()

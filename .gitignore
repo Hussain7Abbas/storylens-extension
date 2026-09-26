@@ -3,6 +3,7 @@ node_modules
 .wxt
 .env
 .env.local
+.env.submit
 .turbo
 **/*.tsbuildinfo
 .DS_Store

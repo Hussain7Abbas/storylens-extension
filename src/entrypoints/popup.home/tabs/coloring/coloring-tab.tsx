@@ -12,15 +12,23 @@ import { ColoringCards } from "./coloring-cards";
 import { ColoringForm } from "./coloring-form";
 
 type StackFrame =
-	| { mode: "keyword-add" }
+	| { mode: "keyword-add"; initialText?: string }
 	| { mode: "keyword-edit"; keyword: GetKeywords200DataItem }
-	| { mode: "alias-add"; parentKeyword: GetKeywords200DataItem }
+	| {
+			mode: "alias-add";
+			initialText?: string;
+			parentKeyword: GetKeywords200DataItem;
+	  }
 	| {
 			mode: "alias-edit";
 			keyword: GetKeywords200DataItemAliasesItem;
 			parentKeyword: GetKeywords200DataItem;
 	  }
-	| { mode: "version-add"; parentKeyword: GetKeywords200DataItem }
+	| {
+			mode: "version-add";
+			initialText?: string;
+			parentKeyword: GetKeywords200DataItem;
+	  }
 	| {
 			mode: "version-edit";
 			keyword: GetKeywords200DataItemVersionsItem;
@@ -37,7 +45,9 @@ export function ColoringTab({
 	const { t } = useTranslation();
 	const canMutate = useCanMutateKeywords();
 	const [stack, setStack] = useState<StackFrame[]>([]);
-	const [search, setSearch] = useState("");
+	const [search, setSearch] = useState(
+		() => new URLSearchParams(window.location.search).get("search") ?? "",
+	);
 
 	const currentFrame = stack[stack.length - 1];
 
@@ -67,7 +77,9 @@ export function ColoringTab({
 					type="submit"
 					variant="light"
 					color="green.7"
-					onClick={() => pushFrame({ mode: "keyword-add" })}
+					onClick={() =>
+						pushFrame({ mode: "keyword-add", initialText: search.trim() })
+					}
 					fullWidth
 				>
 					{t("_.add")}
@@ -106,10 +118,18 @@ export function ColoringTab({
 					})
 				}
 				onAddAlias={(parent) =>
-					pushFrame({ mode: "alias-add", parentKeyword: parent })
+					pushFrame({
+						mode: "alias-add",
+						parentKeyword: parent,
+						initialText: search.trim(),
+					})
 				}
 				onAddVersion={(parent) =>
-					pushFrame({ mode: "version-add", parentKeyword: parent })
+					pushFrame({
+						mode: "version-add",
+						parentKeyword: parent,
+						initialText: search.trim(),
+					})
 				}
 				onEditVersion={(version, parent) =>
 					pushFrame({

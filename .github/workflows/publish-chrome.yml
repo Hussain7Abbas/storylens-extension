@@ -1,0 +1,56 @@
+name: Publish to Chrome Web Store
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: publish-chrome
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION="$(bun -p 'require("./package.json").version')"
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$VERSION" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install
+        run: make install
+
+      - name: Typecheck
+        run: make typecheck
+
+      - name: Build store zip
+        run: make release-chrome
+
+      - name: Submit to Chrome Web Store
+        run: make submit-chrome
+        env:
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+
+      # Runs the backend repo's "Set Review_Version" workflow; the backend deploys once this version is live.
+      - name: Notify backend
+        env:
+          GH_TOKEN: ${{ secrets.BACKEND_DISPATCH_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh api repos/Hussain7Abbas/storylens-backend/dispatches \
+            -f event_type=extension-submitted \
+            -f "client_payload[version]=$VERSION"

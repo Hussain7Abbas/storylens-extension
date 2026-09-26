@@ -26,6 +26,7 @@ interface ReplacingFormProps extends React.HTMLAttributes<HTMLFormElement> {
 	mode: ReplacingFormModesType;
 	selectedNovelId: string | undefined;
 	replacement?: GetReplacements200DataItem;
+	initialText?: string;
 	onClose: () => void;
 }
 
@@ -33,6 +34,7 @@ export function ReplacingForm({
 	mode,
 	selectedNovelId,
 	replacement,
+	initialText,
 	onClose,
 	...props
 }: ReplacingFormProps) {
@@ -40,7 +42,7 @@ export function ReplacingForm({
 	const form = useForm<ReplacingFormValues>({
 		initialValues: {
 			novelId: replacement?.novelId || "",
-			from: replacement?.from || "",
+			from: replacement?.from ?? (mode === "add" ? (initialText ?? "") : ""),
 			to: replacement?.to || "",
 			matchingType: replacement?.matchingType ?? "FULL",
 		},

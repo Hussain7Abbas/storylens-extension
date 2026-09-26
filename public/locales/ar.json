@@ -32,7 +32,8 @@
 		"category": "التصنيف",
 		"nature": "الطبيعة",
 		"general": "عام",
-		"appearance": "المظهر"
+		"appearance": "المظهر",
+		"ai": "AI"
 	},
 	"coloring": {
 		"name": "الاسم",
@@ -75,6 +76,8 @@
 		"fullWordMatch": "مطابقة الكلمة كاملة"
 	},
 	"home": {
+		"selectPageText": "حدد نصاً في الصفحة",
+		"selectionUnavailable": "تحديد النص غير متاح في هذه الصفحة.",
 		"title": "إدارة الكلمات المفتاحية",
 		"selectNovel": "اختر الرواية",
 		"selectNovelPlaceholder": "اختر رواية لإدارة الكلمات المفتاحية",
@@ -170,7 +173,16 @@
 		"saveProfile": "حفظ الملف الشخصي",
 		"profileUpdated": "تم تحديث الملف الشخصي",
 		"profileUpdateFailed": "فشل تحديث الملف الشخصي",
-		"nameRequired": "الاسم مطلوب"
+		"nameRequired": "الاسم مطلوب",
+		"changePassword": "تغيير كلمة المرور",
+		"currentPassword": "كلمة المرور الحالية",
+		"newPassword": "كلمة المرور الجديدة",
+		"confirmPassword": "تأكيد كلمة المرور الجديدة",
+		"currentPasswordRequired": "أدخل كلمة المرور الحالية",
+		"passwordLength": "استخدم من 8 إلى 72 حرفاً",
+		"passwordMismatch": "كلمتا المرور غير متطابقتين",
+		"passwordChanged": "تم تغيير كلمة المرور",
+		"passwordChangeFailed": "تعذر تغيير كلمة المرور"
 	},
 	"settings": {
 		"title": "الإعدادات",
@@ -203,7 +215,14 @@
 			"fontFace": "الخط",
 			"fontDefault": "افتراضي",
 			"fontSize": "حجم الخط"
-		}
+		},
+		"inSitePopup": "النافذة داخل الموقع",
+		"show": "إظهار",
+		"hide": "إخفاء",
+		"aboutStoryLens": "حول Story Lens",
+		"website": "الموقع",
+		"privacyPolicy": "سياسة الخصوصية",
+		"termsOfUse": "شروط الاستخدام"
 	},
 	"category": {
 		"noRecords": "لا توجد تصنيفات لعرضها"
@@ -228,7 +247,10 @@
 		"syncPending": "{{count}} تغييرات بانتظار المزامنة",
 		"syncSuccess": "تمت مزامنة {{pushed}} تغييرات وتحديث {{pulled}} روايات",
 		"syncFailed": "فشلت المزامنة",
-		"syncRequiresOnline": "اتصل بالإنترنت للمزامنة"
+		"syncRequiresOnline": "اتصل بالإنترنت للمزامنة",
+		"syncPermissionDenied": "بعض التغييرات تتطلب صلاحيات لا يملكها هذا الحساب. {{count}} تغييرات لم تتم مزامنتها",
+		"syncIncomplete": "المزامنة غير مكتملة. {{count}} تغييرات لم تتم مزامنتها",
+		"syncQueuedAfterFailure": "تعذر رفع التغيير. يبقى محفوظاً محلياً للمزامنة"
 	},
 	"nodeSelector": {
 		"nodeSelector": "محدد العنصر",
@@ -256,5 +278,23 @@
 		"detectFailedUnsupportedTab": "الاكتشاف التلقائي يعمل فقط على صفحات الويب العادية. افتح صفحة فصل رواية في التبويب النشط.",
 		"detectFailedNoContentScript": "تعذر قراءة التبويب الحالي. حدّث صفحة الفصل ثم حاول مرة أخرى.",
 		"noData": "لا توجد مواقع لعرضها"
+	},
+	"desktop": {
+		"summarize": "تلخيص الصفحة",
+		"settings": "عميل سطح المكتب",
+		"disclosure": "عند النقر على تلخيص، يُرسل محتوى هذه الصفحة عبر عميل سطح المكتب إلى مزود الذكاء الاصطناعي المحدد.",
+		"port": "المنفذ المحلي",
+		"token": "رمز الاقتران",
+		"connect": "اتصال / تحديث النماذج",
+		"model": "النموذج",
+		"effort": "مستوى الجهد",
+		"connected": "تم الاتصال؛ النماذج",
+		"connectionFailed": "تعذر الاتصال بعميل سطح المكتب.",
+		"selectModel": "اتصل واختر نموذجًا أولًا.",
+		"unsupportedPage": "افتح صفحة HTTP أو HTTPS أولًا.",
+		"summaryStarted": "بدأ تلخيص الصفحة.",
+		"summaryRunning": "التلخيص جارٍ لهذه الصفحة.",
+		"summaryFailed": "تعذر بدء التلخيص.",
+		"modelUnavailable": "النموذج المحفوظ غير متاح. اختر نموذجًا آخر."
 	}
 }

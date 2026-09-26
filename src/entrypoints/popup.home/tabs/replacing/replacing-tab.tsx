@@ -16,13 +16,16 @@ export function ReplacingTab({ selectedNovelId }: { selectedNovelId: string }) {
 	const [replacement, setReplacement] = useState<
 		GetReplacements200DataItem | undefined
 	>(undefined);
-	const [search, setSearch] = useState("");
+	const [search, setSearch] = useState(
+		() => new URLSearchParams(window.location.search).get("search") ?? "",
+	);
 
 	return (
 		<Stack gap="xs" p="xs">
 			{replacingFormMode ? (
 				<ReplacingForm
 					mode={replacingFormMode}
+					initialText={search.trim()}
 					selectedNovelId={selectedNovelId}
 					hidden={!replacingFormMode}
 					replacement={replacement}

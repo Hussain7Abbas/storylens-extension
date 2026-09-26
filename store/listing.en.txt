@@ -19,6 +19,7 @@ Features
 • Popup tools to add, edit, and search your glossary
 • Options page for broader settings management
 • English and Arabic UI support
+• Optional on-page AI summaries through the separately installed Story Lens Client and your selected Claude or Codex account
 
 Who it is for
 StoryLens is built for people who read long-form web novels and serial fiction online and want a consistent way to remember who is who, where places are, and what important terms mean from chapter to chapter.
@@ -28,9 +29,10 @@ How it works
 2. Click the StoryLens icon to open the popup.
 3. Add or manage keywords, colors, categories, and replacements.
 4. StoryLens applies your settings to the page you are reading.
+5. Optionally pair Story Lens Client, choose a model, and click Summarize to show a page summary at its top.
 
 Privacy
-StoryLens syncs your glossary data with the StoryLens API so your keywords and settings are available across reading sessions. See the privacy policy URL in the developer dashboard for details.
+StoryLens syncs your glossary data with the StoryLens API so your keywords and settings are available across reading sessions. Optional Summarize sends the active page body through the local desktop client to the selected AI provider only after your click. See the privacy policy URL in the developer dashboard for details.
 
 Support
 For questions or feedback, contact hussain@iscoded.com or visit https://github.com/Hussain7Abbas/storylens
@@ -42,4 +44,4 @@ LANGUAGE
 English
 
 SINGLE PURPOSE
-Enhance web novel reading by highlighting and managing story glossary terms on novel websites.
+Enhance web novel reading with glossary tools and optional, user-requested page summaries.
