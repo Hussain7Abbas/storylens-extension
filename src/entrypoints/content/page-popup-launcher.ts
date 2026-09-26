@@ -55,6 +55,8 @@ function createLauncher(locale: string): Launcher {
 	let position: Position = { x: window.innerWidth - BUTTON_SIZE - 16, y: 16 };
 	let interacted = false;
 	let suppressClick = false;
+	let cursor: Position | undefined;
+	let revealed = false;
 	let drag:
 		| {
 				pointerId: number;
@@ -75,13 +77,12 @@ function createLauncher(locale: string): Launcher {
 	style.textContent = `
 		:host{all:initial}
 		button{font:600 14px system-ui,sans-serif;cursor:pointer}
-		#launcher{display:grid;place-items:center;width:100%;height:100%;padding:2px;border:3px solid #9d6843;border-radius:50%;background:#fff8ed;box-shadow:0 3px 14px #0006;touch-action:none;user-select:none;box-sizing:border-box}
+		#launcher{display:grid;place-items:center;width:100%;height:100%;padding:2px;border:3px solid #9d6843;border-radius:50%;background:#fff8ed;box-shadow:0 3px 14px #0006;touch-action:none;user-select:none;box-sizing:border-box;transition:transform 180ms ease}
+		@media(prefers-reduced-motion:reduce){#launcher{transition:none}}
 		#launcher:hover,#launcher:focus-visible{border-color:#754629;outline:2px solid #d8a960;outline-offset:2px}
 		#logo{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 		#panel{position:fixed;box-sizing:border-box;border:1px solid #9d6843;border-radius:12px;background:#102033;box-shadow:0 8px 32px #0008;overflow:hidden}
 		#panel[hidden]{display:none}
-		#bar{height:36px;display:flex;align-items:center;justify-content:flex-end;padding:0 8px;background:#163d49}
-		#close{border:0;background:transparent;color:#fff;font-size:22px;line-height:1}
 		iframe{display:block;border:0;background:#242424;transform-origin:top left}
 	`;
 	const button = document.createElement("button");
@@ -101,21 +102,20 @@ function createLauncher(locale: string): Launcher {
 	panel.hidden = true;
 	panel.setAttribute("role", "dialog");
 	panel.setAttribute("aria-label", labels(locale).open);
-	const bar = document.createElement("div");
-	bar.id = "bar";
-	const closeButton = document.createElement("button");
-	closeButton.id = "close";
-	closeButton.type = "button";
-	closeButton.textContent = "×";
-	closeButton.setAttribute("aria-label", labels(locale).close);
-	bar.append(closeButton);
-	panel.append(bar);
 	shadow.append(style, button, panel);
 	(document.body ?? document.documentElement).append(host);
 
 	const layoutPopup = () => {
 		if (panel.hidden) return;
-		const rect = button.getBoundingClientRect();
+		const size = button.offsetWidth || BUTTON_SIZE;
+		const rect = {
+			left: position.x,
+			top: position.y,
+			right: position.x + size,
+			bottom: position.y + size,
+			width: size,
+			height: size,
+		};
 		const viewportWidth = window.innerWidth;
 		const viewportHeight = window.innerHeight;
 		const rightSpace = Math.max(0, viewportWidth - EDGE - rect.right - GAP);
@@ -167,9 +167,54 @@ function createLauncher(locale: string): Launcher {
 			const contentWidth = Math.max(1, width - 2);
 			const scale = Math.min(1, contentWidth / 384);
 			frame.style.width = `${Math.max(384, contentWidth)}px`;
-			frame.style.height = `${Math.max(1, (height - 36) / scale)}px`;
+			frame.style.height = `${Math.max(1, (height - 2) / scale)}px`;
 			frame.style.transform = `scale(${scale})`;
 		}
+	};
+	const updateTuck = () => {
+		const size = button.offsetWidth || BUTTON_SIZE;
+		const edges = [
+			{ distance: position.x, x: 3 - size, y: position.y },
+			{
+				distance: window.innerWidth - position.x - size,
+				x: window.innerWidth - 3,
+				y: position.y,
+			},
+			{ distance: position.y, x: position.x, y: 3 - size },
+			{
+				distance: window.innerHeight - position.y - size,
+				x: position.x,
+				y: window.innerHeight - 3,
+			},
+		];
+		const edge = edges.reduce((nearest, candidate) =>
+			candidate.distance < nearest.distance ? candidate : nearest,
+		);
+		const near = (point: Position) =>
+			cursor !== undefined &&
+			cursor.x >= point.x - 10 &&
+			cursor.x <= point.x + size + 10 &&
+			cursor.y >= point.y - 10 &&
+			cursor.y <= point.y + size + 10;
+		const keepVisible =
+			!!drag || !panel.hidden || shadow.activeElement === button;
+		revealed =
+			edge.distance <= 10 && (near(edge) || (revealed && near(position)));
+		const tucked = edge.distance <= 10 && !keepVisible && !revealed;
+		button.style.boxShadow = tucked ? "none" : "";
+		button.style.transition = drag ? "none" : "";
+		button.style.transform = tucked
+			? `translate(${edge.x - position.x}px, ${edge.y - position.y}px)`
+			: "";
+	};
+	const onCursorMove = (event: PointerEvent) => {
+		cursor = { x: event.clientX, y: event.clientY };
+		updateTuck();
+	};
+	const onCursorLeave = () => {
+		cursor = undefined;
+		revealed = false;
+		updateTuck();
 	};
 	const setPosition = (next: Position) => {
 		position = clampPosition(
@@ -178,12 +223,14 @@ function createLauncher(locale: string): Launcher {
 		);
 		host.style.left = `${position.x}px`;
 		host.style.top = `${position.y}px`;
+		updateTuck();
 		layoutPopup();
 	};
 	const close = () => {
 		panel.hidden = true;
 		button.setAttribute("aria-expanded", "false");
 		panel.querySelector("iframe")?.remove();
+		updateTuck();
 	};
 	const open = () => {
 		const frame = document.createElement("iframe");
@@ -192,6 +239,7 @@ function createLauncher(locale: string): Launcher {
 		panel.append(frame);
 		panel.hidden = false;
 		button.setAttribute("aria-expanded", "true");
+		updateTuck();
 		layoutPopup();
 	};
 	const onButtonClick = () => {
@@ -234,6 +282,7 @@ function createLauncher(locale: string): Launcher {
 				.catch(() => {});
 		}
 		drag = undefined;
+		updateTuck();
 	};
 	const onPointerOutside = (event: PointerEvent) => {
 		if (!host.contains(event.target as Node)) close();
@@ -250,7 +299,10 @@ function createLauncher(locale: string): Launcher {
 	button.addEventListener("pointermove", onPointerMove);
 	button.addEventListener("pointerup", onPointerEnd);
 	button.addEventListener("pointercancel", onPointerEnd);
-	closeButton.addEventListener("click", close);
+	button.addEventListener("focus", updateTuck);
+	button.addEventListener("blur", updateTuck);
+	document.addEventListener("pointermove", onCursorMove);
+	document.documentElement.addEventListener("pointerleave", onCursorLeave);
 	document.addEventListener("pointerdown", onPointerOutside);
 	document.addEventListener("keydown", onKeyDown);
 	window.addEventListener("resize", onResize);
@@ -270,13 +322,18 @@ function createLauncher(locale: string): Launcher {
 			currentLocale = nextLocale;
 			button.setAttribute("aria-label", labels(nextLocale).open);
 			panel.setAttribute("aria-label", labels(nextLocale).open);
-			closeButton.setAttribute("aria-label", labels(nextLocale).close);
+
 			const frame = panel.querySelector("iframe");
 			if (frame) frame.title = labels(nextLocale).open;
 		},
 		close,
 		dispose: () => {
 			close();
+			document.removeEventListener("pointermove", onCursorMove);
+			document.documentElement.removeEventListener(
+				"pointerleave",
+				onCursorLeave,
+			);
 			document.removeEventListener("pointerdown", onPointerOutside);
 			document.removeEventListener("keydown", onKeyDown);
 			window.removeEventListener("resize", onResize);

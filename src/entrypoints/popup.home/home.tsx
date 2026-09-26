@@ -40,6 +40,7 @@ import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
+import { DesktopClientPanel } from "../popup/desktop-client-panel";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
@@ -306,40 +307,51 @@ export function HomePage() {
 						</Text>
 					)}
 
-					{selectedNovel?.id && (
-						<Tabs defaultValue="coloring" variant="outline">
-							<Stack
-								gap="xs"
-								pos="sticky"
-								top={0}
-								style={{
-									zIndex: 2,
-									["--popup-tabs-sticky-height" as string]:
-										"calc(var(--mantine-spacing-xs) + 36px)",
-								}}
-								pt="xs"
-								styles={{
-									root: {
-										backgroundColor: "var(--mantine-color-body)",
-									},
-								}}
-							>
-								<Tabs.List grow>
-									<Tabs.Tab value="coloring">{t("tabs.coloring")}</Tabs.Tab>
-									<Tabs.Tab value="replacing">{t("tabs.replacing")}</Tabs.Tab>
-								</Tabs.List>
-							</Stack>
-							<Tabs.Panel value="coloring">
-								<ColoringTab
-									selectedNovelId={selectedNovel?.id}
-									currentChapter={detectedChapter}
-								/>
-							</Tabs.Panel>
-							<Tabs.Panel value="replacing">
-								<ReplacingTab selectedNovelId={selectedNovel?.id} />
-							</Tabs.Panel>
-						</Tabs>
-					)}
+					<Tabs
+						defaultValue={selectedNovel?.id ? "coloring" : "ai"}
+						variant="outline"
+					>
+						<Stack
+							gap="xs"
+							pos="sticky"
+							top={0}
+							style={{
+								zIndex: 2,
+								["--popup-tabs-sticky-height" as string]:
+									"calc(var(--mantine-spacing-xs) + 36px)",
+							}}
+							pt="xs"
+							styles={{
+								root: {
+									backgroundColor: "var(--mantine-color-body)",
+								},
+							}}
+						>
+							<Tabs.List grow>
+								<Tabs.Tab value="coloring" disabled={!selectedNovel?.id}>
+									{t("tabs.coloring")}
+								</Tabs.Tab>
+								<Tabs.Tab value="replacing" disabled={!selectedNovel?.id}>
+									{t("tabs.replacing")}
+								</Tabs.Tab>
+								<Tabs.Tab value="ai">{t("tabs.ai")}</Tabs.Tab>
+							</Tabs.List>
+						</Stack>
+						<Tabs.Panel value="ai">
+							<DesktopClientPanel />
+						</Tabs.Panel>
+						<Tabs.Panel value="coloring">
+							<ColoringTab
+								selectedNovelId={selectedNovel?.id}
+								currentChapter={detectedChapter}
+							/>
+						</Tabs.Panel>
+						<Tabs.Panel value="replacing">
+							{selectedNovel?.id && (
+								<ReplacingTab selectedNovelId={selectedNovel.id} />
+							)}
+						</Tabs.Panel>
+					</Tabs>
 				</Stack>
 			)}
 		</Container>

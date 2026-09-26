@@ -4,6 +4,7 @@ import {
 	clearPageSummary,
 	startPageSummary,
 } from "@/lib/desktop-client/page-summary";
+import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { removeExtensionMarkup } from "@/utils/content-processor";
@@ -25,6 +26,7 @@ const LOG_PREFIX = "[StoryLens]";
 let websiteSelector: WebsiteSelector | undefined;
 let lastProcessedKey: string | undefined;
 let currentLocale = "en";
+let pagePopupVisible = true;
 
 function buildDetectedNovelKey(meta: currentNovelMeta): string {
 	return `${meta.novelSlug}:${meta.chapter ?? "unknown"}`;
@@ -40,7 +42,7 @@ async function loadWebsiteSelector(): Promise<void> {
 
 	try {
 		websiteSelector = await sendMessage("getWebsiteSelector", website);
-		setPagePopupLauncher(!!websiteSelector, currentLocale);
+		setPagePopupLauncher(!!websiteSelector && pagePopupVisible, currentLocale);
 		console.log(`${LOG_PREFIX} Website selector loaded`, {
 			website,
 			hasSelector: !!websiteSelector,
@@ -122,7 +124,7 @@ export async function runContentScript(
 		}
 
 		websiteSelector = data.selector;
-		setPagePopupLauncher(!!websiteSelector, currentLocale);
+		setPagePopupLauncher(!!websiteSelector && pagePopupVisible, currentLocale);
 		console.log(`${LOG_PREFIX} Website selector updated from background`, {
 			website: data.website,
 			hasSelector: !!websiteSelector,
@@ -164,10 +166,12 @@ export async function runContentScript(
 	});
 
 	const stored = await browser.storage.local.get([
+		PAGE_POPUP_VISIBLE_KEY,
 		"storylens-locale",
 		"storylens-font-face",
 		"storylens-font-size",
 	]);
+	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
 	if (typeof stored["storylens-locale"] === "string") {
 		currentLocale = stored["storylens-locale"];
 		setTooltipLocale(currentLocale);
@@ -179,11 +183,22 @@ export async function runContentScript(
 		setTooltipFontSize(stored["storylens-font-size"]);
 	}
 
-	browser.storage.onChanged.addListener((changes) => {
+	browser.storage.onChanged.addListener((changes, area) => {
+		if (area !== "local") return;
+		if (PAGE_POPUP_VISIBLE_KEY in changes) {
+			pagePopupVisible = changes[PAGE_POPUP_VISIBLE_KEY].newValue !== false;
+			setPagePopupLauncher(
+				!!websiteSelector && pagePopupVisible,
+				currentLocale,
+			);
+		}
 		if (typeof changes["storylens-locale"]?.newValue === "string") {
 			currentLocale = changes["storylens-locale"].newValue as string;
 			setTooltipLocale(currentLocale);
-			setPagePopupLauncher(!!websiteSelector, currentLocale);
+			setPagePopupLauncher(
+				!!websiteSelector && pagePopupVisible,
+				currentLocale,
+			);
 		}
 		if (typeof changes["storylens-font-face"]?.newValue === "string") {
 			setTooltipFontFace(changes["storylens-font-face"].newValue as string);

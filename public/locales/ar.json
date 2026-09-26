@@ -32,7 +32,8 @@
 		"category": "التصنيف",
 		"nature": "الطبيعة",
 		"general": "عام",
-		"appearance": "المظهر"
+		"appearance": "المظهر",
+		"ai": "AI"
 	},
 	"coloring": {
 		"name": "الاسم",
@@ -203,7 +204,10 @@
 			"fontFace": "الخط",
 			"fontDefault": "افتراضي",
 			"fontSize": "حجم الخط"
-		}
+		},
+		"inSitePopup": "النافذة داخل الموقع",
+		"show": "إظهار",
+		"hide": "إخفاء"
 	},
 	"category": {
 		"noRecords": "لا توجد تصنيفات لعرضها"

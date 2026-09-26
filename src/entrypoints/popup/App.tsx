@@ -27,7 +27,6 @@ import {
 	fontSizeAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
-import { DesktopClientPanel } from "./desktop-client-panel";
 import { Router } from "./routers";
 
 function PopupAutoSync({ enabled }: { enabled: boolean }) {
@@ -108,7 +107,6 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 			<ColorSchemeScript defaultColorScheme="auto" />
 			<MantineProvider defaultColorScheme="auto">
 				<QueryClientProvider client={queryClient}>
-					{type === "popup" && <DesktopClientPanel />}
 					<AppContent type={type} />
 					<Toaster />
 				</QueryClientProvider>

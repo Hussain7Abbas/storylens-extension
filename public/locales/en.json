@@ -32,7 +32,8 @@
 		"category": "Category",
 		"nature": "Nature",
 		"general": "General",
-		"appearance": "Appearance"
+		"appearance": "Appearance",
+		"ai": "AI"
 	},
 	"coloring": {
 		"name": "Name",
@@ -156,7 +157,10 @@
 			"fontFace": "Font",
 			"fontDefault": "Default",
 			"fontSize": "Font Size"
-		}
+		},
+		"inSitePopup": "In site popup",
+		"show": "Show",
+		"hide": "Hide"
 	},
 	"category": {
 		"noRecords": "There is no categories to show"
