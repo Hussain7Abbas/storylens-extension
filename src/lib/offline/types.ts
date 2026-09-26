@@ -36,6 +36,7 @@ export type SyncOperation = {
 	status: SyncOperationStatus;
 	retryCount: number;
 	lastError?: string;
+	lastErrorStatus?: number;
 };
 
 export type SyncState = {

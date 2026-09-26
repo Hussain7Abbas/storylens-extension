@@ -185,7 +185,10 @@
 		"syncPending": "{{count}} changes pending sync",
 		"syncSuccess": "Synced {{pushed}} changes, refreshed {{pulled}} novels",
 		"syncFailed": "Sync failed",
-		"syncRequiresOnline": "Connect to the internet to sync"
+		"syncRequiresOnline": "Connect to the internet to sync",
+		"syncPermissionDenied": "Some changes require permissions this account does not have. {{count}} changes remain unsynced",
+		"syncIncomplete": "Sync incomplete. {{count}} changes remain unsynced",
+		"syncQueuedAfterFailure": "Could not upload the change. It remains saved locally for sync"
 	},
 	"onboarding": {
 		"welcome": "Welcome",
@@ -232,7 +235,16 @@
 		"saveProfile": "Save profile",
 		"profileUpdated": "Profile updated",
 		"profileUpdateFailed": "Failed to update profile",
-		"nameRequired": "Name is required"
+		"nameRequired": "Name is required",
+		"changePassword": "Change password",
+		"currentPassword": "Current password",
+		"newPassword": "New password",
+		"confirmPassword": "Confirm new password",
+		"currentPasswordRequired": "Enter your current password",
+		"passwordLength": "Use 8–72 characters",
+		"passwordMismatch": "Passwords do not match",
+		"passwordChanged": "Password changed",
+		"passwordChangeFailed": "Could not change password"
 	},
 	"nodeSelector": {
 		"nodeSelector": "Node Selector",

@@ -171,7 +171,16 @@
 		"saveProfile": "حفظ الملف الشخصي",
 		"profileUpdated": "تم تحديث الملف الشخصي",
 		"profileUpdateFailed": "فشل تحديث الملف الشخصي",
-		"nameRequired": "الاسم مطلوب"
+		"nameRequired": "الاسم مطلوب",
+		"changePassword": "تغيير كلمة المرور",
+		"currentPassword": "كلمة المرور الحالية",
+		"newPassword": "كلمة المرور الجديدة",
+		"confirmPassword": "تأكيد كلمة المرور الجديدة",
+		"currentPasswordRequired": "أدخل كلمة المرور الحالية",
+		"passwordLength": "استخدم من 8 إلى 72 حرفاً",
+		"passwordMismatch": "كلمتا المرور غير متطابقتين",
+		"passwordChanged": "تم تغيير كلمة المرور",
+		"passwordChangeFailed": "تعذر تغيير كلمة المرور"
 	},
 	"settings": {
 		"title": "الإعدادات",
@@ -232,7 +241,10 @@
 		"syncPending": "{{count}} تغييرات بانتظار المزامنة",
 		"syncSuccess": "تمت مزامنة {{pushed}} تغييرات وتحديث {{pulled}} روايات",
 		"syncFailed": "فشلت المزامنة",
-		"syncRequiresOnline": "اتصل بالإنترنت للمزامنة"
+		"syncRequiresOnline": "اتصل بالإنترنت للمزامنة",
+		"syncPermissionDenied": "بعض التغييرات تتطلب صلاحيات لا يملكها هذا الحساب. {{count}} تغييرات لم تتم مزامنتها",
+		"syncIncomplete": "المزامنة غير مكتملة. {{count}} تغييرات لم تتم مزامنتها",
+		"syncQueuedAfterFailure": "تعذر رفع التغيير. يبقى محفوظاً محلياً للمزامنة"
 	},
 	"nodeSelector": {
 		"nodeSelector": "محدد العنصر",

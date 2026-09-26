@@ -1,7 +1,10 @@
 import { useDebouncedValue } from "@mantine/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { t } from "i18next";
 import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import {
 	deleteKeywordCategoriesById,
 	getKeywordCategories,
@@ -198,6 +201,18 @@ async function seedKeywordNaturesCache(
 	const data = response.data.data as KeywordNature[];
 	await bulkPutKeywordNatures(data);
 	return data;
+}
+
+function reportQueuedSyncFailure(error: unknown): void {
+	const message = isAxiosError<{ message?: string }>(error)
+		? error.response?.data?.message || error.message
+		: error instanceof Error
+			? error.message
+			: "";
+	toast.error(
+		`${t("offline.syncQueuedAfterFailure")}${message ? `: ${message}` : ""}`,
+		{ duration: 10000 },
+	);
 }
 
 function runBackgroundSync(
@@ -659,7 +674,8 @@ export function useOfflineKeywordMutations(novelId: string) {
 						for (const ver of returned.versions) {
 							await saveKeywordVersion(cleanOfflineKeywordVersion(ver));
 						}
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markKeywordDirty(tempId);
 						await queueOfflineOperation(
 							"keyword",
@@ -728,7 +744,8 @@ export function useOfflineKeywordMutations(novelId: string) {
 								versions: [],
 							}),
 						);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markKeywordDirty(id);
 						await queueOfflineOperation(
 							"keyword",
@@ -765,7 +782,8 @@ export function useOfflineKeywordMutations(novelId: string) {
 				runBackgroundSync(async () => {
 					try {
 						await deleteKeywordsById(id);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation("keyword", "delete", id, novelId, {});
 					}
 				}, invalidate);
@@ -836,7 +854,8 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 								response.data as GetKeywords200DataItemAliasesItem,
 							),
 						);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markKeywordAliasDirty(tempId);
 						await queueOfflineOperation(
 							"keywordAlias",
@@ -924,7 +943,8 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 								response.data as GetKeywords200DataItemAliasesItem,
 							),
 						);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markKeywordAliasDirty(id);
 						await queueOfflineOperation(
 							"keywordAlias",
@@ -961,7 +981,8 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 				runBackgroundSync(async () => {
 					try {
 						await deleteKeywordAliasesById(id);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordAlias",
 							"delete",
@@ -1057,7 +1078,8 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 								response.data as GetKeywords200DataItemVersionsItem,
 							),
 						);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markKeywordVersionDirty(tempId);
 						await queueOfflineOperation(
 							"keywordVersion",
@@ -1148,7 +1170,8 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 								response.data as GetKeywords200DataItemVersionsItem,
 							),
 						);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markKeywordVersionDirty(id);
 						await queueOfflineOperation(
 							"keywordVersion",
@@ -1199,7 +1222,8 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 				runBackgroundSync(async () => {
 					try {
 						await deleteKeywordVersionsById(id);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordVersion",
 							"delete",
@@ -1268,7 +1292,8 @@ export function useOfflineReplacementMutations(novelId: string) {
 						const response = await postReplacements(values);
 						await deleteReplacementById(tempId);
 						await saveReplacement(cleanOfflineReplacement(response.data));
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markReplacementDirty(tempId);
 						await queueOfflineOperation(
 							"replacement",
@@ -1335,7 +1360,8 @@ export function useOfflineReplacementMutations(novelId: string) {
 					try {
 						const response = await putReplacementsById(id, data);
 						await saveReplacement(cleanOfflineReplacement(response.data));
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await markReplacementDirty(id);
 						await queueOfflineOperation(
 							"replacement",
@@ -1373,7 +1399,8 @@ export function useOfflineReplacementMutations(novelId: string) {
 				runBackgroundSync(async () => {
 					try {
 						await deleteReplacementsById(id);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"replacement",
 							"delete",
@@ -1437,7 +1464,8 @@ export function useOfflineCategoryMutations() {
 						const saved = response.data as KeywordCategory;
 						await deleteKeywordCategoryById(tempId);
 						await saveKeywordCategory(saved);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordCategory",
 							"create",
@@ -1496,7 +1524,8 @@ export function useOfflineCategoryMutations() {
 						const saved = response.data as KeywordCategory;
 						await saveKeywordCategory(saved);
 						await updateKeywordCategoryReferences(saved);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordCategory",
 							"update",
@@ -1529,7 +1558,8 @@ export function useOfflineCategoryMutations() {
 				runBackgroundSync(async () => {
 					try {
 						await deleteKeywordCategoriesById(id);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordCategory",
 							"delete",
@@ -1588,7 +1618,8 @@ export function useOfflineNatureMutations() {
 						const saved = response.data as KeywordNature;
 						await deleteKeywordNatureById(tempId);
 						await saveKeywordNature(saved);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordNature",
 							"create",
@@ -1647,7 +1678,8 @@ export function useOfflineNatureMutations() {
 						const saved = response.data as KeywordNature;
 						await saveKeywordNature(saved);
 						await updateKeywordNatureReferences(saved);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordNature",
 							"update",
@@ -1680,7 +1712,8 @@ export function useOfflineNatureMutations() {
 				runBackgroundSync(async () => {
 					try {
 						await deleteKeywordNaturesById(id);
-					} catch {
+					} catch (error) {
+						reportQueuedSyncFailure(error);
 						await queueOfflineOperation(
 							"keywordNature",
 							"delete",

@@ -200,6 +200,21 @@ function SyncButton({
 		try {
 			const result = await sendMessage("triggerFullSync");
 			await queryClient.invalidateQueries({ queryKey: ["offline"] });
+			if (result.failed > 0 || result.remaining > 0) {
+				const permissionDenied = result.errors.some(
+					(error) => error.status === 403,
+				);
+				const details = [
+					...new Set(
+						result.errors.map((error) => `${error.entity}: ${error.message}`),
+					),
+				].join("; ");
+				toast.error(
+					`${t(permissionDenied ? "offline.syncPermissionDenied" : "offline.syncIncomplete", { count: result.remaining })}${details ? `: ${details}` : ""}`,
+					{ duration: 10000 },
+				);
+				return;
+			}
 			toast.success(
 				t("offline.syncSuccess", {
 					pushed: result.pushed,

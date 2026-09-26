@@ -38,9 +38,7 @@ export async function getPendingOps(): Promise<SyncOperation[]> {
 }
 
 export async function getPendingOpsCount(): Promise<number> {
-	const ops = await getPendingOps();
-	return ops.filter((op) => op.status === "pending" || op.status === "failed")
-		.length;
+	return (await readSyncState()).pendingOps.length;
 }
 
 export async function addPendingOp(operation: SyncOperation): Promise<void> {
@@ -71,9 +69,19 @@ export async function replacePendingEntityId(
 	serverEntityId: string,
 ): Promise<void> {
 	const state = await readSyncState();
-	state.pendingOps = state.pendingOps.map((op) =>
-		op.entityId === tempEntityId ? { ...op, entityId: serverEntityId } : op,
-	);
+	state.pendingOps = state.pendingOps.map((op) => ({
+		...op,
+		entityId: op.entityId === tempEntityId ? serverEntityId : op.entityId,
+		payload: Object.fromEntries(
+			Object.entries(op.payload).map(([key, value]) => [
+				key,
+				["keywordId", "categoryId", "natureId"].includes(key) &&
+				value === tempEntityId
+					? serverEntityId
+					: value,
+			]),
+		),
+	}));
 	await writeSyncState(state);
 }
 

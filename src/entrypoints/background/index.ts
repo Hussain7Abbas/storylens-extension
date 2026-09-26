@@ -168,7 +168,7 @@ export default defineBackground(() => {
 	});
 
 	onMessage("triggerFullSync", async () => {
-		const result = await fullSync();
+		const result = await fullSync(true);
 		await updateSyncBadge();
 		return result;
 	});
