@@ -10,6 +10,7 @@ Follow [shared repository rules](../../AGENTS.md). This submodule is the WXT bro
 - Use `@/` for source imports. WXT entry points and framework configs may need default exports. `wxt.config.ts` sets `imports: false`, so import WXT helpers explicitly from `#imports` or WXT modules as the surrounding file does.
 - React UI uses React Router, TanStack Query, Jotai, and i18next. Keep user-visible strings localized. `bun run i18n:parse` writes extracted messages to `src/i18n/messages/`; browser manifest messages live in `public/_locales/`.
 - Content-script tooltip text is translated through `tt()` in `src/utils/keyword-tooltip.ts`. Use `getLocalizedName()` for category/nature locale pairs there. Content scripts read locale from `browser.storage.local` (`storylens-locale`), not page `localStorage`.
+- The page popup launcher reuses the generated logo icon and saves its position in `browser.storage.local` (`storylens-page-launcher-position`), shared across sites. Clamp restored/dragged positions and popup geometry on render and resize; do not use the site's local storage for extension preferences.
 - Biome is configured by `biome.jsonc`; package scripts `check`, `format`, and `lint` write fixes. Use the existing style and run `bun run typecheck` after implementation changes.
 
 ## API and offline data

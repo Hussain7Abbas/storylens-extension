@@ -55,7 +55,7 @@ export default defineConfig({
 		permissions: ["tabs", "storage", "alarms", "unlimitedStorage"],
 		web_accessible_resources: [
 			{
-				resources: ["popup.html"],
+				resources: ["popup.html", "icons/128.png"],
 				matches: ["http://*/*", "https://*/*"],
 			},
 		],
