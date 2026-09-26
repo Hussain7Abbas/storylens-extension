@@ -44,20 +44,12 @@ jobs:
           CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
 
-      # The backend's review-version cron runs `make sync` once this version is live on the store.
-      - name: Set backend Review_Version
-        uses: appleboy/ssh-action@v1
+      # Runs the backend repo's "Set Review_Version" workflow; the backend deploys once this version is live.
+      - name: Notify backend
         env:
+          GH_TOKEN: ${{ secrets.BACKEND_DISPATCH_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
-          BACKEND_PATH: ${{ secrets.BACKEND_PATH }}
-        with:
-          host: ${{ secrets.DEPLOY_SSH_HOST }}
-          username: ${{ secrets.DEPLOY_SSH_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_SSH_PORT || 22 }}
-          envs: VERSION,BACKEND_PATH
-          script: |
-            set -euo pipefail
-            export PATH="$HOME/.bun/bin:$PATH"
-            cd "$BACKEND_PATH"
-            make set-review-version VERSION="$VERSION"
+        run: |
+          gh api repos/Hussain7Abbas/storylens-backend/dispatches \
+            -f event_type=extension-submitted \
+            -f "client_payload[version]=$VERSION"
