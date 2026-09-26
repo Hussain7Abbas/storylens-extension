@@ -26,6 +26,7 @@ import {
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
+import { fuzzyMatches } from "@/utils/fuzzy-search";
 import { ListItemCard } from "../list-item-card";
 
 type KeywordGroup = {
@@ -35,11 +36,11 @@ type KeywordGroup = {
 };
 
 function groupMatchesSearch(group: KeywordGroup, term: string): boolean {
-	if (!term) return true;
-	const t = term.toLowerCase();
-	const parentMatches = group.parent.name.toLowerCase().includes(t);
-	if (parentMatches) return true;
-	return group.aliases.some((a) => a.name.toLowerCase().includes(t));
+	return fuzzyMatches(term, [
+		group.parent.name,
+		...group.aliases.map((a) => a.name),
+		...group.versions.map((v) => v.description),
+	]);
 }
 
 interface ColoringCardsProps extends StackProps {
@@ -290,16 +291,22 @@ export function ColoringCards({
 
 	const onlineQuery = useQuery({
 		queryKey: ["keywords", selectedNovelId, "all"],
-		queryFn: async () => {
-			const response = await getKeywords(
-				{
-					pagination: { page: 1, pageSize: 500 },
-					sorting: { column: "name", direction: "asc" },
-					query: { novelId: selectedNovelId },
-				} as Parameters<typeof getKeywords>[0],
-				undefined,
-			);
-			return (response.data.data as GetKeywords200DataItem[]) ?? [];
+		queryFn: async ({ signal }) => {
+			const items: GetKeywords200DataItem[] = [];
+			for (let page = 1; ; page++) {
+				const response = await getKeywords(
+					{
+						pagination: { page, pageSize: 500 },
+						sorting: { column: "name", direction: "asc" },
+						query: { novelId: selectedNovelId },
+					},
+					undefined,
+					signal,
+				);
+				items.push(...response.data.data);
+				if (!response.data.data.length || items.length >= response.data.total)
+					return items;
+			}
 		},
 		enabled: !offline.useLocalCache && online && !!selectedNovelId,
 	});

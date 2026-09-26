@@ -10,6 +10,7 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	selectPageText(): void;
 	desktopCapabilities(): DesktopCapabilities;
 	executeDesktopPrompt(data: ExecutePromptInput): string;
 	cancelDesktopPrompt(requestId: string): void;

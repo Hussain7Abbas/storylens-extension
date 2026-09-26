@@ -7,21 +7,37 @@ const EDGE = 8;
 const GAP = 8;
 const POPUP_WIDTH = 390;
 const POPUP_HEIGHT = 640;
+const ACTION_SIZE = 36;
+const ACTION_SHOW_DELAY = 200;
+const ACTION_HIDE_DELAY = 300;
 
 type Position = { x: number; y: number };
 type Launcher = {
 	host: HTMLElement;
 	setLocale: (locale: string) => void;
 	close: () => void;
+	selectText: () => void;
 	dispose: () => void;
 };
 
 let launcher: Launcher | undefined;
 
-function labels(locale: string): { open: string; close: string } {
+function labels(locale: string): {
+	open: string;
+	close: string;
+	select: string;
+} {
 	return locale.toLowerCase().startsWith("ar")
-		? { open: "افتح عدسة القصة", close: "إغلاق عدسة القصة" }
-		: { open: "Open Story Lens", close: "Close Story Lens" };
+		? {
+				open: "افتح عدسة القصة",
+				close: "إغلاق عدسة القصة",
+				select: "حدد نصاً في الصفحة",
+			}
+		: {
+				open: "Open Story Lens",
+				close: "Close Story Lens",
+				select: "Select text on page",
+			};
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -52,11 +68,15 @@ function storedPosition(value: unknown): Position | undefined {
 
 function createLauncher(locale: string): Launcher {
 	let currentLocale = locale;
+	let selecting = false;
+	let selectionStart: Position | undefined;
 	let position: Position = { x: window.innerWidth - BUTTON_SIZE - 16, y: 16 };
 	let interacted = false;
 	let suppressClick = false;
 	let cursor: Position | undefined;
 	let revealed = false;
+	let tucked = false;
+	let actionTimer: ReturnType<typeof setTimeout> | undefined;
 	let drag:
 		| {
 				pointerId: number;
@@ -84,6 +104,12 @@ function createLauncher(locale: string): Launcher {
 		#panel{position:fixed;box-sizing:border-box;border:1px solid #9d6843;border-radius:12px;background:#102033;box-shadow:0 8px 32px #0008;overflow:hidden}
 		#panel[hidden]{display:none}
 		iframe{display:block;border:0;background:#242424;transform-origin:top left}
+		#action{position:absolute;left:50%;display:grid;place-items:center;width:${ACTION_SIZE}px;height:${ACTION_SIZE}px;margin-left:${-ACTION_SIZE / 2}px;padding:0;border:3px solid #9d6843;border-radius:50%;background:#fff8ed;color:#754629;box-shadow:0 3px 10px #0005;box-sizing:border-box}
+		#action[hidden]{display:none}
+		#action[data-side="below"]{top:calc(100% + ${GAP}px)}
+		#action[data-side="above"]{bottom:calc(100% + ${GAP}px)}
+		#action:hover,#action:focus-visible{border-color:#754629;outline:2px solid #d8a960;outline-offset:2px}
+		#action svg{width:18px;height:18px;pointer-events:none}
 	`;
 	const button = document.createElement("button");
 	button.id = "launcher";
@@ -97,12 +123,31 @@ function createLauncher(locale: string): Launcher {
 	logo.draggable = false;
 	logo.src = browser.runtime.getURL("/icons/128.png");
 	button.append(logo);
+	const action = document.createElement("button");
+	action.id = "action";
+	action.type = "button";
+	action.hidden = true;
+	action.setAttribute("aria-label", labels(locale).select);
+	action.title = labels(locale).select;
+	action.innerHTML =
+		'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 	const panel = document.createElement("section");
 	panel.id = "panel";
 	panel.hidden = true;
 	panel.setAttribute("role", "dialog");
 	panel.setAttribute("aria-label", labels(locale).open);
-	shadow.append(style, button, panel);
+	const hint = document.createElement("div");
+	hint.hidden = true;
+	hint.setAttribute("role", "status");
+	hint.style.cssText =
+		"position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:8px;background:#102033;color:white;font:14px system-ui;pointer-events:none;max-width:80vw;";
+	const updateHint = () => {
+		hint.textContent = currentLocale.startsWith("ar")
+			? "انقر على كلمة أو اسحب لتحديد نص. اضغط Escape للإلغاء."
+			: "Click a word or drag to select text. Press Escape to cancel.";
+	};
+	updateHint();
+	shadow.append(style, button, action, panel, hint);
 	(document.body ?? document.documentElement).append(host);
 
 	const layoutPopup = () => {
@@ -197,15 +242,65 @@ function createLauncher(locale: string): Launcher {
 			cursor.y >= point.y - 10 &&
 			cursor.y <= point.y + size + 10;
 		const keepVisible =
-			!!drag || !panel.hidden || shadow.activeElement === button;
+			!!drag ||
+			!panel.hidden ||
+			!action.hidden ||
+			shadow.activeElement === button ||
+			shadow.activeElement === action;
 		revealed =
 			edge.distance <= 10 && (near(edge) || (revealed && near(position)));
-		const tucked = edge.distance <= 10 && !keepVisible && !revealed;
+		tucked = edge.distance <= 10 && !keepVisible && !revealed;
 		button.style.boxShadow = tucked ? "none" : "";
 		button.style.transition = drag ? "none" : "";
 		button.style.transform = tucked
 			? `translate(${edge.x - position.x}px, ${edge.y - position.y}px)`
 			: "";
+	};
+	const clearActionTimer = () => {
+		clearTimeout(actionTimer);
+		actionTimer = undefined;
+	};
+	const hideAction = () => {
+		clearActionTimer();
+		if (action.hidden) return;
+		action.hidden = true;
+		updateTuck();
+	};
+	const showAction = () => {
+		clearActionTimer();
+		if (drag || tucked || !panel.hidden || selecting) return;
+		const size = button.offsetWidth || BUTTON_SIZE;
+		// Open toward the larger half of the viewport so the action stays visible.
+		action.dataset.side =
+			position.y + size / 2 < window.innerHeight / 2 ? "below" : "above";
+		action.hidden = false;
+		updateTuck();
+	};
+	const scheduleShowAction = () => {
+		if (!action.hidden) {
+			clearActionTimer();
+			return;
+		}
+		clearActionTimer();
+		actionTimer = setTimeout(showAction, ACTION_SHOW_DELAY);
+	};
+	const scheduleHideAction = () => {
+		clearActionTimer();
+		if (action.hidden) return;
+		actionTimer = setTimeout(hideAction, ACTION_HIDE_DELAY);
+	};
+	const onButtonFocus = () => {
+		updateTuck();
+		if (button.matches(":focus-visible")) showAction();
+	};
+	const onControlBlur = (event: FocusEvent) => {
+		updateTuck();
+		const next = event.relatedTarget;
+		if (next !== button && next !== action) scheduleHideAction();
+	};
+	const onActionClick = () => {
+		hideAction();
+		selectText();
 	};
 	const onCursorMove = (event: PointerEvent) => {
 		cursor = { x: event.clientX, y: event.clientY };
@@ -227,15 +322,25 @@ function createLauncher(locale: string): Launcher {
 		layoutPopup();
 	};
 	const close = () => {
+		hideAction();
+		selecting = false;
+		hint.hidden = true;
+		selectionStart = undefined;
 		panel.hidden = true;
 		button.setAttribute("aria-expanded", "false");
 		panel.querySelector("iframe")?.remove();
 		updateTuck();
 	};
-	const open = () => {
+	const open = (search?: string) => {
+		hideAction();
+		selecting = false;
+		hint.hidden = true;
+		selectionStart = undefined;
 		const frame = document.createElement("iframe");
 		frame.title = labels(currentLocale).open;
-		frame.src = browser.runtime.getURL("/popup.html");
+		frame.src =
+			browser.runtime.getURL("/popup.html") +
+			(search ? `?search=${encodeURIComponent(search)}` : "");
 		panel.append(frame);
 		panel.hidden = false;
 		button.setAttribute("aria-expanded", "true");
@@ -270,6 +375,7 @@ function createLauncher(locale: string): Launcher {
 		const dy = event.clientY - drag.startY;
 		if (!drag.moved && Math.hypot(dx, dy) < 5) return;
 		if (!drag.moved) close();
+		hideAction();
 		drag.moved = true;
 		setPosition({ x: drag.origin.x + dx, y: drag.origin.y + dy });
 	};
@@ -285,25 +391,107 @@ function createLauncher(locale: string): Launcher {
 		updateTuck();
 	};
 	const onPointerOutside = (event: PointerEvent) => {
+		if (selecting) {
+			if (!host.contains(event.target as Node) && event.button === 0) {
+				selectionStart = { x: event.clientX, y: event.clientY };
+				window.getSelection()?.removeAllRanges();
+			}
+			return;
+		}
 		if (!host.contains(event.target as Node)) close();
 	};
+	const onSelectionEnd = (event: PointerEvent) => {
+		if (
+			!selecting ||
+			!selectionStart ||
+			event.button !== 0 ||
+			host.contains(event.target as Node)
+		)
+			return;
+		const start = selectionStart;
+		selectionStart = undefined;
+		// Let the browser finish its native drag selection before reading it.
+		setTimeout(() => {
+			if (!selecting || !host.isConnected) return;
+			let text = window.getSelection()?.toString().trim() ?? "";
+			if (
+				!text &&
+				Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5
+			) {
+				const caretDocument = document as Document & {
+					caretPositionFromPoint?: (
+						x: number,
+						y: number,
+					) => { offsetNode: Node; offset: number } | null;
+					caretRangeFromPoint?: (x: number, y: number) => Range | null;
+				};
+				const caret = caretDocument.caretPositionFromPoint?.(
+					event.clientX,
+					event.clientY,
+				);
+				const range = caret
+					? undefined
+					: caretDocument.caretRangeFromPoint?.(event.clientX, event.clientY);
+				const node = caret?.offsetNode ?? range?.startContainer;
+				const offset = caret?.offset ?? range?.startOffset ?? 0;
+				if (node?.nodeType === Node.TEXT_NODE) {
+					const value = node.textContent ?? "";
+					for (const match of value.matchAll(
+						/[\p{L}\p{N}\p{M}]+(?:['’-][\p{L}\p{N}\p{M}]+)*/gu,
+					)) {
+						if (
+							match.index <= offset &&
+							offset <= match.index + match[0].length
+						) {
+							text = match[0];
+							break;
+						}
+					}
+				}
+			}
+			if (!text) return;
+			selecting = false;
+			hint.hidden = true;
+			open(text);
+		}, 0);
+	};
 	const onKeyDown = (event: KeyboardEvent) => {
+		if (event.key === "Escape" && selecting) {
+			close();
+			return;
+		}
 		if (event.key === "Escape" && !panel.hidden) {
 			close();
 			button.focus();
 		}
 	};
-	const onResize = () => setPosition(position);
+	const onResize = () => {
+		hideAction();
+		setPosition(position);
+	};
+	const selectText = () => {
+		close();
+		selecting = true;
+		hint.hidden = false;
+		window.getSelection()?.removeAllRanges();
+	};
 	button.addEventListener("click", onButtonClick);
 	button.addEventListener("pointerdown", onPointerDown);
 	button.addEventListener("pointermove", onPointerMove);
 	button.addEventListener("pointerup", onPointerEnd);
 	button.addEventListener("pointercancel", onPointerEnd);
-	button.addEventListener("focus", updateTuck);
-	button.addEventListener("blur", updateTuck);
+	button.addEventListener("focus", onButtonFocus);
+	button.addEventListener("blur", onControlBlur);
+	button.addEventListener("pointerenter", scheduleShowAction);
+	button.addEventListener("pointerleave", scheduleHideAction);
+	action.addEventListener("pointerenter", clearActionTimer);
+	action.addEventListener("pointerleave", scheduleHideAction);
+	action.addEventListener("blur", onControlBlur);
+	action.addEventListener("click", onActionClick);
 	document.addEventListener("pointermove", onCursorMove);
 	document.documentElement.addEventListener("pointerleave", onCursorLeave);
 	document.addEventListener("pointerdown", onPointerOutside);
+	document.addEventListener("pointerup", onSelectionEnd);
 	document.addEventListener("keydown", onKeyDown);
 	window.addEventListener("resize", onResize);
 	setPosition(position);
@@ -320,12 +508,16 @@ function createLauncher(locale: string): Launcher {
 		host,
 		setLocale: (nextLocale) => {
 			currentLocale = nextLocale;
+			updateHint();
 			button.setAttribute("aria-label", labels(nextLocale).open);
 			panel.setAttribute("aria-label", labels(nextLocale).open);
+			action.setAttribute("aria-label", labels(nextLocale).select);
+			action.title = labels(nextLocale).select;
 
 			const frame = panel.querySelector("iframe");
 			if (frame) frame.title = labels(nextLocale).open;
 		},
+		selectText,
 		close,
 		dispose: () => {
 			close();
@@ -335,6 +527,7 @@ function createLauncher(locale: string): Launcher {
 				onCursorLeave,
 			);
 			document.removeEventListener("pointerdown", onPointerOutside);
+			document.removeEventListener("pointerup", onSelectionEnd);
 			document.removeEventListener("keydown", onKeyDown);
 			window.removeEventListener("resize", onResize);
 			host.remove();
@@ -355,4 +548,8 @@ export function setPagePopupLauncher(visible: boolean, locale: string): void {
 
 export function closePagePopupLauncher(): void {
 	launcher?.close();
+}
+
+export function startPageTextSelection(): void {
+	launcher?.selectText();
 }

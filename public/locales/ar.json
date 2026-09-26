@@ -76,6 +76,8 @@
 		"fullWordMatch": "مطابقة الكلمة كاملة"
 	},
 	"home": {
+		"selectPageText": "حدد نصاً في الصفحة",
+		"selectionUnavailable": "تحديد النص غير متاح في هذه الصفحة.",
 		"title": "إدارة الكلمات المفتاحية",
 		"selectNovel": "اختر الرواية",
 		"selectNovelPlaceholder": "اختر رواية لإدارة الكلمات المفتاحية",

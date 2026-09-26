@@ -19,6 +19,7 @@ import { getAllNovelData } from "@/utils/site-detection";
 import {
 	closePagePopupLauncher,
 	setPagePopupLauncher,
+	startPageTextSelection,
 } from "./page-popup-launcher";
 
 const LOG_PREFIX = "[StoryLens]";
@@ -117,6 +118,10 @@ export async function refreshPageContent(): Promise<void> {
 export async function runContentScript(
 	ctx: ContentScriptContext,
 ): Promise<void> {
+	onMessage("selectPageText", () => {
+		setPagePopupLauncher(true, currentLocale);
+		startPageTextSelection();
+	});
 	onMessage("summarizePage", ({ data }) => startPageSummary(data));
 	onMessage("websiteSelectorUpdated", ({ data }) => {
 		if (data.website !== window.location.hostname) {

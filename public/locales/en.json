@@ -76,6 +76,8 @@
 		"fullWordMatch": "Full word match"
 	},
 	"home": {
+		"selectPageText": "Select text on page",
+		"selectionUnavailable": "Text selection is unavailable on this page.",
 		"title": "Keywords Management",
 		"selectNovel": "Select Novel",
 		"selectNovelPlaceholder": "Choose a novel to manage keywords",

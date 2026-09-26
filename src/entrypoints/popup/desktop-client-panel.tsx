@@ -128,7 +128,7 @@ export function DesktopClientPanel() {
 			gap="xs"
 			p="xs"
 			style={{
-				width: "24rem",
+				width: "100%",
 				boxSizing: "border-box",
 				borderBottom: "1px solid var(--mantine-color-default-border)",
 			}}

@@ -71,6 +71,6 @@ export default defineConfig({
 		},
 		chromiumArgs: ["--user-data-dir=./.wxt/chromium-data"],
 		keepProfileChanges: true,
-		startUrls: ["https://mknov.com/novel/984/chapter/364122"],
+		startUrls: ["https://seanovel.org/novels/shadow-slave/chapters/235"],
 	},
 });

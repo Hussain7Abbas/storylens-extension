@@ -1,5 +1,6 @@
 import {
 	ActionIcon,
+	Button,
 	Container,
 	Group,
 	Menu,
@@ -28,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
+import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
 import { getBiasesByNovelId } from "@/lib/offline/db";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
@@ -56,6 +58,7 @@ export function HomePage() {
 		OfflineWebsiteNovelBias[]
 	>([]);
 	const [biasSelectorId, setBiasSelectorId] = useState<string>();
+	const [activeTab, setActiveTab] = useState<string | null>(null);
 	const online = useOnlineStatus();
 	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
@@ -186,6 +189,27 @@ export function HomePage() {
 				/>
 			) : (
 				<Stack gap={0}>
+					<Button
+						variant="light"
+						mb="xs"
+						onClick={async () => {
+							try {
+								const [tab] = await browser.tabs.query({
+									active: true,
+									currentWindow: true,
+								});
+								if (tab?.id === undefined) throw new Error();
+								await sendMessage("selectPageText", undefined, {
+									tabId: tab.id,
+								});
+								if (window.parent === window) window.close();
+							} catch {
+								toast.error(t("home.selectionUnavailable"));
+							}
+						}}
+					>
+						{t("home.selectPageText")}
+					</Button>
 					{!online && (
 						<Text size="xs" c="orange" mb="xs">
 							{t("offline.banner")}
@@ -308,7 +332,16 @@ export function HomePage() {
 					)}
 
 					<Tabs
-						defaultValue={selectedNovel?.id ? "coloring" : "ai"}
+						// Controlled because the novel loads asynchronously; Coloring is the
+						// default once a novel is selected or a page search is carried over.
+						value={
+							activeTab ??
+							(selectedNovel?.id ||
+							new URLSearchParams(window.location.search).has("search")
+								? "coloring"
+								: "ai")
+						}
+						onChange={setActiveTab}
 						variant="outline"
 					>
 						<Stack
