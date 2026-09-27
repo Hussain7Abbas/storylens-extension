@@ -7,7 +7,7 @@ StoryLens uses the tabs permission to read the active tab’s URL so it can dete
 
 --- storage justification ---
 
-StoryLens uses chrome.storage.local to persist extension settings and state between sessions. This includes the user’s auth session token, optional desktop pairing token and model choice, onboarding completion status, and offline sync metadata such as pending glossary changes waiting to upload and the list of novels downloaded for offline reading. Storage is used only to keep the user’s StoryLens data available across browser restarts and to support offline edits that sync when the network is available again.
+StoryLens uses chrome.storage.local to persist extension settings and state between sessions. This includes the user’s auth session token, optional desktop pairing token and model choice, onboarding completion status, analytics preference and random client ID, and offline sync metadata such as pending glossary changes waiting to upload and the list of novels downloaded for offline reading. Storage keeps these preferences and reference edits available across browser restarts.
 
 --- alarms justification ---
 
@@ -19,8 +19,10 @@ StoryLens users may build large glossaries with many keywords, replacements, cat
 
 --- Host permission justification ---
 
-StoryLens needs access to the web novel page the user is reading so its content script can locate chapter text and apply the user’s keyword highlights and text replacements on that page. Novel sites use many different domains and URL structures, so the extension must run on whichever reading page the user opens. StoryLens reads visible chapter content only to apply the user’s own glossary settings locally on the active page; it does not collect or sell full page content.
+StoryLens needs access to web novel pages so its content script can locate chapter text and apply keyword highlights and replacements. Novel sites use many domains and URL structures, so the extension must run on reading pages the user opens. Chapter text is processed locally for those features. Only user-requested AI actions send relevant page content to an AI provider as explained in the listing and privacy policy.
 
 StoryLens also needs host access to https://storylens-api.iscoded.com so the background service worker can sync the user’s novels, keywords, categories, replacements, and settings with the StoryLens backend over HTTPS.
 
-StoryLens also needs access to http://127.0.0.1/* so the background worker can contact the user’s paired desktop client. Only an explicit Summarize action sends the active page body to the local client and selected AI provider; the result appears on that page.
+StoryLens also needs access to http://127.0.0.1/* so the background worker can contact the user’s paired desktop client. Requested summaries, keyword suggestions and chapter keyword extraction send relevant page or reference content to the local client and selected AI provider. Summaries appear on the page; suggestions and extraction results appear in the extension.
+
+StoryLens also needs access to https://www.google-analytics.com/* to send feature usage events from the extension when analytics credentials are configured and the user has not turned analytics off in General settings. These events include a random client ID, extension and session information, and—for a detected novel page—the reading site hostname. They exclude page text, full URLs, glossary content, and account details.
