@@ -1,4 +1,5 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type { AnalyticsEvent } from "@/lib/analytics/types";
 import type {
 	DesktopCapabilities,
 	ExecutePromptInput,
@@ -10,15 +11,12 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
-	selectPageText(): void;
 	desktopCapabilities(): DesktopCapabilities;
 	executeDesktopPrompt(data: ExecutePromptInput): string;
 	cancelDesktopPrompt(requestId: string): void;
-	summarizePage(data: { model: string; effort: string; locale: string }): {
-		started: boolean;
-	};
 	getCurrentNovel(): currentNovelMeta | undefined;
 	getPageHtml(): { url: string; html: string } | undefined;
+	getChapterText(): { text: string };
 	reportCurrentNovel(data: currentNovelMeta): void;
 	getCachedTabNovel(tabId: number): currentNovelMeta | undefined;
 	getWebsiteSelector(website: string): websiteSelector | undefined;
@@ -34,6 +32,7 @@ interface ProtocolMap {
 	}): NovelContentData | undefined;
 	getNovelContentData(data: currentNovelMeta): NovelContentData | undefined;
 	triggerFullSync(): SyncResult;
+	trackAnalyticsEvent(data: AnalyticsEvent): void;
 }
 
 export const { sendMessage, onMessage } =

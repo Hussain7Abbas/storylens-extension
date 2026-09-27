@@ -1,3 +1,3 @@
-import { Main } from "../popup/main.js";
+import { Main } from "../popup/render.js";
 
 Main("options");

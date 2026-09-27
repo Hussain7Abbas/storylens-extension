@@ -7,5 +7,5 @@
  */
 
 export type PostAuthChangePassword200 = {
-	success: boolean;
+	google: boolean;
 };

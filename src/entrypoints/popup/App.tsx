@@ -16,9 +16,11 @@ import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
+import { PageContent } from "@/components/form-page";
 import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
+import { EXTRACTION_VIEW } from "@/lib/desktop-client/chapter-extraction";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
 import {
 	APPEARANCE_FONT_FACE_KEY,
@@ -27,7 +29,10 @@ import {
 	fontSizeAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
+import { cssVariablesResolver, theme } from "@/styles/theme";
+import { ExtractionView } from "../popup.extract/extraction-view";
 import { Router } from "./routers";
+import { SelectionView } from "./selection-view";
 
 function PopupAutoSync({ enabled }: { enabled: boolean }) {
 	usePopupAutoSync(enabled);
@@ -38,6 +43,9 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 	const { loading } = useAuthInit();
 	const onboardingCompleted = useAtomValue(onboardingCompletedAtom);
 	const locale = useAtomValue(localeAtom);
+	// The chapter panel embeds this page to show the AI character table only.
+	const extraction =
+		new URLSearchParams(window.location.search).get("view") === EXTRACTION_VIEW;
 	// The page launcher embeds the popup in a larger iframe; fill it there.
 	const fill = type === "options" || window.parent !== window;
 	const height = fill ? "100vh" : "32rem";
@@ -45,9 +53,24 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 
 	if (loading) {
 		return (
-			<Center h={height} w={width}>
+			<Center h={extraction ? 120 : height} w={extraction ? "100%" : width}>
 				<Loader />
 			</Center>
+		);
+	}
+
+	if (new URLSearchParams(window.location.search).get("view") === "selection")
+		return (
+			<div dir={locale === "ar" ? "rtl" : "ltr"}>
+				<SelectionView />
+			</div>
+		);
+
+	if (extraction) {
+		return (
+			<Stack w="100%" gap={0} dir={locale === "ar" ? "rtl" : "ltr"}>
+				<ExtractionView />
+			</Stack>
 		);
 	}
 
@@ -65,7 +88,9 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 			<Stack h={height} w={width} gap={0} dir={locale === "ar" ? "rtl" : "ltr"}>
 				<Navbar />
 				<ScrollArea flex={1} type="auto">
-					<Router />
+					<PageContent>
+						<Router />
+					</PageContent>
 				</ScrollArea>
 			</Stack>
 		</>
@@ -82,6 +107,8 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 
 	useEffect(() => {
 		i18n.changeLanguage(locale);
+		document.documentElement.lang = locale;
+		document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
 		void browser.storage.local.set({ "storylens-locale": locale });
 	}, [locale, i18n]);
 
@@ -96,10 +123,24 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	return (
 		<>
 			<ColorSchemeScript defaultColorScheme="auto" />
-			<MantineProvider defaultColorScheme="auto">
+			<MantineProvider
+				theme={theme}
+				cssVariablesResolver={cssVariablesResolver}
+				defaultColorScheme="auto"
+			>
 				<QueryClientProvider client={queryClient}>
 					<AppContent type={type} />
-					<Toaster />
+					<Toaster
+						toastOptions={{
+							style: {
+								background: "var(--mantine-color-default)",
+								color: "var(--mantine-color-text)",
+								border: "1px solid var(--mantine-color-default-border)",
+								boxShadow: "var(--mantine-shadow-md)",
+								fontSize: "var(--mantine-font-size-sm)",
+							},
+						}}
+					/>
 				</QueryClientProvider>
 			</MantineProvider>
 		</>

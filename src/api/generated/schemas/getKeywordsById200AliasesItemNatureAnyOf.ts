@@ -7,6 +7,7 @@
  */
 
 import type { GetKeywordsById200AliasesItemNatureAnyOfCreatedAt } from "./getKeywordsById200AliasesItemNatureAnyOfCreatedAt";
+import type { GetKeywordsById200AliasesItemNatureAnyOfDescription } from "./getKeywordsById200AliasesItemNatureAnyOfDescription";
 import type { GetKeywordsById200AliasesItemNatureAnyOfNameAr } from "./getKeywordsById200AliasesItemNatureAnyOfNameAr";
 import type { GetKeywordsById200AliasesItemNatureAnyOfNameEn } from "./getKeywordsById200AliasesItemNatureAnyOfNameEn";
 import type { GetKeywordsById200AliasesItemNatureAnyOfUpdatedAt } from "./getKeywordsById200AliasesItemNatureAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type GetKeywordsById200AliasesItemNatureAnyOf = {
 	nameEn: GetKeywordsById200AliasesItemNatureAnyOfNameEn;
 	nameAr: GetKeywordsById200AliasesItemNatureAnyOfNameAr;
 	color: string;
+	description: GetKeywordsById200AliasesItemNatureAnyOfDescription;
 	createdAt: GetKeywordsById200AliasesItemNatureAnyOfCreatedAt;
 	updatedAt: GetKeywordsById200AliasesItemNatureAnyOfUpdatedAt;
 };

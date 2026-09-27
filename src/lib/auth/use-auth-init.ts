@@ -1,11 +1,12 @@
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { browser } from "#imports";
+import { createGuestAccount, setupAuthInterceptor } from "./auth-service";
 import {
-	createGuestAccount,
+	AUTH_STORAGE_KEY,
 	getStoredAuth,
-	setupAuthInterceptor,
-} from "./auth-service";
+	parseStoredAuth,
+} from "./auth-storage";
 import { authStateAtom, onboardingCompletedAtom } from "./auth-store";
 
 const ONBOARDING_KEY = "storylens-onboarding-completed";
@@ -41,6 +42,20 @@ export function useAuthInit() {
 			}
 		})();
 	}, [setAuthState, setOnboardingCompleted]);
+
+	// Sign-in, sign-out, and profile edits happen on the website; the bridge
+	// content script writes them to storage, so follow those changes here.
+	useEffect(() => {
+		const handleChange = (
+			changes: Record<string, { newValue?: unknown }>,
+			area: string,
+		) => {
+			if (area !== "local" || !(AUTH_STORAGE_KEY in changes)) return;
+			setAuthState(parseStoredAuth(changes[AUTH_STORAGE_KEY]?.newValue));
+		};
+		browser.storage.onChanged.addListener(handleChange);
+		return () => browser.storage.onChanged.removeListener(handleChange);
+	}, [setAuthState]);
 
 	return { loading };
 }

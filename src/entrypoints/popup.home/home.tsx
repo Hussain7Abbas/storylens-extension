@@ -1,6 +1,5 @@
 import {
 	ActionIcon,
-	Button,
 	Container,
 	Group,
 	Menu,
@@ -11,25 +10,24 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import {
-	IconCheck,
-	IconCloudDownload,
-	IconDotsVertical,
-	IconEdit,
-	IconLink,
-	IconPencil,
-	IconPlus,
-	IconTrash,
-} from "@tabler/icons-react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
+import {
+	Check as IconCheck,
+	CloudDownload as IconCloudDownload,
+	EllipsisVertical as IconDotsVertical,
+	SquarePen as IconEdit,
+	Link as IconLink,
+	Pencil as IconPencil,
+	Plus as IconPlus,
+	Trash2 as IconTrash,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
-import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
 import { getBiasesByNovelId } from "@/lib/offline/db";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
@@ -42,7 +40,6 @@ import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
-import { DesktopClientPanel } from "../popup/desktop-client-panel";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
@@ -58,7 +55,6 @@ export function HomePage() {
 		OfflineWebsiteNovelBias[]
 	>([]);
 	const [biasSelectorId, setBiasSelectorId] = useState<string>();
-	const [activeTab, setActiveTab] = useState<string | null>(null);
 	const online = useOnlineStatus();
 	const role = useAtomValue(userRoleAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
@@ -189,27 +185,6 @@ export function HomePage() {
 				/>
 			) : (
 				<Stack gap={0}>
-					<Button
-						variant="light"
-						mb="xs"
-						onClick={async () => {
-							try {
-								const [tab] = await browser.tabs.query({
-									active: true,
-									currentWindow: true,
-								});
-								if (tab?.id === undefined) throw new Error();
-								await sendMessage("selectPageText", undefined, {
-									tabId: tab.id,
-								});
-								if (window.parent === window) window.close();
-							} catch {
-								toast.error(t("home.selectionUnavailable"));
-							}
-						}}
-					>
-						{t("home.selectPageText")}
-					</Button>
 					{!online && (
 						<Text size="xs" c="orange" mb="xs">
 							{t("offline.banner")}
@@ -220,7 +195,7 @@ export function HomePage() {
 					) : (
 						<Group gap="xs" align="end">
 							<Select
-								label={t("coloring.novel")}
+								aria-label={t("coloring.novel")}
 								placeholder={t("home.selectNovelPlaceholder")}
 								allowDeselect={false}
 								flex={1}
@@ -242,10 +217,7 @@ export function HomePage() {
 										<Group justify="space-between" wrap="nowrap" w="100%">
 											<Text size="sm">{option.label}</Text>
 											{downloaded && (
-												<IconCheck
-													size={14}
-													color="var(--mantine-color-green-7)"
-												/>
+												<IconCheck size={14} color="var(--sl-success)" />
 											)}
 										</Group>
 									);
@@ -261,7 +233,7 @@ export function HomePage() {
 								>
 									<ActionIcon
 										variant={isSelectedDownloaded ? "light" : "default"}
-										color={isSelectedDownloaded ? "green" : "blue"}
+										color={isSelectedDownloaded ? "sage" : undefined}
 										size="lg"
 										loading={downloading}
 										aria-label={
@@ -282,7 +254,7 @@ export function HomePage() {
 								</Tooltip>
 							)}
 							<Group
-								flex={1}
+								style={{ flexShrink: 0 }}
 								justify="center"
 								align="center"
 								gap={4}
@@ -299,16 +271,22 @@ export function HomePage() {
 									<Text>{detectedChapter}</Text>
 								)}
 								{role === "admin" && currentTabNovel && (
-									<ActionIcon
-										size="xs"
-										variant="subtle"
-										onClick={() => {
-											void handleOpenBiasModal();
-										}}
-										aria-label={t("home.chapterBias")}
+									<Tooltip
+										label={t("home.chapterBias")}
+										withArrow
+										openDelay={350}
 									>
-										<IconPencil size={12} />
-									</ActionIcon>
+										<ActionIcon
+											size="xs"
+											variant="subtle"
+											onClick={() => {
+												void handleOpenBiasModal();
+											}}
+											aria-label={t("home.chapterBias")}
+										>
+											<IconPencil size={12} />
+										</ActionIcon>
+									</Tooltip>
 								)}
 							</Group>
 							{role !== "guest" && (
@@ -331,27 +309,13 @@ export function HomePage() {
 						</Text>
 					)}
 
-					<Tabs
-						// Controlled because the novel loads asynchronously; Coloring is the
-						// default once a novel is selected or a page search is carried over.
-						value={
-							activeTab ??
-							(selectedNovel?.id ||
-							new URLSearchParams(window.location.search).has("search")
-								? "coloring"
-								: "ai")
-						}
-						onChange={setActiveTab}
-						variant="outline"
-					>
+					<Tabs defaultValue="coloring" variant="pills">
 						<Stack
 							gap="xs"
 							pos="sticky"
 							top={0}
 							style={{
 								zIndex: 2,
-								["--popup-tabs-sticky-height" as string]:
-									"calc(var(--mantine-spacing-xs) + 36px)",
 							}}
 							pt="xs"
 							styles={{
@@ -367,12 +331,8 @@ export function HomePage() {
 								<Tabs.Tab value="replacing" disabled={!selectedNovel?.id}>
 									{t("tabs.replacing")}
 								</Tabs.Tab>
-								<Tabs.Tab value="ai">{t("tabs.ai")}</Tabs.Tab>
 							</Tabs.List>
 						</Stack>
-						<Tabs.Panel value="ai">
-							<DesktopClientPanel />
-						</Tabs.Panel>
 						<Tabs.Panel value="coloring">
 							<ColoringTab
 								selectedNovelId={selectedNovel?.id}
@@ -454,14 +414,20 @@ function NovelMenu({
 	return (
 		<Menu shadow="md" width={200}>
 			<Menu.Target>
-				<ActionIcon variant="transparent">
-					<IconDotsVertical />
-				</ActionIcon>
+				<Tooltip label={t("novels.actions")} withArrow openDelay={350}>
+					<ActionIcon
+						variant="subtle"
+						color="var(--mantine-color-dimmed)"
+						aria-label={t("novels.actions")}
+					>
+						<IconDotsVertical />
+					</ActionIcon>
+				</Tooltip>
 			</Menu.Target>
 
 			<Menu.Dropdown>
 				<Menu.Item
-					leftSection={<IconPlus size={14} color="green" />}
+					leftSection={<IconPlus size={14} />}
 					onClick={() => {
 						setSelectedNovel(
 							currentTabNovel
@@ -478,7 +444,7 @@ function NovelMenu({
 
 				{canAddCurrentSlug && (
 					<Menu.Item
-						leftSection={<IconLink size={14} color="cyan" />}
+						leftSection={<IconLink size={14} />}
 						onClick={handleAddSlug}
 					>
 						{t("novels.addSlug")}
@@ -488,7 +454,7 @@ function NovelMenu({
 				{role === "admin" && (
 					<>
 						<Menu.Item
-							leftSection={<IconEdit size={14} color="blue" />}
+							leftSection={<IconEdit size={14} />}
 							onClick={() => {
 								setMode("edit");
 							}}
@@ -496,7 +462,9 @@ function NovelMenu({
 							{t("novels.edit")}
 						</Menu.Item>
 						<Menu.Item
-							leftSection={<IconTrash size={14} color="red" />}
+							leftSection={
+								<IconTrash size={14} color="var(--mantine-color-red-text)" />
+							}
 							onClick={() => {
 								setMode("delete");
 							}}

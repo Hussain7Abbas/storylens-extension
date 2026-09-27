@@ -7,5 +7,5 @@
  */
 
 export type GetAuthCheckUsernameByUsername200 = {
-	success: boolean;
+	google: boolean;
 };

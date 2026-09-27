@@ -8,6 +8,7 @@
 
 import type { _GetKeywordNaturesById200Count } from "./_getKeywordNaturesById200Count";
 import type { GetKeywordNaturesById200CreatedAt } from "./getKeywordNaturesById200CreatedAt";
+import type { GetKeywordNaturesById200Description } from "./getKeywordNaturesById200Description";
 import type { GetKeywordNaturesById200NameAr } from "./getKeywordNaturesById200NameAr";
 import type { GetKeywordNaturesById200NameEn } from "./getKeywordNaturesById200NameEn";
 import type { GetKeywordNaturesById200UpdatedAt } from "./getKeywordNaturesById200UpdatedAt";
@@ -17,6 +18,7 @@ export type GetKeywordNaturesById200 = {
 	nameEn: GetKeywordNaturesById200NameEn;
 	nameAr: GetKeywordNaturesById200NameAr;
 	color: string;
+	description: GetKeywordNaturesById200Description;
 	createdAt: GetKeywordNaturesById200CreatedAt;
 	updatedAt: GetKeywordNaturesById200UpdatedAt;
 	_count: _GetKeywordNaturesById200Count;

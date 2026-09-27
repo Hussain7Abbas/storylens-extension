@@ -1447,6 +1447,7 @@ export function useOfflineCategoryMutations() {
 				nameEn: values.nameEn ?? null,
 				nameAr: values.nameAr ?? null,
 				color: values.color,
+				description: values.description ?? null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 			};
@@ -1460,6 +1461,7 @@ export function useOfflineCategoryMutations() {
 							nameEn: values.nameEn,
 							nameAr: values.nameAr,
 							color: values.color,
+							description: values.description,
 						});
 						const saved = response.data as KeywordCategory;
 						await deleteKeywordCategoryById(tempId);
@@ -1520,6 +1522,7 @@ export function useOfflineCategoryMutations() {
 							nameEn: data.nameEn,
 							nameAr: data.nameAr,
 							color: data.color,
+							description: data.description,
 						});
 						const saved = response.data as KeywordCategory;
 						await saveKeywordCategory(saved);
@@ -1601,6 +1604,7 @@ export function useOfflineNatureMutations() {
 				nameEn: values.nameEn ?? null,
 				nameAr: values.nameAr ?? null,
 				color: values.color,
+				description: values.description ?? null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 			};
@@ -1614,6 +1618,7 @@ export function useOfflineNatureMutations() {
 							nameEn: values.nameEn,
 							nameAr: values.nameAr,
 							color: values.color,
+							description: values.description,
 						});
 						const saved = response.data as KeywordNature;
 						await deleteKeywordNatureById(tempId);
@@ -1674,6 +1679,7 @@ export function useOfflineNatureMutations() {
 							nameEn: data.nameEn,
 							nameAr: data.nameAr,
 							color: data.color,
+							description: data.description,
 						});
 						const saved = response.data as KeywordNature;
 						await saveKeywordNature(saved);

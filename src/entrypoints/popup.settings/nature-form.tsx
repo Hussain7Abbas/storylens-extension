@@ -4,12 +4,15 @@ import {
 	Button,
 	Group,
 	Stack,
+	Textarea,
 	TextInput,
+	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconTrash } from "@tabler/icons-react";
+import { Trash2 as IconTrash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ColorInput } from "@/components/color-input";
+import { FormPage } from "@/components/form-page";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
 import {
 	type NatureFormValues,
@@ -25,7 +28,7 @@ interface NatureFormProps extends React.HTMLAttributes<HTMLFormElement> {
 	onClose: () => void;
 }
 
-export function NatureForm({
+function NatureFormContent({
 	mode,
 	nature,
 	onClose,
@@ -37,6 +40,7 @@ export function NatureForm({
 			nameEn: nature?.nameEn || "",
 			nameAr: nature?.nameAr || "",
 			color: nature?.color || "#000000",
+			description: nature?.description || "",
 		},
 		validate: {
 			color: (value) =>
@@ -49,7 +53,11 @@ export function NatureForm({
 		useOfflineNatureMutations();
 
 	const handleSubmit = (values: NatureFormValues) => {
-		const payload: NatureFormValues = { ...values };
+		const payload: NatureFormValues = {
+			...values,
+			// An empty value clears a saved description.
+			description: values.description?.trim() || null,
+		};
 
 		if (mode === "add") {
 			createMutation.mutate(payload, {
@@ -114,33 +122,58 @@ export function NatureForm({
 					required
 				/>
 
+				<Textarea
+					label={t("settings.description")}
+					description={t("settings.descriptionHint")}
+					autosize
+					minRows={2}
+					maxRows={5}
+					maxLength={1000}
+					{...form.getInputProps("description")}
+				/>
+
 				{(createMutation.isError || updateMutation.isError) && (
 					<Alert color="red">{t("settings.update")}</Alert>
 				)}
 
 				<Group justify="space-between" mt="md">
 					{mode === "edit" ? (
-						<ActionIcon
-							variant="transparent"
-							color="red"
-							size="lg"
-							onClick={handleDelete}
-						>
-							<IconTrash />
-						</ActionIcon>
+						<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+							<ActionIcon
+								aria-label={t("_.delete")}
+								variant="transparent"
+								color="red"
+								size="lg"
+								onClick={handleDelete}
+							>
+								<IconTrash />
+							</ActionIcon>
+						</Tooltip>
 					) : (
 						<span />
 					)}
 					<Group>
-						<Button variant="outline" onClick={onClose}>
-							{t("_.cancel")}
-						</Button>
-						<Button type="submit" loading={isPending}>
-							{t("_.save")}
-						</Button>
+						<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+							<Button variant="outline" onClick={onClose}>
+								{t("_.cancel")}
+							</Button>
+						</Tooltip>
+						<Tooltip label={t("_.save")} withArrow openDelay={350}>
+							<Button type="submit" loading={isPending}>
+								{t("_.save")}
+							</Button>
+						</Tooltip>
 					</Group>
 				</Group>
 			</Stack>
 		</form>
+	);
+}
+
+export function NatureForm(props: Parameters<typeof NatureFormContent>[0]) {
+	return (
+		<FormPage title="NatureForm" onClose={props.onClose}>
+			<NatureFormContent {...props} />
+		</FormPage>
 	);
 }

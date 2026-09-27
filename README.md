@@ -2,7 +2,7 @@
 
 Browser extension for Story Lens, built with [WXT](https://wxt.dev/) and React.
 
-The popup's Desktop client panel can pair with the local [Story Lens Client](../../docs/client.md). Once paired, choose a Claude/Codex model and click **Summarize page** to show the answer on the active website in the extension's selected language. This action works without novel detection or backend login. On a configured novel-site domain, a circular logo button opens the same popup in an overlay. Drag the button to reposition it; its saved position and the popup stay within the viewport.
+**Settings → AI** pairs with the local [Story Lens Client](../../docs/client.md) and chooses a Claude/Codex model. On a configured novel-site domain, a circular logo button opens the same popup in an overlay; hovering it reveals **+** (pick text to search), **AI +** (pick a name and get a suggested description, category, and nature for a new character), **Summarize page** (show a summary on the page), and **Extract chapter characters** (a table at the start of the chapter to add its new characters as characters, aliases, or versions). AI output is always in the extension's selected language. The AI actions are active once a pairing token is saved. Drag the button to reposition it; its saved position and the popup stay within the viewport.
 
 ## Getting Started
 
@@ -20,6 +20,11 @@ make dev-extension
 The backend defaults to port 3000, while the extension's development API URL
 example uses port 7001. Configure `WXT_API_URL` or the backend `PORT` so they
 match. See the umbrella [development guide](../../docs/development.md).
+
+Google Analytics 4 is optional: set `WXT_GA_MEASUREMENT_ID` and
+`WXT_GA_API_SECRET` (a Measurement Protocol API secret for the GA4 data stream)
+before building to enable anonymous usage events. Users can opt out in General
+settings.
 
 Or run the extension on its own after dependencies and the database are ready:
 

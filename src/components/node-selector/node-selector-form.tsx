@@ -1,6 +1,13 @@
-import { ActionIcon, Button, Group, Stack, TextInput } from "@mantine/core";
+import {
+	ActionIcon,
+	Button,
+	Group,
+	Stack,
+	TextInput,
+	Tooltip,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconSparkles, IconTrash } from "@tabler/icons-react";
+import { Sparkles as IconSparkles, Trash2 as IconTrash } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -15,6 +22,7 @@ import type {
 	PostWebsiteSelectorsBodyOne,
 	PutWebsiteSelectorsByWebsiteBodyOne,
 } from "@/api/generated/schemas";
+import { FormPage } from "@/components/form-page";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
 import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
@@ -92,7 +100,18 @@ function buildSelectorUpdatePayload(
 	};
 }
 
-export function NodeSelectorForm({
+async function loadPageContext(
+	fallback?: PageContext | null,
+): Promise<PageContext | null> {
+	const result = await getActiveTabPageContext();
+	if (result.ok) {
+		return result.page;
+	}
+
+	return fallback ?? null;
+}
+
+function NodeSelectorFormContent({
 	onClose,
 	editedWebsite,
 }: NodeSelectorFormProps) {
@@ -171,17 +190,6 @@ export function NodeSelectorForm({
 		},
 	});
 
-	async function loadPageContext(
-		fallback?: PageContext | null,
-	): Promise<PageContext | null> {
-		const result = await getActiveTabPageContext();
-		if (result.ok) {
-			return result.page;
-		}
-
-		return fallback ?? null;
-	}
-
 	useEffect(() => {
 		if (isEdit) {
 			return;
@@ -195,7 +203,7 @@ export function NodeSelectorForm({
 			setPageContext(page);
 			form.setFieldValue("website", new URL(page.url).hostname);
 		});
-	}, [isEdit]);
+	}, [isEdit, form.setFieldValue]);
 
 	useEffect(() => {
 		void loadPageContext().then((page) => {
@@ -284,7 +292,7 @@ export function NodeSelectorForm({
 			chapterXpathRegex: existingSelector.chapter?.xpath?.regex ?? "\\d+",
 			chapterUrlRegex: existingSelector.chapter?.url?.regex ?? "",
 		});
-	}, [editedWebsite, selectorData?.data]);
+	}, [editedWebsite, selectorData?.data, form.setValues]);
 
 	const isSaving = createSelector.isPending || updateSelector.isPending;
 
@@ -297,14 +305,16 @@ export function NodeSelectorForm({
 				{...form.getInputProps("website")}
 				disabled={isEdit}
 			/>
-			<Button
-				variant="light"
-				leftSection={<IconSparkles size={16} />}
-				onClick={handleAutoDetect}
-				loading={isDetecting}
-			>
-				{t("nodeSelector.autoDetect")}
-			</Button>
+			<Tooltip label={t("nodeSelector.autoDetect")} withArrow openDelay={350}>
+				<Button
+					variant="light"
+					leftSection={<IconSparkles size={16} />}
+					onClick={handleAutoDetect}
+					loading={isDetecting}
+				>
+					{t("nodeSelector.autoDetect")}
+				</Button>
+			</Tooltip>
 
 			<TextInput
 				key={form.key("novelXpath")}
@@ -353,23 +363,43 @@ export function NodeSelectorForm({
 			<RegexPreview result={previews.chapterUrl} />
 
 			<Group justify="space-between" mt="md">
-				<ActionIcon
-					variant="transparent"
-					color="red"
-					size="lg"
-					onClick={() => handleDelete(form.values.website)}
-				>
-					<IconTrash />
-				</ActionIcon>
+				<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+					<ActionIcon
+						aria-label={t("_.delete")}
+						variant="transparent"
+						color="red"
+						size="lg"
+						onClick={() => handleDelete(form.values.website)}
+					>
+						<IconTrash />
+					</ActionIcon>
+				</Tooltip>
 				<Group>
-					<Button variant="outline" onClick={onClose}>
-						{t("_.cancel")}
-					</Button>
-					<Button onClick={() => handleSubmit(form.values)} loading={isSaving}>
-						{t("_.save")}
-					</Button>
+					<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+						<Button variant="outline" onClick={onClose}>
+							{t("_.cancel")}
+						</Button>
+					</Tooltip>
+					<Tooltip label={t("_.save")} withArrow openDelay={350}>
+						<Button
+							onClick={() => handleSubmit(form.values)}
+							loading={isSaving}
+						>
+							{t("_.save")}
+						</Button>
+					</Tooltip>
 				</Group>
 			</Group>
 		</Stack>
+	);
+}
+
+export function NodeSelectorForm(
+	props: Parameters<typeof NodeSelectorFormContent>[0],
+) {
+	return (
+		<FormPage title="NodeSelectorForm" onClose={props.onClose}>
+			<NodeSelectorFormContent {...props} />
+		</FormPage>
 	);
 }

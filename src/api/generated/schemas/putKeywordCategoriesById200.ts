@@ -7,6 +7,7 @@
  */
 
 import type { PutKeywordCategoriesById200CreatedAt } from "./putKeywordCategoriesById200CreatedAt";
+import type { PutKeywordCategoriesById200Description } from "./putKeywordCategoriesById200Description";
 import type { PutKeywordCategoriesById200NameAr } from "./putKeywordCategoriesById200NameAr";
 import type { PutKeywordCategoriesById200NameEn } from "./putKeywordCategoriesById200NameEn";
 import type { PutKeywordCategoriesById200UpdatedAt } from "./putKeywordCategoriesById200UpdatedAt";
@@ -16,6 +17,7 @@ export type PutKeywordCategoriesById200 = {
 	nameEn: PutKeywordCategoriesById200NameEn;
 	nameAr: PutKeywordCategoriesById200NameAr;
 	color: string;
+	description: PutKeywordCategoriesById200Description;
 	createdAt: PutKeywordCategoriesById200CreatedAt;
 	updatedAt: PutKeywordCategoriesById200UpdatedAt;
 };

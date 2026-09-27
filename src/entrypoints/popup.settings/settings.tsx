@@ -1,6 +1,7 @@
 import { Container, Stack, Tabs } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useIsAdmin } from "@/lib/auth";
+import { AiTab } from "./ai-tab";
 import { AppearanceTab } from "./appearance-tab";
 import { CategoryTab } from "./category-tab";
 import { GeneralTab } from "./general-tab";
@@ -12,15 +13,13 @@ export function SettingsPage() {
 
 	return (
 		<Container p="md">
-			<Tabs defaultValue={isAdmin ? "general" : "appearance"} variant="outline">
+			<Tabs defaultValue={isAdmin ? "general" : "appearance"} variant="pills">
 				<Stack
 					gap="xs"
 					pos="sticky"
 					top={0}
 					style={{
 						zIndex: 2,
-						["--popup-tabs-sticky-height" as string]:
-							"calc(var(--mantine-spacing-xs) + 36px)",
 					}}
 					pt="xs"
 					bg="var(--mantine-color-body)"
@@ -34,6 +33,7 @@ export function SettingsPage() {
 						)}
 						{isAdmin && <Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>}
 						<Tabs.Tab value="appearance">{t("tabs.appearance")}</Tabs.Tab>
+						<Tabs.Tab value="ai">{t("tabs.ai")}</Tabs.Tab>
 					</Tabs.List>
 				</Stack>
 				{isAdmin && (
@@ -53,6 +53,9 @@ export function SettingsPage() {
 				)}
 				<Tabs.Panel value="appearance">
 					<AppearanceTab />
+				</Tabs.Panel>
+				<Tabs.Panel value="ai">
+					<AiTab />
 				</Tabs.Panel>
 			</Tabs>
 		</Container>

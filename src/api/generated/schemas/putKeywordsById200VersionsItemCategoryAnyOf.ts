@@ -7,6 +7,7 @@
  */
 
 import type { PutKeywordsById200VersionsItemCategoryAnyOfCreatedAt } from "./putKeywordsById200VersionsItemCategoryAnyOfCreatedAt";
+import type { PutKeywordsById200VersionsItemCategoryAnyOfDescription } from "./putKeywordsById200VersionsItemCategoryAnyOfDescription";
 import type { PutKeywordsById200VersionsItemCategoryAnyOfNameAr } from "./putKeywordsById200VersionsItemCategoryAnyOfNameAr";
 import type { PutKeywordsById200VersionsItemCategoryAnyOfNameEn } from "./putKeywordsById200VersionsItemCategoryAnyOfNameEn";
 import type { PutKeywordsById200VersionsItemCategoryAnyOfUpdatedAt } from "./putKeywordsById200VersionsItemCategoryAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PutKeywordsById200VersionsItemCategoryAnyOf = {
 	nameEn: PutKeywordsById200VersionsItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById200VersionsItemCategoryAnyOfNameAr;
 	color: string;
+	description: PutKeywordsById200VersionsItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordsById200VersionsItemCategoryAnyOfUpdatedAt;
 };

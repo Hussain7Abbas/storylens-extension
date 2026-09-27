@@ -7,6 +7,7 @@
  */
 
 import type { DeleteKeywordNaturesById200CreatedAt } from "./deleteKeywordNaturesById200CreatedAt";
+import type { DeleteKeywordNaturesById200Description } from "./deleteKeywordNaturesById200Description";
 import type { DeleteKeywordNaturesById200NameAr } from "./deleteKeywordNaturesById200NameAr";
 import type { DeleteKeywordNaturesById200NameEn } from "./deleteKeywordNaturesById200NameEn";
 import type { DeleteKeywordNaturesById200UpdatedAt } from "./deleteKeywordNaturesById200UpdatedAt";
@@ -16,6 +17,7 @@ export type DeleteKeywordNaturesById200 = {
 	nameEn: DeleteKeywordNaturesById200NameEn;
 	nameAr: DeleteKeywordNaturesById200NameAr;
 	color: string;
+	description: DeleteKeywordNaturesById200Description;
 	createdAt: DeleteKeywordNaturesById200CreatedAt;
 	updatedAt: DeleteKeywordNaturesById200UpdatedAt;
 };

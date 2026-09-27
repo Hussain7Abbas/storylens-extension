@@ -16,7 +16,7 @@ export function RegexPreview({ result, type = "regex" }: RegexPreviewProps) {
 
 	if (result.status === "match") {
 		return (
-			<Text size="xs" c="teal" fw={500} style={{ wordBreak: "break-word" }}>
+			<Text size="xs" c="sage" fw={500} style={{ wordBreak: "break-word" }}>
 				{result.value}
 			</Text>
 		);

@@ -7,6 +7,7 @@
  */
 
 import type { PutKeywordAliasesById200NatureAnyOfCreatedAt } from "./putKeywordAliasesById200NatureAnyOfCreatedAt";
+import type { PutKeywordAliasesById200NatureAnyOfDescription } from "./putKeywordAliasesById200NatureAnyOfDescription";
 import type { PutKeywordAliasesById200NatureAnyOfNameAr } from "./putKeywordAliasesById200NatureAnyOfNameAr";
 import type { PutKeywordAliasesById200NatureAnyOfNameEn } from "./putKeywordAliasesById200NatureAnyOfNameEn";
 import type { PutKeywordAliasesById200NatureAnyOfUpdatedAt } from "./putKeywordAliasesById200NatureAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PutKeywordAliasesById200NatureAnyOf = {
 	nameEn: PutKeywordAliasesById200NatureAnyOfNameEn;
 	nameAr: PutKeywordAliasesById200NatureAnyOfNameAr;
 	color: string;
+	description: PutKeywordAliasesById200NatureAnyOfDescription;
 	createdAt: PutKeywordAliasesById200NatureAnyOfCreatedAt;
 	updatedAt: PutKeywordAliasesById200NatureAnyOfUpdatedAt;
 };

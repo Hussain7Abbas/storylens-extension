@@ -7,6 +7,7 @@
  */
 
 import type { GetKeywordNatures200DataItemCreatedAt } from "./getKeywordNatures200DataItemCreatedAt";
+import type { GetKeywordNatures200DataItemDescription } from "./getKeywordNatures200DataItemDescription";
 import type { GetKeywordNatures200DataItemNameAr } from "./getKeywordNatures200DataItemNameAr";
 import type { GetKeywordNatures200DataItemNameEn } from "./getKeywordNatures200DataItemNameEn";
 import type { GetKeywordNatures200DataItemUpdatedAt } from "./getKeywordNatures200DataItemUpdatedAt";
@@ -16,6 +17,7 @@ export type GetKeywordNatures200DataItem = {
 	nameEn: GetKeywordNatures200DataItemNameEn;
 	nameAr: GetKeywordNatures200DataItemNameAr;
 	color: string;
+	description: GetKeywordNatures200DataItemDescription;
 	createdAt: GetKeywordNatures200DataItemCreatedAt;
 	updatedAt: GetKeywordNatures200DataItemUpdatedAt;
 };

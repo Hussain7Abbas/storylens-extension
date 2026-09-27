@@ -14,9 +14,12 @@ function apiHostPermission(url: string): string {
 }
 
 const devHostPermissions = ["http://localhost/*", "http://127.0.0.1/*"];
+// GA4 Measurement Protocol endpoint used by src/lib/analytics/background.ts.
+const analyticsHostPermission = "https://www.google-analytics.com/*";
 const productionHostPermissions = [
 	apiHostPermission(apiUrl),
 	"http://127.0.0.1/*",
+	analyticsHostPermission,
 ];
 
 // See https://wxt.dev/api/config.html
@@ -28,6 +31,8 @@ export default defineConfig({
 		"@wxt-dev/webextension-polyfill",
 	],
 	srcDir: "src",
+	// Auto-icons merges these with its standard 16/32/48/128px sizes.
+	autoIcons: { sizes: [64, 256, 512] },
 	hooks: {
 		"build:manifestGenerated": (wxt, manifest) => {
 			if (wxt.config.mode !== "development") {

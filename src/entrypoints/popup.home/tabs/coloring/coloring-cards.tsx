@@ -10,21 +10,20 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import { IconCloudUpload, IconHistory, IconPlus } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
+import {
+	CloudUpload as IconCloudUpload,
+	History as IconHistory,
+	Plus as IconPlus,
+} from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { getKeywords } from "@/api/generated/endpoints/keywords.js";
 import type {
 	GetKeywords200DataItem,
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
-import {
-	useOfflineKeywords,
-	useOnlineStatus,
-	usePendingEntityIds,
-} from "@/lib/offline/hooks";
+import { useNovelKeywords } from "@/hooks/use-novel-keywords";
+import { usePendingEntityIds } from "@/lib/offline/hooks";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import { ListItemCard } from "../list-item-card";
@@ -246,7 +245,7 @@ function AliasCard({
 						</Badge>
 					)}
 					{alias.overrideStyle && (
-						<Badge size="xs" variant="light" color="blue">
+						<Badge size="xs" variant="light">
 							{t("coloring.overrideStyle")}
 						</Badge>
 					)}
@@ -285,35 +284,8 @@ export function ColoringCards({
 	...props
 }: ColoringCardsProps) {
 	const { t } = useTranslation();
-	const online = useOnlineStatus();
 	const pendingEntityIds = usePendingEntityIds();
-	const offline = useOfflineKeywords(selectedNovelId ?? "", "");
-
-	const onlineQuery = useQuery({
-		queryKey: ["keywords", selectedNovelId, "all"],
-		queryFn: async ({ signal }) => {
-			const items: GetKeywords200DataItem[] = [];
-			for (let page = 1; ; page++) {
-				const response = await getKeywords(
-					{
-						pagination: { page, pageSize: 500 },
-						sorting: { column: "name", direction: "asc" },
-						query: { novelId: selectedNovelId },
-					},
-					undefined,
-					signal,
-				);
-				items.push(...response.data.data);
-				if (!response.data.data.length || items.length >= response.data.total)
-					return items;
-			}
-		},
-		enabled: !offline.useLocalCache && online && !!selectedNovelId,
-	});
-
-	const allItems = offline.useLocalCache
-		? (offline.items ?? [])
-		: (onlineQuery.data ?? []);
+	const { keywords: allItems, isLoading } = useNovelKeywords(selectedNovelId);
 
 	const groups = useMemo(() => {
 		const term = search.trim().toLowerCase();
@@ -327,10 +299,6 @@ export function ColoringCards({
 		if (!term) return all;
 		return all.filter((g) => groupMatchesSearch(g, term));
 	}, [allItems, search]);
-
-	const isLoading = offline.useLocalCache
-		? offline.isLoading
-		: onlineQuery.isLoading;
 
 	if (isLoading) {
 		return (
@@ -414,13 +382,14 @@ export function ColoringCards({
 											<ActionIcon
 												size="xs"
 												variant="subtle"
-												color="green"
+												color="brand"
+												aria-label={t("coloring.addAlias")}
 												onClick={(e) => {
 													e.stopPropagation();
 													onAddAlias(parent);
 												}}
 											>
-												<IconPlus size={12} />
+												<IconPlus size={16} aria-hidden="true" />
 											</ActionIcon>
 										</Tooltip>
 									)}
@@ -429,13 +398,14 @@ export function ColoringCards({
 											<ActionIcon
 												size="xs"
 												variant="subtle"
-												color="violet"
+												color="var(--mantine-color-dimmed)"
+												aria-label={t("coloring.addVersion")}
 												onClick={(e) => {
 													e.stopPropagation();
 													onAddVersion(parent);
 												}}
 											>
-												<IconHistory size={12} />
+												<IconHistory size={16} aria-hidden="true" />
 											</ActionIcon>
 										</Tooltip>
 									)}

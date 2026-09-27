@@ -7,8 +7,8 @@ import {
 	type StackProps,
 	Text,
 } from "@mantine/core";
-import { IconCloudUpload } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
+import { CloudUpload as IconCloudUpload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import type { GetReplacements200DataItem } from "@/api/generated/schemas";

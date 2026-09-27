@@ -1,5 +1,5 @@
 {
-	"extName": "StoryLens",
+	"extName": "Story Lens",
 	"extDescription": "Colorize, rename, and track characters, places, and techniques in web novels. Your personal glossary while you read.",
 	"_": {
 		"search": "Search",
@@ -64,7 +64,10 @@
 		"endingChapter": "Ending chapter",
 		"noAliases": "No aliases yet",
 		"alias": "Alias",
-		"deleteAliasesWarning": "This will also delete all its aliases."
+		"deleteAliasesWarning": "This will also delete all its aliases.",
+		"aiSuggesting": "AI is suggesting a description, category, and nature…",
+		"aiSuggestionReady": "AI suggestion ready. Click Add to review it.",
+		"aiFailed": "AI suggestion failed"
 	},
 	"replacing": {
 		"from": "From",
@@ -76,8 +79,6 @@
 		"fullWordMatch": "Full word match"
 	},
 	"home": {
-		"selectPageText": "Select text on page",
-		"selectionUnavailable": "Text selection is unavailable on this page.",
 		"title": "Keywords Management",
 		"selectNovel": "Select Novel",
 		"selectNovelPlaceholder": "Choose a novel to manage keywords",
@@ -114,6 +115,7 @@
 		"chapterBiasResetFailed": "Failed to remove chapter bias"
 	},
 	"novels": {
+		"actions": "Novel actions",
 		"add": "Add Novel",
 		"edit": "Edit Novel",
 		"delete": "Delete Novel",
@@ -166,7 +168,11 @@
 		"aboutStoryLens": "About Story Lens",
 		"website": "Website",
 		"privacyPolicy": "Privacy Policy",
-		"termsOfUse": "Terms of Use"
+		"termsOfUse": "Terms of Use",
+		"usageAnalytics": "Anonymous usage analytics",
+		"usageAnalyticsDescription": "Send anonymous feature usage to Google Analytics to help improve Story Lens. No page content or account details are sent.",
+		"description": "Description",
+		"descriptionHint": "Explain when to use it; AI suggestions read this to choose."
 	},
 	"category": {
 		"noRecords": "There is no categories to show"
@@ -217,40 +223,13 @@
 		"startStep3": "3. Add keywords, replacements, and customize your reading experience."
 	},
 	"auth": {
-		"login": "Login",
-		"register": "Register",
-		"email": "Email",
-		"password": "Password",
-		"username": "Username",
-		"name": "Display Name",
-		"loginSuccess": "Logged in successfully",
-		"loginFailed": "Invalid email or password",
-		"registerSuccess": "Account created successfully",
-		"registerFailed": "Registration failed",
-		"logout": "Logout",
-		"logoutSuccess": "Logged out",
-		"guestBadge": "Guest",
-		"userBadge": "User",
-		"adminBadge": "Admin",
 		"addSlug": "Add Current Slug",
 		"addSlugSuccess": "Slug added to novel",
 		"addSlugFailed": "Failed to add slug",
 		"noSlugDetected": "No slug detected from current page",
 		"cannotDetectNovel": "Cannot detect novel name from this page",
 		"guestReadOnly": "Guest mode: browse and download only. Register to add or edit.",
-		"saveProfile": "Save profile",
-		"profileUpdated": "Profile updated",
-		"profileUpdateFailed": "Failed to update profile",
-		"nameRequired": "Name is required",
-		"changePassword": "Change password",
-		"currentPassword": "Current password",
-		"newPassword": "New password",
-		"confirmPassword": "Confirm new password",
-		"currentPasswordRequired": "Enter your current password",
-		"passwordLength": "Use 8–72 characters",
-		"passwordMismatch": "Passwords do not match",
-		"passwordChanged": "Password changed",
-		"passwordChangeFailed": "Could not change password"
+		"saveProfile": "Save profile"
 	},
 	"nodeSelector": {
 		"nodeSelector": "Node Selector",
@@ -280,9 +259,8 @@
 		"noData": "There is no websites to show"
 	},
 	"desktop": {
-		"summarize": "Summarize page",
 		"settings": "Desktop client",
-		"disclosure": "Clicking Summarize sends this page’s content through the desktop client to your selected AI provider.",
+		"disclosure": "The launcher’s AI actions (AI add, Summarize page, and Extract chapter characters) send page content through the desktop client to your selected AI provider.",
 		"port": "Local port",
 		"token": "Pairing token",
 		"connect": "Connect / refresh models",
@@ -290,11 +268,46 @@
 		"effort": "Effort",
 		"connected": "Connected; models",
 		"connectionFailed": "Could not connect to desktop client.",
+		"configureAi": "Please configure AI in the settings.",
 		"selectModel": "Connect and choose a model first.",
-		"unsupportedPage": "Open an HTTP or HTTPS page first.",
-		"summaryStarted": "Summary started on the page.",
-		"summaryRunning": "A summary is already running on this page.",
-		"summaryFailed": "Could not start the summary.",
 		"modelUnavailable": "Saved model is unavailable. Choose another model."
+	},
+	"extract": {
+		"selectParent": "Select a character",
+		"noParentFound": "No character found",
+		"noPage": "Could not find the page tab.",
+		"noText": "No chapter text was found on this page.",
+		"failed": "Character extraction failed",
+		"categoryNatureRequired": "Choose a category and a nature first.",
+		"parentRequired": "Choose a parent character first.",
+		"saveFailed": "Could not save this row.",
+		"loading": "Extracting this chapter's characters with AI…",
+		"retry": "Retry",
+		"empty": "No new characters were found in this chapter.",
+		"parent": "Parent",
+		"actions": "Actions",
+		"new": "New",
+		"alias": "Alias",
+		"version": "Version",
+		"ignore": "Ignore",
+		"saved": {
+			"new": "Added",
+			"alias": "Added as alias",
+			"version": "Added as version"
+		}
+	},
+	"selection": {
+		"parent": "Parent keyword",
+		"searchParent": "Search keywords…",
+		"loading": "Loading…",
+		"noParents": "No matching keywords",
+		"keyword": "Keyword",
+		"alias": "Alias",
+		"version": "Version",
+		"ai": "Use AI",
+		"aiHelp": "Suggest details using nearby text",
+		"continue": "Continue",
+		"close": "Close",
+		"form": "Entry form"
 	}
 }

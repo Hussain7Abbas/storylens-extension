@@ -5,6 +5,12 @@
 }
 
 .storylens-keyword-tooltip-root {
+	--sl-tooltip-surface: #ffffff;
+	--sl-tooltip-ink: #202132;
+	--sl-tooltip-muted: #656779;
+	--sl-tooltip-border: #e0e1eb;
+	--sl-tooltip-accent: #6554c0;
+	--sl-tooltip-wash: #eeebfa;
 	position: fixed;
 	inset: 0;
 	pointer-events: none;
@@ -16,11 +22,13 @@
 	position: fixed;
 	pointer-events: auto;
 	width: fit-content;
-	background-color: black;
-	color: #fff;
+	background-color: var(--sl-tooltip-surface);
+	color: var(--sl-tooltip-ink);
 	text-align: center;
-	border-radius: 6px;
-	padding: 5px 10px;
+	border: 1px solid var(--sl-tooltip-border);
+	border-radius: 8px;
+	padding: 6px 12px;
+	box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
 	font-size: var(--storylens-font-size, 14px) !important;
 	font-family: var(--storylens-font-face, inherit) !important;
 	z-index: 2147483647;
@@ -39,12 +47,12 @@
 
 .storylens-tooltip-text--floating[data-placement="above"]::after {
 	top: 100%;
-	border-color: black transparent transparent transparent;
+	border-color: var(--sl-tooltip-surface) transparent transparent transparent;
 }
 
 .storylens-tooltip-text--floating[data-placement="below"]::after {
 	bottom: 100%;
-	border-color: transparent transparent black transparent;
+	border-color: transparent transparent var(--sl-tooltip-surface) transparent;
 }
 
 /* Keyword tooltip specific styles */
@@ -67,7 +75,7 @@
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
-	margin-right: 4px;
+	margin-inline-end: 4px;
 	vertical-align: middle;
 }
 
@@ -97,7 +105,7 @@
 	margin: 4px 0;
 	font-size: 0.86em;
 	line-height: 1.4;
-	text-align: right;
+	text-align: start;
 }
 
 .storylens-image-wrapper {
@@ -142,14 +150,14 @@
 .storylens-keyword-meta .storylens-category,
 .storylens-keyword-meta .storylens-nature {
 	padding: 2px 6px;
-	border-radius: 3px;
-	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 2rem;
+	background-color: var(--sl-tooltip-wash);
 }
 
 /* Tab system */
 .storylens-tab-bar {
 	display: flex;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	border-bottom: 1px solid var(--sl-tooltip-border);
 	margin-bottom: 8px;
 	gap: 2px;
 }
@@ -159,7 +167,7 @@
 	background: none;
 	border: none;
 	border-bottom: 2px solid transparent;
-	color: rgba(255, 255, 255, 0.6);
+	color: var(--sl-tooltip-muted);
 	font-size: 0.75em;
 	cursor: pointer;
 	padding: 4px 4px 3px;
@@ -169,12 +177,12 @@
 }
 
 .storylens-tab-btn:hover {
-	color: #fff;
+	color: var(--sl-tooltip-ink);
 }
 
 .storylens-tab-btn--active {
-	color: #fff;
-	border-bottom-color: #fff;
+	color: var(--sl-tooltip-accent);
+	border-bottom-color: var(--sl-tooltip-accent);
 }
 
 /* Info panel field blocks */
@@ -193,7 +201,7 @@
 .storylens-show-more-btn {
 	background: none;
 	border: none;
-	color: rgba(255, 255, 255, 0.45);
+	color: var(--sl-tooltip-muted);
 	font-size: 0.75em;
 	cursor: pointer;
 	padding: 0 2px;
@@ -203,14 +211,14 @@
 }
 
 .storylens-show-more-btn:hover {
-	color: rgba(255, 255, 255, 0.85);
+	color: var(--sl-tooltip-ink);
 }
 
 .storylens-show-more-detail {
 	margin-top: 3px;
 	font-size: 0.75em;
-	border-left: 2px solid rgba(255, 255, 255, 0.2);
-	padding-left: 6px;
+	border-inline-start: 2px solid var(--sl-tooltip-border);
+	padding-inline-start: 6px;
 }
 
 .storylens-override-row {
@@ -226,7 +234,7 @@
 /* Aliases / Versions panel items */
 .storylens-panel-item {
 	padding: 5px 0;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	border-bottom: 1px solid var(--sl-tooltip-border);
 }
 
 .storylens-panel-item:last-child {
@@ -265,7 +273,7 @@
 .storylens-override-badge {
 	font-size: 0.71em;
 	font-weight: normal;
-	background: rgba(100, 150, 255, 0.25);
+	background: var(--sl-tooltip-wash);
 	padding: 1px 5px;
 	border-radius: 3px;
 }
@@ -282,4 +290,29 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 
 .publift-widget-22804772995 {
 	display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+	.storylens-keyword-tooltip-root {
+		--sl-tooltip-surface: #22232e;
+		--sl-tooltip-ink: #eeeff6;
+		--sl-tooltip-muted: #a8abbe;
+		--sl-tooltip-border: #383a4b;
+		--sl-tooltip-accent: #b5a8f5;
+		--sl-tooltip-wash: #302a45;
+	}
+}
+.storylens-tooltip-text--floating {
+	overflow-wrap: anywhere;
+	max-width: calc(100vw - 24px);
+}
+.storylens-tab-btn:focus-visible,
+.storylens-show-more-btn:focus-visible {
+	outline: 3px solid var(--sl-tooltip-accent);
+	outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+	.storylens-keyword-tooltip {
+		transition: none;
+	}
 }

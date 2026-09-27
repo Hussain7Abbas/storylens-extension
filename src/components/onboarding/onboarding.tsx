@@ -8,14 +8,15 @@ import {
 	TextInput,
 	ThemeIcon,
 	Title,
+	Tooltip,
 } from "@mantine/core";
-import {
-	IconBook,
-	IconCheck,
-	IconPalette,
-	IconUser,
-} from "@tabler/icons-react";
 import { useAtom } from "jotai";
+import {
+	BookOpen as IconBook,
+	Check as IconCheck,
+	Palette as IconPalette,
+	UserRound as IconUser,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
@@ -108,33 +109,45 @@ export function Onboarding() {
 
 				<Group justify="space-between" mt="md">
 					{active > 0 ? (
-						<Button variant="subtle" onClick={prevStep} size="xs">
-							{t("onboarding.back")}
-						</Button>
+						<Tooltip label={t("onboarding.back")} withArrow openDelay={350}>
+							<Button variant="subtle" onClick={prevStep} size="xs">
+								{t("onboarding.back")}
+							</Button>
+						</Tooltip>
 					) : (
 						<div />
 					)}
 
 					{active === 0 && (
-						<Button onClick={nextStep} size="xs">
-							{t("onboarding.next")}
-						</Button>
+						<Tooltip label={t("onboarding.next")} withArrow openDelay={350}>
+							<Button onClick={nextStep} size="xs">
+								{t("onboarding.next")}
+							</Button>
+						</Tooltip>
 					)}
 
 					{active === 1 && (
-						<Button onClick={handleUsernameSubmit} loading={checking} size="xs">
-							{t("onboarding.next")}
-						</Button>
+						<Tooltip label={t("onboarding.next")} withArrow openDelay={350}>
+							<Button
+								onClick={handleUsernameSubmit}
+								loading={checking}
+								size="xs"
+							>
+								{t("onboarding.next")}
+							</Button>
+						</Tooltip>
 					)}
 
 					{active === 2 && (
-						<Button
-							onClick={handleComplete}
-							size="xs"
-							leftSection={<IconCheck size={14} />}
-						>
-							{t("onboarding.finish")}
-						</Button>
+						<Tooltip label={t("onboarding.finish")} withArrow openDelay={350}>
+							<Button
+								onClick={handleComplete}
+								size="xs"
+								leftSection={<IconCheck size={14} />}
+							>
+								{t("onboarding.finish")}
+							</Button>
+						</Tooltip>
 					)}
 				</Group>
 			</Stack>
@@ -147,7 +160,13 @@ function WelcomePage() {
 
 	return (
 		<Stack align="center" gap="md" pt="lg">
-			<ThemeIcon size={60} radius="xl" variant="light" color="blue">
+			<ThemeIcon
+				size={60}
+				radius="xl"
+				variant="filled"
+				color="var(--sl-highlight-1)"
+				c="var(--sl-mark-ink)"
+			>
 				<IconBook size={30} />
 			</ThemeIcon>
 			<Title order={3} ta="center">
@@ -173,7 +192,13 @@ function ProfileSetupPage({
 
 	return (
 		<Stack align="center" gap="md" pt="lg">
-			<ThemeIcon size={60} radius="xl" variant="light" color="teal">
+			<ThemeIcon
+				size={60}
+				radius="xl"
+				variant="filled"
+				color="var(--sl-highlight-0)"
+				c="var(--sl-mark-ink)"
+			>
 				<IconUser size={30} />
 			</ThemeIcon>
 			<Title order={4} ta="center">
@@ -199,7 +224,13 @@ function GettingStartedPage() {
 
 	return (
 		<Stack align="center" gap="md" pt="lg">
-			<ThemeIcon size={60} radius="xl" variant="light" color="grape">
+			<ThemeIcon
+				size={60}
+				radius="xl"
+				variant="filled"
+				color="var(--sl-highlight-2)"
+				c="var(--sl-mark-ink)"
+			>
 				<IconPalette size={30} />
 			</ThemeIcon>
 			<Title order={4} ta="center">

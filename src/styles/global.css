@@ -1,0 +1,106 @@
+/* Self-hosted brand fonts, matching the website (no remote font requests). */
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
+@import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
+
+.mantine-Title-root {
+	letter-spacing: -0.02em;
+}
+
+/* Arabic UI uses IBM Plex Sans Arabic for body and headings, as on the website. */
+html[lang="ar"] {
+	--mantine-font-family: "IBM Plex Sans Arabic", Tahoma, sans-serif;
+	--mantine-font-family-headings: "IBM Plex Sans Arabic", Tahoma, sans-serif;
+	--sl-font-display: "IBM Plex Sans Arabic", Tahoma, sans-serif;
+}
+
+html[lang="ar"] .mantine-Title-root {
+	letter-spacing: 0;
+	line-height: 1.45;
+}
+
+/* Website focus treatment: visible 3px accent ring. */
+.mantine-focus-auto:focus-visible,
+.mantine-focus-always:focus {
+	outline: 3px solid var(--mantine-primary-color-filled);
+	outline-offset: 2px;
+}
+
+/* Brand fills that Mantine colors outside the variant resolver. */
+.mantine-Stepper-stepIcon[data-completed],
+.mantine-Pagination-control[data-active] {
+	color: var(--sl-on-brand);
+}
+
+/* Lucide is shared with the website: one outline weight and neutral utilities. */
+.lucide {
+	stroke-width: 1.75;
+	flex-shrink: 0;
+}
+.mantine-Input-input {
+	background: var(--sl-surface);
+}
+.mantine-InputWrapper-label {
+	margin-block-end: 0.35rem;
+	font-weight: 500;
+}
+.mantine-Button-root {
+	min-height: 2.5rem;
+}
+.mantine-ActionIcon-root {
+	min-width: 2rem;
+	min-height: 2rem;
+}
+.mantine-Tabs-list {
+	gap: 0.25rem;
+	padding: 0.25rem;
+	border-radius: var(--mantine-radius-md);
+	background: var(--sl-wash);
+}
+.mantine-Tabs-tab {
+	font-weight: 500;
+	border-radius: var(--mantine-radius-sm);
+	min-height: 2.25rem;
+	padding-inline: 0.6rem;
+}
+.mantine-Tabs-tab[data-active] {
+	background: var(--sl-surface);
+	color: var(--mantine-primary-color-filled);
+	box-shadow: var(--mantine-shadow-xs);
+}
+.mantine-Tabs-tabLabel {
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+.mantine-Menu-dropdown,
+.mantine-Popover-dropdown {
+	box-shadow: var(--mantine-shadow-md);
+}
+@media (pointer: coarse) {
+	.mantine-ActionIcon-root {
+		min-width: 2.75rem;
+		min-height: 2.75rem;
+	}
+	.mantine-Button-root,
+	.mantine-Tabs-tab {
+		min-height: 2.75rem;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto;
+		transition: none;
+		animation: none;
+	}
+}
+
+.mantine-Tabs-root {
+	--popup-tabs-sticky-height: 52px;
+}
+@media (pointer: coarse) {
+	.mantine-Tabs-root {
+		--popup-tabs-sticky-height: 60px;
+	}
+}

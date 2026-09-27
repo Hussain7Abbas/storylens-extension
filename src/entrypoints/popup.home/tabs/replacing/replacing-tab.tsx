@@ -1,4 +1,5 @@
-import { Box, Button, Stack, Text } from "@mantine/core";
+import { Box, Button, Stack, Text, Tooltip } from "@mantine/core";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetReplacements200DataItem } from "@/api/generated/schemas";
@@ -34,19 +35,21 @@ export function ReplacingTab({ selectedNovelId }: { selectedNovelId: string }) {
 			) : (
 				<>
 					{canMutate ? (
-						<Button
-							type="submit"
-							variant="light"
-							color="green.7"
-							onClick={() => {
-								setReplacement(undefined);
-								setReplacingFormMode("add");
-							}}
-							hidden={!!replacingFormMode}
-							fullWidth
-						>
-							{t("_.add")}
-						</Button>
+						<Tooltip label={t("_.add")} withArrow openDelay={350}>
+							<Button
+								type="button"
+								variant="filled"
+								leftSection={<Plus size={16} aria-hidden="true" />}
+								onClick={() => {
+									setReplacement(undefined);
+									setReplacingFormMode("add");
+								}}
+								hidden={!!replacingFormMode}
+								fullWidth
+							>
+								{t("_.add")}
+							</Button>
+						</Tooltip>
 					) : (
 						<Text size="xs" c="dimmed" ta="center">
 							{t("auth.guestReadOnly")}

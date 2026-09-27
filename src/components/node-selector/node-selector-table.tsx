@@ -1,5 +1,5 @@
-import { Button, Skeleton, Stack, Text } from "@mantine/core";
-import { IconPlanet } from "@tabler/icons-react";
+import { Button, Skeleton, Stack, Text, Tooltip } from "@mantine/core";
+import { Globe as IconPlanet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useGetWebsiteSelectors } from "@/api/generated/endpoints/website-selectors.js";
 
@@ -22,26 +22,33 @@ export function NodeSelectorTable({ onEdit }: NodeSelectorTableProps) {
 		<Stack p="sm" gap="xs">
 			{tableData.length === 0 && <Text>{t("nodeSelector.noData")}</Text>}
 			{tableData.map((record) => (
-				<Button
+				<Tooltip
 					key={record.website}
-					size="md"
-					variant="subtle"
-					onClick={() => onEdit(record.website)}
-					leftSection={<IconPlanet />}
-					fullWidth
-					style={{
-						whiteSpace: "nowrap",
-						overflow: "hidden",
-						textOverflow: "ellipsis",
-					}}
-					styles={{
-						inner: {
-							justifyContent: "start",
-						},
-					}}
+					label={record.website}
+					withArrow
+					openDelay={350}
 				>
-					{record.website}
-				</Button>
+					<Button
+						key={record.website}
+						size="md"
+						variant="subtle"
+						onClick={() => onEdit(record.website)}
+						leftSection={<IconPlanet />}
+						fullWidth
+						style={{
+							whiteSpace: "nowrap",
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+						}}
+						styles={{
+							inner: {
+								justifyContent: "start",
+							},
+						}}
+					>
+						{record.website}
+					</Button>
+				</Tooltip>
 			))}
 		</Stack>
 	);
