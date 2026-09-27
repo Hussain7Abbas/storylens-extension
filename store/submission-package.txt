@@ -24,7 +24,7 @@ C. Extension popup showing replacement settings
 D. Options/settings page
 E. Arabic UI example (optional)
 
-4) SMALL PROMO TILE (optional, but useful if you want featuring)
+4) SMALL PROMO TILE (required)
 Size: 440 x 280 px
 Format: JPEG or 24-bit PNG (no alpha)
 
