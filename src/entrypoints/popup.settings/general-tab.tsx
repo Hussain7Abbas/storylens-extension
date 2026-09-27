@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { ANALYTICS_ENABLED_KEY } from "@/lib/analytics/types";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
+import { websitePageUrl } from "@/lib/website";
 import { localeAtom } from "@/store/locale";
 import { NodeSelector } from "../../components/node-selector/node-selector";
 
@@ -91,7 +92,7 @@ export function GeneralTab() {
 					<Tooltip label={t("settings.website")} withArrow openDelay={350}>
 						<Button
 							component="a"
-							href={`https://storylens.iscoded.com/${locale}/`}
+							href={websitePageUrl(locale, "")}
 							target="_blank"
 							rel="noopener noreferrer"
 							variant="subtle"
@@ -106,7 +107,7 @@ export function GeneralTab() {
 					>
 						<Button
 							component="a"
-							href={`https://storylens.iscoded.com/${locale}/privacy/`}
+							href={websitePageUrl(locale, "privacy/")}
 							target="_blank"
 							rel="noopener noreferrer"
 							variant="subtle"
@@ -117,7 +118,7 @@ export function GeneralTab() {
 					<Tooltip label={t("settings.termsOfUse")} withArrow openDelay={350}>
 						<Button
 							component="a"
-							href={`https://storylens.iscoded.com/${locale}/terms/`}
+							href={websitePageUrl(locale, "terms/")}
 							target="_blank"
 							rel="noopener noreferrer"
 							variant="subtle"
