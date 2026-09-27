@@ -7,6 +7,7 @@
  */
 
 import type { PutKeywordVersionsById200NatureAnyOfCreatedAt } from "./putKeywordVersionsById200NatureAnyOfCreatedAt";
+import type { PutKeywordVersionsById200NatureAnyOfDescription } from "./putKeywordVersionsById200NatureAnyOfDescription";
 import type { PutKeywordVersionsById200NatureAnyOfNameAr } from "./putKeywordVersionsById200NatureAnyOfNameAr";
 import type { PutKeywordVersionsById200NatureAnyOfNameEn } from "./putKeywordVersionsById200NatureAnyOfNameEn";
 import type { PutKeywordVersionsById200NatureAnyOfUpdatedAt } from "./putKeywordVersionsById200NatureAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PutKeywordVersionsById200NatureAnyOf = {
 	nameEn: PutKeywordVersionsById200NatureAnyOfNameEn;
 	nameAr: PutKeywordVersionsById200NatureAnyOfNameAr;
 	color: string;
+	description: PutKeywordVersionsById200NatureAnyOfDescription;
 	createdAt: PutKeywordVersionsById200NatureAnyOfCreatedAt;
 	updatedAt: PutKeywordVersionsById200NatureAnyOfUpdatedAt;
 };

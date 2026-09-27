@@ -7,6 +7,7 @@
  */
 
 import type { PostKeywordVersions200NatureAnyOfCreatedAt } from "./postKeywordVersions200NatureAnyOfCreatedAt";
+import type { PostKeywordVersions200NatureAnyOfDescription } from "./postKeywordVersions200NatureAnyOfDescription";
 import type { PostKeywordVersions200NatureAnyOfNameAr } from "./postKeywordVersions200NatureAnyOfNameAr";
 import type { PostKeywordVersions200NatureAnyOfNameEn } from "./postKeywordVersions200NatureAnyOfNameEn";
 import type { PostKeywordVersions200NatureAnyOfUpdatedAt } from "./postKeywordVersions200NatureAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PostKeywordVersions200NatureAnyOf = {
 	nameEn: PostKeywordVersions200NatureAnyOfNameEn;
 	nameAr: PostKeywordVersions200NatureAnyOfNameAr;
 	color: string;
+	description: PostKeywordVersions200NatureAnyOfDescription;
 	createdAt: PostKeywordVersions200NatureAnyOfCreatedAt;
 	updatedAt: PostKeywordVersions200NatureAnyOfUpdatedAt;
 };

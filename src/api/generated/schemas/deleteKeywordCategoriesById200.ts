@@ -7,6 +7,7 @@
  */
 
 import type { DeleteKeywordCategoriesById200CreatedAt } from "./deleteKeywordCategoriesById200CreatedAt";
+import type { DeleteKeywordCategoriesById200Description } from "./deleteKeywordCategoriesById200Description";
 import type { DeleteKeywordCategoriesById200NameAr } from "./deleteKeywordCategoriesById200NameAr";
 import type { DeleteKeywordCategoriesById200NameEn } from "./deleteKeywordCategoriesById200NameEn";
 import type { DeleteKeywordCategoriesById200UpdatedAt } from "./deleteKeywordCategoriesById200UpdatedAt";
@@ -16,6 +17,7 @@ export type DeleteKeywordCategoriesById200 = {
 	nameEn: DeleteKeywordCategoriesById200NameEn;
 	nameAr: DeleteKeywordCategoriesById200NameAr;
 	color: string;
+	description: DeleteKeywordCategoriesById200Description;
 	createdAt: DeleteKeywordCategoriesById200CreatedAt;
 	updatedAt: DeleteKeywordCategoriesById200UpdatedAt;
 };

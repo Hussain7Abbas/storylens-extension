@@ -7,6 +7,7 @@
  */
 
 import type { PostKeywordAliases200NatureAnyOfCreatedAt } from "./postKeywordAliases200NatureAnyOfCreatedAt";
+import type { PostKeywordAliases200NatureAnyOfDescription } from "./postKeywordAliases200NatureAnyOfDescription";
 import type { PostKeywordAliases200NatureAnyOfNameAr } from "./postKeywordAliases200NatureAnyOfNameAr";
 import type { PostKeywordAliases200NatureAnyOfNameEn } from "./postKeywordAliases200NatureAnyOfNameEn";
 import type { PostKeywordAliases200NatureAnyOfUpdatedAt } from "./postKeywordAliases200NatureAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PostKeywordAliases200NatureAnyOf = {
 	nameEn: PostKeywordAliases200NatureAnyOfNameEn;
 	nameAr: PostKeywordAliases200NatureAnyOfNameAr;
 	color: string;
+	description: PostKeywordAliases200NatureAnyOfDescription;
 	createdAt: PostKeywordAliases200NatureAnyOfCreatedAt;
 	updatedAt: PostKeywordAliases200NatureAnyOfUpdatedAt;
 };

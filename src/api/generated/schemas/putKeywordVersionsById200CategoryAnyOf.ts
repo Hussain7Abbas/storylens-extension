@@ -7,6 +7,7 @@
  */
 
 import type { PutKeywordVersionsById200CategoryAnyOfCreatedAt } from "./putKeywordVersionsById200CategoryAnyOfCreatedAt";
+import type { PutKeywordVersionsById200CategoryAnyOfDescription } from "./putKeywordVersionsById200CategoryAnyOfDescription";
 import type { PutKeywordVersionsById200CategoryAnyOfNameAr } from "./putKeywordVersionsById200CategoryAnyOfNameAr";
 import type { PutKeywordVersionsById200CategoryAnyOfNameEn } from "./putKeywordVersionsById200CategoryAnyOfNameEn";
 import type { PutKeywordVersionsById200CategoryAnyOfUpdatedAt } from "./putKeywordVersionsById200CategoryAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PutKeywordVersionsById200CategoryAnyOf = {
 	nameEn: PutKeywordVersionsById200CategoryAnyOfNameEn;
 	nameAr: PutKeywordVersionsById200CategoryAnyOfNameAr;
 	color: string;
+	description: PutKeywordVersionsById200CategoryAnyOfDescription;
 	createdAt: PutKeywordVersionsById200CategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordVersionsById200CategoryAnyOfUpdatedAt;
 };

@@ -1,4 +1,4 @@
-import { Box, Button, Stack } from "@mantine/core";
+import { Box, Button, Stack, Tooltip } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchInput } from "@/components/search-input";
@@ -27,16 +27,17 @@ export function CategoryTab() {
 
 	return (
 		<Stack gap="xs" pt="xs">
-			<Button
-				variant="light"
-				color="green.7"
-				onClick={() => {
-					setCategory(undefined);
-					setFormMode("add");
-				}}
-			>
-				{t("settings.addCategory")}
-			</Button>
+			<Tooltip label={t("settings.addCategory")} withArrow openDelay={350}>
+				<Button
+					variant="light"
+					onClick={() => {
+						setCategory(undefined);
+						setFormMode("add");
+					}}
+				>
+					{t("settings.addCategory")}
+				</Button>
+			</Tooltip>
 
 			<Box
 				pos="sticky"

@@ -1,4 +1,12 @@
-import { Button, Fieldset, Group, Stack, Switch, Text } from "@mantine/core";
+import {
+	Button,
+	Fieldset,
+	Group,
+	Stack,
+	Switch,
+	Text,
+	Tooltip,
+} from "@mantine/core";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,11 +48,21 @@ export function GeneralTab() {
 		<Stack gap="xs" p="md">
 			<Group>
 				<Text>{t("settings.language")}:</Text>
-				<Button onClick={handleChangeLanguage}>
-					{locale === "ar"
-						? t("settings.languageEnglish")
-						: t("settings.languageArabic")}
-				</Button>
+				<Tooltip
+					label={
+						locale === "ar"
+							? t("settings.languageEnglish")
+							: t("settings.languageArabic")
+					}
+					withArrow
+					openDelay={350}
+				>
+					<Button onClick={handleChangeLanguage}>
+						{locale === "ar"
+							? t("settings.languageEnglish")
+							: t("settings.languageArabic")}
+					</Button>
+				</Tooltip>
 			</Group>
 			<Switch
 				label={t("settings.inSitePopup")}
@@ -70,33 +88,43 @@ export function GeneralTab() {
 			/>
 			<Fieldset legend={t("settings.aboutStoryLens")}>
 				<Group gap="sm">
-					<Button
-						component="a"
-						href={`https://storylens.iscoded.com/${locale}/`}
-						target="_blank"
-						rel="noopener noreferrer"
-						variant="subtle"
+					<Tooltip label={t("settings.website")} withArrow openDelay={350}>
+						<Button
+							component="a"
+							href={`https://storylens.iscoded.com/${locale}/`}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="subtle"
+						>
+							{t("settings.website")}
+						</Button>
+					</Tooltip>
+					<Tooltip
+						label={t("settings.privacyPolicy")}
+						withArrow
+						openDelay={350}
 					>
-						{t("settings.website")}
-					</Button>
-					<Button
-						component="a"
-						href={`https://storylens.iscoded.com/${locale}/privacy/`}
-						target="_blank"
-						rel="noopener noreferrer"
-						variant="subtle"
-					>
-						{t("settings.privacyPolicy")}
-					</Button>
-					<Button
-						component="a"
-						href={`https://storylens.iscoded.com/${locale}/terms/`}
-						target="_blank"
-						rel="noopener noreferrer"
-						variant="subtle"
-					>
-						{t("settings.termsOfUse")}
-					</Button>
+						<Button
+							component="a"
+							href={`https://storylens.iscoded.com/${locale}/privacy/`}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="subtle"
+						>
+							{t("settings.privacyPolicy")}
+						</Button>
+					</Tooltip>
+					<Tooltip label={t("settings.termsOfUse")} withArrow openDelay={350}>
+						<Button
+							component="a"
+							href={`https://storylens.iscoded.com/${locale}/terms/`}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="subtle"
+						>
+							{t("settings.termsOfUse")}
+						</Button>
+					</Tooltip>
 				</Group>
 			</Fieldset>
 			<Fieldset legend={t("nodeSelector.nodeSelector")}>

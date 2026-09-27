@@ -7,6 +7,7 @@
  */
 
 import type { GetKeywordAliases200DataItemCategoryAnyOfCreatedAt } from "./getKeywordAliases200DataItemCategoryAnyOfCreatedAt";
+import type { GetKeywordAliases200DataItemCategoryAnyOfDescription } from "./getKeywordAliases200DataItemCategoryAnyOfDescription";
 import type { GetKeywordAliases200DataItemCategoryAnyOfNameAr } from "./getKeywordAliases200DataItemCategoryAnyOfNameAr";
 import type { GetKeywordAliases200DataItemCategoryAnyOfNameEn } from "./getKeywordAliases200DataItemCategoryAnyOfNameEn";
 import type { GetKeywordAliases200DataItemCategoryAnyOfUpdatedAt } from "./getKeywordAliases200DataItemCategoryAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type GetKeywordAliases200DataItemCategoryAnyOf = {
 	nameEn: GetKeywordAliases200DataItemCategoryAnyOfNameEn;
 	nameAr: GetKeywordAliases200DataItemCategoryAnyOfNameAr;
 	color: string;
+	description: GetKeywordAliases200DataItemCategoryAnyOfDescription;
 	createdAt: GetKeywordAliases200DataItemCategoryAnyOfCreatedAt;
 	updatedAt: GetKeywordAliases200DataItemCategoryAnyOfUpdatedAt;
 };

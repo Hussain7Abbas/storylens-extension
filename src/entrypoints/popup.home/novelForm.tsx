@@ -8,10 +8,11 @@ import {
 	TagsInput,
 	Text,
 	TextInput,
+	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconLink } from "@tabler/icons-react";
 import { useAtomValue } from "jotai";
+import { Link as IconLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,7 @@ import {
 	usePostNovels,
 	usePutNovelsById,
 } from "@/api/generated/endpoints/novels.js";
+import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
 import type { currentNovelMeta } from "@/types";
@@ -63,7 +65,7 @@ async function getNovelNameFromRegex(tabId: number): Promise<string | null> {
 
 export type novelFormModes = "add" | "edit" | "delete" | undefined;
 
-export function NovelForm({
+function NovelFormContent({
 	selectedNovel,
 	currentTabNovel,
 	refetchNovels,
@@ -242,21 +244,25 @@ export function NovelForm({
 				<Stack gap="xs">
 					<Alert title={t("novels.confirmDelete")} color="red" />
 					<Group grow>
-						<Button
-							variant="outline"
-							onClick={onClose}
-							loading={deleteNovelMutation.isPending}
-						>
-							{t("_.cancel")}
-						</Button>
-						<Button
-							variant="outline"
-							color="red"
-							onClick={handleDelete}
-							loading={deleteNovelMutation.isPending}
-						>
-							{t("_.delete")}
-						</Button>
+						<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+							<Button
+								variant="outline"
+								onClick={onClose}
+								loading={deleteNovelMutation.isPending}
+							>
+								{t("_.cancel")}
+							</Button>
+						</Tooltip>
+						<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+							<Button
+								variant="outline"
+								color="red"
+								onClick={handleDelete}
+								loading={deleteNovelMutation.isPending}
+							>
+								{t("_.delete")}
+							</Button>
+						</Tooltip>
 					</Group>
 				</Stack>
 			</Paper>
@@ -297,16 +303,17 @@ export function NovelForm({
 							{...form.getInputProps("slugs")}
 						/>
 						{showAddCurrentSlugButton && (
-							<Button
-								type="button"
-								variant="light"
-								color="cyan"
-								size="xs"
-								leftSection={<IconLink size={14} />}
-								onClick={handleAddCurrentSlug}
-							>
-								{t("novels.addSlug")}
-							</Button>
+							<Tooltip label={t("novels.addSlug")} withArrow openDelay={350}>
+								<Button
+									type="button"
+									variant="light"
+									size="xs"
+									leftSection={<IconLink size={14} />}
+									onClick={handleAddCurrentSlug}
+								>
+									{t("novels.addSlug")}
+								</Button>
+							</Tooltip>
 						)}
 					</Stack>
 					<TextInput
@@ -319,24 +326,36 @@ export function NovelForm({
 					/>
 
 					<Group grow>
-						<Button
-							type="button"
-							variant="outline"
-							loading={createNovelMutation.isPending}
-							onClick={onClose}
-						>
-							{t("_.cancel")}
-						</Button>
-						<Button
-							type="submit"
-							loading={createNovelMutation.isPending}
-							disabled={mode === "add" && role !== "admin" && !detectedName}
-						>
-							{t("_.save")}
-						</Button>
+						<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+							<Button
+								type="button"
+								variant="outline"
+								loading={createNovelMutation.isPending}
+								onClick={onClose}
+							>
+								{t("_.cancel")}
+							</Button>
+						</Tooltip>
+						<Tooltip label={t("_.save")} withArrow openDelay={350}>
+							<Button
+								type="submit"
+								loading={createNovelMutation.isPending}
+								disabled={mode === "add" && role !== "admin" && !detectedName}
+							>
+								{t("_.save")}
+							</Button>
+						</Tooltip>
 					</Group>
 				</Stack>
 			</form>
 		</Paper>
+	);
+}
+
+export function NovelForm(props: Parameters<typeof NovelFormContent>[0]) {
+	return (
+		<FormPage title="NovelForm" onClose={props.onClose ?? (() => {})}>
+			<NovelFormContent {...props} />
+		</FormPage>
 	);
 }

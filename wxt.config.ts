@@ -31,6 +31,8 @@ export default defineConfig({
 		"@wxt-dev/webextension-polyfill",
 	],
 	srcDir: "src",
+	// Auto-icons merges these with its standard 16/32/48/128px sizes.
+	autoIcons: { sizes: [64, 256, 512] },
 	hooks: {
 		"build:manifestGenerated": (wxt, manifest) => {
 			if (wxt.config.mode !== "development") {

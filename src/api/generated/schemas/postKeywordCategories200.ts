@@ -7,6 +7,7 @@
  */
 
 import type { PostKeywordCategories200CreatedAt } from "./postKeywordCategories200CreatedAt";
+import type { PostKeywordCategories200Description } from "./postKeywordCategories200Description";
 import type { PostKeywordCategories200NameAr } from "./postKeywordCategories200NameAr";
 import type { PostKeywordCategories200NameEn } from "./postKeywordCategories200NameEn";
 import type { PostKeywordCategories200UpdatedAt } from "./postKeywordCategories200UpdatedAt";
@@ -16,6 +17,7 @@ export type PostKeywordCategories200 = {
 	nameEn: PostKeywordCategories200NameEn;
 	nameAr: PostKeywordCategories200NameAr;
 	color: string;
+	description: PostKeywordCategories200Description;
 	createdAt: PostKeywordCategories200CreatedAt;
 	updatedAt: PostKeywordCategories200UpdatedAt;
 };

@@ -1,10 +1,9 @@
-import { browser } from "#imports";
+import { desktopSettings } from "./settings";
 import type {
 	DesktopCapabilities,
 	DesktopSettings,
 	ExecutePromptInput,
 } from "./types";
-import { DESKTOP_SETTINGS_KEY } from "./types";
 
 const active = new Map<
 	string,
@@ -27,18 +26,6 @@ function isCapabilities(value: unknown): value is DesktopCapabilities {
 		!!data.limits &&
 		Number.isSafeInteger(data.limits.promptBytes)
 	);
-}
-
-export async function desktopSettings(): Promise<DesktopSettings> {
-	const stored = (await browser.storage.local.get(DESKTOP_SETTINGS_KEY))[
-		DESKTOP_SETTINGS_KEY
-	] as Partial<DesktopSettings> | undefined;
-	return {
-		port: stored?.port ?? 43127,
-		token: stored?.token ?? "",
-		model: stored?.model ?? "",
-		effort: stored?.effort ?? "",
-	};
 }
 
 async function request(
@@ -103,7 +90,9 @@ export async function executeDesktopPrompt(
 	if (active.has(data.requestId))
 		throw new Error("This request is already running.");
 	if (encoder.encode(data.prompt).byteLength > 500_000)
-		throw new Error("Page is too large to summarize (500 KB limit).");
+		throw new Error(
+			"Prompt is too large for the desktop client (500 KB limit).",
+		);
 	const controller = new AbortController();
 	active.set(data.requestId, { tabId, controller });
 	const timeout = setTimeout(() => controller.abort(), 245_000);

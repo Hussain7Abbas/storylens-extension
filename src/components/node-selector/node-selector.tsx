@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Title } from "@mantine/core";
+import { Button, Group, Stack, Title, Tooltip } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NodeSelectorForm } from "./node-selector-form";
@@ -37,7 +37,9 @@ export function NodeSelector() {
 				<>
 					<Group justify="space-between">
 						<Title order={4}>{t("nodeSelector.websites")}</Title>
-						<Button onClick={handleShowForm}>{t("_.add")}</Button>
+						<Tooltip label={t("_.add")} withArrow openDelay={350}>
+							<Button onClick={handleShowForm}>{t("_.add")}</Button>
+						</Tooltip>
 					</Group>
 					<NodeSelectorTable onEdit={handleEdit} />
 				</>

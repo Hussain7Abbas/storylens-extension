@@ -17,7 +17,7 @@ body {
 	place-items: center;
 }
 
-/* Popup embedded by the page launcher: fill its iframe instead of 24rem × 32rem. */
+/* Embedded popup and options page fill their viewport instead of 24rem × 32rem. */
 html[data-embedded],
 html[data-embedded] body,
 html[data-embedded] #root {
@@ -26,4 +26,14 @@ html[data-embedded] #root {
 	max-width: none;
 	height: 100%;
 	min-height: 0;
+}
+
+/* Chapter extraction table embedded in a novel page: grow with its content. */
+html[data-view="extract"],
+html[data-view="extract"] body,
+html[data-view="extract"] #root {
+	display: block;
+	width: 100%;
+	height: auto;
+	background: transparent;
 }

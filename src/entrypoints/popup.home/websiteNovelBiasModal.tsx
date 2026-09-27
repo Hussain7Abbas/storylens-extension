@@ -1,8 +1,17 @@
-import { Button, Group, NumberInput, Paper, Stack, Text } from "@mantine/core";
+import {
+	Button,
+	Group,
+	NumberInput,
+	Paper,
+	Stack,
+	Text,
+	Tooltip,
+} from "@mantine/core";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { usePostWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
+import { FormPage } from "@/components/form-page";
 import { replaceBiasesForNovel } from "@/lib/offline/db";
 import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 
@@ -15,7 +24,7 @@ type Props = {
 	onSaved: (updatedBiases: OfflineWebsiteNovelBias[]) => void;
 };
 
-export function WebsiteNovelBiasForm({
+function WebsiteNovelBiasFormContent({
 	novelId,
 	websiteSelectorId,
 	websiteName,
@@ -79,18 +88,32 @@ export function WebsiteNovelBiasForm({
 					prefix={biasValue > 0 ? "+" : undefined}
 				/>
 				<Group grow>
-					<Button
-						variant="outline"
-						onClick={onClose}
-						loading={mutation.isPending}
-					>
-						{t("_.cancel")}
-					</Button>
-					<Button onClick={handleSave} loading={mutation.isPending}>
-						{t("_.save")}
-					</Button>
+					<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+						<Button
+							variant="outline"
+							onClick={onClose}
+							loading={mutation.isPending}
+						>
+							{t("_.cancel")}
+						</Button>
+					</Tooltip>
+					<Tooltip label={t("_.save")} withArrow openDelay={350}>
+						<Button onClick={handleSave} loading={mutation.isPending}>
+							{t("_.save")}
+						</Button>
+					</Tooltip>
 				</Group>
 			</Stack>
 		</Paper>
+	);
+}
+
+export function WebsiteNovelBiasForm(
+	props: Parameters<typeof WebsiteNovelBiasFormContent>[0],
+) {
+	return (
+		<FormPage title="WebsiteNovelBiasForm" onClose={props.onClose}>
+			<WebsiteNovelBiasFormContent {...props} />
+		</FormPage>
 	);
 }

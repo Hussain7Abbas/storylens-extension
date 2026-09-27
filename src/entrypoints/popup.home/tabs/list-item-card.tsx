@@ -13,7 +13,8 @@ export function ListItemCard({
 }: ListItemCardProps) {
 	return (
 		<Paper
-			p="xs"
+			p="sm"
+			data-interactive={props.onClick ? true : undefined}
 			withBorder
 			className={[classes.root, className].filter(Boolean).join(" ")}
 			{...props}

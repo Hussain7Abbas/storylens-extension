@@ -1,4 +1,4 @@
-import { Box, Button, Stack } from "@mantine/core";
+import { Box, Button, Stack, Tooltip } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchInput } from "@/components/search-input";
@@ -27,16 +27,17 @@ export function NatureTab() {
 
 	return (
 		<Stack gap="xs" pt="xs">
-			<Button
-				variant="light"
-				color="green.7"
-				onClick={() => {
-					setNature(undefined);
-					setFormMode("add");
-				}}
-			>
-				{t("settings.addNature")}
-			</Button>
+			<Tooltip label={t("settings.addNature")} withArrow openDelay={350}>
+				<Button
+					variant="light"
+					onClick={() => {
+						setNature(undefined);
+						setFormMode("add");
+					}}
+				>
+					{t("settings.addNature")}
+				</Button>
+			</Tooltip>
 
 			<Box
 				pos="sticky"

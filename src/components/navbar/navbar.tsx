@@ -7,21 +7,21 @@ import {
 	useComputedColorScheme,
 	useMantineColorScheme,
 } from "@mantine/core";
-import {
-	IconChevronLeft,
-	IconChevronRight,
-	IconCloudUpload,
-	IconLanguage,
-	IconMoon,
-	IconRefresh,
-	IconSettings,
-	IconSun,
-	IconUser,
-} from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import cx from "clsx";
 import type { TFunction } from "i18next";
 import { useAtom, useAtomValue } from "jotai";
+import {
+	ChevronLeft as IconChevronLeft,
+	ChevronRight as IconChevronRight,
+	CloudUpload as IconCloudUpload,
+	Languages as IconLanguage,
+	Moon as IconMoon,
+	RefreshCw as IconRefresh,
+	Settings2 as IconSettings,
+	Sun as IconSun,
+	UserRound as IconUser,
+} from "lucide-react";
 import {
 	type ReactNode,
 	useCallback,
@@ -51,8 +51,7 @@ export function Navbar() {
 	const showSyncIndicator = pendingCount > 0 || activeSyncCount > 0;
 	const role = useAtomValue(userRoleAtom);
 	const isAdmin = role === "admin";
-	const { routes, current } = useRoutes();
-	const canGoBack = routes.length > 1;
+	const { canGoBack, current } = useRoutes();
 	const isOnSettings = current === "settings";
 
 	const pinnedAction =
@@ -72,10 +71,13 @@ export function Navbar() {
 			wrap="nowrap"
 			dir={dir}
 		>
-			<Group wrap="nowrap" className={classes.brand}>
-				<Image src={icon} alt="Logo" width={32} height={32} />
-				<Title order={4} textWrap="nowrap">
+			<Group wrap="nowrap" gap="xs" className={classes.brand}>
+				<Image src={icon} alt="" w={30} h={30} />
+				<Title order={4} textWrap="nowrap" className={classes.wordmark}>
 					{t("extName")}
+					<span className={classes.brandDot} aria-hidden>
+						.
+					</span>
 				</Title>
 			</Group>
 			<NavbarActionsScroll dir={dir} pinnedAction={pinnedAction}>
@@ -137,13 +139,20 @@ function NavbarActionsScroll({
 		});
 
 		observer.observe(element);
+		if (element.firstElementChild) observer.observe(element.firstElementChild);
+		const directionObserver = new MutationObserver(updateFade);
+		directionObserver.observe(element, {
+			attributes: true,
+			attributeFilter: ["dir"],
+		});
 		element.addEventListener("scroll", updateFade, { passive: true });
 
 		return () => {
 			observer.disconnect();
+			directionObserver.disconnect();
 			element.removeEventListener("scroll", updateFade);
 		};
-	}, [updateFade, dir, children, pinnedAction]);
+	}, [updateFade]);
 
 	return (
 		<Group
@@ -238,7 +247,9 @@ function SyncButton({
 			withArrow
 		>
 			<ActionIcon
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
 				aria-label={t("offline.syncNow")}
 				loading={isBackgroundActive}
@@ -246,7 +257,7 @@ function SyncButton({
 					void handleSync();
 				}}
 			>
-				<IconCloudUpload stroke={1.5} />
+				<IconCloudUpload strokeWidth={1.75} />
 			</ActionIcon>
 		</Tooltip>
 	);
@@ -263,11 +274,13 @@ function ProfileButton({ t }: { t: TFunction }) {
 				href={websitePageUrl(locale, "profile/")}
 				target="_blank"
 				rel="noopener noreferrer"
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
 				aria-label={t("navbar.profile")}
 			>
-				<IconUser stroke={1.5} />
+				<IconUser strokeWidth={1.75} />
 			</ActionIcon>
 		</Tooltip>
 	);
@@ -291,7 +304,9 @@ function RefreshContentButton({ t }: { t: TFunction }) {
 	return (
 		<Tooltip label={t("navbar.refreshContent")} withArrow>
 			<ActionIcon
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
 				aria-label={t("navbar.refreshContent")}
 				loading={refreshing}
@@ -299,7 +314,7 @@ function RefreshContentButton({ t }: { t: TFunction }) {
 					void handleRefresh();
 				}}
 			>
-				<IconRefresh stroke={1.5} />
+				<IconRefresh strokeWidth={1.75} />
 			</ActionIcon>
 		</Tooltip>
 	);
@@ -317,12 +332,20 @@ export function ToggleColorScheme({ t }: { t: TFunction }) {
 				onClick={() =>
 					setColorScheme(computedColorScheme === "light" ? "dark" : "light")
 				}
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
-				aria-label="Toggle color scheme"
+				aria-label={t("navbar.toggleColorScheme")}
 			>
-				<IconSun className={cx(classes.icon, classes.light)} stroke={1.5} />
-				<IconMoon className={cx(classes.icon, classes.dark)} stroke={1.5} />
+				<IconSun
+					className={cx(classes.icon, classes.light)}
+					strokeWidth={1.75}
+				/>
+				<IconMoon
+					className={cx(classes.icon, classes.dark)}
+					strokeWidth={1.75}
+				/>
 			</ActionIcon>
 		</Tooltip>
 	);
@@ -345,12 +368,14 @@ function ToggleLanguage({ t }: { t: TFunction }) {
 			withArrow
 		>
 			<ActionIcon
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
 				aria-label={t("navbar.switchLanguage")}
 				onClick={toggleLanguage}
 			>
-				<IconLanguage stroke={1.5} />
+				<IconLanguage strokeWidth={1.75} />
 			</ActionIcon>
 		</Tooltip>
 	);
@@ -362,15 +387,17 @@ function BackButton({ t, dir }: { t: TFunction; dir: "rtl" | "ltr" }) {
 	return (
 		<Tooltip label={t("_.back")} withArrow>
 			<ActionIcon
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
 				aria-label={t("_.back")}
 				onClick={() => back()}
 			>
 				{dir === "rtl" ? (
-					<IconChevronLeft stroke={1.5} />
+					<IconChevronRight strokeWidth={1.75} />
 				) : (
-					<IconChevronRight stroke={1.5} />
+					<IconChevronLeft strokeWidth={1.75} />
 				)}
 			</ActionIcon>
 		</Tooltip>
@@ -383,11 +410,14 @@ function SettingsButton({ t }: { t: TFunction }) {
 	return (
 		<Tooltip label={t("navbar.settings")} withArrow>
 			<ActionIcon
-				variant="transparent"
+				variant="subtle"
+				color="var(--mantine-color-dimmed)"
+				radius="sm"
 				size="lg"
+				aria-label={t("navbar.settings")}
 				onClick={() => go("settings")}
 			>
-				<IconSettings stroke={1.5} />
+				<IconSettings strokeWidth={1.75} />
 			</ActionIcon>
 		</Tooltip>
 	);

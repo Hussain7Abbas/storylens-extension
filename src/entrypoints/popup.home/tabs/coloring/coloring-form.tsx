@@ -13,9 +13,14 @@ import {
 	Switch,
 	Text,
 	TextInput,
+	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconCategory, IconMasksTheater, IconTrash } from "@tabler/icons-react";
+import {
+	Tags as IconCategory,
+	Drama as IconMasksTheater,
+	Trash2 as IconTrash,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
@@ -29,7 +34,9 @@ import type {
 	PutKeywordsByIdBodyOne,
 	PutKeywordVersionsByIdBodyOne,
 } from "@/api/generated/schemas";
+import { FormPage } from "@/components/form-page";
 import { useIsAdmin } from "@/lib/auth";
+import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
 import {
 	useOfflineKeywordAliasMutations,
 	useOfflineKeywordCategories,
@@ -41,11 +48,16 @@ import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { uploadImageFile } from "@/utils/upload-image-file";
 
 type StackFrame =
-	| { mode: "keyword-add"; initialText?: string }
+	| {
+			mode: "keyword-add";
+			initialText?: string;
+			suggestion?: KeywordSuggestion;
+	  }
 	| { mode: "keyword-edit"; keyword: GetKeywords200DataItem }
 	| {
 			mode: "alias-add";
 			initialText?: string;
+			suggestion?: KeywordSuggestion;
 			parentKeyword: GetKeywords200DataItem;
 	  }
 	| {
@@ -56,6 +68,7 @@ type StackFrame =
 	| {
 			mode: "version-add";
 			initialText?: string;
+			suggestion?: KeywordSuggestion;
 			parentKeyword: GetKeywords200DataItem;
 	  }
 	| {
@@ -99,6 +112,8 @@ function KeywordForm({
 	const [uploadError, setUploadError] = useState<string | null>(null);
 
 	const keyword = "keyword" in frame ? frame.keyword : undefined;
+	const suggestion =
+		frame.mode === "keyword-add" ? frame.suggestion : undefined;
 
 	const baseVersion = keyword?.versions.length
 		? [...keyword.versions].sort(
@@ -132,9 +147,9 @@ function KeywordForm({
 				keyword?.name ??
 				(frame.mode === "keyword-add" ? (frame.initialText ?? "") : ""),
 			matchingType: keyword?.matchingType ?? "FULL",
-			categoryId: baseVersion?.categoryId ?? "",
-			natureId: baseVersion?.natureId ?? "",
-			description: baseVersion?.description ?? "",
+			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
+			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
+			description: baseVersion?.description ?? suggestion?.description ?? "",
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
 		},
 		validate: {
@@ -315,22 +330,29 @@ function KeywordForm({
 						mt="md"
 					>
 						{frame.mode === "keyword-edit" && !showDeleteConfirm && (
-							<ActionIcon
-								variant="transparent"
-								color="red"
-								size="lg"
-								onClick={() => setShowDeleteConfirm(true)}
-							>
-								<IconTrash />
-							</ActionIcon>
+							<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+								<ActionIcon
+									aria-label={t("_.delete")}
+									variant="transparent"
+									color="red"
+									size="lg"
+									onClick={() => setShowDeleteConfirm(true)}
+								>
+									<IconTrash />
+								</ActionIcon>
+							</Tooltip>
 						)}
 						<Group>
-							<Button variant="outline" onClick={onClose}>
-								{t("_.cancel")}
-							</Button>
-							<Button type="submit" loading={isPending}>
-								{t("_.save")}
-							</Button>
+							<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+								<Button variant="outline" onClick={onClose}>
+									{t("_.cancel")}
+								</Button>
+							</Tooltip>
+							<Tooltip label={t("_.save")} withArrow openDelay={350}>
+								<Button type="submit" loading={isPending}>
+									{t("_.save")}
+								</Button>
+							</Tooltip>
 						</Group>
 					</Group>
 					{showDeleteConfirm && keyword && (
@@ -341,27 +363,31 @@ function KeywordForm({
 									{t("coloring.deleteAliasesWarning")}
 								</Text>
 								<Group grow>
-									<Button
-										variant="outline"
-										size="xs"
-										onClick={() => setShowDeleteConfirm(false)}
-										disabled={deleteMutation.isPending}
-									>
-										{t("_.cancel")}
-									</Button>
-									<Button
-										color="red"
-										variant="outline"
-										size="xs"
-										onClick={() =>
-											deleteMutation.mutate(keyword.id, {
-												onSuccess: () => onClose(),
-											})
-										}
-										loading={deleteMutation.isPending}
-									>
-										{t("_.delete")}
-									</Button>
+									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+										<Button
+											variant="outline"
+											size="xs"
+											onClick={() => setShowDeleteConfirm(false)}
+											disabled={deleteMutation.isPending}
+										>
+											{t("_.cancel")}
+										</Button>
+									</Tooltip>
+									<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+										<Button
+											color="red"
+											variant="outline"
+											size="xs"
+											onClick={() =>
+												deleteMutation.mutate(keyword.id, {
+													onSuccess: () => onClose(),
+												})
+											}
+											loading={deleteMutation.isPending}
+										>
+											{t("_.delete")}
+										</Button>
+									</Tooltip>
 								</Group>
 							</Stack>
 						</Alert>
@@ -400,6 +426,7 @@ function AliasForm({
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const alias = "keyword" in frame ? frame.keyword : undefined;
+	const suggestion = frame.mode === "alias-add" ? frame.suggestion : undefined;
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordAliasMutations(selectedNovelId);
 
@@ -425,7 +452,7 @@ function AliasForm({
 			name:
 				alias?.name ??
 				(frame.mode === "alias-add" ? (frame.initialText ?? "") : ""),
-			description: alias?.description ?? "",
+			description: alias?.description ?? suggestion?.description ?? "",
 			matchingType: alias?.matchingType ?? "FULL",
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
@@ -504,18 +531,18 @@ function AliasForm({
 	return (
 		<Stack gap="xs" p="xs">
 			<Alert
-				color="blue"
+				color="brand"
 				variant="light"
 				py="xs"
 				styles={{ message: { fontSize: "var(--mantine-font-size-xs)" } }}
 			>
 				<Group gap="xs" wrap="nowrap">
-					<Badge size="xs" color="blue" variant="filled">
+					<Badge size="xs" color="brand" variant="filled">
 						{t("coloring.alias")}
 					</Badge>
 					<Text size="xs" c="dimmed" style={{ flex: 1 }}>
 						{t("coloring.aliasOf")}:{" "}
-						<Text component="span" fw={600} size="xs" c="blue">
+						<Text component="span" fw={600} size="xs" c="brand">
 							{frame.parentKeyword.name}
 						</Text>
 					</Text>
@@ -619,22 +646,29 @@ function AliasForm({
 						mt="md"
 					>
 						{frame.mode === "alias-edit" && !showDeleteConfirm && (
-							<ActionIcon
-								variant="transparent"
-								color="red"
-								size="lg"
-								onClick={() => setShowDeleteConfirm(true)}
-							>
-								<IconTrash />
-							</ActionIcon>
+							<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+								<ActionIcon
+									aria-label={t("_.delete")}
+									variant="transparent"
+									color="red"
+									size="lg"
+									onClick={() => setShowDeleteConfirm(true)}
+								>
+									<IconTrash />
+								</ActionIcon>
+							</Tooltip>
 						)}
 						<Group>
-							<Button variant="outline" onClick={onClose}>
-								{t("_.cancel")}
-							</Button>
-							<Button type="submit" loading={isPending}>
-								{t("_.save")}
-							</Button>
+							<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+								<Button variant="outline" onClick={onClose}>
+									{t("_.cancel")}
+								</Button>
+							</Tooltip>
+							<Tooltip label={t("_.save")} withArrow openDelay={350}>
+								<Button type="submit" loading={isPending}>
+									{t("_.save")}
+								</Button>
+							</Tooltip>
 						</Group>
 					</Group>
 					{showDeleteConfirm && alias && (
@@ -642,27 +676,31 @@ function AliasForm({
 							<Stack gap="xs">
 								<Text size="sm">{t("home.confirmDelete")}</Text>
 								<Group grow>
-									<Button
-										variant="outline"
-										size="xs"
-										onClick={() => setShowDeleteConfirm(false)}
-										disabled={deleteMutation.isPending}
-									>
-										{t("_.cancel")}
-									</Button>
-									<Button
-										color="red"
-										variant="outline"
-										size="xs"
-										onClick={() =>
-											deleteMutation.mutate(alias.id, {
-												onSuccess: () => onClose(),
-											})
-										}
-										loading={deleteMutation.isPending}
-									>
-										{t("_.delete")}
-									</Button>
+									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+										<Button
+											variant="outline"
+											size="xs"
+											onClick={() => setShowDeleteConfirm(false)}
+											disabled={deleteMutation.isPending}
+										>
+											{t("_.cancel")}
+										</Button>
+									</Tooltip>
+									<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+										<Button
+											color="red"
+											variant="outline"
+											size="xs"
+											onClick={() =>
+												deleteMutation.mutate(alias.id, {
+													onSuccess: () => onClose(),
+												})
+											}
+											loading={deleteMutation.isPending}
+										>
+											{t("_.delete")}
+										</Button>
+									</Tooltip>
 								</Group>
 							</Stack>
 						</Alert>
@@ -704,6 +742,8 @@ function VersionForm({
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	const version = "keyword" in frame ? frame.keyword : undefined;
+	const suggestion =
+		frame.mode === "version-add" ? frame.suggestion : undefined;
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordVersionMutations(selectedNovelId);
 
@@ -730,9 +770,10 @@ function VersionForm({
 		initialValues: {
 			description:
 				version?.description ??
+				suggestion?.description ??
 				(frame.mode === "version-add" ? (frame.initialText ?? "") : ""),
-			categoryId: version?.categoryId ?? null,
-			natureId: version?.natureId ?? null,
+			categoryId: version?.categoryId ?? suggestion?.categoryId ?? null,
+			natureId: version?.natureId ?? suggestion?.natureId ?? null,
 			imageId: (version?.imageId as string | undefined) ?? undefined,
 			startingChapter: version ? Number(version.startingChapter) : undefined,
 			endingChapter:
@@ -836,13 +877,13 @@ function VersionForm({
 	return (
 		<Stack gap="xs" p="xs">
 			<Alert
-				color="violet"
+				color="lavender"
 				variant="light"
 				py="xs"
 				styles={{ message: { fontSize: "var(--mantine-font-size-xs)" } }}
 			>
 				<Group gap="xs" wrap="nowrap">
-					<Badge size="xs" color="violet" variant="filled">
+					<Badge size="xs" color="lavender" variant="filled">
 						{t("coloring.version")}
 					</Badge>
 					<Text size="xs" c="dimmed" style={{ flex: 1 }}>
@@ -972,22 +1013,29 @@ function VersionForm({
 						mt="md"
 					>
 						{frame.mode === "version-edit" && !showDeleteConfirm && (
-							<ActionIcon
-								variant="transparent"
-								color="red"
-								size="lg"
-								onClick={() => setShowDeleteConfirm(true)}
-							>
-								<IconTrash />
-							</ActionIcon>
+							<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+								<ActionIcon
+									aria-label={t("_.delete")}
+									variant="transparent"
+									color="red"
+									size="lg"
+									onClick={() => setShowDeleteConfirm(true)}
+								>
+									<IconTrash />
+								</ActionIcon>
+							</Tooltip>
 						)}
 						<Group>
-							<Button variant="outline" onClick={onClose}>
-								{t("_.cancel")}
-							</Button>
-							<Button type="submit" loading={isPending}>
-								{t("_.save")}
-							</Button>
+							<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+								<Button variant="outline" onClick={onClose}>
+									{t("_.cancel")}
+								</Button>
+							</Tooltip>
+							<Tooltip label={t("_.save")} withArrow openDelay={350}>
+								<Button type="submit" loading={isPending}>
+									{t("_.save")}
+								</Button>
+							</Tooltip>
 						</Group>
 					</Group>
 					{showDeleteConfirm && version && (
@@ -995,27 +1043,31 @@ function VersionForm({
 							<Stack gap="xs">
 								<Text size="sm">{t("home.confirmDelete")}</Text>
 								<Group grow>
-									<Button
-										variant="outline"
-										size="xs"
-										onClick={() => setShowDeleteConfirm(false)}
-										disabled={deleteMutation.isPending}
-									>
-										{t("_.cancel")}
-									</Button>
-									<Button
-										color="red"
-										variant="outline"
-										size="xs"
-										onClick={() =>
-											deleteMutation.mutate(version.id, {
-												onSuccess: () => onClose(),
-											})
-										}
-										loading={deleteMutation.isPending}
-									>
-										{t("_.delete")}
-									</Button>
+									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+										<Button
+											variant="outline"
+											size="xs"
+											onClick={() => setShowDeleteConfirm(false)}
+											disabled={deleteMutation.isPending}
+										>
+											{t("_.cancel")}
+										</Button>
+									</Tooltip>
+									<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+										<Button
+											color="red"
+											variant="outline"
+											size="xs"
+											onClick={() =>
+												deleteMutation.mutate(version.id, {
+													onSuccess: () => onClose(),
+												})
+											}
+											loading={deleteMutation.isPending}
+										>
+											{t("_.delete")}
+										</Button>
+									</Tooltip>
 								</Group>
 							</Stack>
 						</Alert>
@@ -1028,7 +1080,7 @@ function VersionForm({
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
-export function ColoringForm({
+function ColoringFormContent({
 	frame,
 	selectedNovelId,
 	currentChapter,
@@ -1059,5 +1111,13 @@ export function ColoringForm({
 			currentChapter={currentChapter}
 			onClose={onClose}
 		/>
+	);
+}
+
+export function ColoringForm(props: Parameters<typeof ColoringFormContent>[0]) {
+	return (
+		<FormPage title="ColoringForm" onClose={props.onClose}>
+			<ColoringFormContent {...props} />
+		</FormPage>
 	);
 }

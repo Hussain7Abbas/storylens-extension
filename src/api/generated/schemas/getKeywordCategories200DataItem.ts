@@ -7,6 +7,7 @@
  */
 
 import type { GetKeywordCategories200DataItemCreatedAt } from "./getKeywordCategories200DataItemCreatedAt";
+import type { GetKeywordCategories200DataItemDescription } from "./getKeywordCategories200DataItemDescription";
 import type { GetKeywordCategories200DataItemNameAr } from "./getKeywordCategories200DataItemNameAr";
 import type { GetKeywordCategories200DataItemNameEn } from "./getKeywordCategories200DataItemNameEn";
 import type { GetKeywordCategories200DataItemUpdatedAt } from "./getKeywordCategories200DataItemUpdatedAt";
@@ -16,6 +17,7 @@ export type GetKeywordCategories200DataItem = {
 	nameEn: GetKeywordCategories200DataItemNameEn;
 	nameAr: GetKeywordCategories200DataItemNameAr;
 	color: string;
+	description: GetKeywordCategories200DataItemDescription;
 	createdAt: GetKeywordCategories200DataItemCreatedAt;
 	updatedAt: GetKeywordCategories200DataItemUpdatedAt;
 };

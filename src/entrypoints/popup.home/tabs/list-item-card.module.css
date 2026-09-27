@@ -1,14 +1,23 @@
 .root {
+	background: var(--sl-surface);
+	border-radius: var(--mantine-radius-md);
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease;
+}
+.root[data-interactive] {
 	cursor: pointer;
-	transition: background-color 100ms ease;
-
-	@mixin hover {
-		background-color: var(--mantine-color-gray-1);
-	}
-
-	@mixin dark {
-		@mixin hover {
-			background-color: var(--mantine-color-dark-6);
-		}
+}
+.root[data-interactive]:focus-visible {
+	outline: 3px solid var(--mantine-primary-color-filled);
+	outline-offset: 2px;
+}
+.root[data-interactive]:hover {
+	background: var(--sl-wash);
+	border-color: var(--mantine-primary-color-filled);
+}
+@media (prefers-reduced-motion: reduce) {
+	.root {
+		transition: none;
 	}
 }

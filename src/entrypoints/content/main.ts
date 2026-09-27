@@ -1,26 +1,28 @@
 import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { trackEvent } from "@/lib/analytics/client";
-import {
-	clearPageSummary,
-	startPageSummary,
-} from "@/lib/desktop-client/page-summary";
+import { CHAPTER_TEXT_CHARS } from "@/lib/desktop-client/chapter-extraction";
+import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
+import { clearPageSummary } from "@/lib/desktop-client/page-summary";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
-import { removeExtensionMarkup } from "@/utils/content-processor";
+import {
+	findContentRoot,
+	removeExtensionMarkup,
+} from "@/utils/content-processor";
 import {
 	setTooltipFontFace,
 	setTooltipFontSize,
 	setTooltipLocale,
 } from "@/utils/keyword-tooltip";
+import { readPageText } from "@/utils/page-text";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { getAllNovelData } from "@/utils/site-detection";
 import {
 	closePagePopupLauncher,
 	setPagePopupLauncher,
-	startPageTextSelection,
 } from "./page-popup-launcher";
 
 const LOG_PREFIX = "[StoryLens]";
@@ -123,14 +125,6 @@ export async function refreshPageContent(): Promise<void> {
 export async function runContentScript(
 	ctx: ContentScriptContext,
 ): Promise<void> {
-	onMessage("selectPageText", () => {
-		setPagePopupLauncher(true, currentLocale);
-		startPageTextSelection();
-	});
-	onMessage("summarizePage", ({ data }) => {
-		trackEvent("ai_summary_requested", { effort: data.effort });
-		return startPageSummary(data);
-	});
 	onMessage("websiteSelectorUpdated", ({ data }) => {
 		if (data.website !== window.location.hostname) {
 			return;
@@ -169,6 +163,10 @@ export async function runContentScript(
 			html: sanitizePageHtml(),
 		};
 	});
+
+	onMessage("getChapterText", () => ({
+		text: readPageText(findContentRoot(), CHAPTER_TEXT_CHARS),
+	}));
 
 	onMessage("getCurrentNovel", async () => {
 		if (!websiteSelector) {
@@ -241,6 +239,7 @@ export async function runContentScript(
 
 	ctx.addEventListener(window, "wxt:locationchange", () => {
 		clearPageSummary();
+		clearChapterExtraction();
 		closePagePopupLauncher();
 		console.log(`${LOG_PREFIX} Location changed`, window.location.href);
 		lastProcessedKey = undefined;

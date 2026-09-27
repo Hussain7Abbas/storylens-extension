@@ -7,6 +7,7 @@
  */
 
 import type { GetKeywordsById200VersionsItemNatureAnyOfCreatedAt } from "./getKeywordsById200VersionsItemNatureAnyOfCreatedAt";
+import type { GetKeywordsById200VersionsItemNatureAnyOfDescription } from "./getKeywordsById200VersionsItemNatureAnyOfDescription";
 import type { GetKeywordsById200VersionsItemNatureAnyOfNameAr } from "./getKeywordsById200VersionsItemNatureAnyOfNameAr";
 import type { GetKeywordsById200VersionsItemNatureAnyOfNameEn } from "./getKeywordsById200VersionsItemNatureAnyOfNameEn";
 import type { GetKeywordsById200VersionsItemNatureAnyOfUpdatedAt } from "./getKeywordsById200VersionsItemNatureAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type GetKeywordsById200VersionsItemNatureAnyOf = {
 	nameEn: GetKeywordsById200VersionsItemNatureAnyOfNameEn;
 	nameAr: GetKeywordsById200VersionsItemNatureAnyOfNameAr;
 	color: string;
+	description: GetKeywordsById200VersionsItemNatureAnyOfDescription;
 	createdAt: GetKeywordsById200VersionsItemNatureAnyOfCreatedAt;
 	updatedAt: GetKeywordsById200VersionsItemNatureAnyOfUpdatedAt;
 };

@@ -7,6 +7,7 @@
  */
 
 import type { DeleteKeywordVersionsById200CategoryAnyOfCreatedAt } from "./deleteKeywordVersionsById200CategoryAnyOfCreatedAt";
+import type { DeleteKeywordVersionsById200CategoryAnyOfDescription } from "./deleteKeywordVersionsById200CategoryAnyOfDescription";
 import type { DeleteKeywordVersionsById200CategoryAnyOfNameAr } from "./deleteKeywordVersionsById200CategoryAnyOfNameAr";
 import type { DeleteKeywordVersionsById200CategoryAnyOfNameEn } from "./deleteKeywordVersionsById200CategoryAnyOfNameEn";
 import type { DeleteKeywordVersionsById200CategoryAnyOfUpdatedAt } from "./deleteKeywordVersionsById200CategoryAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type DeleteKeywordVersionsById200CategoryAnyOf = {
 	nameEn: DeleteKeywordVersionsById200CategoryAnyOfNameEn;
 	nameAr: DeleteKeywordVersionsById200CategoryAnyOfNameAr;
 	color: string;
+	description: DeleteKeywordVersionsById200CategoryAnyOfDescription;
 	createdAt: DeleteKeywordVersionsById200CategoryAnyOfCreatedAt;
 	updatedAt: DeleteKeywordVersionsById200CategoryAnyOfUpdatedAt;
 };

@@ -7,6 +7,7 @@
  */
 
 import type { PostKeywords200VersionsItemCategoryAnyOfCreatedAt } from "./postKeywords200VersionsItemCategoryAnyOfCreatedAt";
+import type { PostKeywords200VersionsItemCategoryAnyOfDescription } from "./postKeywords200VersionsItemCategoryAnyOfDescription";
 import type { PostKeywords200VersionsItemCategoryAnyOfNameAr } from "./postKeywords200VersionsItemCategoryAnyOfNameAr";
 import type { PostKeywords200VersionsItemCategoryAnyOfNameEn } from "./postKeywords200VersionsItemCategoryAnyOfNameEn";
 import type { PostKeywords200VersionsItemCategoryAnyOfUpdatedAt } from "./postKeywords200VersionsItemCategoryAnyOfUpdatedAt";
@@ -16,6 +17,7 @@ export type PostKeywords200VersionsItemCategoryAnyOf = {
 	nameEn: PostKeywords200VersionsItemCategoryAnyOfNameEn;
 	nameAr: PostKeywords200VersionsItemCategoryAnyOfNameAr;
 	color: string;
+	description: PostKeywords200VersionsItemCategoryAnyOfDescription;
 	createdAt: PostKeywords200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PostKeywords200VersionsItemCategoryAnyOfUpdatedAt;
 };

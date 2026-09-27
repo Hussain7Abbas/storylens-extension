@@ -8,8 +8,8 @@ import {
 	type StackProps,
 	Text,
 } from "@mantine/core";
-import { IconCloudUpload } from "@tabler/icons-react";
 import { useAtomValue } from "jotai";
+import { CloudUpload as IconCloudUpload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ListItemCard } from "@/entrypoints/popup.home/tabs/list-item-card";
 import {

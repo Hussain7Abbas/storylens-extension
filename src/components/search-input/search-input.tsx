@@ -4,7 +4,7 @@ import {
 	TextInput,
 	type TextInputProps,
 } from "@mantine/core";
-import { IconSearch } from "@tabler/icons-react";
+import { Search as IconSearch } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,7 +21,7 @@ export function SearchInput({ value, onChange, ...props }: SearchInputProps) {
 		<TextInput
 			w={260}
 			variant={"filled"}
-			leftSection={<IconSearch />}
+			leftSection={<IconSearch size={18} aria-hidden="true" />}
 			rightSectionWidth={rem(size)}
 			placeholder={t("_.search")}
 			value={value || ""}

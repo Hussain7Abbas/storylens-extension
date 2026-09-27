@@ -70,13 +70,24 @@ export function useDetectedNovel(
 				return;
 			}
 
-			const novel = findNovelBySlug(candidates, detectedNovel.novelSlug);
+			const requestedId = new URLSearchParams(window.location.search).get(
+				"novelId",
+			);
+			const novel =
+				candidates.find((item) => item.id === requestedId) ??
+				findNovelBySlug(candidates, detectedNovel.novelSlug);
 			if (novel) {
 				setSelectedNovel(novel);
 			}
 		},
 		[novels, offlineNovels],
 	);
+
+	useEffect(() => {
+		const id = new URLSearchParams(window.location.search).get("novelId");
+		const novel = novels?.find((item) => item.id === id);
+		if (novel) setSelectedNovel(novel);
+	}, [novels]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: we want to re-run the effect when novels changes
 	useEffect(() => {
@@ -108,7 +119,12 @@ export function useDetectedNovel(
 			return;
 		}
 
-		const novel = findNovelBySlug(candidates, currentTabNovel.novelSlug);
+		const requestedId = new URLSearchParams(window.location.search).get(
+			"novelId",
+		);
+		const novel =
+			candidates.find((item) => item.id === requestedId) ??
+			findNovelBySlug(candidates, currentTabNovel.novelSlug);
 		if (novel) {
 			setSelectedNovel(novel);
 		}

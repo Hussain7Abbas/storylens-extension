@@ -5,10 +5,13 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+import type { PostKeywordNaturesBodyOneDescription } from "./postKeywordNaturesBodyOneDescription";
 
 export type PostKeywordNaturesBodyOne = {
 	nameEn?: string;
 	nameAr?: string;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
+	/** @nullable */
+	description?: PostKeywordNaturesBodyOneDescription;
 };
