@@ -1,6 +1,7 @@
 import { defineBackground } from "wxt/utils/define-background";
 import { browser } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
+import { trackAnalyticsEvent } from "@/lib/analytics/background";
 import { setupAuthInterceptor } from "@/lib/auth/auth-service";
 import {
 	cancelPrompt,
@@ -89,6 +90,17 @@ export default defineBackground(() => {
 		periodInMinutes: SYNC_INTERVAL_MINUTES,
 	});
 
+	browser.runtime.onInstalled.addListener((details) => {
+		if (details.reason === "install") {
+			void trackAnalyticsEvent({ name: "extension_install" });
+		} else if (details.reason === "update") {
+			void trackAnalyticsEvent({
+				name: "extension_update",
+				params: { previous_version: details.previousVersion ?? "" },
+			});
+		}
+	});
+
 	browser.tabs.onRemoved.addListener((tabId) => {
 		tabNovels.delete(tabId);
 		cancelTabPrompts(tabId);
@@ -166,6 +178,8 @@ export default defineBackground(() => {
 			chapter: data.chapter,
 		});
 	});
+
+	onMessage("trackAnalyticsEvent", ({ data }) => trackAnalyticsEvent(data));
 
 	onMessage("triggerFullSync", async () => {
 		const result = await fullSync(true);

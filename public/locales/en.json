@@ -166,7 +166,9 @@
 		"aboutStoryLens": "About Story Lens",
 		"website": "Website",
 		"privacyPolicy": "Privacy Policy",
-		"termsOfUse": "Terms of Use"
+		"termsOfUse": "Terms of Use",
+		"usageAnalytics": "Anonymous usage analytics",
+		"usageAnalyticsDescription": "Send anonymous feature usage to Google Analytics to help improve Story Lens. No page content or account details are sent."
 	},
 	"category": {
 		"noRecords": "There is no categories to show"

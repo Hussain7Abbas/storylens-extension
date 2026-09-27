@@ -195,7 +195,9 @@
 		"aboutStoryLens": "حول Story Lens",
 		"website": "الموقع",
 		"privacyPolicy": "سياسة الخصوصية",
-		"termsOfUse": "شروط الاستخدام"
+		"termsOfUse": "شروط الاستخدام",
+		"usageAnalytics": "إحصاءات استخدام مجهولة",
+		"usageAnalyticsDescription": "إرسال بيانات استخدام مجهولة إلى Google Analytics للمساعدة في تحسين Story Lens. لا يتم إرسال محتوى الصفحات أو بيانات الحساب."
 	},
 	"category": {
 		"noRecords": "لا توجد تصنيفات لعرضها"

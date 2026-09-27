@@ -1,5 +1,6 @@
 import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
+import { trackEvent } from "@/lib/analytics/client";
 import {
 	clearPageSummary,
 	startPageSummary,
@@ -77,6 +78,10 @@ async function reportCurrentNovel(): Promise<void> {
 
 	try {
 		await sendMessage("reportCurrentNovel", novel);
+		trackEvent("novel_page_view", {
+			website: window.location.hostname,
+			has_chapter: novel.chapter !== undefined,
+		});
 		console.log(`${LOG_PREFIX} Reported current novel to background`, novel);
 	} catch (error) {
 		console.error(`${LOG_PREFIX} Failed to report current novel`, error);
@@ -122,7 +127,10 @@ export async function runContentScript(
 		setPagePopupLauncher(true, currentLocale);
 		startPageTextSelection();
 	});
-	onMessage("summarizePage", ({ data }) => startPageSummary(data));
+	onMessage("summarizePage", ({ data }) => {
+		trackEvent("ai_summary_requested", { effort: data.effort });
+		return startPageSummary(data);
+	});
 	onMessage("websiteSelectorUpdated", ({ data }) => {
 		if (data.website !== window.location.hostname) {
 			return;
