@@ -166,6 +166,7 @@ export function DesktopClientPanel() {
 							/>
 							<PasswordInput
 								label={t("desktop.token")}
+								autoComplete="off"
 								value={settings.token}
 								onChange={(event) =>
 									setSettings({ ...settings, token: event.currentTarget.value })

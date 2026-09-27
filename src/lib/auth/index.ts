@@ -1,15 +1,15 @@
 export {
-	changePassword,
 	checkUsernameAvailability,
-	clearAuth,
 	createGuestAccount,
-	getStoredAuth,
-	loginWithEmail,
-	registerAccount,
 	setupAuthInterceptor,
-	storeAuth,
-	updateProfile,
 } from "./auth-service";
+export {
+	AUTH_STORAGE_KEY,
+	clearAuth,
+	getStoredAuth,
+	parseStoredAuth,
+	storeAuth,
+} from "./auth-storage";
 export type { AuthUser } from "./auth-store";
 export {
 	authStateAtom,

@@ -36,6 +36,7 @@ import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
 import { userRoleAtom } from "@/lib/auth";
 import { useOnlineStatus, usePendingSyncCount } from "@/lib/offline/hooks";
+import { websitePageUrl } from "@/lib/website";
 import { localeAtom } from "@/store/locale";
 import { useActiveSyncCount } from "@/store/sync-status";
 import { refreshContentScript } from "@/utils/refresh-content-script";
@@ -52,11 +53,10 @@ export function Navbar() {
 	const isAdmin = role === "admin";
 	const { routes, current } = useRoutes();
 	const canGoBack = routes.length > 1;
-	const isOnProfile = current === "profile";
 	const isOnSettings = current === "settings";
 
 	const pinnedAction =
-		canGoBack || isOnProfile || isOnSettings ? (
+		canGoBack || isOnSettings ? (
 			<BackButton t={t} dir={dir} />
 		) : (
 			<SettingsButton t={t} />
@@ -90,7 +90,7 @@ export function Navbar() {
 				<RefreshContentButton t={t} />
 				<ToggleColorScheme t={t} />
 				{!isAdmin && <ToggleLanguage t={t} />}
-				{!isOnProfile && !isOnSettings && <ProfileButton t={t} />}
+				{!isOnSettings && <ProfileButton t={t} />}
 			</NavbarActionsScroll>
 		</Group>
 	);
@@ -252,12 +252,21 @@ function SyncButton({
 	);
 }
 
+// Account pages live on the website so browser password managers can fill them.
 function ProfileButton({ t }: { t: TFunction }) {
-	const { go } = useRoutes();
+	const locale = useAtomValue(localeAtom);
 
 	return (
 		<Tooltip label={t("navbar.profile")} withArrow>
-			<ActionIcon variant="transparent" size="lg" onClick={() => go("profile")}>
+			<ActionIcon
+				component="a"
+				href={websitePageUrl(locale, "profile/")}
+				target="_blank"
+				rel="noopener noreferrer"
+				variant="transparent"
+				size="lg"
+				aria-label={t("navbar.profile")}
+			>
 				<IconUser stroke={1.5} />
 			</ActionIcon>
 		</Tooltip>
