@@ -240,7 +240,9 @@ export function useCachedNovelsList(): {
 	const online = useOnlineStatus();
 	const queryClient = useQueryClient();
 
+	// Local database reads and writes must run even when the browser is offline.
 	const catalogQuery = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "catalog-novels"],
 		queryFn: getAllCatalogNovels,
 	});
@@ -297,6 +299,7 @@ export function useDownloadedNovelIds(): {
 	refresh: () => void;
 } {
 	const query = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "downloaded-novel-ids"],
 		queryFn: async () => new Set(await getDownloadedNovelIds()),
 	});
@@ -316,6 +319,7 @@ export function useDownloadedNovelsList(): {
 	refresh: () => void;
 } {
 	const query = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "downloaded-novels"],
 		queryFn: getDownloadedNovels,
 	});
@@ -331,6 +335,7 @@ export function useDownloadedNovelsList(): {
 
 export function usePendingSyncCount(): number {
 	const query = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "pending-sync-count"],
 		queryFn: getPendingOpsCount,
 		refetchInterval: 5000,
@@ -341,6 +346,7 @@ export function usePendingSyncCount(): number {
 
 export function usePendingEntityIds(): Set<string> {
 	const query = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "pending-entity-ids"],
 		queryFn: getPendingEntityIds,
 		refetchInterval: 5000,
@@ -357,6 +363,7 @@ export function useOfflineKeywords(novelId: string, search: string) {
 	const useLocalCache = isDownloaded || !online;
 
 	const offlineQuery = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "keywords", novelId],
 		queryFn: () => getAssembledKeywordsByNovelId(novelId),
 		enabled: useLocalCache,
@@ -383,6 +390,7 @@ export function useOfflineKeywords(novelId: string, search: string) {
 
 export function useOfflineKeywordAliases(keywordId: string | undefined) {
 	const offlineQuery = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "keyword-aliases", keywordId],
 		queryFn: () => (keywordId ? getAliasesByKeywordId(keywordId) : []),
 		enabled: !!keywordId,
@@ -402,6 +410,7 @@ export function useOfflineReplacements(novelId: string, search: string) {
 	const useLocalCache = isDownloaded || !online;
 
 	const offlineQuery = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "replacements", novelId],
 		queryFn: () => getReplacementsByNovelId(novelId),
 		enabled: useLocalCache,
@@ -433,6 +442,7 @@ export function useOfflineKeywordCategories(search = "") {
 	const locale = useAtomValue(localeAtom);
 
 	const offlineQuery = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "keyword-categories"],
 		queryFn: getAllKeywordCategories,
 	});
@@ -469,6 +479,7 @@ export function useOfflineKeywordNatures(search = "") {
 	const locale = useAtomValue(localeAtom);
 
 	const offlineQuery = useQuery({
+		networkMode: "always",
 		queryKey: ["offline", "keyword-natures"],
 		queryFn: getAllKeywordNatures,
 	});
@@ -614,6 +625,7 @@ export function useOfflineKeywordMutations(novelId: string) {
 	}, []);
 
 	const createMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (values: PostKeywordsBodyOne) => {
 			await ensureCatalogNovelCached(novelId);
 			const tempId = createTempId();
@@ -705,6 +717,7 @@ export function useOfflineKeywordMutations(novelId: string) {
 	});
 
 	const updateMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async ({
 			id,
 			data,
@@ -775,6 +788,7 @@ export function useOfflineKeywordMutations(novelId: string) {
 	});
 
 	const deleteMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (id: string) => {
 			await deleteKeywordById(id); // cascades aliases and versions
 
@@ -814,6 +828,7 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 	}, []);
 
 	const createMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (values: PostKeywordAliasesBodyOne) => {
 			await ensureCatalogNovelCached(novelId);
 			const tempId = createTempId();
@@ -885,6 +900,7 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 	});
 
 	const updateMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async ({
 			id,
 			data,
@@ -974,6 +990,7 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 	});
 
 	const deleteMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (id: string) => {
 			await deleteKeywordAliasById(id);
 
@@ -1019,6 +1036,7 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 	}, []);
 
 	const createMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (values: PostKeywordVersionsBodyOne) => {
 			await ensureCatalogNovelCached(novelId);
 			const tempId = createTempId();
@@ -1109,6 +1127,7 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 	});
 
 	const updateMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async ({
 			id,
 			data,
@@ -1201,6 +1220,7 @@ export function useOfflineKeywordVersionMutations(novelId: string) {
 	});
 
 	const deleteMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (id: string) => {
 			const version = await getKeywordVersionById(id);
 			if (version) {
@@ -1266,6 +1286,7 @@ export function useOfflineReplacementMutations(novelId: string) {
 	}, []);
 
 	const createMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (values: PostReplacementsBodyOne) => {
 			await ensureCatalogNovelCached(novelId);
 
@@ -1323,6 +1344,7 @@ export function useOfflineReplacementMutations(novelId: string) {
 	});
 
 	const updateMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async ({
 			id,
 			data,
@@ -1391,6 +1413,7 @@ export function useOfflineReplacementMutations(novelId: string) {
 	});
 
 	const deleteMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (id: string) => {
 			await ensureCatalogNovelCached(novelId);
 			await deleteReplacementById(id);
@@ -1440,6 +1463,7 @@ export function useOfflineCategoryMutations() {
 	}, [queryClient]);
 
 	const createMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (values: CategoryFormValues) => {
 			const tempId = createTempId();
 			const category: KeywordCategory = {
@@ -1493,6 +1517,7 @@ export function useOfflineCategoryMutations() {
 	});
 
 	const updateMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async ({
 			id,
 			data,
@@ -1554,6 +1579,7 @@ export function useOfflineCategoryMutations() {
 	});
 
 	const deleteMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (id: string) => {
 			await deleteKeywordCategoryById(id);
 
@@ -1597,6 +1623,7 @@ export function useOfflineNatureMutations() {
 	}, [queryClient]);
 
 	const createMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (values: NatureFormValues) => {
 			const tempId = createTempId();
 			const nature: KeywordNature = {
@@ -1650,6 +1677,7 @@ export function useOfflineNatureMutations() {
 	});
 
 	const updateMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async ({
 			id,
 			data,
@@ -1711,6 +1739,7 @@ export function useOfflineNatureMutations() {
 	});
 
 	const deleteMutation = useMutation({
+		networkMode: "always",
 		mutationFn: async (id: string) => {
 			await deleteKeywordNatureById(id);
 

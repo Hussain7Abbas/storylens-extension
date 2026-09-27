@@ -9,7 +9,7 @@ Size: 128 x 128 px
 Format: PNG
 Source in repo: apps/extension/.output/chrome-mv3/icons/128.png
 
-3) SCREENSHOTS (required — you create these manually)
+3) SCREENSHOTS (required; prepared sets are documented in ../../docs/chrome-store/README.md)
 Minimum: 1 screenshot
 Maximum: 5 screenshots
 Accepted sizes (use one size consistently):
@@ -24,7 +24,7 @@ C. Extension popup showing replacement settings
 D. Options/settings page
 E. Arabic UI example (optional)
 
-4) SMALL PROMO TILE (optional, but useful if you want featuring)
+4) SMALL PROMO TILE (required)
 Size: 440 x 280 px
 Format: JPEG or 24-bit PNG (no alpha)
 
@@ -33,7 +33,9 @@ Size: 1400 x 560 px
 Format: JPEG or 24-bit PNG (no alpha)
 
 6) PRIVACY POLICY URL (required)
-Host the text from: apps/extension/store/privacy-policy.en.txt
+English: https://storylens.iscoded.com/en/privacy/
+Arabic: https://storylens.iscoded.com/ar/privacy/
+Keep both public pages aligned with store/privacy-policy.en.txt and store/privacy-policy.ar.txt, including the Google Analytics disclosure.
 Privacy policy contact: hussain@iscoded.com
 
 === DISTRIBUTION SETTINGS ===
@@ -51,4 +53,4 @@ Website: https://github.com/Hussain7Abbas/storylens
 
 === REVIEW NOTES (optional field in dashboard) ===
 
-StoryLens enhances web novel reading with keyword highlights, text replacements, and optional user-requested summaries. Glossary data syncs with https://storylens-api.iscoded.com. Test reading features by opening a supported chapter, clicking the toolbar icon, and adding a colored keyword. For Summarize, separately install Story Lens Client, sign in to Claude Code or Codex CLI, pair the token in the popup, choose a model, and click Summarize on any HTTP(S) page. Page content is sent to the selected provider only for that explicit action; the result appears on the page.
+StoryLens enhances web novel reading with keyword highlights, aliases, chapter notes, text replacements, and optional user-requested AI tools. Shared reference data syncs with https://storylens-api.iscoded.com. Test reading features by opening a supported chapter, clicking the toolbar icon, and adding a colored keyword. For Summarize, separately install Story Lens Client, sign in to Claude Code or Codex CLI, pair the token in the popup, choose a model, and click Summarize on an HTTP(S) page. User-requested AI chapter-selector detection sends the page URL and HTML through the Story Lens API to OpenRouter. If configured, usage events go to Google Analytics unless turned off in Settings → General; a supported-page event includes the site's hostname. See the English and Arabic privacy policies for details.

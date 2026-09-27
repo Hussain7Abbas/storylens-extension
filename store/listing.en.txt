@@ -1,47 +1,43 @@
-=== STORE LISTING (English) ===
+=== CHROME WEB STORE LISTING — ENGLISH ===
 
 NAME
 StoryLens
 
-SUMMARY (132 characters max — 131 chars)
-Colorize, rename, and track characters, places, and techniques in web novels. Your personal glossary while you read.
+SUMMARY (132 characters maximum)
+Track characters, aliases, and chapter notes while reading web novels. Highlight terms, replace names, and build your glossary.
 
 DETAILED DESCRIPTION
-StoryLens is a browser extension for web novel readers who want to keep track of characters, places, techniques, and other story terms without breaking their reading flow.
+Keep the people, places, and terms in a long web novel straight as you read. StoryLens highlights names on the page and puts your reference glossary a click away.
 
-While you read on supported novel websites, StoryLens detects the current novel and chapter, highlights your saved keywords directly on the page, and can replace terms with names you prefer. Manage everything from a clean popup: add keywords, assign colors and categories, create text replacements, and organize your glossary as the story grows.
+On supported novel sites, StoryLens detects the novel and chapter. Give characters, places, and techniques their own colors; open a highlight to see descriptions, aliases, and notes for the current chapter. Replace a term with the spelling or translation you prefer. Search and edit entries from the browser popup or the floating button on the page. Download a novel's reference data to keep reading and making edits offline; queued changes sync when you reconnect.
 
 Features
 • Automatic novel and chapter detection on supported sites
-• In-page keyword highlighting with custom colors
-• Categories and natures to group characters, places, skills, and more
-• Text replacements for preferred spellings or translated names
-• Popup tools to add, edit, and search your glossary
-• Options page for broader settings management
-• English and Arabic UI support
-• Optional on-page AI summaries through the separately installed Story Lens Client and your selected Claude or Codex account
+• Colored highlights and in-page reference notes
+• Aliases and chapter-specific versions of entries
+• Text replacements for preferred names and translations
+• Search, editing, and offline access to downloaded references
+• English and Arabic interface
+• Optional page summaries, keyword suggestions, and chapter keyword extraction through a separately installed, paired Story Lens desktop client and your chosen AI provider
 
-Who it is for
-StoryLens is built for people who read long-form web novels and serial fiction online and want a consistent way to remember who is who, where places are, and what important terms mean from chapter to chapter.
-
-How it works
-1. Open a supported web novel chapter in Chrome.
-2. Click the StoryLens icon to open the popup.
-3. Add or manage keywords, colors, categories, and replacements.
-4. StoryLens applies your settings to the page you are reading.
-5. Optionally pair Story Lens Client, choose a model, and click Summarize to show a page summary at its top.
+Getting started
+1. Open a web novel chapter and launch StoryLens from the browser toolbar or the floating page button.
+2. Choose the detected novel, then browse or add reference entries.
+3. Set colors, descriptions, aliases, and replacements to suit your reading.
+4. If you want AI features, install and pair Story Lens Client, then request a summary or suggestion.
 
 Privacy
-StoryLens syncs your glossary data with the StoryLens API so your keywords and settings are available across reading sessions. Optional Summarize sends the active page body through the local desktop client to the selected AI provider only after your click. See the privacy policy URL in the developer dashboard for details.
+StoryLens uses the Story Lens service for accounts and a shared reference catalogue. Contributions are shared with other signed-in readers, so do not add private information. Requested AI actions send relevant page content to the chosen provider through the desktop client, or through Story Lens and its detection provider for AI-assisted chapter detection. If analytics is configured, the extension sends feature events and supported-site hostnames to Google Analytics; you can turn this off in Settings → General. See https://storylens.iscoded.com/en/privacy/ for details.
 
 Support
-For questions or feedback, contact hussain@iscoded.com or visit https://github.com/Hussain7Abbas/storylens
+Questions or feedback: hussain@iscoded.com
+Website: https://storylens.iscoded.com
 
 CATEGORY
-Productivity
+Entertainment (verify the available dashboard category before submission)
 
 LANGUAGE
 English
 
 SINGLE PURPOSE
-Enhance web novel reading with glossary tools and optional, user-requested page summaries.
+Improve web novel reading with reference highlights, replacements, chapter context, and optional requested AI reading tools.

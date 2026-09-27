@@ -25,6 +25,8 @@ Follow [shared repository rules](../../AGENTS.md). This submodule is the WXT bro
 
 Offline data spans `src/lib/offline/db.ts` (Dexie), `download.ts`, `hooks.ts`, `sync-engine.ts`, and `sync-storage.ts`. When changing a persisted field used by forms, lists, downloads, or API responses, check every affected layer and ask if intended offline behavior is unclear. Keep temporary IDs, queued operations, and downloaded novel data consistent. Background sync and badge behavior live alongside those layers. Count all unresolved operations, including in-flight writes. Manual sync must report failed or skipped uploads and failed pulls, retain unresolved writes, and explicitly retry exhausted operations; do not show success for incomplete sync. Aliases and versions have separate sync endpoints.
 
+Local database queries and mutations in `hooks.ts` must use TanStack Query `networkMode: "always"` so reading, saving, invalidation and queued-operation counts work without connectivity. Remote catalogue refresh/lookup seeding queries keep their online gates; mutation functions decide whether to upload or queue. The umbrella [store asset capture](../../docs/chrome-store/README.md) verifies an offline save through the real popup and refreshed content tooltip.
+
 For a field that needs offline support, update its row type and store, download bundle, sync payload, mutation hooks, popup form/list, and localization as applicable. Check the queue and temporary ID mapping for writes. UI-only state does not need to enter the offline store.
 
 ## Analytics events
