@@ -16,6 +16,8 @@ export async function executeLocalizedPrompt<T>(input: {
 	language: AiLanguage;
 	settings: DesktopSettings;
 	signal: AbortSignal;
+	/** Lets the provider search the web for this prompt. */
+	webSearch?: boolean;
 	parse: (output: string) => T;
 	texts: (result: T) => string[];
 }): Promise<T> {
@@ -35,6 +37,7 @@ export async function executeLocalizedPrompt<T>(input: {
 				model: input.settings.model,
 				effort: input.settings.effort,
 				responseLanguage: input.language,
+				...(input.webSearch ? { webSearch: true } : {}),
 			});
 			result = input.parse(output);
 		} finally {

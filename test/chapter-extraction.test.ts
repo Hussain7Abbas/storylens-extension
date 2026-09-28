@@ -23,7 +23,11 @@ describe("buildChapterExtractionPrompt", () => {
 			natures,
 			knownNames: ["Lin", " Lin ", "Su Ming", ""],
 			language: "ar",
+			instructions: "Describe briefly.",
+			novelContext: "Genre: wuxia",
 		});
+		expect(prompt).toContain("<INSTRUCTIONS>\nDescribe briefly.");
+		expect(prompt).toContain("<NOVEL_CONTEXT>\nGenre: wuxia");
 		expect(prompt).toContain("1. Person — Any person");
 		expect(prompt).toContain("2. Place\n");
 		expect(prompt).toContain("already known: Lin, Su Ming\n");
@@ -38,6 +42,8 @@ describe("buildChapterExtractionPrompt", () => {
 			natures,
 			knownNames: [],
 			language: "en",
+			instructions: "x",
+			novelContext: "",
 		});
 		expect(prompt).toContain("already known: (none)");
 	});

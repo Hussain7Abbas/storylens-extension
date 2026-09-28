@@ -3,6 +3,8 @@ import type { AnalyticsEvent } from "@/lib/analytics/types";
 import type {
 	DesktopCapabilities,
 	ExecutePromptInput,
+	GeneratedImage,
+	GenerateImageInput,
 } from "@/lib/desktop-client/types";
 import type { SyncResult } from "@/lib/offline/sync-engine";
 import type { currentNovelMeta } from "@/types";
@@ -13,6 +15,7 @@ import type { NovelContentData } from "@/types/content-data";
 interface ProtocolMap {
 	desktopCapabilities(): DesktopCapabilities;
 	executeDesktopPrompt(data: ExecutePromptInput): string;
+	generateDesktopImage(data: GenerateImageInput): GeneratedImage;
 	cancelDesktopPrompt(requestId: string): void;
 	getCurrentNovel(): currentNovelMeta | undefined;
 	getPageHtml(): { url: string; html: string } | undefined;

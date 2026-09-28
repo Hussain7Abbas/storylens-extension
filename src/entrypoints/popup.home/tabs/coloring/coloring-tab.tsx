@@ -59,7 +59,7 @@ export function ColoringTab({
 }) {
 	const { t, i18n } = useTranslation();
 	const canMutate = useCanMutateKeywords();
-	const aiSuggestion = useKeywordSuggestion(canMutate);
+	const aiSuggestion = useKeywordSuggestion(canMutate, selectedNovelId);
 	// Aliases and versions reuse the suggestion, noting which character they belong to.
 	const relatedSuggestion = (
 		kind: "alias" | "version",

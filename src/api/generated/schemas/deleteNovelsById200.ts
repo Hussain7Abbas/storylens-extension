@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { DeleteNovelsById200Context } from "./deleteNovelsById200Context";
 import type { DeleteNovelsById200CreatedAt } from "./deleteNovelsById200CreatedAt";
 import type { DeleteNovelsById200CreatedById } from "./deleteNovelsById200CreatedById";
 import type { DeleteNovelsById200Description } from "./deleteNovelsById200Description";
@@ -16,6 +17,7 @@ export type DeleteNovelsById200 = {
 	id: string;
 	name: string;
 	description: DeleteNovelsById200Description;
+	context: DeleteNovelsById200Context;
 	slugs: string[];
 	imageId: DeleteNovelsById200ImageId;
 	createdById: DeleteNovelsById200CreatedById;

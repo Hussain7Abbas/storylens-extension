@@ -7,6 +7,7 @@ import {
 	Stack,
 	TagsInput,
 	Text,
+	Textarea,
 	TextInput,
 	Tooltip,
 } from "@mantine/core";
@@ -25,6 +26,7 @@ import {
 import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userRoleAtom } from "@/lib/auth";
+import { decodeStoredText } from "@/lib/desktop-client/novel-context-prompt";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { loadWebsiteSelector } from "@/utils/load-website-selectors";
@@ -87,6 +89,7 @@ function NovelFormContent({
 		initialValues: {
 			name: "",
 			description: "",
+			context: "",
 			imageId: "",
 			slugs: [] as string[],
 		},
@@ -98,6 +101,7 @@ function NovelFormContent({
 			setValues({
 				name: selectedNovel?.name || "",
 				description: selectedNovel?.description || "",
+				context: decodeStoredText(selectedNovel?.context || ""),
 				imageId: selectedNovel?.imageId || "",
 				slugs: selectedNovel?.slugs || [],
 			});
@@ -108,6 +112,7 @@ function NovelFormContent({
 			setValues({
 				name: "",
 				description: "",
+				context: "",
 				imageId: "",
 				slugs: selectedNovel?.slugs || [],
 			});
@@ -180,6 +185,10 @@ function NovelFormContent({
 		},
 	});
 
+	// Users may write a missing context; only admins can change an existing one.
+	const contextLocked =
+		mode === "edit" && role !== "admin" && !!selectedNovel?.context?.trim();
+
 	const currentSlug = currentTabNovel?.novelSlug;
 	const showAddCurrentSlugButton =
 		!!currentSlug && !isSlugInList(currentSlug, form.values.slugs);
@@ -211,6 +220,7 @@ function NovelFormContent({
 				data: {
 					name: nameToUse,
 					description: values.description || undefined,
+					context: values.context.trim() || undefined,
 					imageId: values.imageId || undefined,
 					slugs: values.slugs,
 				},
@@ -221,6 +231,7 @@ function NovelFormContent({
 				data: {
 					name: values.name,
 					description: values.description || undefined,
+					context: values.context.trim() || undefined,
 					imageId: values.imageId || undefined,
 					slugs: values.slugs,
 				},
@@ -319,6 +330,20 @@ function NovelFormContent({
 					<TextInput
 						label={t("novels.description")}
 						{...form.getInputProps("description")}
+					/>
+					<Textarea
+						label={t("novels.context")}
+						description={
+							contextLocked
+								? t("novels.contextLocked")
+								: t("novels.contextHelp")
+						}
+						autosize
+						minRows={3}
+						maxRows={10}
+						maxLength={20000}
+						disabled={contextLocked}
+						{...form.getInputProps("context")}
 					/>
 					<FileInput
 						label={t("novels.image")}

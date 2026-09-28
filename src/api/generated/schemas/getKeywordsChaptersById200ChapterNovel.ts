@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { GetKeywordsChaptersById200ChapterNovelContext } from "./getKeywordsChaptersById200ChapterNovelContext";
 import type { GetKeywordsChaptersById200ChapterNovelCreatedAt } from "./getKeywordsChaptersById200ChapterNovelCreatedAt";
 import type { GetKeywordsChaptersById200ChapterNovelCreatedById } from "./getKeywordsChaptersById200ChapterNovelCreatedById";
 import type { GetKeywordsChaptersById200ChapterNovelDescription } from "./getKeywordsChaptersById200ChapterNovelDescription";
@@ -16,6 +17,7 @@ export type GetKeywordsChaptersById200ChapterNovel = {
 	id: string;
 	name: string;
 	description: GetKeywordsChaptersById200ChapterNovelDescription;
+	context: GetKeywordsChaptersById200ChapterNovelContext;
 	slugs: string[];
 	imageId: GetKeywordsChaptersById200ChapterNovelImageId;
 	createdById: GetKeywordsChaptersById200ChapterNovelCreatedById;

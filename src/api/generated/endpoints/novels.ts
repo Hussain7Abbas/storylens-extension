@@ -52,6 +52,13 @@ import type {
 	PutNovelsByIdBodyOne,
 	PutNovelsByIdBodyThree,
 	PutNovelsByIdBodyTwo,
+	PutNovelsByIdContext200,
+	PutNovelsByIdContext404,
+	PutNovelsByIdContext422,
+	PutNovelsByIdContext500,
+	PutNovelsByIdContextBodyOne,
+	PutNovelsByIdContextBodyThree,
+	PutNovelsByIdContextBodyTwo,
 } from "../schemas";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -625,6 +632,131 @@ export const useDeleteNovelsById = <
 	TContext
 > => {
 	const mutationOptions = getDeleteNovelsByIdMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const putNovelsByIdContext = (
+	id: string,
+	putNovelsByIdContextBody:
+		| PutNovelsByIdContextBodyOne
+		| PutNovelsByIdContextBodyTwo
+		| PutNovelsByIdContextBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<PutNovelsByIdContext200>(
+		{
+			url: `http://localhost:3030/novels/${id}/context`,
+			method: "PUT",
+			data: putNovelsByIdContextBody,
+		},
+		options,
+	);
+};
+
+export const getPutNovelsByIdContextMutationOptions = <
+	TError = ErrorType<
+		PutNovelsByIdContext404 | PutNovelsByIdContext422 | PutNovelsByIdContext500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof putNovelsByIdContext>>,
+		TError,
+		{
+			id: string;
+			data:
+				| PutNovelsByIdContextBodyOne
+				| PutNovelsByIdContextBodyTwo
+				| PutNovelsByIdContextBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof putNovelsByIdContext>>,
+	TError,
+	{
+		id: string;
+		data:
+			| PutNovelsByIdContextBodyOne
+			| PutNovelsByIdContextBodyTwo
+			| PutNovelsByIdContextBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["putNovelsByIdContext"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putNovelsByIdContext>>,
+		{
+			id: string;
+			data:
+				| PutNovelsByIdContextBodyOne
+				| PutNovelsByIdContextBodyTwo
+				| PutNovelsByIdContextBodyThree;
+		}
+	> = (props) => {
+		const { id, data } = props ?? {};
+
+		return putNovelsByIdContext(id, data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PutNovelsByIdContextMutationResult = NonNullable<
+	Awaited<ReturnType<typeof putNovelsByIdContext>>
+>;
+export type PutNovelsByIdContextMutationBody =
+	| PutNovelsByIdContextBodyOne
+	| PutNovelsByIdContextBodyTwo
+	| PutNovelsByIdContextBodyThree;
+export type PutNovelsByIdContextMutationError = ErrorType<
+	PutNovelsByIdContext404 | PutNovelsByIdContext422 | PutNovelsByIdContext500
+>;
+
+export const usePutNovelsByIdContext = <
+	TError = ErrorType<
+		PutNovelsByIdContext404 | PutNovelsByIdContext422 | PutNovelsByIdContext500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof putNovelsByIdContext>>,
+			TError,
+			{
+				id: string;
+				data:
+					| PutNovelsByIdContextBodyOne
+					| PutNovelsByIdContextBodyTwo
+					| PutNovelsByIdContextBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof putNovelsByIdContext>>,
+	TError,
+	{
+		id: string;
+		data:
+			| PutNovelsByIdContextBodyOne
+			| PutNovelsByIdContextBodyTwo
+			| PutNovelsByIdContextBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPutNovelsByIdContextMutationOptions(options);
 
 	return useMutation(mutationOptions, queryClient);
 };
