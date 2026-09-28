@@ -31,6 +31,7 @@ describe("buildChapterExtractionPrompt", () => {
 		expect(prompt).toContain("1. Person — Any person");
 		expect(prompt).toContain("2. Place\n");
 		expect(prompt).toContain("already known: Lin, Su Ming\n");
+		expect(prompt).toContain('"relation": "alias" | "version" | null');
 		expect(prompt).toContain(languageRule("ar"));
 		expect(prompt).not.toContain("END");
 	});
@@ -74,6 +75,26 @@ describe("parseChapterExtraction", () => {
 				categoryId: "cat-place",
 				natureId: undefined,
 			},
+		]);
+	});
+
+	test("keeps a suggested parent only when it names a known or listed entity", () => {
+		const output = `{"items":[
+			{"name":"Young Master Lin","description":"Lin's title.","category":1,"nature":1,"parent":" lin ","relation":"alias"},
+			{"name":"Demon Mira","description":"Mira reborn.","category":1,"nature":1,"parent":"mira","relation":"version"},
+			{"name":"Mira","description":"A sailor.","category":1,"nature":1,"parent":null,"relation":null},
+			{"name":"Ghost","description":"x","category":1,"nature":1,"parent":"Nobody","relation":"alias"},
+			{"name":"Echo","description":"x","category":1,"nature":1,"parent":"Mira","relation":"friend"},
+			{"name":"Self","description":"x","category":1,"nature":1,"parent":"self","relation":"alias"}
+		]}`;
+		const items = parseChapterExtraction(output, categories, natures, ["Lin"]);
+		expect(items.map((item) => [item.name, item.suggestedParent])).toEqual([
+			["Young Master Lin", { name: "Lin", relation: "alias" }],
+			["Demon Mira", { name: "Mira", relation: "version" }],
+			["Mira", undefined],
+			["Ghost", undefined],
+			["Echo", undefined],
+			["Self", undefined],
 		]);
 	});
 

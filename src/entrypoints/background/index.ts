@@ -3,12 +3,14 @@ import { browser } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { trackAnalyticsEvent } from "@/lib/analytics/background";
 import { setupAuthInterceptor } from "@/lib/auth/auth-service";
+import { AUTH_STORAGE_KEY } from "@/lib/auth/auth-storage";
 import {
 	cancelPrompt,
 	cancelTabPrompts,
 	executeDesktopPrompt,
 	generateDesktopImage,
 	loadDesktopCapabilities,
+	shareAccountSession,
 } from "@/lib/desktop-client/background";
 import { updateSyncBadge } from "@/lib/offline/badge";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
@@ -156,6 +158,10 @@ export default defineBackground(() => {
 	browser.storage.onChanged.addListener((changes, areaName) => {
 		if (areaName === "local" && changes["storylens-sync-state"]) {
 			void updateSyncBadge();
+		}
+		// Keep the paired desktop client's crawler on the current account.
+		if (areaName === "local" && changes[AUTH_STORAGE_KEY]) {
+			void shareAccountSession().catch(() => {});
 		}
 	});
 

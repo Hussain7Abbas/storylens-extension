@@ -1,3 +1,5 @@
+import { env } from "@/env";
+import { getStoredAuth } from "@/lib/auth/auth-storage";
 import { desktopSettings } from "./settings";
 import type {
 	DesktopCapabilities,
@@ -66,7 +68,28 @@ export async function loadDesktopCapabilities(): Promise<DesktopCapabilities> {
 	const data: unknown = await response.json();
 	if (!isCapabilities(data))
 		throw new Error("Desktop client protocol is incompatible.");
+	// Connecting also refreshes the account the desktop crawler uses; older clients lack the endpoint.
+	void shareAccountSession().catch(() => {});
 	return data;
+}
+
+/**
+ * Shares the reader's Story Lens session (API URL and token) with the paired
+ * desktop client, whose wiki crawler reads and saves novels with it. Signing
+ * out shares `null`, which makes the client forget it.
+ */
+export async function shareAccountSession(): Promise<void> {
+	const settings = await desktopSettings();
+	if (!settings.token) return;
+	const { token } = await getStoredAuth();
+	await request("/AccountSession", settings, {
+		method: "POST",
+		signal: AbortSignal.timeout(10_000),
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			account: token ? { apiUrl: env.WXT_API_URL, token } : null,
+		}),
+	});
 }
 
 export function cancelTabPrompts(tabId: number): void {

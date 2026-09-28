@@ -268,7 +268,7 @@
 	},
 	"desktop": {
 		"settings": "Desktop client",
-		"disclosure": "The AI actions (AI add, Summarize page, Extract chapter characters, and Generate image) send page content through the desktop client to your selected AI provider. When a novel has no context yet, the first AI action also asks the provider to research the novel on the web. Image generation uses Codex.",
+		"disclosure": "The AI actions (AI add, Summarize page, Extract chapter characters, and Generate image) send page content through the desktop client to your selected AI provider. When a novel has no context yet, the first AI action also asks the provider to research the novel on the web. Image generation uses Codex. Connecting also shares your Story Lens sign-in with the desktop client so its wiki crawler can read and save your novels' characters; signing out removes it.",
 		"port": "Local port",
 		"token": "Pairing token",
 		"connect": "Connect / refresh models",
@@ -312,7 +312,12 @@
 			"new": "Added",
 			"alias": "Added as alias",
 			"version": "Added as version"
-		}
+		},
+		"suggested": {
+			"alias": "AI: probably another name for “{{name}}”.",
+			"version": "AI: probably a later form of “{{name}}”."
+		},
+		"suggestedUnsaved": "Add “{{name}}” first to link it."
 	},
 	"selection": {
 		"parent": "Parent keyword",

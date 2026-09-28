@@ -53,6 +53,8 @@ type RowAction = "new" | "alias" | "version";
 type Row = ExtractedKeyword & {
 	key: string;
 	parentId: string | null;
+	/** The reader picked or cleared the parent; stop applying the AI suggestion. */
+	parentTouched?: boolean;
 	saving?: RowAction;
 	saved?: RowAction;
 	error?: string;
@@ -74,6 +76,23 @@ function lookupLabel(item: {
 	nameAr?: string | null;
 }): string {
 	return item.nameEn || item.nameAr || "";
+}
+
+/** Keyword whose name or alias matches the AI's suggested parent name. */
+function findParentId(
+	keywords: GetKeywords200DataItem[],
+	name: string,
+): string | null {
+	const key = name.trim().toLowerCase();
+	return (
+		keywords.find(
+			(keyword) =>
+				keyword.name.trim().toLowerCase() === key ||
+				keyword.aliases.some(
+					(alias) => alias.name.trim().toLowerCase() === key,
+				),
+		)?.id ?? null
+	);
 }
 
 function ParentSelect({
@@ -244,7 +263,9 @@ export function ExtractionView() {
 				items.map((item, index) => ({
 					...item,
 					key: `${index}-${item.name}`,
-					parentId: null,
+					parentId: item.suggestedParent
+						? findParentId(inputs.current.keywords, item.suggestedParent.name)
+						: null,
 				})),
 			);
 			setState({ status: "ready" });
@@ -257,6 +278,24 @@ export function ExtractionView() {
 		});
 		return () => controller.abort();
 	}, [ready, attempt, language, t]);
+
+	// A suggested parent from this same list links up once the reader saves it.
+	useEffect(() => {
+		setRows((current) =>
+			current.some(
+				(row) => row.suggestedParent && !row.parentId && !row.parentTouched,
+			)
+				? current.map((row) =>
+						row.suggestedParent && !row.parentId && !row.parentTouched
+							? {
+									...row,
+									parentId: findParentId(keywords, row.suggestedParent.name),
+								}
+							: row,
+					)
+				: current,
+		);
+	}, [keywords]);
 
 	const updateRow = (key: string, patch: Partial<Row>) =>
 		setRows((current) =>
@@ -416,6 +455,14 @@ export function ExtractionView() {
 						<Table.Tbody>
 							{rows.map((row) => {
 								const locked = !canMutate || !!row.saving || !!row.saved;
+								// The AI's relation leads while its parent is still selected.
+								const suggested =
+									row.suggestedParent &&
+									row.parentId &&
+									row.parentId ===
+										findParentId(keywords, row.suggestedParent.name)
+										? row.suggestedParent.relation
+										: undefined;
 								return (
 									<Table.Tr key={row.key}>
 										<Table.Td>
@@ -486,10 +533,21 @@ export function ExtractionView() {
 												onChange={(value) =>
 													updateRow(row.key, {
 														parentId: value,
+														parentTouched: true,
 														error: undefined,
 													})
 												}
 											/>
+											{row.suggestedParent && !row.parentTouched && (
+												<Text size="xs" c="dimmed" mt={4}>
+													{t(
+														`extract.suggested.${row.suggestedParent.relation}`,
+														{ name: row.suggestedParent.name },
+													)}
+													{!row.parentId &&
+														` ${t("extract.suggestedUnsaved", { name: row.suggestedParent.name })}`}
+												</Text>
+											)}
 										</Table.Td>
 										<Table.Td>
 											{row.saved ? (
@@ -506,6 +564,7 @@ export function ExtractionView() {
 														>
 															<Button
 																size="compact-xs"
+																variant={suggested ? "light" : "filled"}
 																disabled={locked}
 																loading={row.saving === "new"}
 																onClick={() => void save(row, "new")}
@@ -520,7 +579,9 @@ export function ExtractionView() {
 														>
 															<Button
 																size="compact-xs"
-																variant="light"
+																variant={
+																	suggested === "alias" ? "filled" : "light"
+																}
 																disabled={locked || !row.parentId}
 																loading={row.saving === "alias"}
 																onClick={() => void save(row, "alias")}
@@ -535,7 +596,9 @@ export function ExtractionView() {
 														>
 															<Button
 																size="compact-xs"
-																variant="light"
+																variant={
+																	suggested === "version" ? "filled" : "light"
+																}
 																disabled={locked || !row.parentId}
 																loading={row.saving === "version"}
 																onClick={() => void save(row, "version")}
