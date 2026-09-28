@@ -33,7 +33,8 @@ import {
 } from "@/lib/desktop-client/chapter-panel";
 import { relatedSuggestionDescription } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
-import { desktopSettings } from "@/lib/desktop-client/settings";
+import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
+import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
 import {
 	useCachedNovelsList,
@@ -151,8 +152,8 @@ export function ExtractionView() {
 	const [state, setState] = useState<ExtractionState>({ status: "waiting" });
 	const [rows, setRows] = useState<Row[]>([]);
 	const [attempt, setAttempt] = useState(0);
-	const inputs = useRef({ categories, natures, keywords });
-	inputs.current = { categories, natures, keywords };
+	const inputs = useRef({ categories, natures, keywords, novelId });
+	inputs.current = { categories, natures, keywords, novelId };
 	const aiConfigured = useAiConfigured();
 	const ready =
 		aiConfigured &&
@@ -201,6 +202,18 @@ export function ExtractionView() {
 				keyword.name,
 				...keyword.aliases.map((alias) => alias.name),
 			]);
+			const currentNovelId = inputs.current.novelId;
+			const [prompts, novelContext] = await Promise.all([
+				aiPrompts(),
+				currentNovelId
+					? ensureNovelContext({
+							novelId: currentNovelId,
+							language,
+							settings,
+							signal: controller.signal,
+						})
+					: "",
+			]);
 			if (controller.signal.aborted) return;
 			trackEvent("ai_chapter_extraction_requested", {
 				effort: settings.effort,
@@ -211,6 +224,8 @@ export function ExtractionView() {
 					...lookup,
 					knownNames,
 					language,
+					instructions: prompts.keywordPrompt,
+					novelContext,
 				}),
 				language,
 				settings,

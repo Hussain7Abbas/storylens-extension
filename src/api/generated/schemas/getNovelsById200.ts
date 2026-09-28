@@ -7,6 +7,7 @@
  */
 
 import type { GetNovelsById200ChaptersItem } from "./getNovelsById200ChaptersItem";
+import type { GetNovelsById200Context } from "./getNovelsById200Context";
 import type { GetNovelsById200CreatedAt } from "./getNovelsById200CreatedAt";
 import type { GetNovelsById200CreatedById } from "./getNovelsById200CreatedById";
 import type { GetNovelsById200Description } from "./getNovelsById200Description";
@@ -18,6 +19,7 @@ export type GetNovelsById200 = {
 	id: string;
 	name: string;
 	description: GetNovelsById200Description;
+	context: GetNovelsById200Context;
 	slugs: string[];
 	imageId: GetNovelsById200ImageId;
 	createdById: GetNovelsById200CreatedById;

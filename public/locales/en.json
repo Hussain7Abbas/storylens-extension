@@ -67,7 +67,12 @@
 		"deleteAliasesWarning": "This will also delete all its aliases.",
 		"aiSuggesting": "AI is suggesting a description, category, and nature…",
 		"aiSuggestionReady": "AI suggestion ready. Click Add to review it.",
-		"aiFailed": "AI suggestion failed"
+		"aiFailed": "AI suggestion failed",
+		"generateImage": "Generate image",
+		"generateImageHint": "Draw this entry with Codex from the current chapter, its description, and the novel context. The image uploads when you save.",
+		"generatingImage": "Generating image… this can take a minute or two.",
+		"imageGenerateFailed": "Image generation failed",
+		"imageNeedsName": "Enter a name first."
 	},
 	"replacing": {
 		"from": "From",
@@ -128,7 +133,10 @@
 		"notFound": "Novel not found",
 		"confirmDelete": "Are you sure you want to delete this novel?",
 		"comingSoon": "Coming soon",
-		"addSlug": "Add Current Slug"
+		"addSlug": "Add Current Slug",
+		"context": "Novel context",
+		"contextHelp": "Genre, setting, premise, and main characters. AI keyword suggestions and image generation use it; when empty, the first AI action researches the novel online and fills it in.",
+		"contextLocked": "Only admins can change an existing context."
 	},
 	"settings": {
 		"title": "Settings",
@@ -260,7 +268,7 @@
 	},
 	"desktop": {
 		"settings": "Desktop client",
-		"disclosure": "The launcher’s AI actions (AI add, Summarize page, and Extract chapter characters) send page content through the desktop client to your selected AI provider.",
+		"disclosure": "The AI actions (AI add, Summarize page, Extract chapter characters, and Generate image) send page content through the desktop client to your selected AI provider. When a novel has no context yet, the first AI action also asks the provider to research the novel on the web. Image generation uses Codex.",
 		"port": "Local port",
 		"token": "Pairing token",
 		"connect": "Connect / refresh models",
@@ -270,7 +278,17 @@
 		"connectionFailed": "Could not connect to desktop client.",
 		"configureAi": "Please configure AI in the settings.",
 		"selectModel": "Connect and choose a model first.",
-		"modelUnavailable": "Saved model is unavailable. Choose another model."
+		"modelUnavailable": "Saved model is unavailable. Choose another model.",
+		"prompts": "AI prompts",
+		"promptsHelp": "These instructions are sent first and take priority over the chapter text and novel context that Story Lens adds to each request.",
+		"keywordPrompt": "Keyword prompt",
+		"keywordPromptHelp": "How AI add and chapter extraction write descriptions and choose categories and natures.",
+		"imagePrompt": "Image prompt",
+		"imagePromptHelp": "How character images are drawn. Story Lens adds the passages of the current chapter that mention the character, its name, aliases, description and category, then the novel context, and Codex generates one image that uploads to image storage when you save the form.",
+		"resetPrompt": "Reset to default",
+		"resetPromptHint": "Replace this prompt with the default text",
+		"savePrompts": "Save prompts",
+		"promptsSaved": "Prompts saved."
 	},
 	"extract": {
 		"selectParent": "Select a character",

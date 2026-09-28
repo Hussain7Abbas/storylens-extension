@@ -46,12 +46,34 @@ describe("buildKeywordSuggestionPrompt", () => {
 			categories,
 			natures,
 			language: "ar",
+			instructions: "Mention the sect.",
+			novelContext: "Genre: xianxia",
 		});
 		expect(prompt).toContain("Write every description in Arabic");
+		expect(prompt.indexOf("Mention the sect.")).toBeLessThan(
+			prompt.indexOf("Genre: xianxia"),
+		);
+		expect(prompt).toContain("<NOVEL_CONTEXT>\nGenre: xianxia");
 		expect(prompt).toContain("1. Female / انثى — A woman");
 		expect(prompt).toContain("2. مكان\n");
 		expect(prompt).toContain("1. Friend / صديق");
 		expect(prompt).toContain("Then <<<Lin>>> smiled.");
+	});
+});
+
+describe("novel context in prompts", () => {
+	test("omits the context section when the novel has none", () => {
+		const prompt = buildKeywordSuggestionPrompt({
+			name: "Lin",
+			context: { before: "", after: "" },
+			categories,
+			natures,
+			language: "en",
+			instructions: " Keep it short. ",
+			novelContext: "  ",
+		});
+		expect(prompt).not.toContain("<NOVEL_CONTEXT>");
+		expect(prompt).toContain("<INSTRUCTIONS>\nKeep it short.\n</INSTRUCTIONS>");
 	});
 });
 

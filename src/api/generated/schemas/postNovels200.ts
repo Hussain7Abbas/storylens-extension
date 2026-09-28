@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { PostNovels200Context } from "./postNovels200Context";
 import type { PostNovels200CreatedAt } from "./postNovels200CreatedAt";
 import type { PostNovels200CreatedById } from "./postNovels200CreatedById";
 import type { PostNovels200Description } from "./postNovels200Description";
@@ -17,6 +18,7 @@ export type PostNovels200 = {
 	id: string;
 	name: string;
 	description: PostNovels200Description;
+	context: PostNovels200Context;
 	slugs: string[];
 	imageId: PostNovels200ImageId;
 	createdById: PostNovels200CreatedById;

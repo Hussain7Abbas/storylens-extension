@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { GetNovels200DataItemContext } from "./getNovels200DataItemContext";
 import type { GetNovels200DataItemCreatedAt } from "./getNovels200DataItemCreatedAt";
 import type { GetNovels200DataItemCreatedById } from "./getNovels200DataItemCreatedById";
 import type { GetNovels200DataItemDescription } from "./getNovels200DataItemDescription";
@@ -16,6 +17,7 @@ export type GetNovels200DataItem = {
 	id: string;
 	name: string;
 	description: GetNovels200DataItemDescription;
+	context: GetNovels200DataItemContext;
 	slugs: string[];
 	imageId: GetNovels200DataItemImageId;
 	createdById: GetNovels200DataItemCreatedById;

@@ -7,6 +7,7 @@ import {
 	cancelPrompt,
 	cancelTabPrompts,
 	executeDesktopPrompt,
+	generateDesktopImage,
 	loadDesktopCapabilities,
 } from "@/lib/desktop-client/background";
 import { updateSyncBadge } from "@/lib/offline/badge";
@@ -24,6 +25,27 @@ import {
 import { setupApiClient } from "@/utils/setup-api-client";
 
 const tabNovels = new Map<number, currentNovelMeta>();
+/** Owner key for desktop jobs started by an extension page outside a tab (the toolbar popup). */
+const EXTENSION_PAGE_OWNER = -1;
+
+/**
+ * Desktop AI jobs come from a tab (content scripts and the launcher popup
+ * frame), keyed by that tab so closing it cancels them, or from the toolbar
+ * popup, which has no tab and shares one owner key.
+ */
+function desktopJobOwner(sender: {
+	tab?: { id?: number };
+	url?: string;
+	id?: string;
+}): number {
+	if (sender.id !== browser.runtime.id)
+		throw new Error("Only Story Lens can request AI execution.");
+	if (sender.tab?.id !== undefined) return sender.tab.id;
+	if (!sender.url?.startsWith(browser.runtime.getURL("/")))
+		throw new Error("Only Story Lens pages can request AI execution.");
+	return EXTENSION_PAGE_OWNER;
+}
+
 const SYNC_ALARM_NAME = "storylens-periodic-sync";
 const SYNC_INTERVAL_MINUTES = 5;
 
@@ -107,13 +129,14 @@ export default defineBackground(() => {
 	});
 
 	onMessage("desktopCapabilities", () => loadDesktopCapabilities());
-	onMessage("executeDesktopPrompt", ({ data, sender }) => {
-		if (sender.tab?.id === undefined)
-			throw new Error("Only a page content script can request execution.");
-		return executeDesktopPrompt(data, sender.tab.id);
-	});
+	onMessage("executeDesktopPrompt", ({ data, sender }) =>
+		executeDesktopPrompt(data, desktopJobOwner(sender)),
+	);
+	onMessage("generateDesktopImage", ({ data, sender }) =>
+		generateDesktopImage(data, desktopJobOwner(sender)),
+	);
 	onMessage("cancelDesktopPrompt", ({ data, sender }) => {
-		if (sender.tab?.id !== undefined) cancelPrompt(data, sender.tab.id);
+		cancelPrompt(data, desktopJobOwner(sender));
 	});
 
 	browser.alarms.onAlarm.addListener((alarm) => {

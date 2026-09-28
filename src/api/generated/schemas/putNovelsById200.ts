@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { PutNovelsById200Context } from "./putNovelsById200Context";
 import type { PutNovelsById200CreatedAt } from "./putNovelsById200CreatedAt";
 import type { PutNovelsById200CreatedById } from "./putNovelsById200CreatedById";
 import type { PutNovelsById200Description } from "./putNovelsById200Description";
@@ -17,6 +18,7 @@ export type PutNovelsById200 = {
 	id: string;
 	name: string;
 	description: PutNovelsById200Description;
+	context: PutNovelsById200Context;
 	slugs: string[];
 	imageId: PutNovelsById200ImageId;
 	createdById: PutNovelsById200CreatedById;

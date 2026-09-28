@@ -3,6 +3,8 @@ import type {
 	DesktopCapabilities,
 	DesktopSettings,
 	ExecutePromptInput,
+	GeneratedImage,
+	GenerateImageInput,
 } from "./types";
 
 const active = new Map<
@@ -82,88 +84,143 @@ export function cancelPrompt(requestId: string, tabId: number): void {
 	}
 }
 
-export async function executeDesktopPrompt(
-	data: ExecutePromptInput,
+type ResultFrame = {
+	type?: string;
+	output?: string;
+	mimeType?: string;
+	data?: string;
+	error?: { message?: string };
+};
+
+/** Reads an NDJSON job stream until its single result frame, enforcing a size limit. */
+async function readResultFrame(
+	response: Response,
+	maxBytes: number,
+): Promise<ResultFrame> {
+	if (!response.body) throw new Error("Desktop client sent no response body.");
+	const reader = response.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = "",
+		received = 0,
+		result: ResultFrame | undefined;
+	while (true) {
+		const next = await reader.read();
+		if (next.done) break;
+		received += next.value.byteLength;
+		if (received > maxBytes)
+			throw new Error("Desktop client response exceeded the size limit.");
+		buffer += decoder.decode(next.value, { stream: true });
+		let newline = buffer.indexOf("\n");
+		while (newline >= 0) {
+			const line = buffer.slice(0, newline);
+			buffer = buffer.slice(newline + 1);
+			if (line) {
+				let frame: ResultFrame;
+				try {
+					frame = JSON.parse(line) as ResultFrame;
+				} catch {
+					throw new Error("Desktop client returned malformed data.");
+				}
+				if (result)
+					throw new Error("Desktop client returned multiple results.");
+				if (frame.type === "result") result = frame;
+				else if (frame.type === "error")
+					throw new Error(frame.error?.message ?? "Desktop client failed.");
+				else if (frame.type !== "started" && frame.type !== "heartbeat")
+					throw new Error("Desktop client returned an unknown event.");
+			}
+			newline = buffer.indexOf("\n");
+		}
+	}
+	if (!result || buffer.trim())
+		throw new Error("Desktop client connection ended before a result arrived.");
+	return result;
+}
+
+/** Runs one streamed desktop job that can be canceled by request ID or by closing its tab. */
+async function runDesktopJob<T>(
+	path: string,
+	requestId: string,
 	tabId: number,
-): Promise<string> {
+	body: Record<string, unknown>,
+	options: { timeoutMs: number; maxBytes: number },
+	pick: (frame: ResultFrame) => T,
+): Promise<T> {
 	const settings = await desktopSettings();
-	if (active.has(data.requestId))
+	if (active.has(requestId))
 		throw new Error("This request is already running.");
-	if (encoder.encode(data.prompt).byteLength > 500_000)
-		throw new Error(
-			"Prompt is too large for the desktop client (500 KB limit).",
-		);
 	const controller = new AbortController();
-	active.set(data.requestId, { tabId, controller });
-	const timeout = setTimeout(() => controller.abort(), 245_000);
+	active.set(requestId, { tabId, controller });
+	const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
 	try {
-		const response = await request("/ExecutePrompt", settings, {
+		const response = await request(path, settings, {
 			method: "POST",
 			signal: controller.signal,
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/x-ndjson",
 			},
-			body: JSON.stringify({
-				prompt: data.prompt,
-				model: data.model,
-				effort: data.effort,
-				responseLanguage: data.responseLanguage,
-			}),
+			body: JSON.stringify(body),
 		});
-		if (!response.body)
-			throw new Error("Desktop client sent no response body.");
-		const reader = response.body.getReader();
-		const decoder = new TextDecoder();
-		let buffer = "",
-			received = 0,
-			terminal = false,
-			output = "";
-		while (true) {
-			const next = await reader.read();
-			if (next.done) break;
-			received += next.value.byteLength;
-			if (received > 1_100_000)
-				throw new Error("Desktop client response exceeded the size limit.");
-			buffer += decoder.decode(next.value, { stream: true });
-			let newline = buffer.indexOf("\n");
-			while (newline >= 0) {
-				const line = buffer.slice(0, newline);
-				buffer = buffer.slice(newline + 1);
-				if (line) {
-					let frame: {
-						type?: string;
-						output?: string;
-						error?: { message?: string };
-					};
-					try {
-						frame = JSON.parse(line) as typeof frame;
-					} catch {
-						throw new Error("Desktop client returned malformed data.");
-					}
-					if (terminal)
-						throw new Error("Desktop client returned multiple results.");
-					if (frame.type === "result") {
-						if (typeof frame.output !== "string")
-							throw new Error("Desktop client returned no answer.");
-						output = frame.output;
-						terminal = true;
-					} else if (frame.type === "error")
-						throw new Error(frame.error?.message ?? "Desktop client failed.");
-					else if (frame.type !== "started" && frame.type !== "heartbeat")
-						throw new Error("Desktop client returned an unknown event.");
-				}
-				newline = buffer.indexOf("\n");
-			}
-		}
-		if (!terminal || buffer.trim())
-			throw new Error(
-				"Desktop client connection ended before a result arrived.",
-			);
-		return output;
+		return pick(await readResultFrame(response, options.maxBytes));
 	} finally {
 		clearTimeout(timeout);
-		active.delete(data.requestId);
+		active.delete(requestId);
 		controller.abort();
 	}
+}
+
+export async function executeDesktopPrompt(
+	data: ExecutePromptInput,
+	tabId: number,
+): Promise<string> {
+	if (encoder.encode(data.prompt).byteLength > 500_000)
+		throw new Error(
+			"Prompt is too large for the desktop client (500 KB limit).",
+		);
+	return runDesktopJob(
+		"/ExecutePrompt",
+		data.requestId,
+		tabId,
+		{
+			prompt: data.prompt,
+			model: data.model,
+			effort: data.effort,
+			responseLanguage: data.responseLanguage,
+			...(data.webSearch ? { webSearch: true } : {}),
+		},
+		{ timeoutMs: 245_000, maxBytes: 1_100_000 },
+		(frame) => {
+			if (typeof frame.output !== "string")
+				throw new Error("Desktop client returned no answer.");
+			return frame.output;
+		},
+	);
+}
+
+/** Asks the desktop client to draw one image with Codex; returns it as base64. */
+export async function generateDesktopImage(
+	data: GenerateImageInput,
+	tabId: number,
+): Promise<GeneratedImage> {
+	if (encoder.encode(data.prompt).byteLength > 500_000)
+		throw new Error(
+			"Prompt is too large for the desktop client (500 KB limit).",
+		);
+	return runDesktopJob(
+		"/GenerateImage",
+		data.requestId,
+		tabId,
+		{ prompt: data.prompt, model: data.model, effort: data.effort },
+		{ timeoutMs: 320_000, maxBytes: 12_000_000 },
+		(frame) => {
+			if (
+				typeof frame.data !== "string" ||
+				typeof frame.mimeType !== "string" ||
+				!frame.mimeType.startsWith("image/")
+			)
+				throw new Error("Desktop client returned no image.");
+			return { mimeType: frame.mimeType, data: frame.data };
+		},
+	);
 }

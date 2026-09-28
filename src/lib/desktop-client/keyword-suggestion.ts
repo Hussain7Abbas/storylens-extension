@@ -1,4 +1,6 @@
 import { type AiLanguage, languageRule } from "./ai-language";
+import { instructionSection } from "./ai-prompts";
+import { novelContextSection } from "./novel-context-prompt";
 
 /** Page text around a picked keyword, captured by the launcher's AI picker. */
 export type KeywordContext = { before: string; after: string };
@@ -64,18 +66,25 @@ export function buildKeywordSuggestionPrompt(input: {
 	categories: SuggestionOption[];
 	natures: SuggestionOption[];
 	language: AiLanguage;
+	/** Reader's keyword prompt from Settings → AI; it takes priority over the context. */
+	instructions: string;
+	/** The novel's global context; empty when unknown. */
+	novelContext: string;
 }): string {
 	const name = input.name.trim();
-	return `You help a reader tag a named entity in a web novel. The picked text is "${name}"; in the excerpt it is wrapped in <<< >>>. Using only the excerpt, work out who or what it is.
+	return `You help a reader tag a named entity in a web novel. The picked text is "${name}"; in the excerpt it is wrapped in <<< >>>. Using the excerpt, with the novel context as background, work out who or what it is.
+
+${instructionSection(input.instructions)}
 
 Return only one JSON object, without Markdown fences:
 {"description": string, "category": number, "nature": number}
 
-- description: one or two short sentences. For a character, say who they are and how they relate to the main character or to other named characters. For a place, say what kind of place it is and where or how it is introduced. For anything else, say what it is and who it belongs to. Use only what the excerpt supports; do not invent details.
+- description: the entity description, written as the reader instructions ask.
 - category: the number of the best matching category below.
 - nature: the number of the best matching nature below.
 
 ${languageRule(input.language)}
+${novelContextSection(input.novelContext)}
 
 Categories:
 ${optionLines(input.categories)}

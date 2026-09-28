@@ -11,6 +11,11 @@ export type PostNovelsBodyTwo = {
 	name: string;
 	/** @minLength 1 */
 	description?: string;
+	/**
+	 * @minLength 1
+	 * @maxLength 20000
+	 */
+	context?: string;
 	imageId?: string;
 	slugs?: string[];
 };

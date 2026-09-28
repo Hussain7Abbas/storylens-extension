@@ -10,7 +10,8 @@ import {
 	parseKeywordSuggestion,
 } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
-import { desktopSettings } from "@/lib/desktop-client/settings";
+import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
+import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
 import {
 	useOfflineKeywordCategories,
@@ -25,9 +26,13 @@ export type KeywordSuggestionState =
 
 /**
  * Requests a description, category, and nature for the text picked with the
- * selection panel with AI enabled. The page context arrives in a hidden query parameter.
+ * selection panel with AI enabled. The page context arrives in a hidden query parameter;
+ * the reader's keyword prompt and the novel's global context are added to it.
  */
-export function useKeywordSuggestion(enabled: boolean): KeywordSuggestionState {
+export function useKeywordSuggestion(
+	enabled: boolean,
+	novelId: string | undefined,
+): KeywordSuggestionState {
 	const { t, i18n } = useTranslation();
 	const request = useMemo(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -67,6 +72,18 @@ export function useKeywordSuggestion(enabled: boolean): KeywordSuggestionState {
 				categories: lookups.current.categories ?? [],
 				natures: lookups.current.natures ?? [],
 			};
+			const [prompts, novelContext] = await Promise.all([
+				aiPrompts(),
+				novelId
+					? ensureNovelContext({
+							novelId,
+							language,
+							settings,
+							signal: controller.signal,
+						})
+					: "",
+			]);
+			if (controller.signal.aborted) return;
 			trackEvent("ai_keyword_suggestion_requested", {
 				effort: settings.effort,
 			});
@@ -75,6 +92,8 @@ export function useKeywordSuggestion(enabled: boolean): KeywordSuggestionState {
 					...request,
 					...options,
 					language,
+					instructions: prompts.keywordPrompt,
+					novelContext,
 				}),
 				language,
 				settings,
@@ -96,7 +115,7 @@ export function useKeywordSuggestion(enabled: boolean): KeywordSuggestionState {
 			});
 		});
 		return () => controller.abort();
-	}, [request, enabled, aiConfigured, lookupsReady, language, t]);
+	}, [request, enabled, aiConfigured, lookupsReady, language, novelId, t]);
 
 	return state;
 }

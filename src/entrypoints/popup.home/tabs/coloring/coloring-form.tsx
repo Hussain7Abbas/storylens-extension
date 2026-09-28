@@ -35,6 +35,7 @@ import type {
 	PutKeywordVersionsByIdBodyOne,
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
+import { GenerateImageButton } from "@/components/generate-image-button";
 import { useIsAdmin } from "@/lib/auth";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
 import {
@@ -84,6 +85,15 @@ interface ColoringFormProps {
 	onClose: () => void;
 }
 
+/** Category name used in image prompts, preferring the English name. */
+function categoryLabel(
+	categories: KeywordCategory[] | undefined,
+	categoryId: string | null,
+): string | undefined {
+	const category = categories?.find((item) => item.id === categoryId);
+	return category ? category.nameEn || category.nameAr || undefined : undefined;
+}
+
 // ─── KEYWORD form ────────────────────────────────────────────────────────────
 
 type KeywordFormValues = {
@@ -110,6 +120,7 @@ function KeywordForm({
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
+	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
 	const keyword = "keyword" in frame ? frame.keyword : undefined;
 	const suggestion =
@@ -160,6 +171,7 @@ function KeywordForm({
 	});
 
 	const isPending =
+		isGeneratingImage ||
 		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
@@ -193,6 +205,7 @@ function KeywordForm({
 				categoryId: values.categoryId,
 				natureId: values.natureId,
 				description: values.description || undefined,
+				imageId,
 			};
 			createMutation.mutate(payload, {
 				onSuccess: () => {
@@ -298,6 +311,15 @@ function KeywordForm({
 						onChange={setImageFile}
 						placeholder={t("coloring.imageOptional")}
 						clearable
+					/>
+					<GenerateImageButton
+						novelId={selectedNovelId}
+						name={form.values.name}
+						otherNames={keyword?.aliases.map((item) => item.name) ?? []}
+						description={form.values.description}
+						category={categoryLabel(categoriesData, form.values.categoryId)}
+						onGenerated={setImageFile}
+						onBusyChange={setIsGeneratingImage}
 					/>
 					{displayedImageUrl && (
 						<Image
@@ -424,6 +446,7 @@ function AliasForm({
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
+	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const alias = "keyword" in frame ? frame.keyword : undefined;
 	const suggestion = frame.mode === "alias-add" ? frame.suggestion : undefined;
@@ -465,6 +488,7 @@ function AliasForm({
 	});
 
 	const isPending =
+		isGeneratingImage ||
 		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
@@ -611,6 +635,15 @@ function AliasForm({
 						placeholder={t("coloring.imageOptional")}
 						clearable
 					/>
+					<GenerateImageButton
+						novelId={selectedNovelId}
+						name={form.values.name}
+						otherNames={[frame.parentKeyword.name]}
+						description={form.values.description}
+						category={categoryLabel(categoriesData, form.values.categoryId)}
+						onGenerated={setImageFile}
+						onBusyChange={setIsGeneratingImage}
+					/>
 					{displayedImageUrl && (
 						<Image
 							src={displayedImageUrl}
@@ -739,6 +772,7 @@ function VersionForm({
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
+	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	const version = "keyword" in frame ? frame.keyword : undefined;
@@ -796,6 +830,7 @@ function VersionForm({
 	const displayedImageUrl = imagePreviewUrl ?? version?.image?.url ?? null;
 
 	const isPending =
+		isGeneratingImage ||
 		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
@@ -982,6 +1017,15 @@ function VersionForm({
 						onChange={setImageFile}
 						placeholder={t("coloring.imageOptional")}
 						clearable
+					/>
+					<GenerateImageButton
+						novelId={selectedNovelId}
+						name={frame.parentKeyword.name}
+						otherNames={frame.parentKeyword.aliases.map((item) => item.name)}
+						description={form.values.description}
+						category={categoryLabel(categoriesData, form.values.categoryId)}
+						onGenerated={setImageFile}
+						onBusyChange={setIsGeneratingImage}
 					/>
 					{displayedImageUrl && (
 						<Image
