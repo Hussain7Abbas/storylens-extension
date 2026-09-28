@@ -36,7 +36,7 @@ export async function detectChapterSelectors(input: {
 	model?: string;
 }) {
 	return extensionApiPost<DetectChapterSelectorsResponse>(
-		"/ai/chapter-selectors",
+		"/api/user/ai/chapter-selectors",
 		input,
 	);
 }

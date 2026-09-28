@@ -27,26 +27,21 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteWebsiteSelectorsByWebsite200,
 	DeleteWebsiteSelectorsByWebsite404,
-	DeleteWebsiteSelectorsByWebsite422,
 	DeleteWebsiteSelectorsByWebsite500,
 	GetWebsiteSelectors200,
 	GetWebsiteSelectors404,
-	GetWebsiteSelectors422,
 	GetWebsiteSelectors500,
 	GetWebsiteSelectorsByWebsite200,
 	GetWebsiteSelectorsByWebsite404,
-	GetWebsiteSelectorsByWebsite422,
 	GetWebsiteSelectorsByWebsite500,
 	PostWebsiteSelectors200,
 	PostWebsiteSelectors404,
-	PostWebsiteSelectors422,
 	PostWebsiteSelectors500,
 	PostWebsiteSelectorsBodyOne,
 	PostWebsiteSelectorsBodyThree,
 	PostWebsiteSelectorsBodyTwo,
 	PutWebsiteSelectorsByWebsite200,
 	PutWebsiteSelectorsByWebsite404,
-	PutWebsiteSelectorsByWebsite422,
 	PutWebsiteSelectorsByWebsite500,
 	PutWebsiteSelectorsByWebsiteBodyOne,
 	PutWebsiteSelectorsByWebsiteBodyThree,
@@ -62,7 +57,7 @@ export const getWebsiteSelectorsByWebsite = (
 ) => {
 	return customInstance<GetWebsiteSelectorsByWebsite200>(
 		{
-			url: `http://localhost:3030/website-selectors/${website}`,
+			url: `http://localhost:3031/api/user/website-selectors/${website}`,
 			method: "GET",
 			signal,
 		},
@@ -71,15 +66,15 @@ export const getWebsiteSelectorsByWebsite = (
 };
 
 export const getGetWebsiteSelectorsByWebsiteQueryKey = (website?: string) => {
-	return [`http://localhost:3030/website-selectors/${website}`] as const;
+	return [
+		`http://localhost:3031/api/user/website-selectors/${website}`,
+	] as const;
 };
 
 export const getGetWebsiteSelectorsByWebsiteQueryOptions = <
 	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
 	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
+		GetWebsiteSelectorsByWebsite404 | GetWebsiteSelectorsByWebsite500
 	>,
 >(
 	website: string,
@@ -120,17 +115,13 @@ export type GetWebsiteSelectorsByWebsiteQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>
 >;
 export type GetWebsiteSelectorsByWebsiteQueryError = ErrorType<
-	| GetWebsiteSelectorsByWebsite404
-	| GetWebsiteSelectorsByWebsite422
-	| GetWebsiteSelectorsByWebsite500
+	GetWebsiteSelectorsByWebsite404 | GetWebsiteSelectorsByWebsite500
 >;
 
 export function useGetWebsiteSelectorsByWebsite<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
 	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
+		GetWebsiteSelectorsByWebsite404 | GetWebsiteSelectorsByWebsite500
 	>,
 >(
 	website: string,
@@ -159,9 +150,7 @@ export function useGetWebsiteSelectorsByWebsite<
 export function useGetWebsiteSelectorsByWebsite<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
 	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
+		GetWebsiteSelectorsByWebsite404 | GetWebsiteSelectorsByWebsite500
 	>,
 >(
 	website: string,
@@ -190,9 +179,7 @@ export function useGetWebsiteSelectorsByWebsite<
 export function useGetWebsiteSelectorsByWebsite<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
 	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
+		GetWebsiteSelectorsByWebsite404 | GetWebsiteSelectorsByWebsite500
 	>,
 >(
 	website: string,
@@ -214,9 +201,7 @@ export function useGetWebsiteSelectorsByWebsite<
 export function useGetWebsiteSelectorsByWebsite<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectorsByWebsite>>,
 	TError = ErrorType<
-		| GetWebsiteSelectorsByWebsite404
-		| GetWebsiteSelectorsByWebsite422
-		| GetWebsiteSelectorsByWebsite500
+		GetWebsiteSelectorsByWebsite404 | GetWebsiteSelectorsByWebsite500
 	>,
 >(
 	website: string,
@@ -259,7 +244,7 @@ export const putWebsiteSelectorsByWebsite = (
 ) => {
 	return customInstance<PutWebsiteSelectorsByWebsite200>(
 		{
-			url: `http://localhost:3030/website-selectors/${website}`,
+			url: `http://localhost:3031/api/user/website-selectors/${website}`,
 			method: "PUT",
 			data: putWebsiteSelectorsByWebsiteBody,
 		},
@@ -269,9 +254,7 @@ export const putWebsiteSelectorsByWebsite = (
 
 export const getPutWebsiteSelectorsByWebsiteMutationOptions = <
 	TError = ErrorType<
-		| PutWebsiteSelectorsByWebsite404
-		| PutWebsiteSelectorsByWebsite422
-		| PutWebsiteSelectorsByWebsite500
+		PutWebsiteSelectorsByWebsite404 | PutWebsiteSelectorsByWebsite500
 	>,
 	TContext = unknown,
 >(options?: {
@@ -335,16 +318,12 @@ export type PutWebsiteSelectorsByWebsiteMutationBody =
 	| PutWebsiteSelectorsByWebsiteBodyTwo
 	| PutWebsiteSelectorsByWebsiteBodyThree;
 export type PutWebsiteSelectorsByWebsiteMutationError = ErrorType<
-	| PutWebsiteSelectorsByWebsite404
-	| PutWebsiteSelectorsByWebsite422
-	| PutWebsiteSelectorsByWebsite500
+	PutWebsiteSelectorsByWebsite404 | PutWebsiteSelectorsByWebsite500
 >;
 
 export const usePutWebsiteSelectorsByWebsite = <
 	TError = ErrorType<
-		| PutWebsiteSelectorsByWebsite404
-		| PutWebsiteSelectorsByWebsite422
-		| PutWebsiteSelectorsByWebsite500
+		PutWebsiteSelectorsByWebsite404 | PutWebsiteSelectorsByWebsite500
 	>,
 	TContext = unknown,
 >(
@@ -387,7 +366,7 @@ export const deleteWebsiteSelectorsByWebsite = (
 ) => {
 	return customInstance<DeleteWebsiteSelectorsByWebsite200>(
 		{
-			url: `http://localhost:3030/website-selectors/${website}`,
+			url: `http://localhost:3031/api/user/website-selectors/${website}`,
 			method: "DELETE",
 		},
 		options,
@@ -396,9 +375,7 @@ export const deleteWebsiteSelectorsByWebsite = (
 
 export const getDeleteWebsiteSelectorsByWebsiteMutationOptions = <
 	TError = ErrorType<
-		| DeleteWebsiteSelectorsByWebsite404
-		| DeleteWebsiteSelectorsByWebsite422
-		| DeleteWebsiteSelectorsByWebsite500
+		DeleteWebsiteSelectorsByWebsite404 | DeleteWebsiteSelectorsByWebsite500
 	>,
 	TContext = unknown,
 >(options?: {
@@ -441,16 +418,12 @@ export type DeleteWebsiteSelectorsByWebsiteMutationResult = NonNullable<
 >;
 
 export type DeleteWebsiteSelectorsByWebsiteMutationError = ErrorType<
-	| DeleteWebsiteSelectorsByWebsite404
-	| DeleteWebsiteSelectorsByWebsite422
-	| DeleteWebsiteSelectorsByWebsite500
+	DeleteWebsiteSelectorsByWebsite404 | DeleteWebsiteSelectorsByWebsite500
 >;
 
 export const useDeleteWebsiteSelectorsByWebsite = <
 	TError = ErrorType<
-		| DeleteWebsiteSelectorsByWebsite404
-		| DeleteWebsiteSelectorsByWebsite422
-		| DeleteWebsiteSelectorsByWebsite500
+		DeleteWebsiteSelectorsByWebsite404 | DeleteWebsiteSelectorsByWebsite500
 	>,
 	TContext = unknown,
 >(
@@ -480,20 +453,22 @@ export const getWebsiteSelectors = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetWebsiteSelectors200>(
-		{ url: `http://localhost:3030/website-selectors/`, method: "GET", signal },
+		{
+			url: `http://localhost:3031/api/user/website-selectors/`,
+			method: "GET",
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetWebsiteSelectorsQueryKey = () => {
-	return [`http://localhost:3030/website-selectors/`] as const;
+	return [`http://localhost:3031/api/user/website-selectors/`] as const;
 };
 
 export const getGetWebsiteSelectorsQueryOptions = <
 	TData = Awaited<ReturnType<typeof getWebsiteSelectors>>,
-	TError = ErrorType<
-		GetWebsiteSelectors404 | GetWebsiteSelectors422 | GetWebsiteSelectors500
-	>,
+	TError = ErrorType<GetWebsiteSelectors404 | GetWebsiteSelectors500>,
 >(options?: {
 	query?: Partial<
 		UseQueryOptions<
@@ -523,14 +498,12 @@ export type GetWebsiteSelectorsQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getWebsiteSelectors>>
 >;
 export type GetWebsiteSelectorsQueryError = ErrorType<
-	GetWebsiteSelectors404 | GetWebsiteSelectors422 | GetWebsiteSelectors500
+	GetWebsiteSelectors404 | GetWebsiteSelectors500
 >;
 
 export function useGetWebsiteSelectors<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectors>>,
-	TError = ErrorType<
-		GetWebsiteSelectors404 | GetWebsiteSelectors422 | GetWebsiteSelectors500
-	>,
+	TError = ErrorType<GetWebsiteSelectors404 | GetWebsiteSelectors500>,
 >(
 	options: {
 		query: Partial<
@@ -556,9 +529,7 @@ export function useGetWebsiteSelectors<
 };
 export function useGetWebsiteSelectors<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectors>>,
-	TError = ErrorType<
-		GetWebsiteSelectors404 | GetWebsiteSelectors422 | GetWebsiteSelectors500
-	>,
+	TError = ErrorType<GetWebsiteSelectors404 | GetWebsiteSelectors500>,
 >(
 	options?: {
 		query?: Partial<
@@ -584,9 +555,7 @@ export function useGetWebsiteSelectors<
 };
 export function useGetWebsiteSelectors<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectors>>,
-	TError = ErrorType<
-		GetWebsiteSelectors404 | GetWebsiteSelectors422 | GetWebsiteSelectors500
-	>,
+	TError = ErrorType<GetWebsiteSelectors404 | GetWebsiteSelectors500>,
 >(
 	options?: {
 		query?: Partial<
@@ -605,9 +574,7 @@ export function useGetWebsiteSelectors<
 
 export function useGetWebsiteSelectors<
 	TData = Awaited<ReturnType<typeof getWebsiteSelectors>>,
-	TError = ErrorType<
-		GetWebsiteSelectors404 | GetWebsiteSelectors422 | GetWebsiteSelectors500
-	>,
+	TError = ErrorType<GetWebsiteSelectors404 | GetWebsiteSelectors500>,
 >(
 	options?: {
 		query?: Partial<
@@ -645,7 +612,7 @@ export const postWebsiteSelectors = (
 ) => {
 	return customInstance<PostWebsiteSelectors200>(
 		{
-			url: `http://localhost:3030/website-selectors/`,
+			url: `http://localhost:3031/api/user/website-selectors/`,
 			method: "POST",
 			data: postWebsiteSelectorsBody,
 			signal,
@@ -655,9 +622,7 @@ export const postWebsiteSelectors = (
 };
 
 export const getPostWebsiteSelectorsMutationOptions = <
-	TError = ErrorType<
-		PostWebsiteSelectors404 | PostWebsiteSelectors422 | PostWebsiteSelectors500
-	>,
+	TError = ErrorType<PostWebsiteSelectors404 | PostWebsiteSelectors500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -717,13 +682,11 @@ export type PostWebsiteSelectorsMutationBody =
 	| PostWebsiteSelectorsBodyTwo
 	| PostWebsiteSelectorsBodyThree;
 export type PostWebsiteSelectorsMutationError = ErrorType<
-	PostWebsiteSelectors404 | PostWebsiteSelectors422 | PostWebsiteSelectors500
+	PostWebsiteSelectors404 | PostWebsiteSelectors500
 >;
 
 export const usePostWebsiteSelectors = <
-	TError = ErrorType<
-		PostWebsiteSelectors404 | PostWebsiteSelectors422 | PostWebsiteSelectors500
-	>,
+	TError = ErrorType<PostWebsiteSelectors404 | PostWebsiteSelectors500>,
 	TContext = unknown,
 >(
 	options?: {

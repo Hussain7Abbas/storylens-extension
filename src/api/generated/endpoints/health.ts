@@ -40,13 +40,13 @@ export const getHealth = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetHealth200>(
-		{ url: `http://localhost:3030/health/`, method: "GET", signal },
+		{ url: `http://localhost:3031/health/`, method: "GET", signal },
 		options,
 	);
 };
 
 export const getGetHealthQueryKey = () => {
-	return [`http://localhost:3030/health/`] as const;
+	return [`http://localhost:3031/health/`] as const;
 };
 
 export const getGetHealthQueryOptions = <
@@ -170,13 +170,13 @@ export const getHealthReady = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetHealthReady200>(
-		{ url: `http://localhost:3030/health/ready`, method: "GET", signal },
+		{ url: `http://localhost:3031/health/ready`, method: "GET", signal },
 		options,
 	);
 };
 
 export const getGetHealthReadyQueryKey = () => {
-	return [`http://localhost:3030/health/ready`] as const;
+	return [`http://localhost:3031/health/ready`] as const;
 };
 
 export const getGetHealthReadyQueryOptions = <

@@ -30,13 +30,13 @@ export const getIndex = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<unknown>(
-		{ url: `http://localhost:3030/`, method: "GET", signal },
+		{ url: `http://localhost:3031/`, method: "GET", signal },
 		options,
 	);
 };
 
 export const getGetIndexQueryKey = () => {
-	return [`http://localhost:3030/`] as const;
+	return [`http://localhost:3031/`] as const;
 };
 
 export const getGetIndexQueryOptions = <

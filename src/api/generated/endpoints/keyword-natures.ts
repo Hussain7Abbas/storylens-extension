@@ -27,27 +27,22 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteKeywordNaturesById200,
 	DeleteKeywordNaturesById404,
-	DeleteKeywordNaturesById422,
 	DeleteKeywordNaturesById500,
 	GetKeywordNatures200,
 	GetKeywordNatures404,
-	GetKeywordNatures422,
 	GetKeywordNatures500,
 	GetKeywordNaturesById200,
 	GetKeywordNaturesById404,
-	GetKeywordNaturesById422,
 	GetKeywordNaturesById500,
 	GetKeywordNaturesParams,
 	PostKeywordNatures200,
 	PostKeywordNatures404,
-	PostKeywordNatures422,
 	PostKeywordNatures500,
 	PostKeywordNaturesBodyOne,
 	PostKeywordNaturesBodyThree,
 	PostKeywordNaturesBodyTwo,
 	PutKeywordNaturesById200,
 	PutKeywordNaturesById404,
-	PutKeywordNaturesById422,
 	PutKeywordNaturesById500,
 	PutKeywordNaturesByIdBodyOne,
 	PutKeywordNaturesByIdBodyThree,
@@ -63,7 +58,7 @@ export const getKeywordNatures = (
 ) => {
 	return customInstance<GetKeywordNatures200>(
 		{
-			url: `http://localhost:3030/keyword-natures/`,
+			url: `http://localhost:3031/api/user/keyword-natures/`,
 			method: "GET",
 			params,
 			signal,
@@ -76,16 +71,14 @@ export const getGetKeywordNaturesQueryKey = (
 	params?: GetKeywordNaturesParams,
 ) => {
 	return [
-		`http://localhost:3030/keyword-natures/`,
+		`http://localhost:3031/api/user/keyword-natures/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetKeywordNaturesQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordNatures>>,
-	TError = ErrorType<
-		GetKeywordNatures404 | GetKeywordNatures422 | GetKeywordNatures500
-	>,
+	TError = ErrorType<GetKeywordNatures404 | GetKeywordNatures500>,
 >(
 	params: GetKeywordNaturesParams,
 	options?: {
@@ -119,14 +112,12 @@ export type GetKeywordNaturesQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordNatures>>
 >;
 export type GetKeywordNaturesQueryError = ErrorType<
-	GetKeywordNatures404 | GetKeywordNatures422 | GetKeywordNatures500
+	GetKeywordNatures404 | GetKeywordNatures500
 >;
 
 export function useGetKeywordNatures<
 	TData = Awaited<ReturnType<typeof getKeywordNatures>>,
-	TError = ErrorType<
-		GetKeywordNatures404 | GetKeywordNatures422 | GetKeywordNatures500
-	>,
+	TError = ErrorType<GetKeywordNatures404 | GetKeywordNatures500>,
 >(
 	params: GetKeywordNaturesParams,
 	options: {
@@ -153,9 +144,7 @@ export function useGetKeywordNatures<
 };
 export function useGetKeywordNatures<
 	TData = Awaited<ReturnType<typeof getKeywordNatures>>,
-	TError = ErrorType<
-		GetKeywordNatures404 | GetKeywordNatures422 | GetKeywordNatures500
-	>,
+	TError = ErrorType<GetKeywordNatures404 | GetKeywordNatures500>,
 >(
 	params: GetKeywordNaturesParams,
 	options?: {
@@ -182,9 +171,7 @@ export function useGetKeywordNatures<
 };
 export function useGetKeywordNatures<
 	TData = Awaited<ReturnType<typeof getKeywordNatures>>,
-	TError = ErrorType<
-		GetKeywordNatures404 | GetKeywordNatures422 | GetKeywordNatures500
-	>,
+	TError = ErrorType<GetKeywordNatures404 | GetKeywordNatures500>,
 >(
 	params: GetKeywordNaturesParams,
 	options?: {
@@ -204,9 +191,7 @@ export function useGetKeywordNatures<
 
 export function useGetKeywordNatures<
 	TData = Awaited<ReturnType<typeof getKeywordNatures>>,
-	TError = ErrorType<
-		GetKeywordNatures404 | GetKeywordNatures422 | GetKeywordNatures500
-	>,
+	TError = ErrorType<GetKeywordNatures404 | GetKeywordNatures500>,
 >(
 	params: GetKeywordNaturesParams,
 	options?: {
@@ -245,7 +230,7 @@ export const postKeywordNatures = (
 ) => {
 	return customInstance<PostKeywordNatures200>(
 		{
-			url: `http://localhost:3030/keyword-natures/`,
+			url: `http://localhost:3031/api/user/keyword-natures/`,
 			method: "POST",
 			data: postKeywordNaturesBody,
 			signal,
@@ -255,9 +240,7 @@ export const postKeywordNatures = (
 };
 
 export const getPostKeywordNaturesMutationOptions = <
-	TError = ErrorType<
-		PostKeywordNatures404 | PostKeywordNatures422 | PostKeywordNatures500
-	>,
+	TError = ErrorType<PostKeywordNatures404 | PostKeywordNatures500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -317,13 +300,11 @@ export type PostKeywordNaturesMutationBody =
 	| PostKeywordNaturesBodyTwo
 	| PostKeywordNaturesBodyThree;
 export type PostKeywordNaturesMutationError = ErrorType<
-	PostKeywordNatures404 | PostKeywordNatures422 | PostKeywordNatures500
+	PostKeywordNatures404 | PostKeywordNatures500
 >;
 
 export const usePostKeywordNatures = <
-	TError = ErrorType<
-		PostKeywordNatures404 | PostKeywordNatures422 | PostKeywordNatures500
-	>,
+	TError = ErrorType<PostKeywordNatures404 | PostKeywordNatures500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -363,7 +344,7 @@ export const getKeywordNaturesById = (
 ) => {
 	return customInstance<GetKeywordNaturesById200>(
 		{
-			url: `http://localhost:3030/keyword-natures/${id}`,
+			url: `http://localhost:3031/api/user/keyword-natures/${id}`,
 			method: "GET",
 			signal,
 		},
@@ -372,16 +353,12 @@ export const getKeywordNaturesById = (
 };
 
 export const getGetKeywordNaturesByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/keyword-natures/${id}`] as const;
+	return [`http://localhost:3031/api/user/keyword-natures/${id}`] as const;
 };
 
 export const getGetKeywordNaturesByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordNaturesById>>,
-	TError = ErrorType<
-		| GetKeywordNaturesById404
-		| GetKeywordNaturesById422
-		| GetKeywordNaturesById500
-	>,
+	TError = ErrorType<GetKeywordNaturesById404 | GetKeywordNaturesById500>,
 >(
 	id: string,
 	options?: {
@@ -420,16 +397,12 @@ export type GetKeywordNaturesByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordNaturesById>>
 >;
 export type GetKeywordNaturesByIdQueryError = ErrorType<
-	GetKeywordNaturesById404 | GetKeywordNaturesById422 | GetKeywordNaturesById500
+	GetKeywordNaturesById404 | GetKeywordNaturesById500
 >;
 
 export function useGetKeywordNaturesById<
 	TData = Awaited<ReturnType<typeof getKeywordNaturesById>>,
-	TError = ErrorType<
-		| GetKeywordNaturesById404
-		| GetKeywordNaturesById422
-		| GetKeywordNaturesById500
-	>,
+	TError = ErrorType<GetKeywordNaturesById404 | GetKeywordNaturesById500>,
 >(
 	id: string,
 	options: {
@@ -456,11 +429,7 @@ export function useGetKeywordNaturesById<
 };
 export function useGetKeywordNaturesById<
 	TData = Awaited<ReturnType<typeof getKeywordNaturesById>>,
-	TError = ErrorType<
-		| GetKeywordNaturesById404
-		| GetKeywordNaturesById422
-		| GetKeywordNaturesById500
-	>,
+	TError = ErrorType<GetKeywordNaturesById404 | GetKeywordNaturesById500>,
 >(
 	id: string,
 	options?: {
@@ -487,11 +456,7 @@ export function useGetKeywordNaturesById<
 };
 export function useGetKeywordNaturesById<
 	TData = Awaited<ReturnType<typeof getKeywordNaturesById>>,
-	TError = ErrorType<
-		| GetKeywordNaturesById404
-		| GetKeywordNaturesById422
-		| GetKeywordNaturesById500
-	>,
+	TError = ErrorType<GetKeywordNaturesById404 | GetKeywordNaturesById500>,
 >(
 	id: string,
 	options?: {
@@ -511,11 +476,7 @@ export function useGetKeywordNaturesById<
 
 export function useGetKeywordNaturesById<
 	TData = Awaited<ReturnType<typeof getKeywordNaturesById>>,
-	TError = ErrorType<
-		| GetKeywordNaturesById404
-		| GetKeywordNaturesById422
-		| GetKeywordNaturesById500
-	>,
+	TError = ErrorType<GetKeywordNaturesById404 | GetKeywordNaturesById500>,
 >(
 	id: string,
 	options?: {
@@ -554,7 +515,7 @@ export const putKeywordNaturesById = (
 ) => {
 	return customInstance<PutKeywordNaturesById200>(
 		{
-			url: `http://localhost:3030/keyword-natures/${id}`,
+			url: `http://localhost:3031/api/user/keyword-natures/${id}`,
 			method: "PUT",
 			data: putKeywordNaturesByIdBody,
 		},
@@ -563,11 +524,7 @@ export const putKeywordNaturesById = (
 };
 
 export const getPutKeywordNaturesByIdMutationOptions = <
-	TError = ErrorType<
-		| PutKeywordNaturesById404
-		| PutKeywordNaturesById422
-		| PutKeywordNaturesById500
-	>,
+	TError = ErrorType<PutKeywordNaturesById404 | PutKeywordNaturesById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -630,15 +587,11 @@ export type PutKeywordNaturesByIdMutationBody =
 	| PutKeywordNaturesByIdBodyTwo
 	| PutKeywordNaturesByIdBodyThree;
 export type PutKeywordNaturesByIdMutationError = ErrorType<
-	PutKeywordNaturesById404 | PutKeywordNaturesById422 | PutKeywordNaturesById500
+	PutKeywordNaturesById404 | PutKeywordNaturesById500
 >;
 
 export const usePutKeywordNaturesById = <
-	TError = ErrorType<
-		| PutKeywordNaturesById404
-		| PutKeywordNaturesById422
-		| PutKeywordNaturesById500
-	>,
+	TError = ErrorType<PutKeywordNaturesById404 | PutKeywordNaturesById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -678,17 +631,16 @@ export const deleteKeywordNaturesById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordNaturesById200>(
-		{ url: `http://localhost:3030/keyword-natures/${id}`, method: "DELETE" },
+		{
+			url: `http://localhost:3031/api/user/keyword-natures/${id}`,
+			method: "DELETE",
+		},
 		options,
 	);
 };
 
 export const getDeleteKeywordNaturesByIdMutationOptions = <
-	TError = ErrorType<
-		| DeleteKeywordNaturesById404
-		| DeleteKeywordNaturesById422
-		| DeleteKeywordNaturesById500
-	>,
+	TError = ErrorType<DeleteKeywordNaturesById404 | DeleteKeywordNaturesById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -730,17 +682,11 @@ export type DeleteKeywordNaturesByIdMutationResult = NonNullable<
 >;
 
 export type DeleteKeywordNaturesByIdMutationError = ErrorType<
-	| DeleteKeywordNaturesById404
-	| DeleteKeywordNaturesById422
-	| DeleteKeywordNaturesById500
+	DeleteKeywordNaturesById404 | DeleteKeywordNaturesById500
 >;
 
 export const useDeleteKeywordNaturesById = <
-	TError = ErrorType<
-		| DeleteKeywordNaturesById404
-		| DeleteKeywordNaturesById422
-		| DeleteKeywordNaturesById500
-	>,
+	TError = ErrorType<DeleteKeywordNaturesById404 | DeleteKeywordNaturesById500>,
 	TContext = unknown,
 >(
 	options?: {

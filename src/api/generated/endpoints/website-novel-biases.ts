@@ -27,16 +27,13 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteWebsiteNovelBiasesById200,
 	DeleteWebsiteNovelBiasesById404,
-	DeleteWebsiteNovelBiasesById422,
 	DeleteWebsiteNovelBiasesById500,
 	GetWebsiteNovelBiases200Item,
 	GetWebsiteNovelBiases404,
-	GetWebsiteNovelBiases422,
 	GetWebsiteNovelBiases500,
 	GetWebsiteNovelBiasesParams,
 	PostWebsiteNovelBiases200,
 	PostWebsiteNovelBiases404,
-	PostWebsiteNovelBiases422,
 	PostWebsiteNovelBiases500,
 	PostWebsiteNovelBiasesBodyOne,
 	PostWebsiteNovelBiasesBodyThree,
@@ -52,7 +49,7 @@ export const getWebsiteNovelBiases = (
 ) => {
 	return customInstance<GetWebsiteNovelBiases200Item[]>(
 		{
-			url: `http://localhost:3030/website-novel-biases/`,
+			url: `http://localhost:3031/api/user/website-novel-biases/`,
 			method: "GET",
 			params,
 			signal,
@@ -65,18 +62,14 @@ export const getGetWebsiteNovelBiasesQueryKey = (
 	params?: GetWebsiteNovelBiasesParams,
 ) => {
 	return [
-		`http://localhost:3030/website-novel-biases/`,
+		`http://localhost:3031/api/user/website-novel-biases/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetWebsiteNovelBiasesQueryOptions = <
 	TData = Awaited<ReturnType<typeof getWebsiteNovelBiases>>,
-	TError = ErrorType<
-		| GetWebsiteNovelBiases404
-		| GetWebsiteNovelBiases422
-		| GetWebsiteNovelBiases500
-	>,
+	TError = ErrorType<GetWebsiteNovelBiases404 | GetWebsiteNovelBiases500>,
 >(
 	params: GetWebsiteNovelBiasesParams,
 	options?: {
@@ -110,16 +103,12 @@ export type GetWebsiteNovelBiasesQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getWebsiteNovelBiases>>
 >;
 export type GetWebsiteNovelBiasesQueryError = ErrorType<
-	GetWebsiteNovelBiases404 | GetWebsiteNovelBiases422 | GetWebsiteNovelBiases500
+	GetWebsiteNovelBiases404 | GetWebsiteNovelBiases500
 >;
 
 export function useGetWebsiteNovelBiases<
 	TData = Awaited<ReturnType<typeof getWebsiteNovelBiases>>,
-	TError = ErrorType<
-		| GetWebsiteNovelBiases404
-		| GetWebsiteNovelBiases422
-		| GetWebsiteNovelBiases500
-	>,
+	TError = ErrorType<GetWebsiteNovelBiases404 | GetWebsiteNovelBiases500>,
 >(
 	params: GetWebsiteNovelBiasesParams,
 	options: {
@@ -146,11 +135,7 @@ export function useGetWebsiteNovelBiases<
 };
 export function useGetWebsiteNovelBiases<
 	TData = Awaited<ReturnType<typeof getWebsiteNovelBiases>>,
-	TError = ErrorType<
-		| GetWebsiteNovelBiases404
-		| GetWebsiteNovelBiases422
-		| GetWebsiteNovelBiases500
-	>,
+	TError = ErrorType<GetWebsiteNovelBiases404 | GetWebsiteNovelBiases500>,
 >(
 	params: GetWebsiteNovelBiasesParams,
 	options?: {
@@ -177,11 +162,7 @@ export function useGetWebsiteNovelBiases<
 };
 export function useGetWebsiteNovelBiases<
 	TData = Awaited<ReturnType<typeof getWebsiteNovelBiases>>,
-	TError = ErrorType<
-		| GetWebsiteNovelBiases404
-		| GetWebsiteNovelBiases422
-		| GetWebsiteNovelBiases500
-	>,
+	TError = ErrorType<GetWebsiteNovelBiases404 | GetWebsiteNovelBiases500>,
 >(
 	params: GetWebsiteNovelBiasesParams,
 	options?: {
@@ -201,11 +182,7 @@ export function useGetWebsiteNovelBiases<
 
 export function useGetWebsiteNovelBiases<
 	TData = Awaited<ReturnType<typeof getWebsiteNovelBiases>>,
-	TError = ErrorType<
-		| GetWebsiteNovelBiases404
-		| GetWebsiteNovelBiases422
-		| GetWebsiteNovelBiases500
-	>,
+	TError = ErrorType<GetWebsiteNovelBiases404 | GetWebsiteNovelBiases500>,
 >(
 	params: GetWebsiteNovelBiasesParams,
 	options?: {
@@ -244,7 +221,7 @@ export const postWebsiteNovelBiases = (
 ) => {
 	return customInstance<PostWebsiteNovelBiases200>(
 		{
-			url: `http://localhost:3030/website-novel-biases/`,
+			url: `http://localhost:3031/api/user/website-novel-biases/`,
 			method: "POST",
 			data: postWebsiteNovelBiasesBody,
 			signal,
@@ -254,11 +231,7 @@ export const postWebsiteNovelBiases = (
 };
 
 export const getPostWebsiteNovelBiasesMutationOptions = <
-	TError = ErrorType<
-		| PostWebsiteNovelBiases404
-		| PostWebsiteNovelBiases422
-		| PostWebsiteNovelBiases500
-	>,
+	TError = ErrorType<PostWebsiteNovelBiases404 | PostWebsiteNovelBiases500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -318,17 +291,11 @@ export type PostWebsiteNovelBiasesMutationBody =
 	| PostWebsiteNovelBiasesBodyTwo
 	| PostWebsiteNovelBiasesBodyThree;
 export type PostWebsiteNovelBiasesMutationError = ErrorType<
-	| PostWebsiteNovelBiases404
-	| PostWebsiteNovelBiases422
-	| PostWebsiteNovelBiases500
+	PostWebsiteNovelBiases404 | PostWebsiteNovelBiases500
 >;
 
 export const usePostWebsiteNovelBiases = <
-	TError = ErrorType<
-		| PostWebsiteNovelBiases404
-		| PostWebsiteNovelBiases422
-		| PostWebsiteNovelBiases500
-	>,
+	TError = ErrorType<PostWebsiteNovelBiases404 | PostWebsiteNovelBiases500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -367,7 +334,7 @@ export const deleteWebsiteNovelBiasesById = (
 ) => {
 	return customInstance<DeleteWebsiteNovelBiasesById200>(
 		{
-			url: `http://localhost:3030/website-novel-biases/${id}`,
+			url: `http://localhost:3031/api/user/website-novel-biases/${id}`,
 			method: "DELETE",
 		},
 		options,
@@ -376,9 +343,7 @@ export const deleteWebsiteNovelBiasesById = (
 
 export const getDeleteWebsiteNovelBiasesByIdMutationOptions = <
 	TError = ErrorType<
-		| DeleteWebsiteNovelBiasesById404
-		| DeleteWebsiteNovelBiasesById422
-		| DeleteWebsiteNovelBiasesById500
+		DeleteWebsiteNovelBiasesById404 | DeleteWebsiteNovelBiasesById500
 	>,
 	TContext = unknown,
 >(options?: {
@@ -421,16 +386,12 @@ export type DeleteWebsiteNovelBiasesByIdMutationResult = NonNullable<
 >;
 
 export type DeleteWebsiteNovelBiasesByIdMutationError = ErrorType<
-	| DeleteWebsiteNovelBiasesById404
-	| DeleteWebsiteNovelBiasesById422
-	| DeleteWebsiteNovelBiasesById500
+	DeleteWebsiteNovelBiasesById404 | DeleteWebsiteNovelBiasesById500
 >;
 
 export const useDeleteWebsiteNovelBiasesById = <
 	TError = ErrorType<
-		| DeleteWebsiteNovelBiasesById404
-		| DeleteWebsiteNovelBiasesById422
-		| DeleteWebsiteNovelBiasesById500
+		DeleteWebsiteNovelBiasesById404 | DeleteWebsiteNovelBiasesById500
 	>,
 	TContext = unknown,
 >(

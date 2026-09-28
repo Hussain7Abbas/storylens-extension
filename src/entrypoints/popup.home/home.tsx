@@ -28,7 +28,7 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
-import { userRoleAtom } from "@/lib/auth";
+import { userAccessAtom } from "@/lib/auth";
 import { getBiasesByNovelId } from "@/lib/offline/db";
 import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {
@@ -56,7 +56,7 @@ export function HomePage() {
 	>([]);
 	const [biasSelectorId, setBiasSelectorId] = useState<string>();
 	const online = useOnlineStatus();
-	const role = useAtomValue(userRoleAtom);
+	const access = useAtomValue(userAccessAtom);
 	const { downloadedIds, refresh: refreshDownloadedIds } =
 		useDownloadedNovelIds();
 	const {
@@ -270,7 +270,7 @@ export function HomePage() {
 								) : (
 									<Text>{detectedChapter}</Text>
 								)}
-								{role === "admin" && currentTabNovel && (
+								{access === "moderator" && currentTabNovel && (
 									<Tooltip
 										label={t("home.chapterBias")}
 										withArrow
@@ -289,14 +289,14 @@ export function HomePage() {
 									</Tooltip>
 								)}
 							</Group>
-							{role !== "guest" && (
+							{access !== "guest" && (
 								<NovelMenu
 									currentTabNovel={currentTabNovel}
 									selectedNovel={selectedNovel}
 									setSelectedNovel={setSelectedNovel}
 									setMode={setMode}
 									refetchNovels={refreshNovelsCatalog}
-									role={role}
+									access={access}
 									t={t}
 								/>
 							)}
@@ -357,7 +357,7 @@ function NovelMenu({
 	setSelectedNovel,
 	setMode,
 	refetchNovels,
-	role,
+	access,
 	t,
 }: {
 	currentTabNovel: currentNovelMeta | undefined;
@@ -365,7 +365,7 @@ function NovelMenu({
 	setSelectedNovel: (novel: Partial<Novel> | undefined) => void;
 	setMode: (mode: novelFormModes) => void;
 	refetchNovels: () => void;
-	role: "user" | "admin";
+	access: "reader" | "moderator";
 	t: TFunction;
 }) {
 	const addSlugMutation = usePutNovelsById({
@@ -451,7 +451,7 @@ function NovelMenu({
 					</Menu.Item>
 				)}
 
-				{role === "admin" && (
+				{access === "moderator" && (
 					<>
 						<Menu.Item
 							leftSection={<IconEdit size={14} />}

@@ -19,7 +19,6 @@ import { customInstance } from "../../axios-instance";
 import type {
 	PostFilesUpload200,
 	PostFilesUpload404,
-	PostFilesUpload422,
 	PostFilesUpload500,
 	PostFilesUploadBodyOne,
 	PostFilesUploadBodyThree,
@@ -38,7 +37,7 @@ export const postFilesUpload = (
 ) => {
 	return customInstance<PostFilesUpload200>(
 		{
-			url: `http://localhost:3030/files/upload`,
+			url: `http://localhost:3031/api/user/files/upload`,
 			method: "POST",
 			data: postFilesUploadBody,
 			signal,
@@ -48,9 +47,7 @@ export const postFilesUpload = (
 };
 
 export const getPostFilesUploadMutationOptions = <
-	TError = ErrorType<
-		PostFilesUpload404 | PostFilesUpload422 | PostFilesUpload500
-	>,
+	TError = ErrorType<PostFilesUpload404 | PostFilesUpload500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -110,13 +107,11 @@ export type PostFilesUploadMutationBody =
 	| PostFilesUploadBodyTwo
 	| PostFilesUploadBodyThree;
 export type PostFilesUploadMutationError = ErrorType<
-	PostFilesUpload404 | PostFilesUpload422 | PostFilesUpload500
+	PostFilesUpload404 | PostFilesUpload500
 >;
 
 export const usePostFilesUpload = <
-	TError = ErrorType<
-		PostFilesUpload404 | PostFilesUpload422 | PostFilesUpload500
-	>,
+	TError = ErrorType<PostFilesUpload404 | PostFilesUpload500>,
 	TContext = unknown,
 >(
 	options?: {

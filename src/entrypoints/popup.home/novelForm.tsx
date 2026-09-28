@@ -25,7 +25,7 @@ import {
 } from "@/api/generated/endpoints/novels.js";
 import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
-import { userRoleAtom } from "@/lib/auth";
+import { userAccessAtom } from "@/lib/auth";
 import { decodeStoredText } from "@/lib/desktop-client/novel-context-prompt";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
@@ -81,7 +81,7 @@ function NovelFormContent({
 	onClose?: () => void;
 }) {
 	const { t } = useTranslation();
-	const role = useAtomValue(userRoleAtom);
+	const isModerator = useAtomValue(userAccessAtom) === "moderator";
 	const [detectedName, setDetectedName] = useState<string | null>(null);
 	const [detectingName, setDetectingName] = useState(false);
 
@@ -187,7 +187,7 @@ function NovelFormContent({
 
 	// Users may write a missing context; only admins can change an existing one.
 	const contextLocked =
-		mode === "edit" && role !== "admin" && !!selectedNovel?.context?.trim();
+		mode === "edit" && !isModerator && !!selectedNovel?.context?.trim();
 
 	const currentSlug = currentTabNovel?.novelSlug;
 	const showAddCurrentSlugButton =
@@ -208,7 +208,7 @@ function NovelFormContent({
 
 	const handleSubmit = (values: typeof form.values) => {
 		const nameToUse =
-			mode === "add" && role !== "admin" ? detectedName || "" : values.name;
+			mode === "add" && !isModerator ? detectedName || "" : values.name;
 
 		if (!nameToUse) {
 			toast.error(t("auth.cannotDetectNovel"));
@@ -284,7 +284,7 @@ function NovelFormContent({
 		<Paper p="xs" withBorder>
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<Stack gap="xs">
-					{mode === "add" && role !== "admin" ? (
+					{mode === "add" && !isModerator ? (
 						<>
 							{detectingName ? (
 								<Text size="sm" c="dimmed">
@@ -365,7 +365,7 @@ function NovelFormContent({
 							<Button
 								type="submit"
 								loading={createNovelMutation.isPending}
-								disabled={mode === "add" && role !== "admin" && !detectedName}
+								disabled={mode === "add" && !isModerator && !detectedName}
 							>
 								{t("_.save")}
 							</Button>

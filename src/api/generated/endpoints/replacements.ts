@@ -27,27 +27,22 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteReplacementsById200,
 	DeleteReplacementsById404,
-	DeleteReplacementsById422,
 	DeleteReplacementsById500,
 	GetReplacements200,
 	GetReplacements404,
-	GetReplacements422,
 	GetReplacements500,
 	GetReplacementsById200,
 	GetReplacementsById404,
-	GetReplacementsById422,
 	GetReplacementsById500,
 	GetReplacementsParams,
 	PostReplacements200,
 	PostReplacements404,
-	PostReplacements422,
 	PostReplacements500,
 	PostReplacementsBodyOne,
 	PostReplacementsBodyThree,
 	PostReplacementsBodyTwo,
 	PutReplacementsById200,
 	PutReplacementsById404,
-	PutReplacementsById422,
 	PutReplacementsById500,
 	PutReplacementsByIdBodyOne,
 	PutReplacementsByIdBodyThree,
@@ -63,7 +58,7 @@ export const getReplacements = (
 ) => {
 	return customInstance<GetReplacements200>(
 		{
-			url: `http://localhost:3030/replacements/`,
+			url: `http://localhost:3031/api/user/replacements/`,
 			method: "GET",
 			params,
 			signal,
@@ -74,16 +69,14 @@ export const getReplacements = (
 
 export const getGetReplacementsQueryKey = (params?: GetReplacementsParams) => {
 	return [
-		`http://localhost:3030/replacements/`,
+		`http://localhost:3031/api/user/replacements/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetReplacementsQueryOptions = <
 	TData = Awaited<ReturnType<typeof getReplacements>>,
-	TError = ErrorType<
-		GetReplacements404 | GetReplacements422 | GetReplacements500
-	>,
+	TError = ErrorType<GetReplacements404 | GetReplacements500>,
 >(
 	params: GetReplacementsParams,
 	options?: {
@@ -116,14 +109,12 @@ export type GetReplacementsQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getReplacements>>
 >;
 export type GetReplacementsQueryError = ErrorType<
-	GetReplacements404 | GetReplacements422 | GetReplacements500
+	GetReplacements404 | GetReplacements500
 >;
 
 export function useGetReplacements<
 	TData = Awaited<ReturnType<typeof getReplacements>>,
-	TError = ErrorType<
-		GetReplacements404 | GetReplacements422 | GetReplacements500
-	>,
+	TError = ErrorType<GetReplacements404 | GetReplacements500>,
 >(
 	params: GetReplacementsParams,
 	options: {
@@ -150,9 +141,7 @@ export function useGetReplacements<
 };
 export function useGetReplacements<
 	TData = Awaited<ReturnType<typeof getReplacements>>,
-	TError = ErrorType<
-		GetReplacements404 | GetReplacements422 | GetReplacements500
-	>,
+	TError = ErrorType<GetReplacements404 | GetReplacements500>,
 >(
 	params: GetReplacementsParams,
 	options?: {
@@ -179,9 +168,7 @@ export function useGetReplacements<
 };
 export function useGetReplacements<
 	TData = Awaited<ReturnType<typeof getReplacements>>,
-	TError = ErrorType<
-		GetReplacements404 | GetReplacements422 | GetReplacements500
-	>,
+	TError = ErrorType<GetReplacements404 | GetReplacements500>,
 >(
 	params: GetReplacementsParams,
 	options?: {
@@ -201,9 +188,7 @@ export function useGetReplacements<
 
 export function useGetReplacements<
 	TData = Awaited<ReturnType<typeof getReplacements>>,
-	TError = ErrorType<
-		GetReplacements404 | GetReplacements422 | GetReplacements500
-	>,
+	TError = ErrorType<GetReplacements404 | GetReplacements500>,
 >(
 	params: GetReplacementsParams,
 	options?: {
@@ -242,7 +227,7 @@ export const postReplacements = (
 ) => {
 	return customInstance<PostReplacements200>(
 		{
-			url: `http://localhost:3030/replacements/`,
+			url: `http://localhost:3031/api/user/replacements/`,
 			method: "POST",
 			data: postReplacementsBody,
 			signal,
@@ -252,9 +237,7 @@ export const postReplacements = (
 };
 
 export const getPostReplacementsMutationOptions = <
-	TError = ErrorType<
-		PostReplacements404 | PostReplacements422 | PostReplacements500
-	>,
+	TError = ErrorType<PostReplacements404 | PostReplacements500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -314,13 +297,11 @@ export type PostReplacementsMutationBody =
 	| PostReplacementsBodyTwo
 	| PostReplacementsBodyThree;
 export type PostReplacementsMutationError = ErrorType<
-	PostReplacements404 | PostReplacements422 | PostReplacements500
+	PostReplacements404 | PostReplacements500
 >;
 
 export const usePostReplacements = <
-	TError = ErrorType<
-		PostReplacements404 | PostReplacements422 | PostReplacements500
-	>,
+	TError = ErrorType<PostReplacements404 | PostReplacements500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -359,20 +340,22 @@ export const getReplacementsById = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetReplacementsById200>(
-		{ url: `http://localhost:3030/replacements/${id}`, method: "GET", signal },
+		{
+			url: `http://localhost:3031/api/user/replacements/${id}`,
+			method: "GET",
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetReplacementsByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/replacements/${id}`] as const;
+	return [`http://localhost:3031/api/user/replacements/${id}`] as const;
 };
 
 export const getGetReplacementsByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getReplacementsById>>,
-	TError = ErrorType<
-		GetReplacementsById404 | GetReplacementsById422 | GetReplacementsById500
-	>,
+	TError = ErrorType<GetReplacementsById404 | GetReplacementsById500>,
 >(
 	id: string,
 	options?: {
@@ -410,14 +393,12 @@ export type GetReplacementsByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getReplacementsById>>
 >;
 export type GetReplacementsByIdQueryError = ErrorType<
-	GetReplacementsById404 | GetReplacementsById422 | GetReplacementsById500
+	GetReplacementsById404 | GetReplacementsById500
 >;
 
 export function useGetReplacementsById<
 	TData = Awaited<ReturnType<typeof getReplacementsById>>,
-	TError = ErrorType<
-		GetReplacementsById404 | GetReplacementsById422 | GetReplacementsById500
-	>,
+	TError = ErrorType<GetReplacementsById404 | GetReplacementsById500>,
 >(
 	id: string,
 	options: {
@@ -444,9 +425,7 @@ export function useGetReplacementsById<
 };
 export function useGetReplacementsById<
 	TData = Awaited<ReturnType<typeof getReplacementsById>>,
-	TError = ErrorType<
-		GetReplacementsById404 | GetReplacementsById422 | GetReplacementsById500
-	>,
+	TError = ErrorType<GetReplacementsById404 | GetReplacementsById500>,
 >(
 	id: string,
 	options?: {
@@ -473,9 +452,7 @@ export function useGetReplacementsById<
 };
 export function useGetReplacementsById<
 	TData = Awaited<ReturnType<typeof getReplacementsById>>,
-	TError = ErrorType<
-		GetReplacementsById404 | GetReplacementsById422 | GetReplacementsById500
-	>,
+	TError = ErrorType<GetReplacementsById404 | GetReplacementsById500>,
 >(
 	id: string,
 	options?: {
@@ -495,9 +472,7 @@ export function useGetReplacementsById<
 
 export function useGetReplacementsById<
 	TData = Awaited<ReturnType<typeof getReplacementsById>>,
-	TError = ErrorType<
-		GetReplacementsById404 | GetReplacementsById422 | GetReplacementsById500
-	>,
+	TError = ErrorType<GetReplacementsById404 | GetReplacementsById500>,
 >(
 	id: string,
 	options?: {
@@ -536,7 +511,7 @@ export const putReplacementsById = (
 ) => {
 	return customInstance<PutReplacementsById200>(
 		{
-			url: `http://localhost:3030/replacements/${id}`,
+			url: `http://localhost:3031/api/user/replacements/${id}`,
 			method: "PUT",
 			data: putReplacementsByIdBody,
 		},
@@ -545,9 +520,7 @@ export const putReplacementsById = (
 };
 
 export const getPutReplacementsByIdMutationOptions = <
-	TError = ErrorType<
-		PutReplacementsById404 | PutReplacementsById422 | PutReplacementsById500
-	>,
+	TError = ErrorType<PutReplacementsById404 | PutReplacementsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -610,13 +583,11 @@ export type PutReplacementsByIdMutationBody =
 	| PutReplacementsByIdBodyTwo
 	| PutReplacementsByIdBodyThree;
 export type PutReplacementsByIdMutationError = ErrorType<
-	PutReplacementsById404 | PutReplacementsById422 | PutReplacementsById500
+	PutReplacementsById404 | PutReplacementsById500
 >;
 
 export const usePutReplacementsById = <
-	TError = ErrorType<
-		PutReplacementsById404 | PutReplacementsById422 | PutReplacementsById500
-	>,
+	TError = ErrorType<PutReplacementsById404 | PutReplacementsById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -656,17 +627,16 @@ export const deleteReplacementsById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteReplacementsById200>(
-		{ url: `http://localhost:3030/replacements/${id}`, method: "DELETE" },
+		{
+			url: `http://localhost:3031/api/user/replacements/${id}`,
+			method: "DELETE",
+		},
 		options,
 	);
 };
 
 export const getDeleteReplacementsByIdMutationOptions = <
-	TError = ErrorType<
-		| DeleteReplacementsById404
-		| DeleteReplacementsById422
-		| DeleteReplacementsById500
-	>,
+	TError = ErrorType<DeleteReplacementsById404 | DeleteReplacementsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -708,17 +678,11 @@ export type DeleteReplacementsByIdMutationResult = NonNullable<
 >;
 
 export type DeleteReplacementsByIdMutationError = ErrorType<
-	| DeleteReplacementsById404
-	| DeleteReplacementsById422
-	| DeleteReplacementsById500
+	DeleteReplacementsById404 | DeleteReplacementsById500
 >;
 
 export const useDeleteReplacementsById = <
-	TError = ErrorType<
-		| DeleteReplacementsById404
-		| DeleteReplacementsById422
-		| DeleteReplacementsById500
-	>,
+	TError = ErrorType<DeleteReplacementsById404 | DeleteReplacementsById500>,
 	TContext = unknown,
 >(
 	options?: {
