@@ -9,6 +9,7 @@ import type {
 	GenerateImageInput,
 } from "./types";
 
+const PROTOCOL_VERSION = 2;
 const active = new Map<
 	string,
 	{ tabId: number; controller: AbortController }
@@ -19,7 +20,7 @@ function isCapabilities(value: unknown): value is DesktopCapabilities {
 	if (!value || typeof value !== "object") return false;
 	const data = value as Partial<DesktopCapabilities>;
 	return (
-		data.protocolVersion === 2 &&
+		data.protocolVersion === PROTOCOL_VERSION &&
 		Array.isArray(data.models) &&
 		data.models.every(
 			(model) =>
@@ -30,6 +31,19 @@ function isCapabilities(value: unknown): value is DesktopCapabilities {
 		!!data.limits &&
 		Number.isSafeInteger(data.limits.promptBytes)
 	);
+}
+
+/** Names the app to update when the client's capabilities fail validation. */
+function incompatibleClientMessage(value: unknown): string {
+	const version =
+		value && typeof value === "object" && "protocolVersion" in value
+			? value.protocolVersion
+			: undefined;
+	if (typeof version === "number" && version < PROTOCOL_VERSION)
+		return `The Story Lens desktop client is outdated (protocol ${version}, needs ${PROTOCOL_VERSION}). Update and restart the desktop client, then connect again.`;
+	if (typeof version === "number" && version > PROTOCOL_VERSION)
+		return `The Story Lens extension is older than the desktop client (protocol ${PROTOCOL_VERSION}, client uses ${version}). Update the extension, then connect again.`;
+	return "The desktop client sent an unexpected response. Check the port and make sure the Story Lens desktop client is running.";
 }
 
 async function request(
@@ -66,8 +80,7 @@ export async function loadDesktopCapabilities(): Promise<DesktopCapabilities> {
 		signal: AbortSignal.timeout(20_000),
 	});
 	const data: unknown = await response.json();
-	if (!isCapabilities(data))
-		throw new Error("Desktop client protocol is incompatible.");
+	if (!isCapabilities(data)) throw new Error(incompatibleClientMessage(data));
 	// Connecting also refreshes the account the desktop crawler uses; older clients lack the endpoint.
 	void shareAccountSession().catch(() => {});
 	return data;
