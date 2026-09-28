@@ -7,5 +7,7 @@
  */
 
 export type PostAuthChangePassword200 = {
-	google: boolean;
+	email: string;
+	expiresAt: string;
+	resendAfterSeconds: number;
 };

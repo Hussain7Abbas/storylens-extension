@@ -7,5 +7,7 @@
  */
 
 export type PostAuthLogin200 = {
-	success: boolean;
+	email: string;
+	expiresAt: string;
+	resendAfterSeconds: number;
 };

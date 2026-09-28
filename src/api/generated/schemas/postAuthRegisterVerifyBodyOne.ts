@@ -6,8 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostAuthRegister200 = {
+export type PostAuthRegisterVerifyBodyOne = {
 	email: string;
-	expiresAt: string;
-	resendAfterSeconds: number;
+	/** @pattern ^[0-9]{6}$ */
+	code: string;
 };
