@@ -11,10 +11,9 @@ export function useCanMutateKeywords(): boolean {
 	return useCanMutate();
 }
 
-/** Replacements: admin only. */
+/** Replacements: user (own) and admin. */
 export function useCanMutateReplacements(): boolean {
-	const role = useAtomValue(userRoleAtom);
-	return role === "admin";
+	return useCanMutate();
 }
 
 export function useIsAdmin(): boolean {

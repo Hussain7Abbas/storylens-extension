@@ -37,6 +37,20 @@ import type {
 	GetAuthProviders404,
 	GetAuthProviders422,
 	GetAuthProviders500,
+	PostAuthChangeEmail200,
+	PostAuthChangeEmail404,
+	PostAuthChangeEmail422,
+	PostAuthChangeEmail500,
+	PostAuthChangeEmailBodyOne,
+	PostAuthChangeEmailBodyThree,
+	PostAuthChangeEmailBodyTwo,
+	PostAuthChangeEmailVerify200,
+	PostAuthChangeEmailVerify404,
+	PostAuthChangeEmailVerify422,
+	PostAuthChangeEmailVerify500,
+	PostAuthChangeEmailVerifyBodyOne,
+	PostAuthChangeEmailVerifyBodyThree,
+	PostAuthChangeEmailVerifyBodyTwo,
 	PostAuthChangePassword200,
 	PostAuthChangePassword404,
 	PostAuthChangePassword422,
@@ -44,6 +58,13 @@ import type {
 	PostAuthChangePasswordBodyOne,
 	PostAuthChangePasswordBodyThree,
 	PostAuthChangePasswordBodyTwo,
+	PostAuthChangePasswordVerify200,
+	PostAuthChangePasswordVerify404,
+	PostAuthChangePasswordVerify422,
+	PostAuthChangePasswordVerify500,
+	PostAuthChangePasswordVerifyBodyOne,
+	PostAuthChangePasswordVerifyBodyThree,
+	PostAuthChangePasswordVerifyBodyTwo,
 	PostAuthGuest404,
 	PostAuthGuest500,
 	PostAuthGuestBodyOne,
@@ -1176,6 +1197,382 @@ export const usePostAuthChangePassword = <
 	TContext
 > => {
 	const mutationOptions = getPostAuthChangePasswordMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthChangePasswordVerify = (
+	postAuthChangePasswordVerifyBody:
+		| PostAuthChangePasswordVerifyBodyOne
+		| PostAuthChangePasswordVerifyBodyTwo
+		| PostAuthChangePasswordVerifyBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthChangePasswordVerify200>(
+		{
+			url: `http://localhost:3030/auth/change-password/verify`,
+			method: "POST",
+			data: postAuthChangePasswordVerifyBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthChangePasswordVerifyMutationOptions = <
+	TError = ErrorType<
+		| PostAuthChangePasswordVerify404
+		| PostAuthChangePasswordVerify422
+		| PostAuthChangePasswordVerify500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+		TError,
+		{
+			data:
+				| PostAuthChangePasswordVerifyBodyOne
+				| PostAuthChangePasswordVerifyBodyTwo
+				| PostAuthChangePasswordVerifyBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangePasswordVerifyBodyOne
+			| PostAuthChangePasswordVerifyBodyTwo
+			| PostAuthChangePasswordVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthChangePasswordVerify"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+		{
+			data:
+				| PostAuthChangePasswordVerifyBodyOne
+				| PostAuthChangePasswordVerifyBodyTwo
+				| PostAuthChangePasswordVerifyBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthChangePasswordVerify(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthChangePasswordVerifyMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthChangePasswordVerify>>
+>;
+export type PostAuthChangePasswordVerifyMutationBody =
+	| PostAuthChangePasswordVerifyBodyOne
+	| PostAuthChangePasswordVerifyBodyTwo
+	| PostAuthChangePasswordVerifyBodyThree;
+export type PostAuthChangePasswordVerifyMutationError = ErrorType<
+	| PostAuthChangePasswordVerify404
+	| PostAuthChangePasswordVerify422
+	| PostAuthChangePasswordVerify500
+>;
+
+export const usePostAuthChangePasswordVerify = <
+	TError = ErrorType<
+		| PostAuthChangePasswordVerify404
+		| PostAuthChangePasswordVerify422
+		| PostAuthChangePasswordVerify500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+			TError,
+			{
+				data:
+					| PostAuthChangePasswordVerifyBodyOne
+					| PostAuthChangePasswordVerifyBodyTwo
+					| PostAuthChangePasswordVerifyBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangePasswordVerifyBodyOne
+			| PostAuthChangePasswordVerifyBodyTwo
+			| PostAuthChangePasswordVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPostAuthChangePasswordVerifyMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthChangeEmail = (
+	postAuthChangeEmailBody:
+		| PostAuthChangeEmailBodyOne
+		| PostAuthChangeEmailBodyTwo
+		| PostAuthChangeEmailBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthChangeEmail200>(
+		{
+			url: `http://localhost:3030/auth/change-email`,
+			method: "POST",
+			data: postAuthChangeEmailBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthChangeEmailMutationOptions = <
+	TError = ErrorType<
+		PostAuthChangeEmail404 | PostAuthChangeEmail422 | PostAuthChangeEmail500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthChangeEmail>>,
+		TError,
+		{
+			data:
+				| PostAuthChangeEmailBodyOne
+				| PostAuthChangeEmailBodyTwo
+				| PostAuthChangeEmailBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthChangeEmail>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailBodyOne
+			| PostAuthChangeEmailBodyTwo
+			| PostAuthChangeEmailBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthChangeEmail"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthChangeEmail>>,
+		{
+			data:
+				| PostAuthChangeEmailBodyOne
+				| PostAuthChangeEmailBodyTwo
+				| PostAuthChangeEmailBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthChangeEmail(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthChangeEmailMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthChangeEmail>>
+>;
+export type PostAuthChangeEmailMutationBody =
+	| PostAuthChangeEmailBodyOne
+	| PostAuthChangeEmailBodyTwo
+	| PostAuthChangeEmailBodyThree;
+export type PostAuthChangeEmailMutationError = ErrorType<
+	PostAuthChangeEmail404 | PostAuthChangeEmail422 | PostAuthChangeEmail500
+>;
+
+export const usePostAuthChangeEmail = <
+	TError = ErrorType<
+		PostAuthChangeEmail404 | PostAuthChangeEmail422 | PostAuthChangeEmail500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthChangeEmail>>,
+			TError,
+			{
+				data:
+					| PostAuthChangeEmailBodyOne
+					| PostAuthChangeEmailBodyTwo
+					| PostAuthChangeEmailBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthChangeEmail>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailBodyOne
+			| PostAuthChangeEmailBodyTwo
+			| PostAuthChangeEmailBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthChangeEmailMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthChangeEmailVerify = (
+	postAuthChangeEmailVerifyBody:
+		| PostAuthChangeEmailVerifyBodyOne
+		| PostAuthChangeEmailVerifyBodyTwo
+		| PostAuthChangeEmailVerifyBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthChangeEmailVerify200>(
+		{
+			url: `http://localhost:3030/auth/change-email/verify`,
+			method: "POST",
+			data: postAuthChangeEmailVerifyBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthChangeEmailVerifyMutationOptions = <
+	TError = ErrorType<
+		| PostAuthChangeEmailVerify404
+		| PostAuthChangeEmailVerify422
+		| PostAuthChangeEmailVerify500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+		TError,
+		{
+			data:
+				| PostAuthChangeEmailVerifyBodyOne
+				| PostAuthChangeEmailVerifyBodyTwo
+				| PostAuthChangeEmailVerifyBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailVerifyBodyOne
+			| PostAuthChangeEmailVerifyBodyTwo
+			| PostAuthChangeEmailVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthChangeEmailVerify"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+		{
+			data:
+				| PostAuthChangeEmailVerifyBodyOne
+				| PostAuthChangeEmailVerifyBodyTwo
+				| PostAuthChangeEmailVerifyBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthChangeEmailVerify(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthChangeEmailVerifyMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthChangeEmailVerify>>
+>;
+export type PostAuthChangeEmailVerifyMutationBody =
+	| PostAuthChangeEmailVerifyBodyOne
+	| PostAuthChangeEmailVerifyBodyTwo
+	| PostAuthChangeEmailVerifyBodyThree;
+export type PostAuthChangeEmailVerifyMutationError = ErrorType<
+	| PostAuthChangeEmailVerify404
+	| PostAuthChangeEmailVerify422
+	| PostAuthChangeEmailVerify500
+>;
+
+export const usePostAuthChangeEmailVerify = <
+	TError = ErrorType<
+		| PostAuthChangeEmailVerify404
+		| PostAuthChangeEmailVerify422
+		| PostAuthChangeEmailVerify500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+			TError,
+			{
+				data:
+					| PostAuthChangeEmailVerifyBodyOne
+					| PostAuthChangeEmailVerifyBodyTwo
+					| PostAuthChangeEmailVerifyBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailVerifyBodyOne
+			| PostAuthChangeEmailVerifyBodyTwo
+			| PostAuthChangeEmailVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthChangeEmailVerifyMutationOptions(options);
 
 	return useMutation(mutationOptions, queryClient);
 };
