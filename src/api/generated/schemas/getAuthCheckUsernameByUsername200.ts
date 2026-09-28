@@ -7,5 +7,7 @@
  */
 
 export type GetAuthCheckUsernameByUsername200 = {
-	google: boolean;
+	email: string;
+	expiresAt: string;
+	resendAfterSeconds: number;
 };

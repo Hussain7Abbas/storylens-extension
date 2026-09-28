@@ -6,8 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostAuthRegister200 = {
-	email: string;
-	expiresAt: string;
-	resendAfterSeconds: number;
+export type PostAuthChangeEmail404 = {
+	message: string;
 };

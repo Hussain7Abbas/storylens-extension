@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostAuthRegister200 = {
+export type PostAuthChangePasswordVerify200 = {
 	email: string;
 	expiresAt: string;
 	resendAfterSeconds: number;

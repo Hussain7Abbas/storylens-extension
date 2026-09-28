@@ -31,10 +31,26 @@ import type {
 	GetAuthCheckUsernameByUsername500,
 	GetAuthMe200,
 	GetAuthMe404,
+	GetAuthMe422,
 	GetAuthMe500,
 	GetAuthProviders200,
 	GetAuthProviders404,
+	GetAuthProviders422,
 	GetAuthProviders500,
+	PostAuthChangeEmail200,
+	PostAuthChangeEmail404,
+	PostAuthChangeEmail422,
+	PostAuthChangeEmail500,
+	PostAuthChangeEmailBodyOne,
+	PostAuthChangeEmailBodyThree,
+	PostAuthChangeEmailBodyTwo,
+	PostAuthChangeEmailVerify200,
+	PostAuthChangeEmailVerify404,
+	PostAuthChangeEmailVerify422,
+	PostAuthChangeEmailVerify500,
+	PostAuthChangeEmailVerifyBodyOne,
+	PostAuthChangeEmailVerifyBodyThree,
+	PostAuthChangeEmailVerifyBodyTwo,
 	PostAuthChangePassword200,
 	PostAuthChangePassword404,
 	PostAuthChangePassword422,
@@ -42,29 +58,49 @@ import type {
 	PostAuthChangePasswordBodyOne,
 	PostAuthChangePasswordBodyThree,
 	PostAuthChangePasswordBodyTwo,
+	PostAuthChangePasswordVerify200,
+	PostAuthChangePasswordVerify404,
+	PostAuthChangePasswordVerify422,
+	PostAuthChangePasswordVerify500,
+	PostAuthChangePasswordVerifyBodyOne,
+	PostAuthChangePasswordVerifyBodyThree,
+	PostAuthChangePasswordVerifyBodyTwo,
 	PostAuthGuest404,
 	PostAuthGuest500,
 	PostAuthGuestBodyOne,
 	PostAuthGuestBodyThree,
 	PostAuthGuestBodyTwo,
+	PostAuthLogin200,
 	PostAuthLogin404,
+	PostAuthLogin422,
 	PostAuthLogin500,
 	PostAuthLoginBodyOne,
 	PostAuthLoginBodyThree,
 	PostAuthLoginBodyTwo,
 	PostAuthOauthSession200,
 	PostAuthOauthSession404,
+	PostAuthOauthSession422,
 	PostAuthOauthSession500,
 	PostAuthOauthSessionBodyOne,
 	PostAuthOauthSessionBodyThree,
 	PostAuthOauthSessionBodyTwo,
+	PostAuthRegister200,
 	PostAuthRegister404,
+	PostAuthRegister422,
 	PostAuthRegister500,
 	PostAuthRegisterBodyOne,
 	PostAuthRegisterBodyThree,
 	PostAuthRegisterBodyTwo,
+	PostAuthRegisterVerify200,
+	PostAuthRegisterVerify404,
+	PostAuthRegisterVerify422,
+	PostAuthRegisterVerify500,
+	PostAuthRegisterVerifyBodyOne,
+	PostAuthRegisterVerifyBodyThree,
+	PostAuthRegisterVerifyBodyTwo,
 	PutAuthMe200,
 	PutAuthMe404,
+	PutAuthMe422,
 	PutAuthMe500,
 	PutAuthMeBodyOne,
 	PutAuthMeBodyThree,
@@ -192,7 +228,7 @@ export const postAuthRegister = (
 	options?: SecondParameter<typeof customInstance>,
 	signal?: AbortSignal,
 ) => {
-	return customInstance<unknown>(
+	return customInstance<PostAuthRegister200>(
 		{
 			url: `http://localhost:3030/auth/register`,
 			method: "POST",
@@ -204,7 +240,9 @@ export const postAuthRegister = (
 };
 
 export const getPostAuthRegisterMutationOptions = <
-	TError = ErrorType<PostAuthRegister404 | PostAuthRegister500>,
+	TError = ErrorType<
+		PostAuthRegister404 | PostAuthRegister422 | PostAuthRegister500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -264,11 +302,13 @@ export type PostAuthRegisterMutationBody =
 	| PostAuthRegisterBodyTwo
 	| PostAuthRegisterBodyThree;
 export type PostAuthRegisterMutationError = ErrorType<
-	PostAuthRegister404 | PostAuthRegister500
+	PostAuthRegister404 | PostAuthRegister422 | PostAuthRegister500
 >;
 
 export const usePostAuthRegister = <
-	TError = ErrorType<PostAuthRegister404 | PostAuthRegister500>,
+	TError = ErrorType<
+		PostAuthRegister404 | PostAuthRegister422 | PostAuthRegister500
+	>,
 	TContext = unknown,
 >(
 	options?: {
@@ -301,6 +341,133 @@ export const usePostAuthRegister = <
 
 	return useMutation(mutationOptions, queryClient);
 };
+export const postAuthRegisterVerify = (
+	postAuthRegisterVerifyBody:
+		| PostAuthRegisterVerifyBodyOne
+		| PostAuthRegisterVerifyBodyTwo
+		| PostAuthRegisterVerifyBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthRegisterVerify200>(
+		{
+			url: `http://localhost:3030/auth/register/verify`,
+			method: "POST",
+			data: postAuthRegisterVerifyBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthRegisterVerifyMutationOptions = <
+	TError = ErrorType<
+		| PostAuthRegisterVerify404
+		| PostAuthRegisterVerify422
+		| PostAuthRegisterVerify500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthRegisterVerify>>,
+		TError,
+		{
+			data:
+				| PostAuthRegisterVerifyBodyOne
+				| PostAuthRegisterVerifyBodyTwo
+				| PostAuthRegisterVerifyBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthRegisterVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthRegisterVerifyBodyOne
+			| PostAuthRegisterVerifyBodyTwo
+			| PostAuthRegisterVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthRegisterVerify"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthRegisterVerify>>,
+		{
+			data:
+				| PostAuthRegisterVerifyBodyOne
+				| PostAuthRegisterVerifyBodyTwo
+				| PostAuthRegisterVerifyBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthRegisterVerify(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthRegisterVerifyMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthRegisterVerify>>
+>;
+export type PostAuthRegisterVerifyMutationBody =
+	| PostAuthRegisterVerifyBodyOne
+	| PostAuthRegisterVerifyBodyTwo
+	| PostAuthRegisterVerifyBodyThree;
+export type PostAuthRegisterVerifyMutationError = ErrorType<
+	| PostAuthRegisterVerify404
+	| PostAuthRegisterVerify422
+	| PostAuthRegisterVerify500
+>;
+
+export const usePostAuthRegisterVerify = <
+	TError = ErrorType<
+		| PostAuthRegisterVerify404
+		| PostAuthRegisterVerify422
+		| PostAuthRegisterVerify500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthRegisterVerify>>,
+			TError,
+			{
+				data:
+					| PostAuthRegisterVerifyBodyOne
+					| PostAuthRegisterVerifyBodyTwo
+					| PostAuthRegisterVerifyBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthRegisterVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthRegisterVerifyBodyOne
+			| PostAuthRegisterVerifyBodyTwo
+			| PostAuthRegisterVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthRegisterVerifyMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
 export const postAuthLogin = (
 	postAuthLoginBody:
 		| PostAuthLoginBodyOne
@@ -309,7 +476,7 @@ export const postAuthLogin = (
 	options?: SecondParameter<typeof customInstance>,
 	signal?: AbortSignal,
 ) => {
-	return customInstance<unknown>(
+	return customInstance<PostAuthLogin200>(
 		{
 			url: `http://localhost:3030/auth/login`,
 			method: "POST",
@@ -321,7 +488,7 @@ export const postAuthLogin = (
 };
 
 export const getPostAuthLoginMutationOptions = <
-	TError = ErrorType<PostAuthLogin404 | PostAuthLogin500>,
+	TError = ErrorType<PostAuthLogin404 | PostAuthLogin422 | PostAuthLogin500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -378,11 +545,11 @@ export type PostAuthLoginMutationBody =
 	| PostAuthLoginBodyTwo
 	| PostAuthLoginBodyThree;
 export type PostAuthLoginMutationError = ErrorType<
-	PostAuthLogin404 | PostAuthLogin500
+	PostAuthLogin404 | PostAuthLogin422 | PostAuthLogin500
 >;
 
 export const usePostAuthLogin = <
-	TError = ErrorType<PostAuthLogin404 | PostAuthLogin500>,
+	TError = ErrorType<PostAuthLogin404 | PostAuthLogin422 | PostAuthLogin500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -428,7 +595,9 @@ export const getGetAuthProvidersQueryKey = () => {
 
 export const getGetAuthProvidersQueryOptions = <
 	TData = Awaited<ReturnType<typeof getAuthProviders>>,
-	TError = ErrorType<GetAuthProviders404 | GetAuthProviders500>,
+	TError = ErrorType<
+		GetAuthProviders404 | GetAuthProviders422 | GetAuthProviders500
+	>,
 >(options?: {
 	query?: Partial<
 		UseQueryOptions<Awaited<ReturnType<typeof getAuthProviders>>, TError, TData>
@@ -454,12 +623,14 @@ export type GetAuthProvidersQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getAuthProviders>>
 >;
 export type GetAuthProvidersQueryError = ErrorType<
-	GetAuthProviders404 | GetAuthProviders500
+	GetAuthProviders404 | GetAuthProviders422 | GetAuthProviders500
 >;
 
 export function useGetAuthProviders<
 	TData = Awaited<ReturnType<typeof getAuthProviders>>,
-	TError = ErrorType<GetAuthProviders404 | GetAuthProviders500>,
+	TError = ErrorType<
+		GetAuthProviders404 | GetAuthProviders422 | GetAuthProviders500
+	>,
 >(
 	options: {
 		query: Partial<
@@ -485,7 +656,9 @@ export function useGetAuthProviders<
 };
 export function useGetAuthProviders<
 	TData = Awaited<ReturnType<typeof getAuthProviders>>,
-	TError = ErrorType<GetAuthProviders404 | GetAuthProviders500>,
+	TError = ErrorType<
+		GetAuthProviders404 | GetAuthProviders422 | GetAuthProviders500
+	>,
 >(
 	options?: {
 		query?: Partial<
@@ -511,7 +684,9 @@ export function useGetAuthProviders<
 };
 export function useGetAuthProviders<
 	TData = Awaited<ReturnType<typeof getAuthProviders>>,
-	TError = ErrorType<GetAuthProviders404 | GetAuthProviders500>,
+	TError = ErrorType<
+		GetAuthProviders404 | GetAuthProviders422 | GetAuthProviders500
+	>,
 >(
 	options?: {
 		query?: Partial<
@@ -530,7 +705,9 @@ export function useGetAuthProviders<
 
 export function useGetAuthProviders<
 	TData = Awaited<ReturnType<typeof getAuthProviders>>,
-	TError = ErrorType<GetAuthProviders404 | GetAuthProviders500>,
+	TError = ErrorType<
+		GetAuthProviders404 | GetAuthProviders422 | GetAuthProviders500
+	>,
 >(
 	options?: {
 		query?: Partial<
@@ -578,7 +755,9 @@ export const postAuthOauthSession = (
 };
 
 export const getPostAuthOauthSessionMutationOptions = <
-	TError = ErrorType<PostAuthOauthSession404 | PostAuthOauthSession500>,
+	TError = ErrorType<
+		PostAuthOauthSession404 | PostAuthOauthSession422 | PostAuthOauthSession500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -638,11 +817,13 @@ export type PostAuthOauthSessionMutationBody =
 	| PostAuthOauthSessionBodyTwo
 	| PostAuthOauthSessionBodyThree;
 export type PostAuthOauthSessionMutationError = ErrorType<
-	PostAuthOauthSession404 | PostAuthOauthSession500
+	PostAuthOauthSession404 | PostAuthOauthSession422 | PostAuthOauthSession500
 >;
 
 export const usePostAuthOauthSession = <
-	TError = ErrorType<PostAuthOauthSession404 | PostAuthOauthSession500>,
+	TError = ErrorType<
+		PostAuthOauthSession404 | PostAuthOauthSession422 | PostAuthOauthSession500
+	>,
 	TContext = unknown,
 >(
 	options?: {
@@ -691,7 +872,7 @@ export const getGetAuthMeQueryKey = () => {
 
 export const getGetAuthMeQueryOptions = <
 	TData = Awaited<ReturnType<typeof getAuthMe>>,
-	TError = ErrorType<GetAuthMe404 | GetAuthMe500>,
+	TError = ErrorType<GetAuthMe404 | GetAuthMe422 | GetAuthMe500>,
 >(options?: {
 	query?: Partial<
 		UseQueryOptions<Awaited<ReturnType<typeof getAuthMe>>, TError, TData>
@@ -716,11 +897,13 @@ export const getGetAuthMeQueryOptions = <
 export type GetAuthMeQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getAuthMe>>
 >;
-export type GetAuthMeQueryError = ErrorType<GetAuthMe404 | GetAuthMe500>;
+export type GetAuthMeQueryError = ErrorType<
+	GetAuthMe404 | GetAuthMe422 | GetAuthMe500
+>;
 
 export function useGetAuthMe<
 	TData = Awaited<ReturnType<typeof getAuthMe>>,
-	TError = ErrorType<GetAuthMe404 | GetAuthMe500>,
+	TError = ErrorType<GetAuthMe404 | GetAuthMe422 | GetAuthMe500>,
 >(
 	options: {
 		query: Partial<
@@ -742,7 +925,7 @@ export function useGetAuthMe<
 };
 export function useGetAuthMe<
 	TData = Awaited<ReturnType<typeof getAuthMe>>,
-	TError = ErrorType<GetAuthMe404 | GetAuthMe500>,
+	TError = ErrorType<GetAuthMe404 | GetAuthMe422 | GetAuthMe500>,
 >(
 	options?: {
 		query?: Partial<
@@ -764,7 +947,7 @@ export function useGetAuthMe<
 };
 export function useGetAuthMe<
 	TData = Awaited<ReturnType<typeof getAuthMe>>,
-	TError = ErrorType<GetAuthMe404 | GetAuthMe500>,
+	TError = ErrorType<GetAuthMe404 | GetAuthMe422 | GetAuthMe500>,
 >(
 	options?: {
 		query?: Partial<
@@ -779,7 +962,7 @@ export function useGetAuthMe<
 
 export function useGetAuthMe<
 	TData = Awaited<ReturnType<typeof getAuthMe>>,
-	TError = ErrorType<GetAuthMe404 | GetAuthMe500>,
+	TError = ErrorType<GetAuthMe404 | GetAuthMe422 | GetAuthMe500>,
 >(
 	options?: {
 		query?: Partial<
@@ -818,7 +1001,7 @@ export const putAuthMe = (
 };
 
 export const getPutAuthMeMutationOptions = <
-	TError = ErrorType<PutAuthMe404 | PutAuthMe500>,
+	TError = ErrorType<PutAuthMe404 | PutAuthMe422 | PutAuthMe500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -862,10 +1045,12 @@ export type PutAuthMeMutationBody =
 	| PutAuthMeBodyOne
 	| PutAuthMeBodyTwo
 	| PutAuthMeBodyThree;
-export type PutAuthMeMutationError = ErrorType<PutAuthMe404 | PutAuthMe500>;
+export type PutAuthMeMutationError = ErrorType<
+	PutAuthMe404 | PutAuthMe422 | PutAuthMe500
+>;
 
 export const usePutAuthMe = <
-	TError = ErrorType<PutAuthMe404 | PutAuthMe500>,
+	TError = ErrorType<PutAuthMe404 | PutAuthMe422 | PutAuthMe500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1012,6 +1197,382 @@ export const usePostAuthChangePassword = <
 	TContext
 > => {
 	const mutationOptions = getPostAuthChangePasswordMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthChangePasswordVerify = (
+	postAuthChangePasswordVerifyBody:
+		| PostAuthChangePasswordVerifyBodyOne
+		| PostAuthChangePasswordVerifyBodyTwo
+		| PostAuthChangePasswordVerifyBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthChangePasswordVerify200>(
+		{
+			url: `http://localhost:3030/auth/change-password/verify`,
+			method: "POST",
+			data: postAuthChangePasswordVerifyBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthChangePasswordVerifyMutationOptions = <
+	TError = ErrorType<
+		| PostAuthChangePasswordVerify404
+		| PostAuthChangePasswordVerify422
+		| PostAuthChangePasswordVerify500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+		TError,
+		{
+			data:
+				| PostAuthChangePasswordVerifyBodyOne
+				| PostAuthChangePasswordVerifyBodyTwo
+				| PostAuthChangePasswordVerifyBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangePasswordVerifyBodyOne
+			| PostAuthChangePasswordVerifyBodyTwo
+			| PostAuthChangePasswordVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthChangePasswordVerify"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+		{
+			data:
+				| PostAuthChangePasswordVerifyBodyOne
+				| PostAuthChangePasswordVerifyBodyTwo
+				| PostAuthChangePasswordVerifyBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthChangePasswordVerify(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthChangePasswordVerifyMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthChangePasswordVerify>>
+>;
+export type PostAuthChangePasswordVerifyMutationBody =
+	| PostAuthChangePasswordVerifyBodyOne
+	| PostAuthChangePasswordVerifyBodyTwo
+	| PostAuthChangePasswordVerifyBodyThree;
+export type PostAuthChangePasswordVerifyMutationError = ErrorType<
+	| PostAuthChangePasswordVerify404
+	| PostAuthChangePasswordVerify422
+	| PostAuthChangePasswordVerify500
+>;
+
+export const usePostAuthChangePasswordVerify = <
+	TError = ErrorType<
+		| PostAuthChangePasswordVerify404
+		| PostAuthChangePasswordVerify422
+		| PostAuthChangePasswordVerify500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+			TError,
+			{
+				data:
+					| PostAuthChangePasswordVerifyBodyOne
+					| PostAuthChangePasswordVerifyBodyTwo
+					| PostAuthChangePasswordVerifyBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthChangePasswordVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangePasswordVerifyBodyOne
+			| PostAuthChangePasswordVerifyBodyTwo
+			| PostAuthChangePasswordVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPostAuthChangePasswordVerifyMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthChangeEmail = (
+	postAuthChangeEmailBody:
+		| PostAuthChangeEmailBodyOne
+		| PostAuthChangeEmailBodyTwo
+		| PostAuthChangeEmailBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthChangeEmail200>(
+		{
+			url: `http://localhost:3030/auth/change-email`,
+			method: "POST",
+			data: postAuthChangeEmailBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthChangeEmailMutationOptions = <
+	TError = ErrorType<
+		PostAuthChangeEmail404 | PostAuthChangeEmail422 | PostAuthChangeEmail500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthChangeEmail>>,
+		TError,
+		{
+			data:
+				| PostAuthChangeEmailBodyOne
+				| PostAuthChangeEmailBodyTwo
+				| PostAuthChangeEmailBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthChangeEmail>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailBodyOne
+			| PostAuthChangeEmailBodyTwo
+			| PostAuthChangeEmailBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthChangeEmail"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthChangeEmail>>,
+		{
+			data:
+				| PostAuthChangeEmailBodyOne
+				| PostAuthChangeEmailBodyTwo
+				| PostAuthChangeEmailBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthChangeEmail(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthChangeEmailMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthChangeEmail>>
+>;
+export type PostAuthChangeEmailMutationBody =
+	| PostAuthChangeEmailBodyOne
+	| PostAuthChangeEmailBodyTwo
+	| PostAuthChangeEmailBodyThree;
+export type PostAuthChangeEmailMutationError = ErrorType<
+	PostAuthChangeEmail404 | PostAuthChangeEmail422 | PostAuthChangeEmail500
+>;
+
+export const usePostAuthChangeEmail = <
+	TError = ErrorType<
+		PostAuthChangeEmail404 | PostAuthChangeEmail422 | PostAuthChangeEmail500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthChangeEmail>>,
+			TError,
+			{
+				data:
+					| PostAuthChangeEmailBodyOne
+					| PostAuthChangeEmailBodyTwo
+					| PostAuthChangeEmailBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthChangeEmail>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailBodyOne
+			| PostAuthChangeEmailBodyTwo
+			| PostAuthChangeEmailBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthChangeEmailMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthChangeEmailVerify = (
+	postAuthChangeEmailVerifyBody:
+		| PostAuthChangeEmailVerifyBodyOne
+		| PostAuthChangeEmailVerifyBodyTwo
+		| PostAuthChangeEmailVerifyBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthChangeEmailVerify200>(
+		{
+			url: `http://localhost:3030/auth/change-email/verify`,
+			method: "POST",
+			data: postAuthChangeEmailVerifyBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthChangeEmailVerifyMutationOptions = <
+	TError = ErrorType<
+		| PostAuthChangeEmailVerify404
+		| PostAuthChangeEmailVerify422
+		| PostAuthChangeEmailVerify500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+		TError,
+		{
+			data:
+				| PostAuthChangeEmailVerifyBodyOne
+				| PostAuthChangeEmailVerifyBodyTwo
+				| PostAuthChangeEmailVerifyBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailVerifyBodyOne
+			| PostAuthChangeEmailVerifyBodyTwo
+			| PostAuthChangeEmailVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthChangeEmailVerify"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+		{
+			data:
+				| PostAuthChangeEmailVerifyBodyOne
+				| PostAuthChangeEmailVerifyBodyTwo
+				| PostAuthChangeEmailVerifyBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthChangeEmailVerify(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthChangeEmailVerifyMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthChangeEmailVerify>>
+>;
+export type PostAuthChangeEmailVerifyMutationBody =
+	| PostAuthChangeEmailVerifyBodyOne
+	| PostAuthChangeEmailVerifyBodyTwo
+	| PostAuthChangeEmailVerifyBodyThree;
+export type PostAuthChangeEmailVerifyMutationError = ErrorType<
+	| PostAuthChangeEmailVerify404
+	| PostAuthChangeEmailVerify422
+	| PostAuthChangeEmailVerify500
+>;
+
+export const usePostAuthChangeEmailVerify = <
+	TError = ErrorType<
+		| PostAuthChangeEmailVerify404
+		| PostAuthChangeEmailVerify422
+		| PostAuthChangeEmailVerify500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+			TError,
+			{
+				data:
+					| PostAuthChangeEmailVerifyBodyOne
+					| PostAuthChangeEmailVerifyBodyTwo
+					| PostAuthChangeEmailVerifyBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthChangeEmailVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthChangeEmailVerifyBodyOne
+			| PostAuthChangeEmailVerifyBodyTwo
+			| PostAuthChangeEmailVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthChangeEmailVerifyMutationOptions(options);
 
 	return useMutation(mutationOptions, queryClient);
 };

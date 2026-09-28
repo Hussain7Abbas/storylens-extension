@@ -8,7 +8,10 @@
 
 export type PostAuthRegisterBodyOne = {
 	email: string;
-	/** @minLength 8 */
+	/**
+	 * @minLength 8
+	 * @maxLength 72
+	 */
 	password: string;
 	/**
 	 * @minLength 3
