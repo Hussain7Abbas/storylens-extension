@@ -27,27 +27,22 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteChaptersById200,
 	DeleteChaptersById404,
-	DeleteChaptersById422,
 	DeleteChaptersById500,
 	GetChaptersById200,
 	GetChaptersById404,
-	GetChaptersById422,
 	GetChaptersById500,
 	GetChaptersNovelByNovelId200,
 	GetChaptersNovelByNovelId404,
-	GetChaptersNovelByNovelId422,
 	GetChaptersNovelByNovelId500,
 	GetChaptersNovelByNovelIdParams,
 	PostChapters200,
 	PostChapters404,
-	PostChapters422,
 	PostChapters500,
 	PostChaptersBodyOne,
 	PostChaptersBodyThree,
 	PostChaptersBodyTwo,
 	PutChaptersById200,
 	PutChaptersById404,
-	PutChaptersById422,
 	PutChaptersById500,
 	PutChaptersByIdBodyOne,
 	PutChaptersByIdBodyThree,
@@ -64,7 +59,7 @@ export const getChaptersNovelByNovelId = (
 ) => {
 	return customInstance<GetChaptersNovelByNovelId200>(
 		{
-			url: `http://localhost:3030/chapters/novel/${novelId}`,
+			url: `http://localhost:3031/api/user/chapters/novel/${novelId}`,
 			method: "GET",
 			params,
 			signal,
@@ -78,7 +73,7 @@ export const getGetChaptersNovelByNovelIdQueryKey = (
 	params?: GetChaptersNovelByNovelIdParams,
 ) => {
 	return [
-		`http://localhost:3030/chapters/novel/${novelId}`,
+		`http://localhost:3031/api/user/chapters/novel/${novelId}`,
 		...(params ? [params] : []),
 	] as const;
 };
@@ -86,9 +81,7 @@ export const getGetChaptersNovelByNovelIdQueryKey = (
 export const getGetChaptersNovelByNovelIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
 	TError = ErrorType<
-		| GetChaptersNovelByNovelId404
-		| GetChaptersNovelByNovelId422
-		| GetChaptersNovelByNovelId500
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 	>,
 >(
 	novelId: string,
@@ -131,17 +124,13 @@ export type GetChaptersNovelByNovelIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getChaptersNovelByNovelId>>
 >;
 export type GetChaptersNovelByNovelIdQueryError = ErrorType<
-	| GetChaptersNovelByNovelId404
-	| GetChaptersNovelByNovelId422
-	| GetChaptersNovelByNovelId500
+	GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 >;
 
 export function useGetChaptersNovelByNovelId<
 	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
 	TError = ErrorType<
-		| GetChaptersNovelByNovelId404
-		| GetChaptersNovelByNovelId422
-		| GetChaptersNovelByNovelId500
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 	>,
 >(
 	novelId: string,
@@ -171,9 +160,7 @@ export function useGetChaptersNovelByNovelId<
 export function useGetChaptersNovelByNovelId<
 	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
 	TError = ErrorType<
-		| GetChaptersNovelByNovelId404
-		| GetChaptersNovelByNovelId422
-		| GetChaptersNovelByNovelId500
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 	>,
 >(
 	novelId: string,
@@ -203,9 +190,7 @@ export function useGetChaptersNovelByNovelId<
 export function useGetChaptersNovelByNovelId<
 	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
 	TError = ErrorType<
-		| GetChaptersNovelByNovelId404
-		| GetChaptersNovelByNovelId422
-		| GetChaptersNovelByNovelId500
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 	>,
 >(
 	novelId: string,
@@ -228,9 +213,7 @@ export function useGetChaptersNovelByNovelId<
 export function useGetChaptersNovelByNovelId<
 	TData = Awaited<ReturnType<typeof getChaptersNovelByNovelId>>,
 	TError = ErrorType<
-		| GetChaptersNovelByNovelId404
-		| GetChaptersNovelByNovelId422
-		| GetChaptersNovelByNovelId500
+		GetChaptersNovelByNovelId404 | GetChaptersNovelByNovelId500
 	>,
 >(
 	novelId: string,
@@ -271,20 +254,22 @@ export const getChaptersById = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetChaptersById200>(
-		{ url: `http://localhost:3030/chapters/${id}`, method: "GET", signal },
+		{
+			url: `http://localhost:3031/api/user/chapters/${id}`,
+			method: "GET",
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetChaptersByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/chapters/${id}`] as const;
+	return [`http://localhost:3031/api/user/chapters/${id}`] as const;
 };
 
 export const getGetChaptersByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getChaptersById>>,
-	TError = ErrorType<
-		GetChaptersById404 | GetChaptersById422 | GetChaptersById500
-	>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -322,14 +307,12 @@ export type GetChaptersByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getChaptersById>>
 >;
 export type GetChaptersByIdQueryError = ErrorType<
-	GetChaptersById404 | GetChaptersById422 | GetChaptersById500
+	GetChaptersById404 | GetChaptersById500
 >;
 
 export function useGetChaptersById<
 	TData = Awaited<ReturnType<typeof getChaptersById>>,
-	TError = ErrorType<
-		GetChaptersById404 | GetChaptersById422 | GetChaptersById500
-	>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
 	id: string,
 	options: {
@@ -356,9 +339,7 @@ export function useGetChaptersById<
 };
 export function useGetChaptersById<
 	TData = Awaited<ReturnType<typeof getChaptersById>>,
-	TError = ErrorType<
-		GetChaptersById404 | GetChaptersById422 | GetChaptersById500
-	>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -385,9 +366,7 @@ export function useGetChaptersById<
 };
 export function useGetChaptersById<
 	TData = Awaited<ReturnType<typeof getChaptersById>>,
-	TError = ErrorType<
-		GetChaptersById404 | GetChaptersById422 | GetChaptersById500
-	>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -407,9 +386,7 @@ export function useGetChaptersById<
 
 export function useGetChaptersById<
 	TData = Awaited<ReturnType<typeof getChaptersById>>,
-	TError = ErrorType<
-		GetChaptersById404 | GetChaptersById422 | GetChaptersById500
-	>,
+	TError = ErrorType<GetChaptersById404 | GetChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -448,7 +425,7 @@ export const putChaptersById = (
 ) => {
 	return customInstance<PutChaptersById200>(
 		{
-			url: `http://localhost:3030/chapters/${id}`,
+			url: `http://localhost:3031/api/user/chapters/${id}`,
 			method: "PUT",
 			data: putChaptersByIdBody,
 		},
@@ -457,9 +434,7 @@ export const putChaptersById = (
 };
 
 export const getPutChaptersByIdMutationOptions = <
-	TError = ErrorType<
-		PutChaptersById404 | PutChaptersById422 | PutChaptersById500
-	>,
+	TError = ErrorType<PutChaptersById404 | PutChaptersById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -522,13 +497,11 @@ export type PutChaptersByIdMutationBody =
 	| PutChaptersByIdBodyTwo
 	| PutChaptersByIdBodyThree;
 export type PutChaptersByIdMutationError = ErrorType<
-	PutChaptersById404 | PutChaptersById422 | PutChaptersById500
+	PutChaptersById404 | PutChaptersById500
 >;
 
 export const usePutChaptersById = <
-	TError = ErrorType<
-		PutChaptersById404 | PutChaptersById422 | PutChaptersById500
-	>,
+	TError = ErrorType<PutChaptersById404 | PutChaptersById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -568,15 +541,13 @@ export const deleteChaptersById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteChaptersById200>(
-		{ url: `http://localhost:3030/chapters/${id}`, method: "DELETE" },
+		{ url: `http://localhost:3031/api/user/chapters/${id}`, method: "DELETE" },
 		options,
 	);
 };
 
 export const getDeleteChaptersByIdMutationOptions = <
-	TError = ErrorType<
-		DeleteChaptersById404 | DeleteChaptersById422 | DeleteChaptersById500
-	>,
+	TError = ErrorType<DeleteChaptersById404 | DeleteChaptersById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -618,13 +589,11 @@ export type DeleteChaptersByIdMutationResult = NonNullable<
 >;
 
 export type DeleteChaptersByIdMutationError = ErrorType<
-	DeleteChaptersById404 | DeleteChaptersById422 | DeleteChaptersById500
+	DeleteChaptersById404 | DeleteChaptersById500
 >;
 
 export const useDeleteChaptersById = <
-	TError = ErrorType<
-		DeleteChaptersById404 | DeleteChaptersById422 | DeleteChaptersById500
-	>,
+	TError = ErrorType<DeleteChaptersById404 | DeleteChaptersById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -657,7 +626,7 @@ export const postChapters = (
 ) => {
 	return customInstance<PostChapters200>(
 		{
-			url: `http://localhost:3030/chapters/`,
+			url: `http://localhost:3031/api/user/chapters/`,
 			method: "POST",
 			data: postChaptersBody,
 			signal,
@@ -667,7 +636,7 @@ export const postChapters = (
 };
 
 export const getPostChaptersMutationOptions = <
-	TError = ErrorType<PostChapters404 | PostChapters422 | PostChapters500>,
+	TError = ErrorType<PostChapters404 | PostChapters500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -712,11 +681,11 @@ export type PostChaptersMutationBody =
 	| PostChaptersBodyTwo
 	| PostChaptersBodyThree;
 export type PostChaptersMutationError = ErrorType<
-	PostChapters404 | PostChapters422 | PostChapters500
+	PostChapters404 | PostChapters500
 >;
 
 export const usePostChapters = <
-	TError = ErrorType<PostChapters404 | PostChapters422 | PostChapters500>,
+	TError = ErrorType<PostChapters404 | PostChapters500>,
 	TContext = unknown,
 >(
 	options?: {

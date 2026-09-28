@@ -1,6 +1,7 @@
 export {
 	checkUsernameAvailability,
 	createGuestAccount,
+	refreshCurrentUser,
 	setupAuthInterceptor,
 } from "./auth-service";
 export {
@@ -10,13 +11,15 @@ export {
 	parseStoredAuth,
 	storeAuth,
 } from "./auth-storage";
-export type { AuthUser } from "./auth-store";
+export type { AccessLevel, AuthUser } from "./auth-store";
 export {
+	accessLevelOf,
 	authStateAtom,
 	authTokenAtom,
 	currentUserAtom,
+	normalizeAuthUser,
 	onboardingCompletedAtom,
-	userRoleAtom,
+	userAccessAtom,
 } from "./auth-store";
 export { generateGuestUsername } from "./guest-names";
 export { useAuthInit } from "./use-auth-init";
@@ -24,5 +27,5 @@ export {
 	useCanMutate,
 	useCanMutateKeywords,
 	useCanMutateReplacements,
-	useIsAdmin,
+	useIsModerator,
 } from "./use-permissions";

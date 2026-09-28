@@ -27,27 +27,22 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteKeywordCategoriesById200,
 	DeleteKeywordCategoriesById404,
-	DeleteKeywordCategoriesById422,
 	DeleteKeywordCategoriesById500,
 	GetKeywordCategories200,
 	GetKeywordCategories404,
-	GetKeywordCategories422,
 	GetKeywordCategories500,
 	GetKeywordCategoriesById200,
 	GetKeywordCategoriesById404,
-	GetKeywordCategoriesById422,
 	GetKeywordCategoriesById500,
 	GetKeywordCategoriesParams,
 	PostKeywordCategories200,
 	PostKeywordCategories404,
-	PostKeywordCategories422,
 	PostKeywordCategories500,
 	PostKeywordCategoriesBodyOne,
 	PostKeywordCategoriesBodyThree,
 	PostKeywordCategoriesBodyTwo,
 	PutKeywordCategoriesById200,
 	PutKeywordCategoriesById404,
-	PutKeywordCategoriesById422,
 	PutKeywordCategoriesById500,
 	PutKeywordCategoriesByIdBodyOne,
 	PutKeywordCategoriesByIdBodyThree,
@@ -63,7 +58,7 @@ export const getKeywordCategories = (
 ) => {
 	return customInstance<GetKeywordCategories200>(
 		{
-			url: `http://localhost:3030/keyword-categories/`,
+			url: `http://localhost:3031/api/user/keyword-categories/`,
 			method: "GET",
 			params,
 			signal,
@@ -76,16 +71,14 @@ export const getGetKeywordCategoriesQueryKey = (
 	params?: GetKeywordCategoriesParams,
 ) => {
 	return [
-		`http://localhost:3030/keyword-categories/`,
+		`http://localhost:3031/api/user/keyword-categories/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetKeywordCategoriesQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordCategories>>,
-	TError = ErrorType<
-		GetKeywordCategories404 | GetKeywordCategories422 | GetKeywordCategories500
-	>,
+	TError = ErrorType<GetKeywordCategories404 | GetKeywordCategories500>,
 >(
 	params: GetKeywordCategoriesParams,
 	options?: {
@@ -119,14 +112,12 @@ export type GetKeywordCategoriesQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordCategories>>
 >;
 export type GetKeywordCategoriesQueryError = ErrorType<
-	GetKeywordCategories404 | GetKeywordCategories422 | GetKeywordCategories500
+	GetKeywordCategories404 | GetKeywordCategories500
 >;
 
 export function useGetKeywordCategories<
 	TData = Awaited<ReturnType<typeof getKeywordCategories>>,
-	TError = ErrorType<
-		GetKeywordCategories404 | GetKeywordCategories422 | GetKeywordCategories500
-	>,
+	TError = ErrorType<GetKeywordCategories404 | GetKeywordCategories500>,
 >(
 	params: GetKeywordCategoriesParams,
 	options: {
@@ -153,9 +144,7 @@ export function useGetKeywordCategories<
 };
 export function useGetKeywordCategories<
 	TData = Awaited<ReturnType<typeof getKeywordCategories>>,
-	TError = ErrorType<
-		GetKeywordCategories404 | GetKeywordCategories422 | GetKeywordCategories500
-	>,
+	TError = ErrorType<GetKeywordCategories404 | GetKeywordCategories500>,
 >(
 	params: GetKeywordCategoriesParams,
 	options?: {
@@ -182,9 +171,7 @@ export function useGetKeywordCategories<
 };
 export function useGetKeywordCategories<
 	TData = Awaited<ReturnType<typeof getKeywordCategories>>,
-	TError = ErrorType<
-		GetKeywordCategories404 | GetKeywordCategories422 | GetKeywordCategories500
-	>,
+	TError = ErrorType<GetKeywordCategories404 | GetKeywordCategories500>,
 >(
 	params: GetKeywordCategoriesParams,
 	options?: {
@@ -204,9 +191,7 @@ export function useGetKeywordCategories<
 
 export function useGetKeywordCategories<
 	TData = Awaited<ReturnType<typeof getKeywordCategories>>,
-	TError = ErrorType<
-		GetKeywordCategories404 | GetKeywordCategories422 | GetKeywordCategories500
-	>,
+	TError = ErrorType<GetKeywordCategories404 | GetKeywordCategories500>,
 >(
 	params: GetKeywordCategoriesParams,
 	options?: {
@@ -245,7 +230,7 @@ export const postKeywordCategories = (
 ) => {
 	return customInstance<PostKeywordCategories200>(
 		{
-			url: `http://localhost:3030/keyword-categories/`,
+			url: `http://localhost:3031/api/user/keyword-categories/`,
 			method: "POST",
 			data: postKeywordCategoriesBody,
 			signal,
@@ -255,11 +240,7 @@ export const postKeywordCategories = (
 };
 
 export const getPostKeywordCategoriesMutationOptions = <
-	TError = ErrorType<
-		| PostKeywordCategories404
-		| PostKeywordCategories422
-		| PostKeywordCategories500
-	>,
+	TError = ErrorType<PostKeywordCategories404 | PostKeywordCategories500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -319,15 +300,11 @@ export type PostKeywordCategoriesMutationBody =
 	| PostKeywordCategoriesBodyTwo
 	| PostKeywordCategoriesBodyThree;
 export type PostKeywordCategoriesMutationError = ErrorType<
-	PostKeywordCategories404 | PostKeywordCategories422 | PostKeywordCategories500
+	PostKeywordCategories404 | PostKeywordCategories500
 >;
 
 export const usePostKeywordCategories = <
-	TError = ErrorType<
-		| PostKeywordCategories404
-		| PostKeywordCategories422
-		| PostKeywordCategories500
-	>,
+	TError = ErrorType<PostKeywordCategories404 | PostKeywordCategories500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -367,7 +344,7 @@ export const getKeywordCategoriesById = (
 ) => {
 	return customInstance<GetKeywordCategoriesById200>(
 		{
-			url: `http://localhost:3030/keyword-categories/${id}`,
+			url: `http://localhost:3031/api/user/keyword-categories/${id}`,
 			method: "GET",
 			signal,
 		},
@@ -376,16 +353,12 @@ export const getKeywordCategoriesById = (
 };
 
 export const getGetKeywordCategoriesByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/keyword-categories/${id}`] as const;
+	return [`http://localhost:3031/api/user/keyword-categories/${id}`] as const;
 };
 
 export const getGetKeywordCategoriesByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordCategoriesById>>,
-	TError = ErrorType<
-		| GetKeywordCategoriesById404
-		| GetKeywordCategoriesById422
-		| GetKeywordCategoriesById500
-	>,
+	TError = ErrorType<GetKeywordCategoriesById404 | GetKeywordCategoriesById500>,
 >(
 	id: string,
 	options?: {
@@ -424,18 +397,12 @@ export type GetKeywordCategoriesByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordCategoriesById>>
 >;
 export type GetKeywordCategoriesByIdQueryError = ErrorType<
-	| GetKeywordCategoriesById404
-	| GetKeywordCategoriesById422
-	| GetKeywordCategoriesById500
+	GetKeywordCategoriesById404 | GetKeywordCategoriesById500
 >;
 
 export function useGetKeywordCategoriesById<
 	TData = Awaited<ReturnType<typeof getKeywordCategoriesById>>,
-	TError = ErrorType<
-		| GetKeywordCategoriesById404
-		| GetKeywordCategoriesById422
-		| GetKeywordCategoriesById500
-	>,
+	TError = ErrorType<GetKeywordCategoriesById404 | GetKeywordCategoriesById500>,
 >(
 	id: string,
 	options: {
@@ -462,11 +429,7 @@ export function useGetKeywordCategoriesById<
 };
 export function useGetKeywordCategoriesById<
 	TData = Awaited<ReturnType<typeof getKeywordCategoriesById>>,
-	TError = ErrorType<
-		| GetKeywordCategoriesById404
-		| GetKeywordCategoriesById422
-		| GetKeywordCategoriesById500
-	>,
+	TError = ErrorType<GetKeywordCategoriesById404 | GetKeywordCategoriesById500>,
 >(
 	id: string,
 	options?: {
@@ -493,11 +456,7 @@ export function useGetKeywordCategoriesById<
 };
 export function useGetKeywordCategoriesById<
 	TData = Awaited<ReturnType<typeof getKeywordCategoriesById>>,
-	TError = ErrorType<
-		| GetKeywordCategoriesById404
-		| GetKeywordCategoriesById422
-		| GetKeywordCategoriesById500
-	>,
+	TError = ErrorType<GetKeywordCategoriesById404 | GetKeywordCategoriesById500>,
 >(
 	id: string,
 	options?: {
@@ -517,11 +476,7 @@ export function useGetKeywordCategoriesById<
 
 export function useGetKeywordCategoriesById<
 	TData = Awaited<ReturnType<typeof getKeywordCategoriesById>>,
-	TError = ErrorType<
-		| GetKeywordCategoriesById404
-		| GetKeywordCategoriesById422
-		| GetKeywordCategoriesById500
-	>,
+	TError = ErrorType<GetKeywordCategoriesById404 | GetKeywordCategoriesById500>,
 >(
 	id: string,
 	options?: {
@@ -560,7 +515,7 @@ export const putKeywordCategoriesById = (
 ) => {
 	return customInstance<PutKeywordCategoriesById200>(
 		{
-			url: `http://localhost:3030/keyword-categories/${id}`,
+			url: `http://localhost:3031/api/user/keyword-categories/${id}`,
 			method: "PUT",
 			data: putKeywordCategoriesByIdBody,
 		},
@@ -569,11 +524,7 @@ export const putKeywordCategoriesById = (
 };
 
 export const getPutKeywordCategoriesByIdMutationOptions = <
-	TError = ErrorType<
-		| PutKeywordCategoriesById404
-		| PutKeywordCategoriesById422
-		| PutKeywordCategoriesById500
-	>,
+	TError = ErrorType<PutKeywordCategoriesById404 | PutKeywordCategoriesById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -636,17 +587,11 @@ export type PutKeywordCategoriesByIdMutationBody =
 	| PutKeywordCategoriesByIdBodyTwo
 	| PutKeywordCategoriesByIdBodyThree;
 export type PutKeywordCategoriesByIdMutationError = ErrorType<
-	| PutKeywordCategoriesById404
-	| PutKeywordCategoriesById422
-	| PutKeywordCategoriesById500
+	PutKeywordCategoriesById404 | PutKeywordCategoriesById500
 >;
 
 export const usePutKeywordCategoriesById = <
-	TError = ErrorType<
-		| PutKeywordCategoriesById404
-		| PutKeywordCategoriesById422
-		| PutKeywordCategoriesById500
-	>,
+	TError = ErrorType<PutKeywordCategoriesById404 | PutKeywordCategoriesById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -686,16 +631,17 @@ export const deleteKeywordCategoriesById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordCategoriesById200>(
-		{ url: `http://localhost:3030/keyword-categories/${id}`, method: "DELETE" },
+		{
+			url: `http://localhost:3031/api/user/keyword-categories/${id}`,
+			method: "DELETE",
+		},
 		options,
 	);
 };
 
 export const getDeleteKeywordCategoriesByIdMutationOptions = <
 	TError = ErrorType<
-		| DeleteKeywordCategoriesById404
-		| DeleteKeywordCategoriesById422
-		| DeleteKeywordCategoriesById500
+		DeleteKeywordCategoriesById404 | DeleteKeywordCategoriesById500
 	>,
 	TContext = unknown,
 >(options?: {
@@ -738,16 +684,12 @@ export type DeleteKeywordCategoriesByIdMutationResult = NonNullable<
 >;
 
 export type DeleteKeywordCategoriesByIdMutationError = ErrorType<
-	| DeleteKeywordCategoriesById404
-	| DeleteKeywordCategoriesById422
-	| DeleteKeywordCategoriesById500
+	DeleteKeywordCategoriesById404 | DeleteKeywordCategoriesById500
 >;
 
 export const useDeleteKeywordCategoriesById = <
 	TError = ErrorType<
-		| DeleteKeywordCategoriesById404
-		| DeleteKeywordCategoriesById422
-		| DeleteKeywordCategoriesById500
+		DeleteKeywordCategoriesById404 | DeleteKeywordCategoriesById500
 	>,
 	TContext = unknown,
 >(

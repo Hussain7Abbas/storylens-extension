@@ -27,34 +27,28 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteNovelsById200,
 	DeleteNovelsById404,
-	DeleteNovelsById422,
 	DeleteNovelsById500,
 	GetNovels200,
 	GetNovels404,
-	GetNovels422,
 	GetNovels500,
 	GetNovelsById200,
 	GetNovelsById404,
-	GetNovelsById422,
 	GetNovelsById500,
 	GetNovelsParams,
 	PostNovels200,
 	PostNovels404,
-	PostNovels422,
 	PostNovels500,
 	PostNovelsBodyOne,
 	PostNovelsBodyThree,
 	PostNovelsBodyTwo,
 	PutNovelsById200,
 	PutNovelsById404,
-	PutNovelsById422,
 	PutNovelsById500,
 	PutNovelsByIdBodyOne,
 	PutNovelsByIdBodyThree,
 	PutNovelsByIdBodyTwo,
 	PutNovelsByIdContext200,
 	PutNovelsByIdContext404,
-	PutNovelsByIdContext422,
 	PutNovelsByIdContext500,
 	PutNovelsByIdContextBodyOne,
 	PutNovelsByIdContextBodyThree,
@@ -69,21 +63,26 @@ export const getNovels = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetNovels200>(
-		{ url: `http://localhost:3030/novels/`, method: "GET", params, signal },
+		{
+			url: `http://localhost:3031/api/user/novels/`,
+			method: "GET",
+			params,
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetNovelsQueryKey = (params?: GetNovelsParams) => {
 	return [
-		`http://localhost:3030/novels/`,
+		`http://localhost:3031/api/user/novels/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetNovelsQueryOptions = <
 	TData = Awaited<ReturnType<typeof getNovels>>,
-	TError = ErrorType<GetNovels404 | GetNovels422 | GetNovels500>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
 	params: GetNovelsParams,
 	options?: {
@@ -111,13 +110,11 @@ export const getGetNovelsQueryOptions = <
 export type GetNovelsQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getNovels>>
 >;
-export type GetNovelsQueryError = ErrorType<
-	GetNovels404 | GetNovels422 | GetNovels500
->;
+export type GetNovelsQueryError = ErrorType<GetNovels404 | GetNovels500>;
 
 export function useGetNovels<
 	TData = Awaited<ReturnType<typeof getNovels>>,
-	TError = ErrorType<GetNovels404 | GetNovels422 | GetNovels500>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
 	params: GetNovelsParams,
 	options: {
@@ -140,7 +137,7 @@ export function useGetNovels<
 };
 export function useGetNovels<
 	TData = Awaited<ReturnType<typeof getNovels>>,
-	TError = ErrorType<GetNovels404 | GetNovels422 | GetNovels500>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
 	params: GetNovelsParams,
 	options?: {
@@ -163,7 +160,7 @@ export function useGetNovels<
 };
 export function useGetNovels<
 	TData = Awaited<ReturnType<typeof getNovels>>,
-	TError = ErrorType<GetNovels404 | GetNovels422 | GetNovels500>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
 	params: GetNovelsParams,
 	options?: {
@@ -179,7 +176,7 @@ export function useGetNovels<
 
 export function useGetNovels<
 	TData = Awaited<ReturnType<typeof getNovels>>,
-	TError = ErrorType<GetNovels404 | GetNovels422 | GetNovels500>,
+	TError = ErrorType<GetNovels404 | GetNovels500>,
 >(
 	params: GetNovelsParams,
 	options?: {
@@ -211,7 +208,7 @@ export const postNovels = (
 ) => {
 	return customInstance<PostNovels200>(
 		{
-			url: `http://localhost:3030/novels/`,
+			url: `http://localhost:3031/api/user/novels/`,
 			method: "POST",
 			data: postNovelsBody,
 			signal,
@@ -221,7 +218,7 @@ export const postNovels = (
 };
 
 export const getPostNovelsMutationOptions = <
-	TError = ErrorType<PostNovels404 | PostNovels422 | PostNovels500>,
+	TError = ErrorType<PostNovels404 | PostNovels500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -265,12 +262,10 @@ export type PostNovelsMutationBody =
 	| PostNovelsBodyOne
 	| PostNovelsBodyTwo
 	| PostNovelsBodyThree;
-export type PostNovelsMutationError = ErrorType<
-	PostNovels404 | PostNovels422 | PostNovels500
->;
+export type PostNovelsMutationError = ErrorType<PostNovels404 | PostNovels500>;
 
 export const usePostNovels = <
-	TError = ErrorType<PostNovels404 | PostNovels422 | PostNovels500>,
+	TError = ErrorType<PostNovels404 | PostNovels500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -299,18 +294,22 @@ export const getNovelsById = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetNovelsById200>(
-		{ url: `http://localhost:3030/novels/${id}`, method: "GET", signal },
+		{
+			url: `http://localhost:3031/api/user/novels/${id}`,
+			method: "GET",
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetNovelsByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/novels/${id}`] as const;
+	return [`http://localhost:3031/api/user/novels/${id}`] as const;
 };
 
 export const getGetNovelsByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getNovelsById>>,
-	TError = ErrorType<GetNovelsById404 | GetNovelsById422 | GetNovelsById500>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
 	id: string,
 	options?: {
@@ -344,12 +343,12 @@ export type GetNovelsByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getNovelsById>>
 >;
 export type GetNovelsByIdQueryError = ErrorType<
-	GetNovelsById404 | GetNovelsById422 | GetNovelsById500
+	GetNovelsById404 | GetNovelsById500
 >;
 
 export function useGetNovelsById<
 	TData = Awaited<ReturnType<typeof getNovelsById>>,
-	TError = ErrorType<GetNovelsById404 | GetNovelsById422 | GetNovelsById500>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
 	id: string,
 	options: {
@@ -372,7 +371,7 @@ export function useGetNovelsById<
 };
 export function useGetNovelsById<
 	TData = Awaited<ReturnType<typeof getNovelsById>>,
-	TError = ErrorType<GetNovelsById404 | GetNovelsById422 | GetNovelsById500>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
 	id: string,
 	options?: {
@@ -395,7 +394,7 @@ export function useGetNovelsById<
 };
 export function useGetNovelsById<
 	TData = Awaited<ReturnType<typeof getNovelsById>>,
-	TError = ErrorType<GetNovelsById404 | GetNovelsById422 | GetNovelsById500>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
 	id: string,
 	options?: {
@@ -411,7 +410,7 @@ export function useGetNovelsById<
 
 export function useGetNovelsById<
 	TData = Awaited<ReturnType<typeof getNovelsById>>,
-	TError = ErrorType<GetNovelsById404 | GetNovelsById422 | GetNovelsById500>,
+	TError = ErrorType<GetNovelsById404 | GetNovelsById500>,
 >(
 	id: string,
 	options?: {
@@ -446,7 +445,7 @@ export const putNovelsById = (
 ) => {
 	return customInstance<PutNovelsById200>(
 		{
-			url: `http://localhost:3030/novels/${id}`,
+			url: `http://localhost:3031/api/user/novels/${id}`,
 			method: "PUT",
 			data: putNovelsByIdBody,
 		},
@@ -455,7 +454,7 @@ export const putNovelsById = (
 };
 
 export const getPutNovelsByIdMutationOptions = <
-	TError = ErrorType<PutNovelsById404 | PutNovelsById422 | PutNovelsById500>,
+	TError = ErrorType<PutNovelsById404 | PutNovelsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -515,11 +514,11 @@ export type PutNovelsByIdMutationBody =
 	| PutNovelsByIdBodyTwo
 	| PutNovelsByIdBodyThree;
 export type PutNovelsByIdMutationError = ErrorType<
-	PutNovelsById404 | PutNovelsById422 | PutNovelsById500
+	PutNovelsById404 | PutNovelsById500
 >;
 
 export const usePutNovelsById = <
-	TError = ErrorType<PutNovelsById404 | PutNovelsById422 | PutNovelsById500>,
+	TError = ErrorType<PutNovelsById404 | PutNovelsById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -556,15 +555,13 @@ export const deleteNovelsById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteNovelsById200>(
-		{ url: `http://localhost:3030/novels/${id}`, method: "DELETE" },
+		{ url: `http://localhost:3031/api/user/novels/${id}`, method: "DELETE" },
 		options,
 	);
 };
 
 export const getDeleteNovelsByIdMutationOptions = <
-	TError = ErrorType<
-		DeleteNovelsById404 | DeleteNovelsById422 | DeleteNovelsById500
-	>,
+	TError = ErrorType<DeleteNovelsById404 | DeleteNovelsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -606,13 +603,11 @@ export type DeleteNovelsByIdMutationResult = NonNullable<
 >;
 
 export type DeleteNovelsByIdMutationError = ErrorType<
-	DeleteNovelsById404 | DeleteNovelsById422 | DeleteNovelsById500
+	DeleteNovelsById404 | DeleteNovelsById500
 >;
 
 export const useDeleteNovelsById = <
-	TError = ErrorType<
-		DeleteNovelsById404 | DeleteNovelsById422 | DeleteNovelsById500
-	>,
+	TError = ErrorType<DeleteNovelsById404 | DeleteNovelsById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -645,7 +640,7 @@ export const putNovelsByIdContext = (
 ) => {
 	return customInstance<PutNovelsByIdContext200>(
 		{
-			url: `http://localhost:3030/novels/${id}/context`,
+			url: `http://localhost:3031/api/user/novels/${id}/context`,
 			method: "PUT",
 			data: putNovelsByIdContextBody,
 		},
@@ -654,9 +649,7 @@ export const putNovelsByIdContext = (
 };
 
 export const getPutNovelsByIdContextMutationOptions = <
-	TError = ErrorType<
-		PutNovelsByIdContext404 | PutNovelsByIdContext422 | PutNovelsByIdContext500
-	>,
+	TError = ErrorType<PutNovelsByIdContext404 | PutNovelsByIdContext500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -719,13 +712,11 @@ export type PutNovelsByIdContextMutationBody =
 	| PutNovelsByIdContextBodyTwo
 	| PutNovelsByIdContextBodyThree;
 export type PutNovelsByIdContextMutationError = ErrorType<
-	PutNovelsByIdContext404 | PutNovelsByIdContext422 | PutNovelsByIdContext500
+	PutNovelsByIdContext404 | PutNovelsByIdContext500
 >;
 
 export const usePutNovelsByIdContext = <
-	TError = ErrorType<
-		PutNovelsByIdContext404 | PutNovelsByIdContext422 | PutNovelsByIdContext500
-	>,
+	TError = ErrorType<PutNovelsByIdContext404 | PutNovelsByIdContext500>,
 	TContext = unknown,
 >(
 	options?: {

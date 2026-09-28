@@ -36,7 +36,7 @@ import type {
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
-import { useIsAdmin } from "@/lib/auth";
+import { useIsModerator } from "@/lib/auth";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
 import {
 	useOfflineKeywordAliasMutations,
@@ -767,7 +767,7 @@ function VersionForm({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
-	const isAdmin = useIsAdmin();
+	const isModerator = useIsModerator();
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -863,10 +863,10 @@ function VersionForm({
 				description: values.description || undefined,
 				imageId,
 				currentChapter: currentChapter,
-				...(isAdmin && values.startingChapter !== undefined
+				...(isModerator && values.startingChapter !== undefined
 					? { startingChapter: values.startingChapter }
 					: {}),
-				...(isAdmin && values.endingChapter !== undefined
+				...(isModerator && values.endingChapter !== undefined
 					? { endingChapter: values.endingChapter }
 					: {}),
 			};
@@ -883,10 +883,10 @@ function VersionForm({
 				categoryId: values.categoryId ?? undefined,
 				natureId: values.natureId ?? undefined,
 				imageId,
-				...(isAdmin && values.startingChapter !== undefined
+				...(isModerator && values.startingChapter !== undefined
 					? { startingChapter: values.startingChapter }
 					: {}),
-				...(isAdmin && values.endingChapter !== undefined
+				...(isModerator && values.endingChapter !== undefined
 					? { endingChapter: values.endingChapter }
 					: {}),
 			};
@@ -932,14 +932,14 @@ function VersionForm({
 				<NumberInput
 					label={t("coloring.startingChapter")}
 					value={
-						isAdmin
+						isModerator
 							? (form.values.startingChapter ?? startChapter)
 							: startChapter
 					}
-					readOnly={!isAdmin}
+					readOnly={!isModerator}
 					min={0}
 					onChange={(v) =>
-						isAdmin &&
+						isModerator &&
 						form.setFieldValue(
 							"startingChapter",
 							typeof v === "number" ? v : undefined,
@@ -949,15 +949,15 @@ function VersionForm({
 				<NumberInput
 					label={t("coloring.endingChapter")}
 					value={
-						isAdmin
+						isModerator
 							? (form.values.endingChapter ?? endChapter ?? undefined)
 							: (endChapter ?? undefined)
 					}
-					readOnly={!isAdmin}
+					readOnly={!isModerator}
 					min={0}
 					placeholder="∞"
 					onChange={(v) =>
-						isAdmin &&
+						isModerator &&
 						form.setFieldValue(
 							"endingChapter",
 							typeof v === "number" ? v : null,

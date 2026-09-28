@@ -6,7 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-/**
- * @nullable
- */
-export type PutKeywordsById200AliasesItemName = string | null | null;
+export type PostAuthLogout404 = {
+	message: string;
+};

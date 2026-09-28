@@ -34,7 +34,7 @@ import { useTranslation } from "react-i18next";
 import icon from "@/assets/icon.png";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
-import { userRoleAtom } from "@/lib/auth";
+import { userAccessAtom } from "@/lib/auth";
 import { useOnlineStatus, usePendingSyncCount } from "@/lib/offline/hooks";
 import { websitePageUrl } from "@/lib/website";
 import { localeAtom } from "@/store/locale";
@@ -49,8 +49,7 @@ export function Navbar() {
 	const pendingCount = usePendingSyncCount();
 	const activeSyncCount = useActiveSyncCount();
 	const showSyncIndicator = pendingCount > 0 || activeSyncCount > 0;
-	const role = useAtomValue(userRoleAtom);
-	const isAdmin = role === "admin";
+	const isModerator = useAtomValue(userAccessAtom) === "moderator";
 	const { canGoBack, current } = useRoutes();
 	const isOnSettings = current === "settings";
 
@@ -91,7 +90,7 @@ export function Navbar() {
 				)}
 				<RefreshContentButton t={t} />
 				<ToggleColorScheme t={t} />
-				{!isAdmin && <ToggleLanguage t={t} />}
+				{!isModerator && <ToggleLanguage t={t} />}
 				{!isOnSettings && <ProfileButton t={t} />}
 			</NavbarActionsScroll>
 		</Group>

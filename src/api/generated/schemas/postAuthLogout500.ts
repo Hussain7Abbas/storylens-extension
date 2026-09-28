@@ -6,7 +6,6 @@
  * OpenAPI spec version: 0.0.0
  */
 
-/**
- * @nullable
- */
-export type PostKeywords200ParentAnyOfDescription = string | null | null;
+export type PostAuthLogout500 = {
+	message: string;
+};

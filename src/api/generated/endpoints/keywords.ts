@@ -27,73 +27,60 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteKeywordAliasesById200,
 	DeleteKeywordAliasesById404,
-	DeleteKeywordAliasesById422,
 	DeleteKeywordAliasesById500,
 	DeleteKeywordsById200,
 	DeleteKeywordsById404,
-	DeleteKeywordsById422,
 	DeleteKeywordsById500,
 	DeleteKeywordVersionsById200,
 	DeleteKeywordVersionsById404,
-	DeleteKeywordVersionsById422,
 	DeleteKeywordVersionsById500,
 	GetKeywordAliases200,
 	GetKeywordAliases404,
-	GetKeywordAliases422,
 	GetKeywordAliases500,
 	GetKeywordAliasesParams,
 	GetKeywords200,
 	GetKeywords404,
-	GetKeywords422,
 	GetKeywords500,
 	GetKeywordsById200,
 	GetKeywordsById404,
-	GetKeywordsById422,
 	GetKeywordsById500,
 	GetKeywordsParams,
 	GetKeywordVersions200,
 	GetKeywordVersions404,
-	GetKeywordVersions422,
 	GetKeywordVersions500,
 	GetKeywordVersionsParams,
 	PostKeywordAliases200,
 	PostKeywordAliases404,
-	PostKeywordAliases422,
 	PostKeywordAliases500,
 	PostKeywordAliasesBodyOne,
 	PostKeywordAliasesBodyThree,
 	PostKeywordAliasesBodyTwo,
 	PostKeywords200,
 	PostKeywords404,
-	PostKeywords422,
 	PostKeywords500,
 	PostKeywordsBodyOne,
 	PostKeywordsBodyThree,
 	PostKeywordsBodyTwo,
 	PostKeywordVersions200,
 	PostKeywordVersions404,
-	PostKeywordVersions422,
 	PostKeywordVersions500,
 	PostKeywordVersionsBodyOne,
 	PostKeywordVersionsBodyThree,
 	PostKeywordVersionsBodyTwo,
 	PutKeywordAliasesById200,
 	PutKeywordAliasesById404,
-	PutKeywordAliasesById422,
 	PutKeywordAliasesById500,
 	PutKeywordAliasesByIdBodyOne,
 	PutKeywordAliasesByIdBodyThree,
 	PutKeywordAliasesByIdBodyTwo,
 	PutKeywordsById200,
 	PutKeywordsById404,
-	PutKeywordsById422,
 	PutKeywordsById500,
 	PutKeywordsByIdBodyOne,
 	PutKeywordsByIdBodyThree,
 	PutKeywordsByIdBodyTwo,
 	PutKeywordVersionsById200,
 	PutKeywordVersionsById404,
-	PutKeywordVersionsById422,
 	PutKeywordVersionsById500,
 	PutKeywordVersionsByIdBodyOne,
 	PutKeywordVersionsByIdBodyThree,
@@ -108,21 +95,26 @@ export const getKeywords = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetKeywords200>(
-		{ url: `http://localhost:3030/keywords/`, method: "GET", params, signal },
+		{
+			url: `http://localhost:3031/api/user/keywords/`,
+			method: "GET",
+			params,
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetKeywordsQueryKey = (params?: GetKeywordsParams) => {
 	return [
-		`http://localhost:3030/keywords/`,
+		`http://localhost:3031/api/user/keywords/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetKeywordsQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywords>>,
-	TError = ErrorType<GetKeywords404 | GetKeywords422 | GetKeywords500>,
+	TError = ErrorType<GetKeywords404 | GetKeywords500>,
 >(
 	params: GetKeywordsParams,
 	options?: {
@@ -150,13 +142,11 @@ export const getGetKeywordsQueryOptions = <
 export type GetKeywordsQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywords>>
 >;
-export type GetKeywordsQueryError = ErrorType<
-	GetKeywords404 | GetKeywords422 | GetKeywords500
->;
+export type GetKeywordsQueryError = ErrorType<GetKeywords404 | GetKeywords500>;
 
 export function useGetKeywords<
 	TData = Awaited<ReturnType<typeof getKeywords>>,
-	TError = ErrorType<GetKeywords404 | GetKeywords422 | GetKeywords500>,
+	TError = ErrorType<GetKeywords404 | GetKeywords500>,
 >(
 	params: GetKeywordsParams,
 	options: {
@@ -179,7 +169,7 @@ export function useGetKeywords<
 };
 export function useGetKeywords<
 	TData = Awaited<ReturnType<typeof getKeywords>>,
-	TError = ErrorType<GetKeywords404 | GetKeywords422 | GetKeywords500>,
+	TError = ErrorType<GetKeywords404 | GetKeywords500>,
 >(
 	params: GetKeywordsParams,
 	options?: {
@@ -202,7 +192,7 @@ export function useGetKeywords<
 };
 export function useGetKeywords<
 	TData = Awaited<ReturnType<typeof getKeywords>>,
-	TError = ErrorType<GetKeywords404 | GetKeywords422 | GetKeywords500>,
+	TError = ErrorType<GetKeywords404 | GetKeywords500>,
 >(
 	params: GetKeywordsParams,
 	options?: {
@@ -218,7 +208,7 @@ export function useGetKeywords<
 
 export function useGetKeywords<
 	TData = Awaited<ReturnType<typeof getKeywords>>,
-	TError = ErrorType<GetKeywords404 | GetKeywords422 | GetKeywords500>,
+	TError = ErrorType<GetKeywords404 | GetKeywords500>,
 >(
 	params: GetKeywordsParams,
 	options?: {
@@ -253,7 +243,7 @@ export const postKeywords = (
 ) => {
 	return customInstance<PostKeywords200>(
 		{
-			url: `http://localhost:3030/keywords/`,
+			url: `http://localhost:3031/api/user/keywords/`,
 			method: "POST",
 			data: postKeywordsBody,
 			signal,
@@ -263,7 +253,7 @@ export const postKeywords = (
 };
 
 export const getPostKeywordsMutationOptions = <
-	TError = ErrorType<PostKeywords404 | PostKeywords422 | PostKeywords500>,
+	TError = ErrorType<PostKeywords404 | PostKeywords500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -308,11 +298,11 @@ export type PostKeywordsMutationBody =
 	| PostKeywordsBodyTwo
 	| PostKeywordsBodyThree;
 export type PostKeywordsMutationError = ErrorType<
-	PostKeywords404 | PostKeywords422 | PostKeywords500
+	PostKeywords404 | PostKeywords500
 >;
 
 export const usePostKeywords = <
-	TError = ErrorType<PostKeywords404 | PostKeywords422 | PostKeywords500>,
+	TError = ErrorType<PostKeywords404 | PostKeywords500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -343,20 +333,22 @@ export const getKeywordsById = (
 	signal?: AbortSignal,
 ) => {
 	return customInstance<GetKeywordsById200>(
-		{ url: `http://localhost:3030/keywords/${id}`, method: "GET", signal },
+		{
+			url: `http://localhost:3031/api/user/keywords/${id}`,
+			method: "GET",
+			signal,
+		},
 		options,
 	);
 };
 
 export const getGetKeywordsByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/keywords/${id}`] as const;
+	return [`http://localhost:3031/api/user/keywords/${id}`] as const;
 };
 
 export const getGetKeywordsByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordsById>>,
-	TError = ErrorType<
-		GetKeywordsById404 | GetKeywordsById422 | GetKeywordsById500
-	>,
+	TError = ErrorType<GetKeywordsById404 | GetKeywordsById500>,
 >(
 	id: string,
 	options?: {
@@ -394,14 +386,12 @@ export type GetKeywordsByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordsById>>
 >;
 export type GetKeywordsByIdQueryError = ErrorType<
-	GetKeywordsById404 | GetKeywordsById422 | GetKeywordsById500
+	GetKeywordsById404 | GetKeywordsById500
 >;
 
 export function useGetKeywordsById<
 	TData = Awaited<ReturnType<typeof getKeywordsById>>,
-	TError = ErrorType<
-		GetKeywordsById404 | GetKeywordsById422 | GetKeywordsById500
-	>,
+	TError = ErrorType<GetKeywordsById404 | GetKeywordsById500>,
 >(
 	id: string,
 	options: {
@@ -428,9 +418,7 @@ export function useGetKeywordsById<
 };
 export function useGetKeywordsById<
 	TData = Awaited<ReturnType<typeof getKeywordsById>>,
-	TError = ErrorType<
-		GetKeywordsById404 | GetKeywordsById422 | GetKeywordsById500
-	>,
+	TError = ErrorType<GetKeywordsById404 | GetKeywordsById500>,
 >(
 	id: string,
 	options?: {
@@ -457,9 +445,7 @@ export function useGetKeywordsById<
 };
 export function useGetKeywordsById<
 	TData = Awaited<ReturnType<typeof getKeywordsById>>,
-	TError = ErrorType<
-		GetKeywordsById404 | GetKeywordsById422 | GetKeywordsById500
-	>,
+	TError = ErrorType<GetKeywordsById404 | GetKeywordsById500>,
 >(
 	id: string,
 	options?: {
@@ -479,9 +465,7 @@ export function useGetKeywordsById<
 
 export function useGetKeywordsById<
 	TData = Awaited<ReturnType<typeof getKeywordsById>>,
-	TError = ErrorType<
-		GetKeywordsById404 | GetKeywordsById422 | GetKeywordsById500
-	>,
+	TError = ErrorType<GetKeywordsById404 | GetKeywordsById500>,
 >(
 	id: string,
 	options?: {
@@ -520,7 +504,7 @@ export const putKeywordsById = (
 ) => {
 	return customInstance<PutKeywordsById200>(
 		{
-			url: `http://localhost:3030/keywords/${id}`,
+			url: `http://localhost:3031/api/user/keywords/${id}`,
 			method: "PUT",
 			data: putKeywordsByIdBody,
 		},
@@ -529,9 +513,7 @@ export const putKeywordsById = (
 };
 
 export const getPutKeywordsByIdMutationOptions = <
-	TError = ErrorType<
-		PutKeywordsById404 | PutKeywordsById422 | PutKeywordsById500
-	>,
+	TError = ErrorType<PutKeywordsById404 | PutKeywordsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -594,13 +576,11 @@ export type PutKeywordsByIdMutationBody =
 	| PutKeywordsByIdBodyTwo
 	| PutKeywordsByIdBodyThree;
 export type PutKeywordsByIdMutationError = ErrorType<
-	PutKeywordsById404 | PutKeywordsById422 | PutKeywordsById500
+	PutKeywordsById404 | PutKeywordsById500
 >;
 
 export const usePutKeywordsById = <
-	TError = ErrorType<
-		PutKeywordsById404 | PutKeywordsById422 | PutKeywordsById500
-	>,
+	TError = ErrorType<PutKeywordsById404 | PutKeywordsById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -640,15 +620,13 @@ export const deleteKeywordsById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordsById200>(
-		{ url: `http://localhost:3030/keywords/${id}`, method: "DELETE" },
+		{ url: `http://localhost:3031/api/user/keywords/${id}`, method: "DELETE" },
 		options,
 	);
 };
 
 export const getDeleteKeywordsByIdMutationOptions = <
-	TError = ErrorType<
-		DeleteKeywordsById404 | DeleteKeywordsById422 | DeleteKeywordsById500
-	>,
+	TError = ErrorType<DeleteKeywordsById404 | DeleteKeywordsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -690,13 +668,11 @@ export type DeleteKeywordsByIdMutationResult = NonNullable<
 >;
 
 export type DeleteKeywordsByIdMutationError = ErrorType<
-	DeleteKeywordsById404 | DeleteKeywordsById422 | DeleteKeywordsById500
+	DeleteKeywordsById404 | DeleteKeywordsById500
 >;
 
 export const useDeleteKeywordsById = <
-	TError = ErrorType<
-		DeleteKeywordsById404 | DeleteKeywordsById422 | DeleteKeywordsById500
-	>,
+	TError = ErrorType<DeleteKeywordsById404 | DeleteKeywordsById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -726,7 +702,7 @@ export const getKeywordAliases = (
 ) => {
 	return customInstance<GetKeywordAliases200>(
 		{
-			url: `http://localhost:3030/keyword-aliases/`,
+			url: `http://localhost:3031/api/user/keyword-aliases/`,
 			method: "GET",
 			params,
 			signal,
@@ -739,16 +715,14 @@ export const getGetKeywordAliasesQueryKey = (
 	params?: GetKeywordAliasesParams,
 ) => {
 	return [
-		`http://localhost:3030/keyword-aliases/`,
+		`http://localhost:3031/api/user/keyword-aliases/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetKeywordAliasesQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordAliases>>,
-	TError = ErrorType<
-		GetKeywordAliases404 | GetKeywordAliases422 | GetKeywordAliases500
-	>,
+	TError = ErrorType<GetKeywordAliases404 | GetKeywordAliases500>,
 >(
 	params: GetKeywordAliasesParams,
 	options?: {
@@ -782,14 +756,12 @@ export type GetKeywordAliasesQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordAliases>>
 >;
 export type GetKeywordAliasesQueryError = ErrorType<
-	GetKeywordAliases404 | GetKeywordAliases422 | GetKeywordAliases500
+	GetKeywordAliases404 | GetKeywordAliases500
 >;
 
 export function useGetKeywordAliases<
 	TData = Awaited<ReturnType<typeof getKeywordAliases>>,
-	TError = ErrorType<
-		GetKeywordAliases404 | GetKeywordAliases422 | GetKeywordAliases500
-	>,
+	TError = ErrorType<GetKeywordAliases404 | GetKeywordAliases500>,
 >(
 	params: GetKeywordAliasesParams,
 	options: {
@@ -816,9 +788,7 @@ export function useGetKeywordAliases<
 };
 export function useGetKeywordAliases<
 	TData = Awaited<ReturnType<typeof getKeywordAliases>>,
-	TError = ErrorType<
-		GetKeywordAliases404 | GetKeywordAliases422 | GetKeywordAliases500
-	>,
+	TError = ErrorType<GetKeywordAliases404 | GetKeywordAliases500>,
 >(
 	params: GetKeywordAliasesParams,
 	options?: {
@@ -845,9 +815,7 @@ export function useGetKeywordAliases<
 };
 export function useGetKeywordAliases<
 	TData = Awaited<ReturnType<typeof getKeywordAliases>>,
-	TError = ErrorType<
-		GetKeywordAliases404 | GetKeywordAliases422 | GetKeywordAliases500
-	>,
+	TError = ErrorType<GetKeywordAliases404 | GetKeywordAliases500>,
 >(
 	params: GetKeywordAliasesParams,
 	options?: {
@@ -867,9 +835,7 @@ export function useGetKeywordAliases<
 
 export function useGetKeywordAliases<
 	TData = Awaited<ReturnType<typeof getKeywordAliases>>,
-	TError = ErrorType<
-		GetKeywordAliases404 | GetKeywordAliases422 | GetKeywordAliases500
-	>,
+	TError = ErrorType<GetKeywordAliases404 | GetKeywordAliases500>,
 >(
 	params: GetKeywordAliasesParams,
 	options?: {
@@ -908,7 +874,7 @@ export const postKeywordAliases = (
 ) => {
 	return customInstance<PostKeywordAliases200>(
 		{
-			url: `http://localhost:3030/keyword-aliases/`,
+			url: `http://localhost:3031/api/user/keyword-aliases/`,
 			method: "POST",
 			data: postKeywordAliasesBody,
 			signal,
@@ -918,9 +884,7 @@ export const postKeywordAliases = (
 };
 
 export const getPostKeywordAliasesMutationOptions = <
-	TError = ErrorType<
-		PostKeywordAliases404 | PostKeywordAliases422 | PostKeywordAliases500
-	>,
+	TError = ErrorType<PostKeywordAliases404 | PostKeywordAliases500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -980,13 +944,11 @@ export type PostKeywordAliasesMutationBody =
 	| PostKeywordAliasesBodyTwo
 	| PostKeywordAliasesBodyThree;
 export type PostKeywordAliasesMutationError = ErrorType<
-	PostKeywordAliases404 | PostKeywordAliases422 | PostKeywordAliases500
+	PostKeywordAliases404 | PostKeywordAliases500
 >;
 
 export const usePostKeywordAliases = <
-	TError = ErrorType<
-		PostKeywordAliases404 | PostKeywordAliases422 | PostKeywordAliases500
-	>,
+	TError = ErrorType<PostKeywordAliases404 | PostKeywordAliases500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1029,7 +991,7 @@ export const putKeywordAliasesById = (
 ) => {
 	return customInstance<PutKeywordAliasesById200>(
 		{
-			url: `http://localhost:3030/keyword-aliases/${id}`,
+			url: `http://localhost:3031/api/user/keyword-aliases/${id}`,
 			method: "PUT",
 			data: putKeywordAliasesByIdBody,
 		},
@@ -1038,11 +1000,7 @@ export const putKeywordAliasesById = (
 };
 
 export const getPutKeywordAliasesByIdMutationOptions = <
-	TError = ErrorType<
-		| PutKeywordAliasesById404
-		| PutKeywordAliasesById422
-		| PutKeywordAliasesById500
-	>,
+	TError = ErrorType<PutKeywordAliasesById404 | PutKeywordAliasesById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -1105,15 +1063,11 @@ export type PutKeywordAliasesByIdMutationBody =
 	| PutKeywordAliasesByIdBodyTwo
 	| PutKeywordAliasesByIdBodyThree;
 export type PutKeywordAliasesByIdMutationError = ErrorType<
-	PutKeywordAliasesById404 | PutKeywordAliasesById422 | PutKeywordAliasesById500
+	PutKeywordAliasesById404 | PutKeywordAliasesById500
 >;
 
 export const usePutKeywordAliasesById = <
-	TError = ErrorType<
-		| PutKeywordAliasesById404
-		| PutKeywordAliasesById422
-		| PutKeywordAliasesById500
-	>,
+	TError = ErrorType<PutKeywordAliasesById404 | PutKeywordAliasesById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1153,17 +1107,16 @@ export const deleteKeywordAliasesById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordAliasesById200>(
-		{ url: `http://localhost:3030/keyword-aliases/${id}`, method: "DELETE" },
+		{
+			url: `http://localhost:3031/api/user/keyword-aliases/${id}`,
+			method: "DELETE",
+		},
 		options,
 	);
 };
 
 export const getDeleteKeywordAliasesByIdMutationOptions = <
-	TError = ErrorType<
-		| DeleteKeywordAliasesById404
-		| DeleteKeywordAliasesById422
-		| DeleteKeywordAliasesById500
-	>,
+	TError = ErrorType<DeleteKeywordAliasesById404 | DeleteKeywordAliasesById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -1205,17 +1158,11 @@ export type DeleteKeywordAliasesByIdMutationResult = NonNullable<
 >;
 
 export type DeleteKeywordAliasesByIdMutationError = ErrorType<
-	| DeleteKeywordAliasesById404
-	| DeleteKeywordAliasesById422
-	| DeleteKeywordAliasesById500
+	DeleteKeywordAliasesById404 | DeleteKeywordAliasesById500
 >;
 
 export const useDeleteKeywordAliasesById = <
-	TError = ErrorType<
-		| DeleteKeywordAliasesById404
-		| DeleteKeywordAliasesById422
-		| DeleteKeywordAliasesById500
-	>,
+	TError = ErrorType<DeleteKeywordAliasesById404 | DeleteKeywordAliasesById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1245,7 +1192,7 @@ export const getKeywordVersions = (
 ) => {
 	return customInstance<GetKeywordVersions200>(
 		{
-			url: `http://localhost:3030/keyword-versions/`,
+			url: `http://localhost:3031/api/user/keyword-versions/`,
 			method: "GET",
 			params,
 			signal,
@@ -1258,16 +1205,14 @@ export const getGetKeywordVersionsQueryKey = (
 	params?: GetKeywordVersionsParams,
 ) => {
 	return [
-		`http://localhost:3030/keyword-versions/`,
+		`http://localhost:3031/api/user/keyword-versions/`,
 		...(params ? [params] : []),
 	] as const;
 };
 
 export const getGetKeywordVersionsQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordVersions>>,
-	TError = ErrorType<
-		GetKeywordVersions404 | GetKeywordVersions422 | GetKeywordVersions500
-	>,
+	TError = ErrorType<GetKeywordVersions404 | GetKeywordVersions500>,
 >(
 	params: GetKeywordVersionsParams,
 	options?: {
@@ -1301,14 +1246,12 @@ export type GetKeywordVersionsQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordVersions>>
 >;
 export type GetKeywordVersionsQueryError = ErrorType<
-	GetKeywordVersions404 | GetKeywordVersions422 | GetKeywordVersions500
+	GetKeywordVersions404 | GetKeywordVersions500
 >;
 
 export function useGetKeywordVersions<
 	TData = Awaited<ReturnType<typeof getKeywordVersions>>,
-	TError = ErrorType<
-		GetKeywordVersions404 | GetKeywordVersions422 | GetKeywordVersions500
-	>,
+	TError = ErrorType<GetKeywordVersions404 | GetKeywordVersions500>,
 >(
 	params: GetKeywordVersionsParams,
 	options: {
@@ -1335,9 +1278,7 @@ export function useGetKeywordVersions<
 };
 export function useGetKeywordVersions<
 	TData = Awaited<ReturnType<typeof getKeywordVersions>>,
-	TError = ErrorType<
-		GetKeywordVersions404 | GetKeywordVersions422 | GetKeywordVersions500
-	>,
+	TError = ErrorType<GetKeywordVersions404 | GetKeywordVersions500>,
 >(
 	params: GetKeywordVersionsParams,
 	options?: {
@@ -1364,9 +1305,7 @@ export function useGetKeywordVersions<
 };
 export function useGetKeywordVersions<
 	TData = Awaited<ReturnType<typeof getKeywordVersions>>,
-	TError = ErrorType<
-		GetKeywordVersions404 | GetKeywordVersions422 | GetKeywordVersions500
-	>,
+	TError = ErrorType<GetKeywordVersions404 | GetKeywordVersions500>,
 >(
 	params: GetKeywordVersionsParams,
 	options?: {
@@ -1386,9 +1325,7 @@ export function useGetKeywordVersions<
 
 export function useGetKeywordVersions<
 	TData = Awaited<ReturnType<typeof getKeywordVersions>>,
-	TError = ErrorType<
-		GetKeywordVersions404 | GetKeywordVersions422 | GetKeywordVersions500
-	>,
+	TError = ErrorType<GetKeywordVersions404 | GetKeywordVersions500>,
 >(
 	params: GetKeywordVersionsParams,
 	options?: {
@@ -1427,7 +1364,7 @@ export const postKeywordVersions = (
 ) => {
 	return customInstance<PostKeywordVersions200>(
 		{
-			url: `http://localhost:3030/keyword-versions/`,
+			url: `http://localhost:3031/api/user/keyword-versions/`,
 			method: "POST",
 			data: postKeywordVersionsBody,
 			signal,
@@ -1437,9 +1374,7 @@ export const postKeywordVersions = (
 };
 
 export const getPostKeywordVersionsMutationOptions = <
-	TError = ErrorType<
-		PostKeywordVersions404 | PostKeywordVersions422 | PostKeywordVersions500
-	>,
+	TError = ErrorType<PostKeywordVersions404 | PostKeywordVersions500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -1499,13 +1434,11 @@ export type PostKeywordVersionsMutationBody =
 	| PostKeywordVersionsBodyTwo
 	| PostKeywordVersionsBodyThree;
 export type PostKeywordVersionsMutationError = ErrorType<
-	PostKeywordVersions404 | PostKeywordVersions422 | PostKeywordVersions500
+	PostKeywordVersions404 | PostKeywordVersions500
 >;
 
 export const usePostKeywordVersions = <
-	TError = ErrorType<
-		PostKeywordVersions404 | PostKeywordVersions422 | PostKeywordVersions500
-	>,
+	TError = ErrorType<PostKeywordVersions404 | PostKeywordVersions500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1548,7 +1481,7 @@ export const putKeywordVersionsById = (
 ) => {
 	return customInstance<PutKeywordVersionsById200>(
 		{
-			url: `http://localhost:3030/keyword-versions/${id}`,
+			url: `http://localhost:3031/api/user/keyword-versions/${id}`,
 			method: "PUT",
 			data: putKeywordVersionsByIdBody,
 		},
@@ -1557,11 +1490,7 @@ export const putKeywordVersionsById = (
 };
 
 export const getPutKeywordVersionsByIdMutationOptions = <
-	TError = ErrorType<
-		| PutKeywordVersionsById404
-		| PutKeywordVersionsById422
-		| PutKeywordVersionsById500
-	>,
+	TError = ErrorType<PutKeywordVersionsById404 | PutKeywordVersionsById500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -1624,17 +1553,11 @@ export type PutKeywordVersionsByIdMutationBody =
 	| PutKeywordVersionsByIdBodyTwo
 	| PutKeywordVersionsByIdBodyThree;
 export type PutKeywordVersionsByIdMutationError = ErrorType<
-	| PutKeywordVersionsById404
-	| PutKeywordVersionsById422
-	| PutKeywordVersionsById500
+	PutKeywordVersionsById404 | PutKeywordVersionsById500
 >;
 
 export const usePutKeywordVersionsById = <
-	TError = ErrorType<
-		| PutKeywordVersionsById404
-		| PutKeywordVersionsById422
-		| PutKeywordVersionsById500
-	>,
+	TError = ErrorType<PutKeywordVersionsById404 | PutKeywordVersionsById500>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1674,16 +1597,17 @@ export const deleteKeywordVersionsById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordVersionsById200>(
-		{ url: `http://localhost:3030/keyword-versions/${id}`, method: "DELETE" },
+		{
+			url: `http://localhost:3031/api/user/keyword-versions/${id}`,
+			method: "DELETE",
+		},
 		options,
 	);
 };
 
 export const getDeleteKeywordVersionsByIdMutationOptions = <
 	TError = ErrorType<
-		| DeleteKeywordVersionsById404
-		| DeleteKeywordVersionsById422
-		| DeleteKeywordVersionsById500
+		DeleteKeywordVersionsById404 | DeleteKeywordVersionsById500
 	>,
 	TContext = unknown,
 >(options?: {
@@ -1726,16 +1650,12 @@ export type DeleteKeywordVersionsByIdMutationResult = NonNullable<
 >;
 
 export type DeleteKeywordVersionsByIdMutationError = ErrorType<
-	| DeleteKeywordVersionsById404
-	| DeleteKeywordVersionsById422
-	| DeleteKeywordVersionsById500
+	DeleteKeywordVersionsById404 | DeleteKeywordVersionsById500
 >;
 
 export const useDeleteKeywordVersionsById = <
 	TError = ErrorType<
-		| DeleteKeywordVersionsById404
-		| DeleteKeywordVersionsById422
-		| DeleteKeywordVersionsById500
+		DeleteKeywordVersionsById404 | DeleteKeywordVersionsById500
 	>,
 	TContext = unknown,
 >(

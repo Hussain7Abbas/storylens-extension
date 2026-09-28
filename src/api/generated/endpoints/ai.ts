@@ -19,7 +19,6 @@ import { customInstance } from "../../axios-instance";
 import type {
 	PostAiChapterSelectors200,
 	PostAiChapterSelectors404,
-	PostAiChapterSelectors422,
 	PostAiChapterSelectors500,
 	PostAiChapterSelectorsBodyOne,
 	PostAiChapterSelectorsBodyThree,
@@ -38,7 +37,7 @@ export const postAiChapterSelectors = (
 ) => {
 	return customInstance<PostAiChapterSelectors200>(
 		{
-			url: `http://localhost:3030/ai/chapter-selectors`,
+			url: `http://localhost:3031/api/user/ai/chapter-selectors`,
 			method: "POST",
 			data: postAiChapterSelectorsBody,
 			signal,
@@ -48,11 +47,7 @@ export const postAiChapterSelectors = (
 };
 
 export const getPostAiChapterSelectorsMutationOptions = <
-	TError = ErrorType<
-		| PostAiChapterSelectors404
-		| PostAiChapterSelectors422
-		| PostAiChapterSelectors500
-	>,
+	TError = ErrorType<PostAiChapterSelectors404 | PostAiChapterSelectors500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -112,17 +107,11 @@ export type PostAiChapterSelectorsMutationBody =
 	| PostAiChapterSelectorsBodyTwo
 	| PostAiChapterSelectorsBodyThree;
 export type PostAiChapterSelectorsMutationError = ErrorType<
-	| PostAiChapterSelectors404
-	| PostAiChapterSelectors422
-	| PostAiChapterSelectors500
+	PostAiChapterSelectors404 | PostAiChapterSelectors500
 >;
 
 export const usePostAiChapterSelectors = <
-	TError = ErrorType<
-		| PostAiChapterSelectors404
-		| PostAiChapterSelectors422
-		| PostAiChapterSelectors500
-	>,
+	TError = ErrorType<PostAiChapterSelectors404 | PostAiChapterSelectors500>,
 	TContext = unknown,
 >(
 	options?: {

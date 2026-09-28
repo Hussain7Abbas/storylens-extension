@@ -7,7 +7,7 @@ export async function uploadImageFile(file: File): Promise<string> {
 	formData.append("type", "Image");
 
 	const response = await customInstance<PostFilesUpload200>({
-		url: "/files/upload",
+		url: "/api/user/files/upload",
 		method: "POST",
 		data: formData,
 	});

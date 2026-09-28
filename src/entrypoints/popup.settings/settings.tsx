@@ -1,6 +1,6 @@
 import { Container, Stack, Tabs } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { useIsAdmin } from "@/lib/auth";
+import { useIsModerator } from "@/lib/auth";
 import { AiTab } from "./ai-tab";
 import { AppearanceTab } from "./appearance-tab";
 import { CategoryTab } from "./category-tab";
@@ -9,11 +9,14 @@ import { NatureTab } from "./nature-tab";
 
 export function SettingsPage() {
 	const { t } = useTranslation();
-	const isAdmin = useIsAdmin();
+	const isModerator = useIsModerator();
 
 	return (
 		<Container p="md">
-			<Tabs defaultValue={isAdmin ? "general" : "appearance"} variant="pills">
+			<Tabs
+				defaultValue={isModerator ? "general" : "appearance"}
+				variant="pills"
+			>
 				<Stack
 					gap="xs"
 					pos="sticky"
@@ -25,28 +28,30 @@ export function SettingsPage() {
 					bg="var(--mantine-color-body)"
 				>
 					<Tabs.List grow>
-						{isAdmin && (
+						{isModerator && (
 							<Tabs.Tab value="general">{t("tabs.general")}</Tabs.Tab>
 						)}
-						{isAdmin && (
+						{isModerator && (
 							<Tabs.Tab value="category">{t("tabs.category")}</Tabs.Tab>
 						)}
-						{isAdmin && <Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>}
+						{isModerator && (
+							<Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>
+						)}
 						<Tabs.Tab value="appearance">{t("tabs.appearance")}</Tabs.Tab>
 						<Tabs.Tab value="ai">{t("tabs.ai")}</Tabs.Tab>
 					</Tabs.List>
 				</Stack>
-				{isAdmin && (
+				{isModerator && (
 					<Tabs.Panel value="general">
 						<GeneralTab />
 					</Tabs.Panel>
 				)}
-				{isAdmin && (
+				{isModerator && (
 					<Tabs.Panel value="category">
 						<CategoryTab />
 					</Tabs.Panel>
 				)}
-				{isAdmin && (
+				{isModerator && (
 					<Tabs.Panel value="nature">
 						<NatureTab />
 					</Tabs.Panel>

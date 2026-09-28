@@ -1,22 +1,20 @@
 import { useAtomValue } from "jotai";
-import { userRoleAtom } from "./auth-store";
+import { userAccessAtom } from "./auth-store";
 
 export function useCanMutate(): boolean {
-	const role = useAtomValue(userRoleAtom);
-	return role === "user" || role === "admin";
+	return useAtomValue(userAccessAtom) !== "guest";
 }
 
-/** Keywords: user (own) and admin. */
+/** Keywords: readers (own) and moderators. */
 export function useCanMutateKeywords(): boolean {
 	return useCanMutate();
 }
 
-/** Replacements: user (own) and admin. */
+/** Replacements: readers (own) and moderators. */
 export function useCanMutateReplacements(): boolean {
 	return useCanMutate();
 }
 
-export function useIsAdmin(): boolean {
-	const role = useAtomValue(userRoleAtom);
-	return role === "admin";
+export function useIsModerator(): boolean {
+	return useAtomValue(userAccessAtom) === "moderator";
 }

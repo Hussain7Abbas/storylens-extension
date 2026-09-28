@@ -1,7 +1,11 @@
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { browser } from "#imports";
-import { createGuestAccount, setupAuthInterceptor } from "./auth-service";
+import {
+	createGuestAccount,
+	refreshCurrentUser,
+	setupAuthInterceptor,
+} from "./auth-service";
 import {
 	AUTH_STORAGE_KEY,
 	getStoredAuth,
@@ -30,6 +34,7 @@ export function useAuthInit() {
 
 				if (stored.user && stored.token) {
 					setAuthState({ user: stored.user, token: stored.token });
+					void refreshCurrentUser(stored.token);
 					return;
 				}
 

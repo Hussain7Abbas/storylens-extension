@@ -27,25 +27,20 @@ import { customInstance } from "../../axios-instance";
 import type {
 	DeleteKeywordsChaptersById200,
 	DeleteKeywordsChaptersById404,
-	DeleteKeywordsChaptersById422,
 	DeleteKeywordsChaptersById500,
 	GetKeywordsChaptersById200,
 	GetKeywordsChaptersById404,
-	GetKeywordsChaptersById422,
 	GetKeywordsChaptersById500,
 	GetKeywordsChaptersChapterByChapterId200,
 	GetKeywordsChaptersChapterByChapterId404,
-	GetKeywordsChaptersChapterByChapterId422,
 	GetKeywordsChaptersChapterByChapterId500,
 	GetKeywordsChaptersChapterByChapterIdParams,
 	GetKeywordsChaptersKeywordByKeywordId200,
 	GetKeywordsChaptersKeywordByKeywordId404,
-	GetKeywordsChaptersKeywordByKeywordId422,
 	GetKeywordsChaptersKeywordByKeywordId500,
 	GetKeywordsChaptersKeywordByKeywordIdParams,
 	PostKeywordsChapters200,
 	PostKeywordsChapters404,
-	PostKeywordsChapters422,
 	PostKeywordsChapters500,
 	PostKeywordsChaptersBodyOne,
 	PostKeywordsChaptersBodyThree,
@@ -62,7 +57,7 @@ export const getKeywordsChaptersChapterByChapterId = (
 ) => {
 	return customInstance<GetKeywordsChaptersChapterByChapterId200>(
 		{
-			url: `http://localhost:3030/keywords-chapters/chapter/${chapterId}`,
+			url: `http://localhost:3031/api/user/keywords-chapters/chapter/${chapterId}`,
 			method: "GET",
 			params,
 			signal,
@@ -76,7 +71,7 @@ export const getGetKeywordsChaptersChapterByChapterIdQueryKey = (
 	params?: GetKeywordsChaptersChapterByChapterIdParams,
 ) => {
 	return [
-		`http://localhost:3030/keywords-chapters/chapter/${chapterId}`,
+		`http://localhost:3031/api/user/keywords-chapters/chapter/${chapterId}`,
 		...(params ? [params] : []),
 	] as const;
 };
@@ -85,7 +80,6 @@ export const getGetKeywordsChaptersChapterByChapterIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersChapterByChapterId404
-		| GetKeywordsChaptersChapterByChapterId422
 		| GetKeywordsChaptersChapterByChapterId500
 	>,
 >(
@@ -135,7 +129,6 @@ export type GetKeywordsChaptersChapterByChapterIdQueryResult = NonNullable<
 >;
 export type GetKeywordsChaptersChapterByChapterIdQueryError = ErrorType<
 	| GetKeywordsChaptersChapterByChapterId404
-	| GetKeywordsChaptersChapterByChapterId422
 	| GetKeywordsChaptersChapterByChapterId500
 >;
 
@@ -143,7 +136,6 @@ export function useGetKeywordsChaptersChapterByChapterId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersChapterByChapterId404
-		| GetKeywordsChaptersChapterByChapterId422
 		| GetKeywordsChaptersChapterByChapterId500
 	>,
 >(
@@ -175,7 +167,6 @@ export function useGetKeywordsChaptersChapterByChapterId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersChapterByChapterId404
-		| GetKeywordsChaptersChapterByChapterId422
 		| GetKeywordsChaptersChapterByChapterId500
 	>,
 >(
@@ -207,7 +198,6 @@ export function useGetKeywordsChaptersChapterByChapterId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersChapterByChapterId404
-		| GetKeywordsChaptersChapterByChapterId422
 		| GetKeywordsChaptersChapterByChapterId500
 	>,
 >(
@@ -232,7 +222,6 @@ export function useGetKeywordsChaptersChapterByChapterId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersChapterByChapterId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersChapterByChapterId404
-		| GetKeywordsChaptersChapterByChapterId422
 		| GetKeywordsChaptersChapterByChapterId500
 	>,
 >(
@@ -276,7 +265,7 @@ export const getKeywordsChaptersKeywordByKeywordId = (
 ) => {
 	return customInstance<GetKeywordsChaptersKeywordByKeywordId200>(
 		{
-			url: `http://localhost:3030/keywords-chapters/keyword/${keywordId}`,
+			url: `http://localhost:3031/api/user/keywords-chapters/keyword/${keywordId}`,
 			method: "GET",
 			params,
 			signal,
@@ -290,7 +279,7 @@ export const getGetKeywordsChaptersKeywordByKeywordIdQueryKey = (
 	params?: GetKeywordsChaptersKeywordByKeywordIdParams,
 ) => {
 	return [
-		`http://localhost:3030/keywords-chapters/keyword/${keywordId}`,
+		`http://localhost:3031/api/user/keywords-chapters/keyword/${keywordId}`,
 		...(params ? [params] : []),
 	] as const;
 };
@@ -299,7 +288,6 @@ export const getGetKeywordsChaptersKeywordByKeywordIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersKeywordByKeywordId404
-		| GetKeywordsChaptersKeywordByKeywordId422
 		| GetKeywordsChaptersKeywordByKeywordId500
 	>,
 >(
@@ -349,7 +337,6 @@ export type GetKeywordsChaptersKeywordByKeywordIdQueryResult = NonNullable<
 >;
 export type GetKeywordsChaptersKeywordByKeywordIdQueryError = ErrorType<
 	| GetKeywordsChaptersKeywordByKeywordId404
-	| GetKeywordsChaptersKeywordByKeywordId422
 	| GetKeywordsChaptersKeywordByKeywordId500
 >;
 
@@ -357,7 +344,6 @@ export function useGetKeywordsChaptersKeywordByKeywordId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersKeywordByKeywordId404
-		| GetKeywordsChaptersKeywordByKeywordId422
 		| GetKeywordsChaptersKeywordByKeywordId500
 	>,
 >(
@@ -389,7 +375,6 @@ export function useGetKeywordsChaptersKeywordByKeywordId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersKeywordByKeywordId404
-		| GetKeywordsChaptersKeywordByKeywordId422
 		| GetKeywordsChaptersKeywordByKeywordId500
 	>,
 >(
@@ -421,7 +406,6 @@ export function useGetKeywordsChaptersKeywordByKeywordId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersKeywordByKeywordId404
-		| GetKeywordsChaptersKeywordByKeywordId422
 		| GetKeywordsChaptersKeywordByKeywordId500
 	>,
 >(
@@ -446,7 +430,6 @@ export function useGetKeywordsChaptersKeywordByKeywordId<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersKeywordByKeywordId>>,
 	TError = ErrorType<
 		| GetKeywordsChaptersKeywordByKeywordId404
-		| GetKeywordsChaptersKeywordByKeywordId422
 		| GetKeywordsChaptersKeywordByKeywordId500
 	>,
 >(
@@ -489,7 +472,7 @@ export const getKeywordsChaptersById = (
 ) => {
 	return customInstance<GetKeywordsChaptersById200>(
 		{
-			url: `http://localhost:3030/keywords-chapters/${id}`,
+			url: `http://localhost:3031/api/user/keywords-chapters/${id}`,
 			method: "GET",
 			signal,
 		},
@@ -498,16 +481,12 @@ export const getKeywordsChaptersById = (
 };
 
 export const getGetKeywordsChaptersByIdQueryKey = (id?: string) => {
-	return [`http://localhost:3030/keywords-chapters/${id}`] as const;
+	return [`http://localhost:3031/api/user/keywords-chapters/${id}`] as const;
 };
 
 export const getGetKeywordsChaptersByIdQueryOptions = <
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-	TError = ErrorType<
-		| GetKeywordsChaptersById404
-		| GetKeywordsChaptersById422
-		| GetKeywordsChaptersById500
-	>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -546,18 +525,12 @@ export type GetKeywordsChaptersByIdQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getKeywordsChaptersById>>
 >;
 export type GetKeywordsChaptersByIdQueryError = ErrorType<
-	| GetKeywordsChaptersById404
-	| GetKeywordsChaptersById422
-	| GetKeywordsChaptersById500
+	GetKeywordsChaptersById404 | GetKeywordsChaptersById500
 >;
 
 export function useGetKeywordsChaptersById<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-	TError = ErrorType<
-		| GetKeywordsChaptersById404
-		| GetKeywordsChaptersById422
-		| GetKeywordsChaptersById500
-	>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
 	id: string,
 	options: {
@@ -584,11 +557,7 @@ export function useGetKeywordsChaptersById<
 };
 export function useGetKeywordsChaptersById<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-	TError = ErrorType<
-		| GetKeywordsChaptersById404
-		| GetKeywordsChaptersById422
-		| GetKeywordsChaptersById500
-	>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -615,11 +584,7 @@ export function useGetKeywordsChaptersById<
 };
 export function useGetKeywordsChaptersById<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-	TError = ErrorType<
-		| GetKeywordsChaptersById404
-		| GetKeywordsChaptersById422
-		| GetKeywordsChaptersById500
-	>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -639,11 +604,7 @@ export function useGetKeywordsChaptersById<
 
 export function useGetKeywordsChaptersById<
 	TData = Awaited<ReturnType<typeof getKeywordsChaptersById>>,
-	TError = ErrorType<
-		| GetKeywordsChaptersById404
-		| GetKeywordsChaptersById422
-		| GetKeywordsChaptersById500
-	>,
+	TError = ErrorType<GetKeywordsChaptersById404 | GetKeywordsChaptersById500>,
 >(
 	id: string,
 	options?: {
@@ -677,16 +638,17 @@ export const deleteKeywordsChaptersById = (
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordsChaptersById200>(
-		{ url: `http://localhost:3030/keywords-chapters/${id}`, method: "DELETE" },
+		{
+			url: `http://localhost:3031/api/user/keywords-chapters/${id}`,
+			method: "DELETE",
+		},
 		options,
 	);
 };
 
 export const getDeleteKeywordsChaptersByIdMutationOptions = <
 	TError = ErrorType<
-		| DeleteKeywordsChaptersById404
-		| DeleteKeywordsChaptersById422
-		| DeleteKeywordsChaptersById500
+		DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
 	>,
 	TContext = unknown,
 >(options?: {
@@ -729,16 +691,12 @@ export type DeleteKeywordsChaptersByIdMutationResult = NonNullable<
 >;
 
 export type DeleteKeywordsChaptersByIdMutationError = ErrorType<
-	| DeleteKeywordsChaptersById404
-	| DeleteKeywordsChaptersById422
-	| DeleteKeywordsChaptersById500
+	DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
 >;
 
 export const useDeleteKeywordsChaptersById = <
 	TError = ErrorType<
-		| DeleteKeywordsChaptersById404
-		| DeleteKeywordsChaptersById422
-		| DeleteKeywordsChaptersById500
+		DeleteKeywordsChaptersById404 | DeleteKeywordsChaptersById500
 	>,
 	TContext = unknown,
 >(
@@ -772,7 +730,7 @@ export const postKeywordsChapters = (
 ) => {
 	return customInstance<PostKeywordsChapters200>(
 		{
-			url: `http://localhost:3030/keywords-chapters/`,
+			url: `http://localhost:3031/api/user/keywords-chapters/`,
 			method: "POST",
 			data: postKeywordsChaptersBody,
 			signal,
@@ -782,9 +740,7 @@ export const postKeywordsChapters = (
 };
 
 export const getPostKeywordsChaptersMutationOptions = <
-	TError = ErrorType<
-		PostKeywordsChapters404 | PostKeywordsChapters422 | PostKeywordsChapters500
-	>,
+	TError = ErrorType<PostKeywordsChapters404 | PostKeywordsChapters500>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -844,13 +800,11 @@ export type PostKeywordsChaptersMutationBody =
 	| PostKeywordsChaptersBodyTwo
 	| PostKeywordsChaptersBodyThree;
 export type PostKeywordsChaptersMutationError = ErrorType<
-	PostKeywordsChapters404 | PostKeywordsChapters422 | PostKeywordsChapters500
+	PostKeywordsChapters404 | PostKeywordsChapters500
 >;
 
 export const usePostKeywordsChapters = <
-	TError = ErrorType<
-		PostKeywordsChapters404 | PostKeywordsChapters422 | PostKeywordsChapters500
-	>,
+	TError = ErrorType<PostKeywordsChapters404 | PostKeywordsChapters500>,
 	TContext = unknown,
 >(
 	options?: {

@@ -24,6 +24,7 @@ import { axiosInstance } from "@/api/axios-instance";
 import {
 	authStateAtom,
 	checkUsernameAvailability,
+	normalizeAuthUser,
 	onboardingCompletedAtom,
 	storeAuth,
 } from "@/lib/auth";
@@ -64,15 +65,13 @@ export function Onboarding() {
 				return;
 			}
 
-			const response = await axiosInstance.put<{
-				id: string;
-				email: string;
-				username: string;
-				name: string;
-				role: "guest" | "user" | "admin";
-			}>("/auth/me", { username, name: username });
+			const response = await axiosInstance.put<unknown>("/api/user/auth/me", {
+				username,
+				name: username,
+			});
 
-			const updatedUser = response.data;
+			const updatedUser = normalizeAuthUser(response.data);
+			if (!updatedUser) throw new Error("Unexpected profile response");
 			setAuthState({ user: updatedUser, token: authState.token });
 			await storeAuth(updatedUser, authState.token ?? "");
 			nextStep();

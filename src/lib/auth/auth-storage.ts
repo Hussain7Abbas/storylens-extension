@@ -1,5 +1,5 @@
 import { browser } from "#imports";
-import type { AuthUser } from "./auth-store";
+import { type AuthUser, normalizeAuthUser } from "./auth-store";
 
 export const AUTH_STORAGE_KEY = "storylens-auth";
 
@@ -12,7 +12,10 @@ export function parseStoredAuth(raw: unknown): StoredAuth {
 	if (typeof raw !== "string") return { user: null, token: null };
 	try {
 		const parsed = JSON.parse(raw);
-		return { user: parsed.user ?? null, token: parsed.token ?? null };
+		return {
+			user: normalizeAuthUser(parsed.user),
+			token: typeof parsed.token === "string" ? parsed.token : null,
+		};
 	} catch {
 		return { user: null, token: null };
 	}
