@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
+	aliasNameColumns,
 	hasNameIn,
 	namedIn,
 	nameFields,
 	nameIn,
+	scriptLanguage,
 	toLanguage,
 } from "../src/utils/translation";
 
@@ -34,5 +36,11 @@ describe("translated names", () => {
 		expect(toLanguage("ar")).toBe("ar");
 		expect(toLanguage("en")).toBe("en");
 		expect(toLanguage(undefined)).toBe("en");
+	});
+
+	test("classifies letters but leaves digit-only alias names unclassified", () => {
+		expect(scriptLanguage("١٢٣")).toBeNull();
+		expect(scriptLanguage("Ali ْ")).toBe("en");
+		expect(aliasNameColumns("١٢٣")).toEqual({ nameAr: null, nameEn: null });
 	});
 });
