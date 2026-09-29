@@ -154,8 +154,8 @@ describe("offline sync", () => {
 		state.pendingOps = [operation("keywordAlias"), operation("keywordVersion")];
 		const result = await syncPendingOperations();
 		expect(requests).toEqual([
-			"put /keyword-aliases/entity-id",
-			"put /keyword-versions/entity-id",
+			"put /api/user/keyword-aliases/entity-id",
+			"put /api/user/keyword-versions/entity-id",
 		]);
 		expect(result).toMatchObject({ pushed: 2, failed: 0, remaining: 0 });
 		expect(savedAliases).toHaveLength(1);

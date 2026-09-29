@@ -3,6 +3,7 @@ import axios, {
 	type AxiosRequestConfig,
 	type AxiosResponse,
 } from "axios";
+import { installClientCompat } from "./client-compat";
 
 let configuredBaseUrl: string | undefined;
 
@@ -23,6 +24,7 @@ function resolveBaseUrl(): string {
 }
 
 export const axiosInstance = axios.create();
+installClientCompat(axiosInstance);
 
 export function configureApiClient(baseUrl: string): void {
 	configuredBaseUrl = baseUrl;
