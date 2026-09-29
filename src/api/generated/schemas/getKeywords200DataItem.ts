@@ -10,12 +10,15 @@ import type { GetKeywords200DataItemAliasesItem } from "./getKeywords200DataItem
 import type { GetKeywords200DataItemCreatedAt } from "./getKeywords200DataItemCreatedAt";
 import type { GetKeywords200DataItemCreatedById } from "./getKeywords200DataItemCreatedById";
 import type { GetKeywords200DataItemMatchingType } from "./getKeywords200DataItemMatchingType";
+import type { GetKeywords200DataItemNameAr } from "./getKeywords200DataItemNameAr";
+import type { GetKeywords200DataItemNameEn } from "./getKeywords200DataItemNameEn";
 import type { GetKeywords200DataItemUpdatedAt } from "./getKeywords200DataItemUpdatedAt";
 import type { GetKeywords200DataItemVersionsItem } from "./getKeywords200DataItemVersionsItem";
 
 export type GetKeywords200DataItem = {
 	id: string;
-	name: string;
+	nameAr: GetKeywords200DataItemNameAr;
+	nameEn: GetKeywords200DataItemNameEn;
 	matchingType: GetKeywords200DataItemMatchingType;
 	novelId: string;
 	createdById: GetKeywords200DataItemCreatedById;

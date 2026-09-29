@@ -25,22 +25,37 @@ import {
 	REPLACEMENT_LIST_SORTING,
 	withListQueryParams,
 } from "@/utils/api-list-params";
+import { LANGUAGES } from "@/utils/translation";
 
 const DOWNLOAD_PAGE_SIZE = 500;
 
+/**
+ * Keywords named in either language: the API lists one language per request,
+ * and a downloaded novel must keep working offline after a language switch.
+ */
 async function fetchAllKeywords(
 	novelId: string,
 ): Promise<GetKeywords200DataItem[]> {
-	const response = await getKeywords(
-		withListQueryParams(
-			{
-				pagination: { page: 1, pageSize: DOWNLOAD_PAGE_SIZE },
-				query: { novelId },
-			},
-			KEYWORD_LIST_SORTING,
+	const responses = await Promise.all(
+		LANGUAGES.map((language) =>
+			getKeywords(
+				withListQueryParams(
+					{
+						pagination: { page: 1, pageSize: DOWNLOAD_PAGE_SIZE },
+						query: { novelId },
+					},
+					KEYWORD_LIST_SORTING,
+				),
+				{ headers: { "Accept-Language": language } },
+			),
 		),
 	);
-	return response.data.data;
+	const byId = new Map(
+		responses
+			.flatMap((response) => response.data.data)
+			.map((item) => [item.id, item]),
+	);
+	return [...byId.values()];
 }
 
 async function fetchAllReplacements(
@@ -94,8 +109,10 @@ export async function downloadNovel(novelId: string): Promise<void> {
 
 	const novel: DownloadedNovel = {
 		id: novelResponse.data.id,
-		name: novelResponse.data.name,
-		description: novelResponse.data.description,
+		nameAr: novelResponse.data.nameAr,
+		nameEn: novelResponse.data.nameEn,
+		descriptionAr: novelResponse.data.descriptionAr,
+		descriptionEn: novelResponse.data.descriptionEn,
 		context: novelResponse.data.context,
 		slugs: novelResponse.data.slugs,
 		imageId: novelResponse.data.imageId,

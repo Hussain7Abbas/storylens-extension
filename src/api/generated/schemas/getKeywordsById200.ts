@@ -11,6 +11,8 @@ import type { GetKeywordsById200CreatedAt } from "./getKeywordsById200CreatedAt"
 import type { GetKeywordsById200CreatedById } from "./getKeywordsById200CreatedById";
 import type { GetKeywordsById200KeywordsChaptersItem } from "./getKeywordsById200KeywordsChaptersItem";
 import type { GetKeywordsById200MatchingType } from "./getKeywordsById200MatchingType";
+import type { GetKeywordsById200NameAr } from "./getKeywordsById200NameAr";
+import type { GetKeywordsById200NameEn } from "./getKeywordsById200NameEn";
 import type { GetKeywordsById200Novel } from "./getKeywordsById200Novel";
 import type { GetKeywordsById200ReplacementsItem } from "./getKeywordsById200ReplacementsItem";
 import type { GetKeywordsById200UpdatedAt } from "./getKeywordsById200UpdatedAt";
@@ -18,7 +20,8 @@ import type { GetKeywordsById200VersionsItem } from "./getKeywordsById200Version
 
 export type GetKeywordsById200 = {
 	id: string;
-	name: string;
+	nameAr: GetKeywordsById200NameAr;
+	nameEn: GetKeywordsById200NameEn;
 	matchingType: GetKeywordsById200MatchingType;
 	novelId: string;
 	createdById: GetKeywordsById200CreatedById;

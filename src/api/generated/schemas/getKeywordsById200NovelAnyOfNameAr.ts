@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type DeleteNovelsById200Description = null | string;
+export type GetKeywordsById200NovelAnyOfNameAr = null | string;

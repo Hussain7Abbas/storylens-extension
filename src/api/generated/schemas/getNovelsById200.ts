@@ -10,15 +10,20 @@ import type { GetNovelsById200ChaptersItem } from "./getNovelsById200ChaptersIte
 import type { GetNovelsById200Context } from "./getNovelsById200Context";
 import type { GetNovelsById200CreatedAt } from "./getNovelsById200CreatedAt";
 import type { GetNovelsById200CreatedById } from "./getNovelsById200CreatedById";
-import type { GetNovelsById200Description } from "./getNovelsById200Description";
+import type { GetNovelsById200DescriptionAr } from "./getNovelsById200DescriptionAr";
+import type { GetNovelsById200DescriptionEn } from "./getNovelsById200DescriptionEn";
 import type { GetNovelsById200Image } from "./getNovelsById200Image";
 import type { GetNovelsById200ImageId } from "./getNovelsById200ImageId";
+import type { GetNovelsById200NameAr } from "./getNovelsById200NameAr";
+import type { GetNovelsById200NameEn } from "./getNovelsById200NameEn";
 import type { GetNovelsById200UpdatedAt } from "./getNovelsById200UpdatedAt";
 
 export type GetNovelsById200 = {
 	id: string;
-	name: string;
-	description: GetNovelsById200Description;
+	nameAr: GetNovelsById200NameAr;
+	nameEn: GetNovelsById200NameEn;
+	descriptionAr: GetNovelsById200DescriptionAr;
+	descriptionEn: GetNovelsById200DescriptionEn;
 	context: GetNovelsById200Context;
 	slugs: string[];
 	imageId: GetNovelsById200ImageId;

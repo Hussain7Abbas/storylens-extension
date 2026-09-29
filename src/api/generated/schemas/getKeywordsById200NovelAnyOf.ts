@@ -9,14 +9,19 @@
 import type { GetKeywordsById200NovelAnyOfContext } from "./getKeywordsById200NovelAnyOfContext";
 import type { GetKeywordsById200NovelAnyOfCreatedAt } from "./getKeywordsById200NovelAnyOfCreatedAt";
 import type { GetKeywordsById200NovelAnyOfCreatedById } from "./getKeywordsById200NovelAnyOfCreatedById";
-import type { GetKeywordsById200NovelAnyOfDescription } from "./getKeywordsById200NovelAnyOfDescription";
+import type { GetKeywordsById200NovelAnyOfDescriptionAr } from "./getKeywordsById200NovelAnyOfDescriptionAr";
+import type { GetKeywordsById200NovelAnyOfDescriptionEn } from "./getKeywordsById200NovelAnyOfDescriptionEn";
 import type { GetKeywordsById200NovelAnyOfImageId } from "./getKeywordsById200NovelAnyOfImageId";
+import type { GetKeywordsById200NovelAnyOfNameAr } from "./getKeywordsById200NovelAnyOfNameAr";
+import type { GetKeywordsById200NovelAnyOfNameEn } from "./getKeywordsById200NovelAnyOfNameEn";
 import type { GetKeywordsById200NovelAnyOfUpdatedAt } from "./getKeywordsById200NovelAnyOfUpdatedAt";
 
 export type GetKeywordsById200NovelAnyOf = {
 	id: string;
-	name: string;
-	description: GetKeywordsById200NovelAnyOfDescription;
+	nameAr: GetKeywordsById200NovelAnyOfNameAr;
+	nameEn: GetKeywordsById200NovelAnyOfNameEn;
+	descriptionAr: GetKeywordsById200NovelAnyOfDescriptionAr;
+	descriptionEn: GetKeywordsById200NovelAnyOfDescriptionEn;
 	context: GetKeywordsById200NovelAnyOfContext;
 	slugs: string[];
 	imageId: GetKeywordsById200NovelAnyOfImageId;

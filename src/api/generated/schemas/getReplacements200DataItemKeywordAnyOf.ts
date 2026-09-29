@@ -9,11 +9,14 @@
 import type { GetReplacements200DataItemKeywordAnyOfCreatedAt } from "./getReplacements200DataItemKeywordAnyOfCreatedAt";
 import type { GetReplacements200DataItemKeywordAnyOfCreatedById } from "./getReplacements200DataItemKeywordAnyOfCreatedById";
 import type { GetReplacements200DataItemKeywordAnyOfMatchingType } from "./getReplacements200DataItemKeywordAnyOfMatchingType";
+import type { GetReplacements200DataItemKeywordAnyOfNameAr } from "./getReplacements200DataItemKeywordAnyOfNameAr";
+import type { GetReplacements200DataItemKeywordAnyOfNameEn } from "./getReplacements200DataItemKeywordAnyOfNameEn";
 import type { GetReplacements200DataItemKeywordAnyOfUpdatedAt } from "./getReplacements200DataItemKeywordAnyOfUpdatedAt";
 
 export type GetReplacements200DataItemKeywordAnyOf = {
 	id: string;
-	name: string;
+	nameAr: GetReplacements200DataItemKeywordAnyOfNameAr;
+	nameEn: GetReplacements200DataItemKeywordAnyOfNameEn;
 	matchingType: GetReplacements200DataItemKeywordAnyOfMatchingType;
 	novelId: string;
 	createdById: GetReplacements200DataItemKeywordAnyOfCreatedById;

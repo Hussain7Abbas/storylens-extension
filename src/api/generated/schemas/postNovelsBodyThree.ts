@@ -6,11 +6,20 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { PostNovelsBodyThreeDescriptionAr } from "./postNovelsBodyThreeDescriptionAr";
+import type { PostNovelsBodyThreeDescriptionEn } from "./postNovelsBodyThreeDescriptionEn";
+import type { PostNovelsBodyThreeNameAr } from "./postNovelsBodyThreeNameAr";
+import type { PostNovelsBodyThreeNameEn } from "./postNovelsBodyThreeNameEn";
+
 export type PostNovelsBodyThree = {
-	/** @minLength 1 */
-	name: string;
-	/** @minLength 1 */
-	description?: string;
+	/** @nullable */
+	nameAr?: PostNovelsBodyThreeNameAr;
+	/** @nullable */
+	nameEn?: PostNovelsBodyThreeNameEn;
+	/** @nullable */
+	descriptionAr?: PostNovelsBodyThreeDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PostNovelsBodyThreeDescriptionEn;
 	/**
 	 * @minLength 1
 	 * @maxLength 20000

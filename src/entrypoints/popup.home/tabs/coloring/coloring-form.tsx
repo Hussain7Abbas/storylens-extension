@@ -45,7 +45,9 @@ import {
 	useOfflineKeywordNatures,
 	useOfflineKeywordVersionMutations,
 } from "@/lib/offline/hooks";
+import { useLanguage } from "@/store/locale";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
+import { nameFields, nameIn } from "@/utils/translation";
 import { uploadImageFile } from "@/utils/upload-image-file";
 
 type StackFrame =
@@ -115,6 +117,7 @@ function KeywordForm({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -154,9 +157,11 @@ function KeywordForm({
 
 	const form = useForm<KeywordFormValues>({
 		initialValues: {
-			name:
-				keyword?.name ??
-				(frame.mode === "keyword-add" ? (frame.initialText ?? "") : ""),
+			name: keyword
+				? nameIn(keyword, language)
+				: frame.mode === "keyword-add"
+					? (frame.initialText ?? "")
+					: "",
 			matchingType: keyword?.matchingType ?? "FULL",
 			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
 			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
@@ -200,7 +205,8 @@ function KeywordForm({
 		if (frame.mode === "keyword-add") {
 			const payload: PostKeywordsBodyOne = {
 				novelId: selectedNovelId,
-				name: values.name,
+				// The name is saved in the UI language; the other language is left untouched.
+				...nameFields(language, values.name),
 				matchingType: values.matchingType,
 				categoryId: values.categoryId,
 				natureId: values.natureId,
@@ -219,7 +225,7 @@ function KeywordForm({
 				await updateMutation.mutateAsync({
 					id: keyword.id,
 					data: {
-						name: values.name,
+						...nameFields(language, values.name),
 						matchingType: values.matchingType,
 					} satisfies PutKeywordsByIdBodyOne,
 				});
@@ -442,6 +448,7 @@ function AliasForm({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -567,7 +574,7 @@ function AliasForm({
 					<Text size="xs" c="dimmed" style={{ flex: 1 }}>
 						{t("coloring.aliasOf")}:{" "}
 						<Text component="span" fw={600} size="xs" c="brand">
-							{frame.parentKeyword.name}
+							{nameIn(frame.parentKeyword, language)}
 						</Text>
 					</Text>
 				</Group>
@@ -638,7 +645,7 @@ function AliasForm({
 					<GenerateImageButton
 						novelId={selectedNovelId}
 						name={form.values.name}
-						otherNames={[frame.parentKeyword.name]}
+						otherNames={[nameIn(frame.parentKeyword, language)]}
 						description={form.values.description}
 						category={categoryLabel(categoriesData, form.values.categoryId)}
 						onGenerated={setImageFile}
@@ -767,6 +774,7 @@ function VersionForm({
 	onClose: () => void;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const isModerator = useIsModerator();
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -922,7 +930,7 @@ function VersionForm({
 						{t("coloring.version")}
 					</Badge>
 					<Text size="xs" c="dimmed" style={{ flex: 1 }}>
-						{frame.parentKeyword.name}
+						{nameIn(frame.parentKeyword, language)}
 					</Text>
 				</Group>
 			</Alert>
@@ -1020,7 +1028,7 @@ function VersionForm({
 					/>
 					<GenerateImageButton
 						novelId={selectedNovelId}
-						name={frame.parentKeyword.name}
+						name={nameIn(frame.parentKeyword, language)}
 						otherNames={frame.parentKeyword.aliases.map((item) => item.name)}
 						description={form.values.description}
 						category={categoryLabel(categoriesData, form.values.categoryId)}

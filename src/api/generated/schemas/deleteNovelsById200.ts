@@ -9,14 +9,19 @@
 import type { DeleteNovelsById200Context } from "./deleteNovelsById200Context";
 import type { DeleteNovelsById200CreatedAt } from "./deleteNovelsById200CreatedAt";
 import type { DeleteNovelsById200CreatedById } from "./deleteNovelsById200CreatedById";
-import type { DeleteNovelsById200Description } from "./deleteNovelsById200Description";
+import type { DeleteNovelsById200DescriptionAr } from "./deleteNovelsById200DescriptionAr";
+import type { DeleteNovelsById200DescriptionEn } from "./deleteNovelsById200DescriptionEn";
 import type { DeleteNovelsById200ImageId } from "./deleteNovelsById200ImageId";
+import type { DeleteNovelsById200NameAr } from "./deleteNovelsById200NameAr";
+import type { DeleteNovelsById200NameEn } from "./deleteNovelsById200NameEn";
 import type { DeleteNovelsById200UpdatedAt } from "./deleteNovelsById200UpdatedAt";
 
 export type DeleteNovelsById200 = {
 	id: string;
-	name: string;
-	description: DeleteNovelsById200Description;
+	nameAr: DeleteNovelsById200NameAr;
+	nameEn: DeleteNovelsById200NameEn;
+	descriptionAr: DeleteNovelsById200DescriptionAr;
+	descriptionEn: DeleteNovelsById200DescriptionEn;
 	context: DeleteNovelsById200Context;
 	slugs: string[];
 	imageId: DeleteNovelsById200ImageId;

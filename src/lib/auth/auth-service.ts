@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/api/axios-instance";
+import { getStoredLanguage } from "@/utils/stored-language";
 import { getStoredAuth, storeAuth } from "./auth-storage";
 import { type AuthUser, normalizeAuthUser } from "./auth-store";
 import { generateGuestUsername } from "./guest-names";
@@ -64,6 +65,10 @@ export function setupAuthInterceptor(): void {
 		const { token } = await getStoredAuth();
 		if (token) {
 			config.headers.Authorization = `Bearer ${token}`;
+		}
+		// The API returns novels and keywords named in this language only.
+		if (!config.headers["Accept-Language"]) {
+			config.headers["Accept-Language"] = await getStoredLanguage();
 		}
 		return config;
 	});

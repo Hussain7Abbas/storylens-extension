@@ -16,6 +16,8 @@ import {
 	relatedSuggestionDescription,
 } from "@/lib/desktop-client/keyword-suggestion";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useLanguage } from "@/store/locale";
+import { nameIn } from "@/utils/translation";
 import { ColoringCards } from "./coloring-cards";
 import { ColoringForm } from "./coloring-form";
 import { useKeywordSuggestion } from "./use-keyword-suggestion";
@@ -58,6 +60,7 @@ export function ColoringTab({
 	currentChapter: number | undefined;
 }) {
 	const { t, i18n } = useTranslation();
+	const language = useLanguage();
 	const canMutate = useCanMutateKeywords();
 	const aiSuggestion = useKeywordSuggestion(canMutate, selectedNovelId);
 	// Aliases and versions reuse the suggestion, noting which character they belong to.
@@ -70,7 +73,7 @@ export function ColoringTab({
 					...aiSuggestion.suggestion,
 					description: relatedSuggestionDescription(
 						aiSuggestion.suggestion,
-						{ kind, name: search.trim(), parent: parent.name },
+						{ kind, name: search.trim(), parent: nameIn(parent, language) },
 						toAiLanguage(i18n.language),
 					),
 				}
@@ -126,7 +129,11 @@ export function ColoringTab({
 								...suggestion,
 								description: relatedSuggestionDescription(
 									suggestion,
-									{ kind: requested, name: search.trim(), parent: parent.name },
+									{
+										kind: requested,
+										name: search.trim(),
+										parent: nameIn(parent, language),
+									},
 									toAiLanguage(i18n.language),
 								),
 							}
@@ -144,6 +151,7 @@ export function ColoringTab({
 		search,
 		hasAiContext,
 		i18n.language,
+		language,
 	]);
 	const currentFrame = stack[stack.length - 1];
 

@@ -204,12 +204,23 @@ export async function runContentScript(
 			);
 		}
 		if (typeof changes["storylens-locale"]?.newValue === "string") {
+			const localeChanged =
+				currentLocale !== changes["storylens-locale"].newValue;
 			currentLocale = changes["storylens-locale"].newValue as string;
 			setTooltipLocale(currentLocale);
 			setPagePopupLauncher(
 				!!websiteSelector && pagePopupVisible,
 				currentLocale,
 			);
+			// Pages match the UI language's keyword names, so switching it re-highlights.
+			if (localeChanged && lastProcessedKey) {
+				void refreshPageContent().catch((error) => {
+					console.error(
+						`${LOG_PREFIX} Failed to refresh after a language change`,
+						error,
+					);
+				});
+			}
 		}
 		if (typeof changes["storylens-font-face"]?.newValue === "string") {
 			setTooltipFontFace(changes["storylens-font-face"].newValue as string);

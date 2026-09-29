@@ -11,6 +11,7 @@ import {
 	registerKeywordTooltipAnchor,
 } from "@/utils/keyword-tooltip";
 import { enrichKeywords } from "@/utils/resolve-keyword-version";
+import { type Language, nameIn } from "@/utils/translation";
 
 const LOG_PREFIX = "[StoryLens]";
 const PROCESS_ATTR = "data-storylens-processed";
@@ -285,6 +286,7 @@ function createKeywordElement(
 		{ raw: RawKeyword; alias: RawKeywordAlias | null }
 	>,
 	currentChapter: number,
+	language: Language,
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
@@ -310,6 +312,7 @@ function createKeywordElement(
 			rawCtx.raw,
 			rawCtx.alias,
 			currentChapter,
+			language,
 		);
 	}
 
@@ -390,6 +393,7 @@ function applyKeywordHighlights(
 		{ raw: RawKeyword; alias: RawKeywordAlias | null }
 	>,
 	currentChapter: number,
+	language: Language,
 ): number {
 	const regex = buildCombinedPattern(
 		keywords.map((keyword) => ({
@@ -414,6 +418,7 @@ function applyKeywordHighlights(
 				found.value,
 				rawContextLookup,
 				currentChapter,
+				language,
 			);
 			if (!found.prefix) return keywordEl;
 			return [document.createTextNode(withTatweel(found.prefix)), keywordEl];
@@ -446,7 +451,7 @@ export function applyContentProcessing(
 	console.log(`${LOG_PREFIX} Applying content processing`, {
 		processKey,
 		novelId: data.novel.id,
-		novelName: data.novel.name,
+		novelName: nameIn(data.novel, data.language),
 		chapterNumber: data.chapterNumber,
 		keywordsCount: data.keywords.length,
 		replacementsCount: data.replacements.length,
@@ -454,7 +459,7 @@ export function applyContentProcessing(
 	});
 
 	const chapter = data.chapterNumber ?? 0;
-	const enriched = enrichKeywords(data.keywords, chapter);
+	const enriched = enrichKeywords(data.keywords, chapter, data.language);
 	const rawContextLookup = buildRawContextLookup(data.keywords);
 	const replacementsApplied = applyReplacements(root, data.replacements);
 	const keywordsHighlighted = applyKeywordHighlights(
@@ -462,6 +467,7 @@ export function applyContentProcessing(
 		enriched,
 		rawContextLookup,
 		chapter,
+		data.language,
 	);
 
 	initKeywordTooltipPortal();

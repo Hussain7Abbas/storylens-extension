@@ -136,6 +136,39 @@ class StoryLensOfflineDatabase extends Dexie {
 				// Fresh data will be fetched from the API on next access.
 				await transaction.table("keywords").clear();
 			});
+
+		// v8: novel and keyword names are translated (nameAr/nameEn); the API
+		// moved the old single-language text to the Arabic fields, and so does this.
+		this.version(8)
+			.stores({
+				catalogNovels: "id, nameAr, nameEn",
+				novels: "id, nameAr, nameEn, downloadedAt",
+				keywords: "id, novelId, nameAr, nameEn",
+				keywordAliases: "id, keywordId, [keywordId+name]",
+				keywordVersions: "id, keywordId, [keywordId+startingChapter]",
+				replacements: "id, novelId, from",
+				keywordCategories: "id, name",
+				keywordNatures: "id, name",
+				websiteNovelBiases:
+					"id, novelId, websiteSelectorId, [novelId+websiteSelectorId]",
+			})
+			.upgrade(async (transaction) => {
+				const toArabic = (row: Record<string, unknown>) => {
+					if ("name" in row) {
+						row.nameAr ??= row.name ?? null;
+						row.nameEn ??= null;
+						delete row.name;
+					}
+					if ("description" in row) {
+						row.descriptionAr ??= row.description ?? null;
+						row.descriptionEn ??= null;
+						delete row.description;
+					}
+				};
+				for (const table of ["catalogNovels", "novels", "keywords"]) {
+					await transaction.table(table).toCollection().modify(toArabic);
+				}
+			});
 	}
 }
 
@@ -153,7 +186,7 @@ export async function isNovelDownloaded(novelId: string): Promise<boolean> {
 }
 
 export async function getAllCatalogNovels(): Promise<CatalogNovel[]> {
-	return offlineDb.catalogNovels.orderBy("name").toArray();
+	return offlineDb.catalogNovels.toArray();
 }
 
 export async function bulkPutCatalogNovels(
@@ -271,7 +304,7 @@ export async function getAllKeywordNatures(): Promise<OfflineKeywordNature[]> {
 export async function getDownloadedNovels(): Promise<DownloadedNovel[]> {
 	const ids = await getDownloadedNovelIds();
 	if (ids.length === 0) return [];
-	return offlineDb.novels.where("id").anyOf(ids).sortBy("name");
+	return offlineDb.novels.where("id").anyOf(ids).toArray();
 }
 
 export async function getOfflineNovelBySlug(

@@ -9,6 +9,7 @@ import type {
 	GetReplacements200DataItem,
 	GetWebsiteNovelBiases200Item,
 } from "@/api/generated/schemas";
+import type { Language } from "@/utils/translation";
 
 export type RawKeyword = GetKeywords200DataItem;
 export type RawKeywordAlias = GetKeywords200DataItemAliasesItem;
@@ -43,6 +44,8 @@ export type EnrichedKeyword = {
 
 export type NovelContentData = {
 	novel: GetNovels200DataItem;
+	/** UI language; `keywords` holds only those named in it and pages match that name. */
+	language: Language;
 	chapterNumber: number | undefined;
 	/** Root keywords with embedded aliases/versions from the server or offline cache. */
 	keywords: RawKeyword[];

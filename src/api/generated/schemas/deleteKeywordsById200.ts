@@ -9,11 +9,14 @@
 import type { DeleteKeywordsById200CreatedAt } from "./deleteKeywordsById200CreatedAt";
 import type { DeleteKeywordsById200CreatedById } from "./deleteKeywordsById200CreatedById";
 import type { DeleteKeywordsById200MatchingType } from "./deleteKeywordsById200MatchingType";
+import type { DeleteKeywordsById200NameAr } from "./deleteKeywordsById200NameAr";
+import type { DeleteKeywordsById200NameEn } from "./deleteKeywordsById200NameEn";
 import type { DeleteKeywordsById200UpdatedAt } from "./deleteKeywordsById200UpdatedAt";
 
 export type DeleteKeywordsById200 = {
 	id: string;
-	name: string;
+	nameAr: DeleteKeywordsById200NameAr;
+	nameEn: DeleteKeywordsById200NameEn;
 	matchingType: DeleteKeywordsById200MatchingType;
 	novelId: string;
 	createdById: DeleteKeywordsById200CreatedById;

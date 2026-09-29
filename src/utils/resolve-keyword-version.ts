@@ -8,6 +8,7 @@ import type {
 	EnrichedKeyword,
 	EnrichedNature,
 } from "@/types/content-data";
+import { type Language, nameIn } from "@/utils/translation";
 
 function toDateString(value: unknown): string {
 	if (typeof value === "string") return value;
@@ -110,6 +111,7 @@ export function resolveStyle(
 export function enrichKeywords(
 	keywords: GetKeywords200DataItem[],
 	currentChapter: number,
+	language: Language,
 ): EnrichedKeyword[] {
 	const enriched: EnrichedKeyword[] = [];
 
@@ -125,7 +127,7 @@ export function enrichKeywords(
 
 		enriched.push({
 			id: kw.id,
-			name: kw.name,
+			name: nameIn(kw, language),
 			description: kwStyle.description,
 			matchingType: kw.matchingType,
 			categoryId: kwStyle.category.id,
@@ -222,7 +224,8 @@ function resolveFieldInfo<T>(
 
 	if (override && aliasVal != null) {
 		const overrides: Override[] = [];
-		if (hasDistinctVersion) overrides.push({ source: "version", value: activeVal ?? null });
+		if (hasDistinctVersion)
+			overrides.push({ source: "version", value: activeVal ?? null });
 		overrides.push({ source: "keyword", value: baseVal ?? null });
 		return { value: aliasVal, source: "alias", overrides };
 	}
@@ -239,7 +242,9 @@ function resolveFieldInfo<T>(
 	}
 	if (aliasVal != null) {
 		// In this branch activeVal is always null, so hasDistinctVersion is false — no version entry.
-		const overrides: Override[] = [{ source: "keyword", value: baseVal ?? null }];
+		const overrides: Override[] = [
+			{ source: "keyword", value: baseVal ?? null },
+		];
 		return { value: aliasVal, source: "alias", overrides };
 	}
 	return { value: baseVal ?? null, source: "keyword", overrides: [] };
@@ -249,7 +254,9 @@ export function resolveKeywordInfo(
 	keyword: GetKeywords200DataItem,
 	alias: GetKeywords200DataItemAliasesItem | null,
 	currentChapter: number,
+	language: Language,
 ): ResolvedInfo {
+	const keywordName = nameIn(keyword, language);
 	const base = pickBaseVersion(keyword.versions);
 	const active = pickVersion(keyword.versions, currentChapter);
 	const activeIsBase = !active || !base || active.id === base.id;
@@ -259,9 +266,9 @@ export function resolveKeywordInfo(
 		? {
 				value: alias.name,
 				source: "alias",
-				overrides: [{ source: "keyword", value: keyword.name }],
+				overrides: [{ source: "keyword", value: keywordName }],
 			}
-		: { value: keyword.name, source: "keyword", overrides: [] };
+		: { value: keywordName, source: "keyword", overrides: [] };
 
 	const category = resolveFieldInfo<EnrichedCategory>(
 		active?.category as EnrichedCategory | null | undefined,

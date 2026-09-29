@@ -10,12 +10,15 @@ import type { PutKeywordsById200AliasesItem } from "./putKeywordsById200AliasesI
 import type { PutKeywordsById200CreatedAt } from "./putKeywordsById200CreatedAt";
 import type { PutKeywordsById200CreatedById } from "./putKeywordsById200CreatedById";
 import type { PutKeywordsById200MatchingType } from "./putKeywordsById200MatchingType";
+import type { PutKeywordsById200NameAr } from "./putKeywordsById200NameAr";
+import type { PutKeywordsById200NameEn } from "./putKeywordsById200NameEn";
 import type { PutKeywordsById200UpdatedAt } from "./putKeywordsById200UpdatedAt";
 import type { PutKeywordsById200VersionsItem } from "./putKeywordsById200VersionsItem";
 
 export type PutKeywordsById200 = {
 	id: string;
-	name: string;
+	nameAr: PutKeywordsById200NameAr;
+	nameEn: PutKeywordsById200NameEn;
 	matchingType: PutKeywordsById200MatchingType;
 	novelId: string;
 	createdById: PutKeywordsById200CreatedById;

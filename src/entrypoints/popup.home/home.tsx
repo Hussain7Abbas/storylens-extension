@@ -37,9 +37,11 @@ import {
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
 import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
+import { useLanguage } from "@/store/locale";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
+import { nameIn } from "@/utils/translation";
 import { NovelForm, type novelFormModes } from "./novelForm";
 import { ColoringTab, ReplacingTab } from "./tabs";
 import { useDetectedNovel } from "./use-detected-novel";
@@ -47,6 +49,7 @@ import { WebsiteNovelBiasForm } from "./websiteNovelBiasModal";
 
 export function HomePage() {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const [mode, setMode] = useState<novelFormModes>();
 	const [downloading, setDownloading] = useState(false);
 	const [biasFormOpen, setBiasFormOpen] = useState(false);
@@ -201,7 +204,7 @@ export function HomePage() {
 								flex={1}
 								data={availableNovels.map((novel: Novel) => ({
 									value: novel.id,
-									label: novel.name,
+									label: nameIn(novel, language),
 								}))}
 								value={selectedNovel?.id}
 								onChange={(value) =>
@@ -397,9 +400,6 @@ function NovelMenu({
 		addSlugMutation.mutate({
 			id: selectedNovel.id,
 			data: {
-				name: selectedNovel.name ?? "",
-				description: selectedNovel.description ?? undefined,
-				imageId: selectedNovel.imageId ?? undefined,
 				slugs: [...existingSlugs, currentTabNovel.novelSlug],
 			},
 		});

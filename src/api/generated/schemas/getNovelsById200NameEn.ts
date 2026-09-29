@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PostNovels200Description = null | string;
+export type GetNovelsById200NameEn = null | string;

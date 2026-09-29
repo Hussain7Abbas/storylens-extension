@@ -5,11 +5,16 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PostKeywordsBodyTwoMatchingType } from "./postKeywordsBodyTwoMatchingType";
+import type { PostKeywordsBodyTwoNameAr } from "./postKeywordsBodyTwoNameAr";
+import type { PostKeywordsBodyTwoNameEn } from "./postKeywordsBodyTwoNameEn";
 
 export type PostKeywordsBodyTwo = {
-	/** @minLength 1 */
-	name: string;
+	/** @nullable */
+	nameAr?: PostKeywordsBodyTwoNameAr;
+	/** @nullable */
+	nameEn?: PostKeywordsBodyTwoNameEn;
 	description?: string;
 	matchingType?: PostKeywordsBodyTwoMatchingType;
 	novelId: string;

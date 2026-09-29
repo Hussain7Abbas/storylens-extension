@@ -5,6 +5,7 @@ import {
 import { trackEvent } from "@/lib/analytics/client";
 import { getDownloadedNovel, offlineDb } from "@/lib/offline/db";
 import { isOnline } from "@/lib/offline/online-status";
+import { descriptionIn, nameIn } from "@/utils/translation";
 import type { AiLanguage } from "./ai-language";
 import { executeLocalizedPrompt } from "./localized-prompt";
 import {
@@ -15,18 +16,41 @@ import {
 } from "./novel-context-prompt";
 import type { DesktopSettings } from "./types";
 
-async function loadNovel(novelId: string): Promise<NovelInfo | undefined> {
+type TranslatedNovel = Omit<NovelInfo, "name" | "description"> & {
+	nameAr: string | null;
+	nameEn: string | null;
+	descriptionAr: string | null;
+	descriptionEn: string | null;
+};
+
+/** The prompt reads the AI language's title, or the other one when it is missing. */
+function toNovelInfo(novel: TranslatedNovel, language: AiLanguage): NovelInfo {
+	const [first, second] =
+		language === "ar" ? (["ar", "en"] as const) : (["en", "ar"] as const);
+	return {
+		id: novel.id,
+		slugs: novel.slugs,
+		context: novel.context,
+		name: nameIn(novel, first) || nameIn(novel, second),
+		description: descriptionIn(novel, first) || descriptionIn(novel, second),
+	};
+}
+
+async function loadNovel(
+	novelId: string,
+	language: AiLanguage,
+): Promise<NovelInfo | undefined> {
 	if (isOnline()) {
 		try {
-			return (await getNovelsById(novelId)).data;
+			return toNovelInfo((await getNovelsById(novelId)).data, language);
 		} catch {
 			// Fall back to the offline copies below.
 		}
 	}
-	return (
+	const novel =
 		(await getDownloadedNovel(novelId)) ??
-		(await offlineDb.catalogNovels.get(novelId))
-	);
+		(await offlineDb.catalogNovels.get(novelId));
+	return novel ? toNovelInfo(novel, language) : undefined;
 }
 
 async function storeOfflineContext(
@@ -51,7 +75,9 @@ export async function ensureNovelContext(input: {
 	settings: DesktopSettings;
 	signal: AbortSignal;
 }): Promise<string> {
-	const novel = await loadNovel(input.novelId).catch(() => undefined);
+	const novel = await loadNovel(input.novelId, input.language).catch(
+		() => undefined,
+	);
 	if (!novel) return "";
 	const existing = novel.context?.trim();
 	if (existing) return decodeStoredText(existing).slice(0, NOVEL_CONTEXT_CHARS);

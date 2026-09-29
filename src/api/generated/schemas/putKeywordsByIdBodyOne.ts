@@ -5,10 +5,15 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PutKeywordsByIdBodyOneMatchingType } from "./putKeywordsByIdBodyOneMatchingType";
+import type { PutKeywordsByIdBodyOneNameAr } from "./putKeywordsByIdBodyOneNameAr";
+import type { PutKeywordsByIdBodyOneNameEn } from "./putKeywordsByIdBodyOneNameEn";
 
 export type PutKeywordsByIdBodyOne = {
-	/** @minLength 1 */
-	name?: string;
+	/** @nullable */
+	nameAr?: PutKeywordsByIdBodyOneNameAr;
+	/** @nullable */
+	nameEn?: PutKeywordsByIdBodyOneNameEn;
 	matchingType?: PutKeywordsByIdBodyOneMatchingType;
 };

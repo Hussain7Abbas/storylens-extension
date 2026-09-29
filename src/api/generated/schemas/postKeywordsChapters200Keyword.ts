@@ -9,11 +9,14 @@
 import type { PostKeywordsChapters200KeywordCreatedAt } from "./postKeywordsChapters200KeywordCreatedAt";
 import type { PostKeywordsChapters200KeywordCreatedById } from "./postKeywordsChapters200KeywordCreatedById";
 import type { PostKeywordsChapters200KeywordMatchingType } from "./postKeywordsChapters200KeywordMatchingType";
+import type { PostKeywordsChapters200KeywordNameAr } from "./postKeywordsChapters200KeywordNameAr";
+import type { PostKeywordsChapters200KeywordNameEn } from "./postKeywordsChapters200KeywordNameEn";
 import type { PostKeywordsChapters200KeywordUpdatedAt } from "./postKeywordsChapters200KeywordUpdatedAt";
 
 export type PostKeywordsChapters200Keyword = {
 	id: string;
-	name: string;
+	nameAr: PostKeywordsChapters200KeywordNameAr;
+	nameEn: PostKeywordsChapters200KeywordNameEn;
 	matchingType: PostKeywordsChapters200KeywordMatchingType;
 	novelId: string;
 	createdById: PostKeywordsChapters200KeywordCreatedById;

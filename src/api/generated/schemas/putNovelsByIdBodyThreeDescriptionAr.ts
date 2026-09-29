@@ -6,4 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetNovels200DataItemDescription = null | string;
+/**
+ * @nullable
+ */
+export type PutNovelsByIdBodyThreeDescriptionAr = string | null | null;

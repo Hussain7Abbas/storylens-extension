@@ -9,15 +9,20 @@
 import type { PutNovelsByIdContext200Context } from "./putNovelsByIdContext200Context";
 import type { PutNovelsByIdContext200CreatedAt } from "./putNovelsByIdContext200CreatedAt";
 import type { PutNovelsByIdContext200CreatedById } from "./putNovelsByIdContext200CreatedById";
-import type { PutNovelsByIdContext200Description } from "./putNovelsByIdContext200Description";
+import type { PutNovelsByIdContext200DescriptionAr } from "./putNovelsByIdContext200DescriptionAr";
+import type { PutNovelsByIdContext200DescriptionEn } from "./putNovelsByIdContext200DescriptionEn";
 import type { PutNovelsByIdContext200Image } from "./putNovelsByIdContext200Image";
 import type { PutNovelsByIdContext200ImageId } from "./putNovelsByIdContext200ImageId";
+import type { PutNovelsByIdContext200NameAr } from "./putNovelsByIdContext200NameAr";
+import type { PutNovelsByIdContext200NameEn } from "./putNovelsByIdContext200NameEn";
 import type { PutNovelsByIdContext200UpdatedAt } from "./putNovelsByIdContext200UpdatedAt";
 
 export type PutNovelsByIdContext200 = {
 	id: string;
-	name: string;
-	description: PutNovelsByIdContext200Description;
+	nameAr: PutNovelsByIdContext200NameAr;
+	nameEn: PutNovelsByIdContext200NameEn;
+	descriptionAr: PutNovelsByIdContext200DescriptionAr;
+	descriptionEn: PutNovelsByIdContext200DescriptionEn;
 	context: PutNovelsByIdContext200Context;
 	slugs: string[];
 	imageId: PutNovelsByIdContext200ImageId;

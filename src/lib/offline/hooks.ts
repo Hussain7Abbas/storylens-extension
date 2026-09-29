@@ -113,11 +113,12 @@ import {
 	type SyncEntity,
 	type SyncOperation,
 } from "@/lib/offline/types";
-import { localeAtom } from "@/store/locale";
+import { localeAtom, useLanguage } from "@/store/locale";
 import { useActiveSyncCount } from "@/store/sync-status";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { withListQueryParams } from "@/utils/api-list-params";
 import { refreshContentScript } from "@/utils/refresh-content-script";
+import { type Language, namedIn, nameIn } from "@/utils/translation";
 
 function filterBySearch<
 	T extends {
@@ -147,8 +148,11 @@ function filterBySearch<
 
 function sortKeywords(
 	items: GetKeywords200DataItem[],
+	language: Language,
 ): GetKeywords200DataItem[] {
-	return [...items].sort((left, right) => left.name.localeCompare(right.name));
+	return [...items].sort((left, right) =>
+		nameIn(left, language).localeCompare(nameIn(right, language)),
+	);
 }
 
 function sortReplacements(
@@ -232,12 +236,14 @@ export function useActiveBackgroundSyncCount(): number {
 	return useActiveSyncCount();
 }
 
+/** Catalogue novels named in the UI language, sorted by that name. */
 export function useCachedNovelsList(): {
 	novels: CatalogNovel[];
 	isLoading: boolean;
 	refresh: () => void;
 } {
 	const online = useOnlineStatus();
+	const language = useLanguage();
 	const queryClient = useQueryClient();
 
 	// Local database reads and writes must run even when the browser is offline.
@@ -261,11 +267,13 @@ export function useCachedNovelsList(): {
 	});
 
 	const novels = useMemo(() => {
-		if (catalogQuery.data?.length) {
-			return catalogQuery.data;
-		}
-		return refreshQuery.data ?? [];
-	}, [catalogQuery.data, refreshQuery.data]);
+		const all = catalogQuery.data?.length
+			? catalogQuery.data
+			: (refreshQuery.data ?? []);
+		return namedIn(all, language).sort((left, right) =>
+			nameIn(left, language).localeCompare(nameIn(right, language)),
+		);
+	}, [catalogQuery.data, refreshQuery.data, language]);
 
 	const isLoading =
 		novels.length === 0 &&
@@ -356,6 +364,7 @@ export function usePendingEntityIds(): Set<string> {
 }
 
 export function useOfflineKeywords(novelId: string, search: string) {
+	const language = useLanguage();
 	const [debouncedSearch] = useDebouncedValue(search.trim(), 300);
 	const { downloadedIds } = useDownloadedNovelIds();
 	const online = useOnlineStatus();
@@ -374,9 +383,10 @@ export function useOfflineKeywords(novelId: string, search: string) {
 			return undefined;
 		}
 
-		const source = offlineQuery.data ?? [];
-		return sortKeywords(filterBySearch(source, debouncedSearch));
-	}, [useLocalCache, offlineQuery.data, debouncedSearch]);
+		// Downloads hold both languages; readers only see keywords named in theirs.
+		const source = namedIn(offlineQuery.data ?? [], language);
+		return sortKeywords(filterBySearch(source, debouncedSearch), language);
+	}, [useLocalCache, offlineQuery.data, debouncedSearch, language]);
 
 	return {
 		items,
@@ -638,7 +648,8 @@ export function useOfflineKeywordMutations(novelId: string) {
 
 			const keyword: OfflineKeyword = {
 				id: tempId,
-				name: values.name,
+				nameAr: values.nameAr ?? null,
+				nameEn: values.nameEn ?? null,
 				matchingType: values.matchingType ?? "FULL",
 				novelId,
 				createdById: null,
@@ -734,7 +745,10 @@ export function useOfflineKeywordMutations(novelId: string) {
 
 			const updated: OfflineKeyword = {
 				id,
-				name: data.name ?? existing?.name ?? "",
+				nameAr:
+					data.nameAr === undefined ? (existing?.nameAr ?? null) : data.nameAr,
+				nameEn:
+					data.nameEn === undefined ? (existing?.nameEn ?? null) : data.nameEn,
 				matchingType: data.matchingType ?? existing?.matchingType ?? "FULL",
 				novelId,
 				createdById: existing?.createdById ?? null,

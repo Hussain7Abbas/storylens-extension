@@ -9,11 +9,14 @@
 import type { PostReplacements200KeywordAnyOfCreatedAt } from "./postReplacements200KeywordAnyOfCreatedAt";
 import type { PostReplacements200KeywordAnyOfCreatedById } from "./postReplacements200KeywordAnyOfCreatedById";
 import type { PostReplacements200KeywordAnyOfMatchingType } from "./postReplacements200KeywordAnyOfMatchingType";
+import type { PostReplacements200KeywordAnyOfNameAr } from "./postReplacements200KeywordAnyOfNameAr";
+import type { PostReplacements200KeywordAnyOfNameEn } from "./postReplacements200KeywordAnyOfNameEn";
 import type { PostReplacements200KeywordAnyOfUpdatedAt } from "./postReplacements200KeywordAnyOfUpdatedAt";
 
 export type PostReplacements200KeywordAnyOf = {
 	id: string;
-	name: string;
+	nameAr: PostReplacements200KeywordAnyOfNameAr;
+	nameEn: PostReplacements200KeywordAnyOfNameEn;
 	matchingType: PostReplacements200KeywordAnyOfMatchingType;
 	novelId: string;
 	createdById: PostReplacements200KeywordAnyOfCreatedById;

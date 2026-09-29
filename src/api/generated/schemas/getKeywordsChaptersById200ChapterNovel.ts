@@ -9,14 +9,19 @@
 import type { GetKeywordsChaptersById200ChapterNovelContext } from "./getKeywordsChaptersById200ChapterNovelContext";
 import type { GetKeywordsChaptersById200ChapterNovelCreatedAt } from "./getKeywordsChaptersById200ChapterNovelCreatedAt";
 import type { GetKeywordsChaptersById200ChapterNovelCreatedById } from "./getKeywordsChaptersById200ChapterNovelCreatedById";
-import type { GetKeywordsChaptersById200ChapterNovelDescription } from "./getKeywordsChaptersById200ChapterNovelDescription";
+import type { GetKeywordsChaptersById200ChapterNovelDescriptionAr } from "./getKeywordsChaptersById200ChapterNovelDescriptionAr";
+import type { GetKeywordsChaptersById200ChapterNovelDescriptionEn } from "./getKeywordsChaptersById200ChapterNovelDescriptionEn";
 import type { GetKeywordsChaptersById200ChapterNovelImageId } from "./getKeywordsChaptersById200ChapterNovelImageId";
+import type { GetKeywordsChaptersById200ChapterNovelNameAr } from "./getKeywordsChaptersById200ChapterNovelNameAr";
+import type { GetKeywordsChaptersById200ChapterNovelNameEn } from "./getKeywordsChaptersById200ChapterNovelNameEn";
 import type { GetKeywordsChaptersById200ChapterNovelUpdatedAt } from "./getKeywordsChaptersById200ChapterNovelUpdatedAt";
 
 export type GetKeywordsChaptersById200ChapterNovel = {
 	id: string;
-	name: string;
-	description: GetKeywordsChaptersById200ChapterNovelDescription;
+	nameAr: GetKeywordsChaptersById200ChapterNovelNameAr;
+	nameEn: GetKeywordsChaptersById200ChapterNovelNameEn;
+	descriptionAr: GetKeywordsChaptersById200ChapterNovelDescriptionAr;
+	descriptionEn: GetKeywordsChaptersById200ChapterNovelDescriptionEn;
 	context: GetKeywordsChaptersById200ChapterNovelContext;
 	slugs: string[];
 	imageId: GetKeywordsChaptersById200ChapterNovelImageId;

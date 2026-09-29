@@ -15,10 +15,13 @@ import { ParentKeywordSelect } from "@/components/parent-keyword-select";
 import { useCanMutateKeywords } from "@/lib/auth";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
 import { useCachedNovelsList } from "@/lib/offline/hooks";
+import { useLanguage } from "@/store/locale";
+import { nameIn } from "@/utils/translation";
 import { useDetectedNovel } from "../popup.home/use-detected-novel";
 
 export function SelectionView() {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const root = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		const element = root.current;
@@ -86,7 +89,10 @@ export function SelectionView() {
 			<Select
 				label={t("coloring.novel")}
 				value={selectedNovel?.id ?? null}
-				data={novels.map((novel) => ({ value: novel.id, label: novel.name }))}
+				data={novels.map((novel) => ({
+					value: novel.id,
+					label: nameIn(novel, language),
+				}))}
 				searchable
 				onChange={(id) => {
 					setSelectedNovel(novels.find((novel) => novel.id === id));

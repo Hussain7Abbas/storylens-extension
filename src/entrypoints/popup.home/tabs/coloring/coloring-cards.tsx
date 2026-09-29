@@ -24,8 +24,10 @@ import type {
 } from "@/api/generated/schemas";
 import { useNovelKeywords } from "@/hooks/use-novel-keywords";
 import { usePendingEntityIds } from "@/lib/offline/hooks";
+import { useLanguage } from "@/store/locale";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
+import { type Language, nameIn } from "@/utils/translation";
 import { ListItemCard } from "../list-item-card";
 
 type KeywordGroup = {
@@ -34,9 +36,13 @@ type KeywordGroup = {
 	versions: GetKeywords200DataItemVersionsItem[];
 };
 
-function groupMatchesSearch(group: KeywordGroup, term: string): boolean {
+function groupMatchesSearch(
+	group: KeywordGroup,
+	term: string,
+	language: Language,
+): boolean {
 	return fuzzyMatches(term, [
-		group.parent.name,
+		nameIn(group.parent, language),
 		...group.aliases.map((a) => a.name),
 		...group.versions.map((v) => v.description),
 	]);
@@ -284,6 +290,7 @@ export function ColoringCards({
 	...props
 }: ColoringCardsProps) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const pendingEntityIds = usePendingEntityIds();
 	const { keywords: allItems, isLoading } = useNovelKeywords(selectedNovelId);
 
@@ -295,10 +302,12 @@ export function ColoringCards({
 				aliases: parent.aliases,
 				versions: parent.versions,
 			}))
-			.sort((a, b) => a.parent.name.localeCompare(b.parent.name));
+			.sort((a, b) =>
+				nameIn(a.parent, language).localeCompare(nameIn(b.parent, language)),
+			);
 		if (!term) return all;
-		return all.filter((g) => groupMatchesSearch(g, term));
-	}, [allItems, search]);
+		return all.filter((g) => groupMatchesSearch(g, term, language));
+	}, [allItems, search, language]);
 
 	if (isLoading) {
 		return (
@@ -349,7 +358,7 @@ export function ColoringCards({
 						>
 							<Group wrap="nowrap" align="flex-start" gap="xs">
 								<Text fw={500} style={{ flex: 1 }}>
-									{parent.name}
+									{nameIn(parent, language)}
 								</Text>
 								<Group gap="xs" wrap="nowrap">
 									{hasBaseImage && (

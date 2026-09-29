@@ -10,6 +10,7 @@ import {
 	pickBaseVersion,
 	resolveKeywordInfo,
 } from "@/utils/resolve-keyword-version";
+import { type Language, nameIn } from "@/utils/translation";
 
 const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;
@@ -20,6 +21,7 @@ type AnchorData = {
 	raw: RawKeyword;
 	alias: RawKeywordAlias | null;
 	currentChapter: number;
+	language: Language;
 };
 
 const anchorDataMap = new WeakMap<HTMLElement, AnchorData>();
@@ -189,7 +191,13 @@ function buildInfoPanel(
 	onLayoutChange: () => void,
 ): HTMLElement {
 	const panel = document.createElement("div");
-	const info = resolveKeywordInfo(data.raw, data.alias, data.currentChapter);
+	const info = resolveKeywordInfo(
+		data.raw,
+		data.alias,
+		data.currentChapter,
+		data.language,
+	);
+	const rawName = nameIn(data.raw, data.language);
 
 	// Resolved image with provenance show-more
 	if (info.image.value?.url) {
@@ -199,7 +207,7 @@ function buildInfoPanel(
 		const image = document.createElement("img");
 		image.className = "storylens-keyword-image";
 		image.src = info.image.value.url;
-		image.alt = data.raw.name;
+		image.alt = rawName;
 		image.loading = "lazy";
 		imageWrapper.append(image);
 
@@ -258,7 +266,7 @@ function buildInfoPanel(
 
 	// Name
 	const nameEl = document.createElement("strong");
-	nameEl.textContent = info.name.value ?? data.raw.name;
+	nameEl.textContent = info.name.value ?? rawName;
 	const nameShowMore =
 		info.name.source !== "keyword"
 			? buildShowMoreToggle(info.name, (v) => v, onLayoutChange)
@@ -693,8 +701,9 @@ export function registerKeywordTooltipAnchor(
 	raw: RawKeyword,
 	alias: RawKeywordAlias | null,
 	currentChapter: number,
+	language: Language,
 ): void {
-	anchorDataMap.set(anchor, { enriched, raw, alias, currentChapter });
+	anchorDataMap.set(anchor, { enriched, raw, alias, currentChapter, language });
 
 	anchor.addEventListener("mouseenter", () => {
 		showTooltip(anchor);

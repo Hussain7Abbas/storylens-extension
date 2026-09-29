@@ -10,12 +10,15 @@ import type { PostKeywords200AliasesItem } from "./postKeywords200AliasesItem";
 import type { PostKeywords200CreatedAt } from "./postKeywords200CreatedAt";
 import type { PostKeywords200CreatedById } from "./postKeywords200CreatedById";
 import type { PostKeywords200MatchingType } from "./postKeywords200MatchingType";
+import type { PostKeywords200NameAr } from "./postKeywords200NameAr";
+import type { PostKeywords200NameEn } from "./postKeywords200NameEn";
 import type { PostKeywords200UpdatedAt } from "./postKeywords200UpdatedAt";
 import type { PostKeywords200VersionsItem } from "./postKeywords200VersionsItem";
 
 export type PostKeywords200 = {
 	id: string;
-	name: string;
+	nameAr: PostKeywords200NameAr;
+	nameEn: PostKeywords200NameEn;
 	matchingType: PostKeywords200MatchingType;
 	novelId: string;
 	createdById: PostKeywords200CreatedById;

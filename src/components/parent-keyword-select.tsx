@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 import { useNovelKeywords } from "@/hooks/use-novel-keywords";
+import { useLanguage } from "@/store/locale";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
+import { nameIn } from "@/utils/translation";
 
 /** Async database catalogue, including downloaded novels, with debounced fuzzy search. */
 export function ParentKeywordSelect({
@@ -17,6 +19,7 @@ export function ParentKeywordSelect({
 	onChange: (parent: GetKeywords200DataItem | undefined) => void;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const [search, setSearch] = useState("");
 	const [term] = useDebouncedValue(search, 250);
 	const { keywords, isLoading } = useNovelKeywords(novelId);
@@ -37,11 +40,11 @@ export function ParentKeywordSelect({
 					(item) =>
 						item.id === value ||
 						fuzzyMatches(term, [
-							item.name,
+							nameIn(item, language),
 							...item.aliases.map((alias) => alias.name),
 						]),
 				)
-				.map((item) => ({ value: item.id, label: item.name }))}
+				.map((item) => ({ value: item.id, label: nameIn(item, language) }))}
 			filter={({ options }) => options}
 			rightSection={isLoading ? <Loader size={16} /> : undefined}
 			nothingFoundMessage={

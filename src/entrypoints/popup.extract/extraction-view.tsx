@@ -44,8 +44,10 @@ import {
 	useOfflineKeywordNatures,
 	useOfflineKeywordVersionMutations,
 } from "@/lib/offline/hooks";
+import { useLanguage } from "@/store/locale";
 import type { Novel } from "@/types/models";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
+import { type Language, nameFields, nameIn } from "@/utils/translation";
 import { useDetectedNovel } from "../popup.home/use-detected-novel";
 
 type RowAction = "new" | "alias" | "version";
@@ -82,12 +84,13 @@ function lookupLabel(item: {
 function findParentId(
 	keywords: GetKeywords200DataItem[],
 	name: string,
+	language: Language,
 ): string | null {
 	const key = name.trim().toLowerCase();
 	return (
 		keywords.find(
 			(keyword) =>
-				keyword.name.trim().toLowerCase() === key ||
+				nameIn(keyword, language).trim().toLowerCase() === key ||
 				keyword.aliases.some(
 					(alias) => alias.name.trim().toLowerCase() === key,
 				),
@@ -109,15 +112,19 @@ function ParentSelect({
 	disabled: boolean;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const searchable = useMemo(
 		() =>
 			new Map(
 				keywords.map((keyword) => [
 					keyword.id,
-					[keyword.name, ...keyword.aliases.map((alias) => alias.name)],
+					[
+						nameIn(keyword, language),
+						...keyword.aliases.map((alias) => alias.name),
+					],
 				]),
 			),
-		[keywords],
+		[keywords, language],
 	);
 	return (
 		<Select
@@ -130,7 +137,7 @@ function ParentSelect({
 			rightSection={loading ? <Loader size="xs" /> : undefined}
 			data={keywords.map((keyword) => ({
 				value: keyword.id,
-				label: keyword.name,
+				label: nameIn(keyword, language),
 			}))}
 			limit={50}
 			filter={({ options, search }) =>
@@ -218,7 +225,7 @@ export function ExtractionView() {
 				natures: inputs.current.natures ?? [],
 			};
 			const knownNames = inputs.current.keywords.flatMap((keyword) => [
-				keyword.name,
+				nameIn(keyword, language),
 				...keyword.aliases.map((alias) => alias.name),
 			]);
 			const currentNovelId = inputs.current.novelId;
@@ -264,7 +271,11 @@ export function ExtractionView() {
 					...item,
 					key: `${index}-${item.name}`,
 					parentId: item.suggestedParent
-						? findParentId(inputs.current.keywords, item.suggestedParent.name)
+						? findParentId(
+								inputs.current.keywords,
+								item.suggestedParent.name,
+								language,
+							)
 						: null,
 				})),
 			);
@@ -289,13 +300,17 @@ export function ExtractionView() {
 						row.suggestedParent && !row.parentId && !row.parentTouched
 							? {
 									...row,
-									parentId: findParentId(keywords, row.suggestedParent.name),
+									parentId: findParentId(
+										keywords,
+										row.suggestedParent.name,
+										language,
+									),
 								}
 							: row,
 					)
 				: current,
 		);
-	}, [keywords]);
+	}, [keywords, language]);
 
 	const updateRow = (key: string, patch: Partial<Row>) =>
 		setRows((current) =>
@@ -320,13 +335,17 @@ export function ExtractionView() {
 					? row.description
 					: relatedSuggestionDescription(
 							row,
-							{ kind: action, name: row.name, parent: parent.name },
+							{
+								kind: action,
+								name: row.name,
+								parent: nameIn(parent, language),
+							},
 							language,
 						);
 			if (action === "new")
 				await keywordMutations.createMutation.mutateAsync({
 					novelId,
-					name: row.name,
+					...nameFields(language, row.name),
 					matchingType: "FULL",
 					categoryId: row.categoryId as string,
 					natureId: row.natureId as string,
@@ -381,7 +400,7 @@ export function ExtractionView() {
 					disabled={novelsLoading}
 					data={novels.map((novel: Novel) => ({
 						value: novel.id,
-						label: novel.name,
+						label: nameIn(novel, language),
 					}))}
 					value={null}
 					onChange={(value) =>
@@ -460,7 +479,7 @@ export function ExtractionView() {
 									row.suggestedParent &&
 									row.parentId &&
 									row.parentId ===
-										findParentId(keywords, row.suggestedParent.name)
+										findParentId(keywords, row.suggestedParent.name, language)
 										? row.suggestedParent.relation
 										: undefined;
 								return (

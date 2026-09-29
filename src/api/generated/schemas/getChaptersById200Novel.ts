@@ -9,14 +9,19 @@
 import type { GetChaptersById200NovelContext } from "./getChaptersById200NovelContext";
 import type { GetChaptersById200NovelCreatedAt } from "./getChaptersById200NovelCreatedAt";
 import type { GetChaptersById200NovelCreatedById } from "./getChaptersById200NovelCreatedById";
-import type { GetChaptersById200NovelDescription } from "./getChaptersById200NovelDescription";
+import type { GetChaptersById200NovelDescriptionAr } from "./getChaptersById200NovelDescriptionAr";
+import type { GetChaptersById200NovelDescriptionEn } from "./getChaptersById200NovelDescriptionEn";
 import type { GetChaptersById200NovelImageId } from "./getChaptersById200NovelImageId";
+import type { GetChaptersById200NovelNameAr } from "./getChaptersById200NovelNameAr";
+import type { GetChaptersById200NovelNameEn } from "./getChaptersById200NovelNameEn";
 import type { GetChaptersById200NovelUpdatedAt } from "./getChaptersById200NovelUpdatedAt";
 
 export type GetChaptersById200Novel = {
 	id: string;
-	name: string;
-	description: GetChaptersById200NovelDescription;
+	nameAr: GetChaptersById200NovelNameAr;
+	nameEn: GetChaptersById200NovelNameEn;
+	descriptionAr: GetChaptersById200NovelDescriptionAr;
+	descriptionEn: GetChaptersById200NovelDescriptionEn;
 	context: GetChaptersById200NovelContext;
 	slugs: string[];
 	imageId: GetChaptersById200NovelImageId;

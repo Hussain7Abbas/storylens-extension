@@ -27,11 +27,18 @@ import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userAccessAtom } from "@/lib/auth";
 import { decodeStoredText } from "@/lib/desktop-client/novel-context-prompt";
+import { useLanguage } from "@/store/locale";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { loadWebsiteSelector } from "@/utils/load-website-selectors";
 import { isSlugInList } from "@/utils/novel-matching";
 import { previewXpathRegexResultFromHtml } from "@/utils/selector-preview";
+import {
+	descriptionIn,
+	descriptionKey,
+	nameFields,
+	nameIn,
+} from "@/utils/translation";
 
 async function getNovelNameFromRegex(tabId: number): Promise<string | null> {
 	try {
@@ -81,6 +88,7 @@ function NovelFormContent({
 	onClose?: () => void;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const isModerator = useAtomValue(userAccessAtom) === "moderator";
 	const [detectedName, setDetectedName] = useState<string | null>(null);
 	const [detectingName, setDetectingName] = useState(false);
@@ -99,8 +107,11 @@ function NovelFormContent({
 	useEffect(() => {
 		if (mode === "edit") {
 			setValues({
-				name: selectedNovel?.name || "",
-				description: selectedNovel?.description || "",
+				// The form edits the UI language's name and description only.
+				name: selectedNovel ? nameIn(selectedNovel, language) : "",
+				description: selectedNovel
+					? descriptionIn(selectedNovel, language)
+					: "",
 				context: decodeStoredText(selectedNovel?.context || ""),
 				imageId: selectedNovel?.imageId || "",
 				slugs: selectedNovel?.slugs || [],
@@ -117,7 +128,7 @@ function NovelFormContent({
 				slugs: selectedNovel?.slugs || [],
 			});
 		}
-	}, [mode, selectedNovel, setValues]);
+	}, [mode, selectedNovel, setValues, language]);
 
 	useEffect(() => {
 		if (mode !== "add") {
@@ -218,8 +229,8 @@ function NovelFormContent({
 		if (mode === "add") {
 			createNovelMutation.mutate({
 				data: {
-					name: nameToUse,
-					description: values.description || undefined,
+					...nameFields(language, nameToUse),
+					[descriptionKey(language)]: values.description || undefined,
 					context: values.context.trim() || undefined,
 					imageId: values.imageId || undefined,
 					slugs: values.slugs,
@@ -229,8 +240,8 @@ function NovelFormContent({
 			updateNovelMutation.mutate({
 				id: selectedNovel?.id || "",
 				data: {
-					name: values.name,
-					description: values.description || undefined,
+					...nameFields(language, values.name),
+					[descriptionKey(language)]: values.description || undefined,
 					context: values.context.trim() || undefined,
 					imageId: values.imageId || undefined,
 					slugs: values.slugs,

@@ -20,12 +20,15 @@ import {
 	withListQueryParams,
 } from "@/utils/api-list-params";
 import { findNovelBySlug } from "@/utils/novel-matching";
+import { getStoredLanguage } from "@/utils/stored-language";
+import { type Language, namedIn } from "@/utils/translation";
 
 const LOG_PREFIX = "[StoryLens]";
 const CONTENT_PAGE_SIZE = 500;
 
 async function loadLocalNovelContentData(
 	novelSlug: string,
+	language: Language,
 	chapter?: number,
 ): Promise<NovelContentData | undefined> {
 	const downloadedNovel = await getOfflineNovelBySlug(novelSlug);
@@ -36,7 +39,8 @@ async function loadLocalNovelContentData(
 			getBiasesByNovelId(downloadedNovel.id),
 		]);
 
-		const keywords = rawKeywords;
+		// Local data may hold both languages; pages only match the UI language's names.
+		const keywords = namedIn(rawKeywords, language);
 
 		console.log(`${LOG_PREFIX} Loaded downloaded novel content from local DB`, {
 			novelId: downloadedNovel.id,
@@ -46,6 +50,7 @@ async function loadLocalNovelContentData(
 
 		return {
 			novel: downloadedNovel,
+			language,
 			chapterNumber: chapter,
 			keywords,
 			replacements,
@@ -64,11 +69,10 @@ async function loadLocalNovelContentData(
 		getBiasesByNovelId(catalogNovel.id),
 	]);
 
-	if (rawKeywords.length === 0 && replacements.length === 0) {
+	const keywords = namedIn(rawKeywords, language);
+	if (keywords.length === 0 && replacements.length === 0) {
 		return undefined;
 	}
-
-	const keywords = rawKeywords;
 
 	console.log(`${LOG_PREFIX} Loaded cached novel content from local DB`, {
 		novelId: catalogNovel.id,
@@ -78,6 +82,7 @@ async function loadLocalNovelContentData(
 
 	return {
 		novel: catalogNovel,
+		language,
 		chapterNumber: chapter,
 		keywords,
 		replacements,
@@ -87,6 +92,7 @@ async function loadLocalNovelContentData(
 
 async function loadRemoteNovelContentData(
 	meta: currentNovelMeta,
+	language: Language,
 ): Promise<NovelContentData | undefined> {
 	const catalogNovels = await getAllCatalogNovels();
 	let novel = findNovelBySlug(catalogNovels, meta.novelSlug);
@@ -141,7 +147,7 @@ async function loadRemoteNovelContentData(
 		biases,
 	);
 
-	const keywords = rawKeywords;
+	const keywords = namedIn(rawKeywords, language);
 
 	console.log(
 		`${LOG_PREFIX} Loaded novel content from API and cached locally`,
@@ -154,6 +160,7 @@ async function loadRemoteNovelContentData(
 
 	return {
 		novel,
+		language,
 		chapterNumber: meta.chapter,
 		keywords,
 		replacements: replacementsResponse.data.data,
@@ -166,8 +173,10 @@ export async function loadNovelContentDataForMeta(
 ): Promise<NovelContentData | undefined> {
 	console.log(`${LOG_PREFIX} Loading content data for detected novel`, meta);
 
+	const language = await getStoredLanguage();
 	const localData = await loadLocalNovelContentData(
 		meta.novelSlug,
+		language,
 		meta.chapter,
 	);
 	if (localData) {
@@ -179,7 +188,7 @@ export async function loadNovelContentDataForMeta(
 	}
 
 	try {
-		return await loadRemoteNovelContentData(meta);
+		return await loadRemoteNovelContentData(meta, language);
 	} catch (error) {
 		console.error(
 			`${LOG_PREFIX} Failed to load novel content data from API`,

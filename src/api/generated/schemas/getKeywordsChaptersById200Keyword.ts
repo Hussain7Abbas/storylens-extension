@@ -9,11 +9,14 @@
 import type { GetKeywordsChaptersById200KeywordCreatedAt } from "./getKeywordsChaptersById200KeywordCreatedAt";
 import type { GetKeywordsChaptersById200KeywordCreatedById } from "./getKeywordsChaptersById200KeywordCreatedById";
 import type { GetKeywordsChaptersById200KeywordMatchingType } from "./getKeywordsChaptersById200KeywordMatchingType";
+import type { GetKeywordsChaptersById200KeywordNameAr } from "./getKeywordsChaptersById200KeywordNameAr";
+import type { GetKeywordsChaptersById200KeywordNameEn } from "./getKeywordsChaptersById200KeywordNameEn";
 import type { GetKeywordsChaptersById200KeywordUpdatedAt } from "./getKeywordsChaptersById200KeywordUpdatedAt";
 
 export type GetKeywordsChaptersById200Keyword = {
 	id: string;
-	name: string;
+	nameAr: GetKeywordsChaptersById200KeywordNameAr;
+	nameEn: GetKeywordsChaptersById200KeywordNameEn;
 	matchingType: GetKeywordsChaptersById200KeywordMatchingType;
 	novelId: string;
 	createdById: GetKeywordsChaptersById200KeywordCreatedById;

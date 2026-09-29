@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetNovelsById200Description = null | string;
+export type GetKeywordsChaptersById200ChapterNovelDescriptionEn = null | string;

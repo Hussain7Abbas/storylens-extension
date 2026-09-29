@@ -148,10 +148,19 @@ async function pushOperation(operation: SyncOperation): Promise<void> {
 	}
 }
 
+/** Writes queued before names were translated carry `name`; the API moved that text to Arabic. */
+function withTranslatedName(
+	payload: Record<string, unknown>,
+): Record<string, unknown> {
+	if (!("name" in payload)) return payload;
+	const { name, ...rest } = payload;
+	return { nameAr: name, ...rest };
+}
+
 async function pushKeywordOperation(operation: SyncOperation): Promise<void> {
 	if (operation.action === "create") {
 		const response = await postKeywords(
-			operation.payload as PostKeywordsBodyOne,
+			withTranslatedName(operation.payload) as PostKeywordsBodyOne,
 		);
 		const serverKeyword = response.data as GetKeywords200DataItem;
 
@@ -167,7 +176,7 @@ async function pushKeywordOperation(operation: SyncOperation): Promise<void> {
 	if (operation.action === "update") {
 		const response = await putKeywordsById(
 			operation.entityId,
-			operation.payload as PutKeywordsByIdBodyOne,
+			withTranslatedName(operation.payload) as PutKeywordsByIdBodyOne,
 		);
 		await saveKeyword(
 			cleanOfflineKeyword(response.data as GetKeywords200DataItem),

@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutNovelsById200Description = null | string;
+export type GetReplacementsById200KeywordAnyOfNameAr = null | string;
