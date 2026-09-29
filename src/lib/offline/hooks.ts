@@ -118,7 +118,12 @@ import { useActiveSyncCount } from "@/store/sync-status";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { withListQueryParams } from "@/utils/api-list-params";
 import { refreshContentScript } from "@/utils/refresh-content-script";
-import { type Language, namedIn, nameIn } from "@/utils/translation";
+import {
+	aliasNameColumns,
+	type Language,
+	namedIn,
+	nameIn,
+} from "@/utils/translation";
 
 function filterBySearch<
 	T extends {
@@ -856,6 +861,7 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 			const alias: OfflineKeywordAlias = {
 				id: tempId,
 				name: values.name,
+				...aliasNameColumns(values.name),
 				description: values.description ?? null,
 				matchingType: values.matchingType ?? "FULL",
 				overrideStyle: values.overrideStyle ?? false,
@@ -944,9 +950,17 @@ export function useOfflineKeywordAliasMutations(novelId: string) {
 
 			const effectiveImageId =
 				data.imageId !== undefined ? data.imageId : (existing?.imageId ?? null);
+			const name = data.name ?? existing?.name ?? "";
 			const updated: OfflineKeywordAlias = {
 				id,
-				name: data.name ?? existing?.name ?? "",
+				name,
+				// A rename moves the name between languages and keeps the translation.
+				...(existing && name !== existing.name
+					? aliasNameColumns(name, existing)
+					: {
+							nameAr: existing?.nameAr ?? null,
+							nameEn: existing?.nameEn ?? null,
+						}),
 				description: data.description ?? existing?.description ?? null,
 				matchingType: data.matchingType ?? existing?.matchingType ?? "FULL",
 				overrideStyle: data.overrideStyle ?? existing?.overrideStyle ?? false,

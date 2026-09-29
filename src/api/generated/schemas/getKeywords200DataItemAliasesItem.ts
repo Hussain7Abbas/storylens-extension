@@ -14,6 +14,8 @@ import type { GetKeywords200DataItemAliasesItemDescription } from "./getKeywords
 import type { GetKeywords200DataItemAliasesItemImage } from "./getKeywords200DataItemAliasesItemImage";
 import type { GetKeywords200DataItemAliasesItemImageId } from "./getKeywords200DataItemAliasesItemImageId";
 import type { GetKeywords200DataItemAliasesItemMatchingType } from "./getKeywords200DataItemAliasesItemMatchingType";
+import type { GetKeywords200DataItemAliasesItemNameAr } from "./getKeywords200DataItemAliasesItemNameAr";
+import type { GetKeywords200DataItemAliasesItemNameEn } from "./getKeywords200DataItemAliasesItemNameEn";
 import type { GetKeywords200DataItemAliasesItemNature } from "./getKeywords200DataItemAliasesItemNature";
 import type { GetKeywords200DataItemAliasesItemNatureId } from "./getKeywords200DataItemAliasesItemNatureId";
 import type { GetKeywords200DataItemAliasesItemUpdatedAt } from "./getKeywords200DataItemAliasesItemUpdatedAt";
@@ -21,6 +23,8 @@ import type { GetKeywords200DataItemAliasesItemUpdatedAt } from "./getKeywords20
 export type GetKeywords200DataItemAliasesItem = {
 	id: string;
 	name: string;
+	nameAr: GetKeywords200DataItemAliasesItemNameAr;
+	nameEn: GetKeywords200DataItemAliasesItemNameEn;
 	description: GetKeywords200DataItemAliasesItemDescription;
 	matchingType: GetKeywords200DataItemAliasesItemMatchingType;
 	overrideStyle: boolean;

@@ -12,12 +12,16 @@ import type { DeleteKeywordAliasesById200CreatedById } from "./deleteKeywordAlia
 import type { DeleteKeywordAliasesById200Description } from "./deleteKeywordAliasesById200Description";
 import type { DeleteKeywordAliasesById200ImageId } from "./deleteKeywordAliasesById200ImageId";
 import type { DeleteKeywordAliasesById200MatchingType } from "./deleteKeywordAliasesById200MatchingType";
+import type { DeleteKeywordAliasesById200NameAr } from "./deleteKeywordAliasesById200NameAr";
+import type { DeleteKeywordAliasesById200NameEn } from "./deleteKeywordAliasesById200NameEn";
 import type { DeleteKeywordAliasesById200NatureId } from "./deleteKeywordAliasesById200NatureId";
 import type { DeleteKeywordAliasesById200UpdatedAt } from "./deleteKeywordAliasesById200UpdatedAt";
 
 export type DeleteKeywordAliasesById200 = {
 	id: string;
 	name: string;
+	nameAr: DeleteKeywordAliasesById200NameAr;
+	nameEn: DeleteKeywordAliasesById200NameEn;
 	description: DeleteKeywordAliasesById200Description;
 	matchingType: DeleteKeywordAliasesById200MatchingType;
 	overrideStyle: boolean;

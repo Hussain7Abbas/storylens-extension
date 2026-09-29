@@ -8,7 +8,12 @@ import type {
 	EnrichedKeyword,
 	EnrichedNature,
 } from "@/types/content-data";
-import { type Language, nameIn } from "@/utils/translation";
+import {
+	aliasMatchNames,
+	aliasNames,
+	type Language,
+	nameIn,
+} from "@/utils/translation";
 
 function toDateString(value: unknown): string {
 	if (typeof value === "string") return value;
@@ -147,23 +152,25 @@ export function enrichKeywords(
 			const aliasStyle = resolveStyle(active, base, alias);
 			if (!aliasStyle) continue;
 
-			enriched.push({
-				id: alias.id,
-				name: alias.name,
-				description: aliasStyle.description,
-				matchingType: alias.matchingType,
-				categoryId: aliasStyle.category.id,
-				natureId: aliasStyle.nature.id,
-				imageId: aliasStyle.imageId,
-				keywordId: kw.id,
-				novelId: kw.novelId,
-				createdById: alias.createdById ?? null,
-				createdAt: toDateString(alias.createdAt),
-				updatedAt: toDateString(alias.updatedAt),
-				category: aliasStyle.category,
-				nature: aliasStyle.nature,
-				image: aliasStyle.image,
-			});
+			// One entry per name, so an alias's translation is highlighted too.
+			for (const name of aliasMatchNames(alias))
+				enriched.push({
+					id: alias.id,
+					name,
+					description: aliasStyle.description,
+					matchingType: alias.matchingType,
+					categoryId: aliasStyle.category.id,
+					natureId: aliasStyle.nature.id,
+					imageId: aliasStyle.imageId,
+					keywordId: kw.id,
+					novelId: kw.novelId,
+					createdById: alias.createdById ?? null,
+					createdAt: toDateString(alias.createdAt),
+					updatedAt: toDateString(alias.updatedAt),
+					category: aliasStyle.category,
+					nature: aliasStyle.nature,
+					image: aliasStyle.image,
+				});
 		}
 	}
 
@@ -264,7 +271,7 @@ export function resolveKeywordInfo(
 
 	const name: FieldInfo<string> = alias
 		? {
-				value: alias.name,
+				value: aliasNames(alias)[language] ?? alias.name,
 				source: "alias",
 				overrides: [{ source: "keyword", value: keywordName }],
 			}

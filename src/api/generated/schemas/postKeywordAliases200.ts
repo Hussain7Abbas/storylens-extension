@@ -14,6 +14,8 @@ import type { PostKeywordAliases200Description } from "./postKeywordAliases200De
 import type { PostKeywordAliases200Image } from "./postKeywordAliases200Image";
 import type { PostKeywordAliases200ImageId } from "./postKeywordAliases200ImageId";
 import type { PostKeywordAliases200MatchingType } from "./postKeywordAliases200MatchingType";
+import type { PostKeywordAliases200NameAr } from "./postKeywordAliases200NameAr";
+import type { PostKeywordAliases200NameEn } from "./postKeywordAliases200NameEn";
 import type { PostKeywordAliases200Nature } from "./postKeywordAliases200Nature";
 import type { PostKeywordAliases200NatureId } from "./postKeywordAliases200NatureId";
 import type { PostKeywordAliases200UpdatedAt } from "./postKeywordAliases200UpdatedAt";
@@ -21,6 +23,8 @@ import type { PostKeywordAliases200UpdatedAt } from "./postKeywordAliases200Upda
 export type PostKeywordAliases200 = {
 	id: string;
 	name: string;
+	nameAr: PostKeywordAliases200NameAr;
+	nameEn: PostKeywordAliases200NameEn;
 	description: PostKeywordAliases200Description;
 	matchingType: PostKeywordAliases200MatchingType;
 	overrideStyle: boolean;

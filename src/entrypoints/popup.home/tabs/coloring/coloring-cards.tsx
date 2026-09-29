@@ -27,7 +27,12 @@ import { usePendingEntityIds } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
-import { type Language, nameIn } from "@/utils/translation";
+import {
+	aliasMatchNames,
+	aliasNames,
+	type Language,
+	nameIn,
+} from "@/utils/translation";
 import { ListItemCard } from "../list-item-card";
 
 type KeywordGroup = {
@@ -43,7 +48,7 @@ function groupMatchesSearch(
 ): boolean {
 	return fuzzyMatches(term, [
 		nameIn(group.parent, language),
-		...group.aliases.map((a) => a.name),
+		...group.aliases.flatMap(aliasMatchNames),
 		...group.versions.map((v) => v.description),
 	]);
 }
@@ -209,6 +214,7 @@ function AliasCard({
 	isPending: boolean;
 }) {
 	const { t } = useTranslation();
+	const language = useLanguage();
 	const hasOwnImage = Boolean(alias.imageId ?? alias.image?.url);
 	const ownCategory = alias.category as EnrichedCategory | null;
 	const ownNature = alias.nature as EnrichedNature | null;
@@ -232,7 +238,7 @@ function AliasCard({
 		<ListItemCard onClick={readOnly ? undefined : onClick}>
 			<Group wrap="nowrap" align="flex-start" gap={4}>
 				<Text fw={500} size="xs" style={{ flex: 1 }}>
-					{alias.name}
+					{aliasNames(alias)[language] ?? alias.name}
 				</Text>
 				<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
 					{hasOwnImage && (

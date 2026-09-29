@@ -14,6 +14,8 @@ import type { PutKeywordsById200AliasesItemDescription } from "./putKeywordsById
 import type { PutKeywordsById200AliasesItemImage } from "./putKeywordsById200AliasesItemImage";
 import type { PutKeywordsById200AliasesItemImageId } from "./putKeywordsById200AliasesItemImageId";
 import type { PutKeywordsById200AliasesItemMatchingType } from "./putKeywordsById200AliasesItemMatchingType";
+import type { PutKeywordsById200AliasesItemNameAr } from "./putKeywordsById200AliasesItemNameAr";
+import type { PutKeywordsById200AliasesItemNameEn } from "./putKeywordsById200AliasesItemNameEn";
 import type { PutKeywordsById200AliasesItemNature } from "./putKeywordsById200AliasesItemNature";
 import type { PutKeywordsById200AliasesItemNatureId } from "./putKeywordsById200AliasesItemNatureId";
 import type { PutKeywordsById200AliasesItemUpdatedAt } from "./putKeywordsById200AliasesItemUpdatedAt";
@@ -21,6 +23,8 @@ import type { PutKeywordsById200AliasesItemUpdatedAt } from "./putKeywordsById20
 export type PutKeywordsById200AliasesItem = {
 	id: string;
 	name: string;
+	nameAr: PutKeywordsById200AliasesItemNameAr;
+	nameEn: PutKeywordsById200AliasesItemNameEn;
 	description: PutKeywordsById200AliasesItemDescription;
 	matchingType: PutKeywordsById200AliasesItemMatchingType;
 	overrideStyle: boolean;

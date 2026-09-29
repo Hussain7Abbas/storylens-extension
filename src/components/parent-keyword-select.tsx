@@ -6,7 +6,7 @@ import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 import { useNovelKeywords } from "@/hooks/use-novel-keywords";
 import { useLanguage } from "@/store/locale";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
-import { nameIn } from "@/utils/translation";
+import { aliasMatchNames, nameIn } from "@/utils/translation";
 
 /** Async database catalogue, including downloaded novels, with debounced fuzzy search. */
 export function ParentKeywordSelect({
@@ -41,7 +41,7 @@ export function ParentKeywordSelect({
 						item.id === value ||
 						fuzzyMatches(term, [
 							nameIn(item, language),
-							...item.aliases.map((alias) => alias.name),
+							...item.aliases.flatMap(aliasMatchNames),
 						]),
 				)
 				.map((item) => ({ value: item.id, label: nameIn(item, language) }))}

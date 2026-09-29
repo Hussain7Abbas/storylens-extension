@@ -47,7 +47,7 @@ import {
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
-import { nameFields, nameIn } from "@/utils/translation";
+import { aliasMatchNames, nameFields, nameIn } from "@/utils/translation";
 import { uploadImageFile } from "@/utils/upload-image-file";
 
 type StackFrame =
@@ -321,7 +321,7 @@ function KeywordForm({
 					<GenerateImageButton
 						novelId={selectedNovelId}
 						name={form.values.name}
-						otherNames={keyword?.aliases.map((item) => item.name) ?? []}
+						otherNames={keyword?.aliases.flatMap(aliasMatchNames) ?? []}
 						description={form.values.description}
 						category={categoryLabel(categoriesData, form.values.categoryId)}
 						onGenerated={setImageFile}
@@ -1029,7 +1029,7 @@ function VersionForm({
 					<GenerateImageButton
 						novelId={selectedNovelId}
 						name={nameIn(frame.parentKeyword, language)}
-						otherNames={frame.parentKeyword.aliases.map((item) => item.name)}
+						otherNames={frame.parentKeyword.aliases.flatMap(aliasMatchNames)}
 						description={form.values.description}
 						category={categoryLabel(categoriesData, form.values.categoryId)}
 						onGenerated={setImageFile}

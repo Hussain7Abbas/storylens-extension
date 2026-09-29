@@ -47,7 +47,12 @@ import {
 import { useLanguage } from "@/store/locale";
 import type { Novel } from "@/types/models";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
-import { type Language, nameFields, nameIn } from "@/utils/translation";
+import {
+	aliasMatchNames,
+	type Language,
+	nameFields,
+	nameIn,
+} from "@/utils/translation";
 import { useDetectedNovel } from "../popup.home/use-detected-novel";
 
 type RowAction = "new" | "alias" | "version";
@@ -91,8 +96,10 @@ function findParentId(
 		keywords.find(
 			(keyword) =>
 				nameIn(keyword, language).trim().toLowerCase() === key ||
-				keyword.aliases.some(
-					(alias) => alias.name.trim().toLowerCase() === key,
+				keyword.aliases.some((alias) =>
+					aliasMatchNames(alias).some(
+						(aliasName) => aliasName.trim().toLowerCase() === key,
+					),
 				),
 		)?.id ?? null
 	);
@@ -120,7 +127,7 @@ function ParentSelect({
 					keyword.id,
 					[
 						nameIn(keyword, language),
-						...keyword.aliases.map((alias) => alias.name),
+						...keyword.aliases.flatMap(aliasMatchNames),
 					],
 				]),
 			),
@@ -226,7 +233,7 @@ export function ExtractionView() {
 			};
 			const knownNames = inputs.current.keywords.flatMap((keyword) => [
 				nameIn(keyword, language),
-				...keyword.aliases.map((alias) => alias.name),
+				...keyword.aliases.flatMap(aliasMatchNames),
 			]);
 			const currentNovelId = inputs.current.novelId;
 			const [prompts, novelContext] = await Promise.all([

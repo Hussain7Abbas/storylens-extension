@@ -14,6 +14,8 @@ import type { PostKeywords200AliasesItemDescription } from "./postKeywords200Ali
 import type { PostKeywords200AliasesItemImage } from "./postKeywords200AliasesItemImage";
 import type { PostKeywords200AliasesItemImageId } from "./postKeywords200AliasesItemImageId";
 import type { PostKeywords200AliasesItemMatchingType } from "./postKeywords200AliasesItemMatchingType";
+import type { PostKeywords200AliasesItemNameAr } from "./postKeywords200AliasesItemNameAr";
+import type { PostKeywords200AliasesItemNameEn } from "./postKeywords200AliasesItemNameEn";
 import type { PostKeywords200AliasesItemNature } from "./postKeywords200AliasesItemNature";
 import type { PostKeywords200AliasesItemNatureId } from "./postKeywords200AliasesItemNatureId";
 import type { PostKeywords200AliasesItemUpdatedAt } from "./postKeywords200AliasesItemUpdatedAt";
@@ -21,6 +23,8 @@ import type { PostKeywords200AliasesItemUpdatedAt } from "./postKeywords200Alias
 export type PostKeywords200AliasesItem = {
 	id: string;
 	name: string;
+	nameAr: PostKeywords200AliasesItemNameAr;
+	nameEn: PostKeywords200AliasesItemNameEn;
 	description: PostKeywords200AliasesItemDescription;
 	matchingType: PostKeywords200AliasesItemMatchingType;
 	overrideStyle: boolean;

@@ -10,7 +10,7 @@ import {
 	pickBaseVersion,
 	resolveKeywordInfo,
 } from "@/utils/resolve-keyword-version";
-import { type Language, nameIn } from "@/utils/translation";
+import { aliasNames, type Language, nameIn } from "@/utils/translation";
 
 const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;
@@ -331,7 +331,7 @@ function buildInfoPanel(
 	return panel;
 }
 
-function buildAliasesPanel(raw: RawKeyword): HTMLElement {
+function buildAliasesPanel(raw: RawKeyword, language: Language): HTMLElement {
 	const panel = document.createElement("div");
 	const base = pickBaseVersion(raw.versions);
 
@@ -343,7 +343,7 @@ function buildAliasesPanel(raw: RawKeyword): HTMLElement {
 		const nameRow = document.createElement("div");
 		nameRow.className = "storylens-panel-item-name";
 		const nameText = document.createElement("span");
-		nameText.textContent = alias.name;
+		nameText.textContent = aliasNames(alias)[language] ?? alias.name;
 		nameRow.append(nameText);
 		if (alias.overrideStyle) {
 			const badge = document.createElement("span");
@@ -573,7 +573,7 @@ function buildKeywordTooltipContent(
 	if (data.raw.aliases.length > 0) {
 		tabs.push({
 			label: tt("aliases"),
-			content: buildAliasesPanel(data.raw),
+			content: buildAliasesPanel(data.raw, data.language),
 		});
 	}
 
