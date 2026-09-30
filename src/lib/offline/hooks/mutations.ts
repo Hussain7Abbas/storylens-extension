@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { t } from "i18next";
 import toast from "react-hot-toast";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
 	type AliasValues,
 	type EnqueueInput,
@@ -41,6 +42,8 @@ export type NatureFormValues = LookupValues;
 function useEnqueue<TInput>(
 	toInput: (input: TInput) => EnqueueInput,
 	refreshPage = true,
+	/** Deletes run from buttons without an error area: say why a refusal wrote nothing. */
+	toastErrors = false,
 ) {
 	const queryClient = useQueryClient();
 	return useMutation<EnqueueResult, Error, TInput>({
@@ -54,6 +57,9 @@ function useEnqueue<TInput>(
 				() => undefined,
 			);
 			if (refreshPage) void refreshContentScript().catch(() => false);
+		},
+		onError: (error) => {
+			if (toastErrors) toast.error(offlineErrorMessage(error, t));
 		},
 	});
 }
@@ -77,11 +83,15 @@ export function useOfflineKeywordMutations(novelId: string) {
 			...input,
 		}),
 	);
-	const deleteMutation = useEnqueue((id: string) => ({
-		entity: "keyword",
-		op: "delete",
-		id,
-	}));
+	const deleteMutation = useEnqueue(
+		(id: string) => ({
+			entity: "keyword",
+			op: "delete",
+			id,
+		}),
+		true,
+		true,
+	);
 	return { createMutation, updateMutation, deleteMutation };
 }
 
@@ -106,11 +116,15 @@ export function useOfflineKeywordAliasMutations(_novelId?: string) {
 			...input,
 		}),
 	);
-	const deleteMutation = useEnqueue((id: string) => ({
-		entity: "keywordAlias",
-		op: "delete",
-		id,
-	}));
+	const deleteMutation = useEnqueue(
+		(id: string) => ({
+			entity: "keywordAlias",
+			op: "delete",
+			id,
+		}),
+		true,
+		true,
+	);
 	return { createMutation, updateMutation, deleteMutation };
 }
 
@@ -135,11 +149,15 @@ export function useOfflineKeywordVersionMutations(_novelId?: string) {
 			...input,
 		}),
 	);
-	const deleteMutation = useEnqueue((id: string) => ({
-		entity: "keywordVersion",
-		op: "delete",
-		id,
-	}));
+	const deleteMutation = useEnqueue(
+		(id: string) => ({
+			entity: "keywordVersion",
+			op: "delete",
+			id,
+		}),
+		true,
+		true,
+	);
 	return { createMutation, updateMutation, deleteMutation };
 }
 
@@ -157,11 +175,15 @@ export function useOfflineReplacementMutations(novelId: string) {
 			...input,
 		}),
 	);
-	const deleteMutation = useEnqueue((id: string) => ({
-		entity: "replacement",
-		op: "delete",
-		id,
-	}));
+	const deleteMutation = useEnqueue(
+		(id: string) => ({
+			entity: "replacement",
+			op: "delete",
+			id,
+		}),
+		true,
+		true,
+	);
 	return { createMutation, updateMutation, deleteMutation };
 }
 
@@ -181,6 +203,7 @@ function useLookupMutations(entity: "keywordCategory" | "keywordNature") {
 	const deleteMutation = useEnqueue(
 		(id: string) => ({ entity, op: "delete", id }),
 		false,
+		true,
 	);
 	return { createMutation, updateMutation, deleteMutation };
 }
