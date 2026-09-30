@@ -90,12 +90,15 @@ export function SyncStatusButton({ t }: { t: TFunction }) {
 						count: after.pending,
 					}),
 				);
+			} else if (!summary?.ran || summary.state !== "idle") {
+				toast(t(syncIndicator(after).message));
+			} else if (summary?.failedPulls) {
+				toast.error(t("sync.summaryPullFailed"));
 			} else {
 				toast.success(
-					t("sync.summaryDone", {
-						sent: summary?.sent ?? 0,
-						pulled: summary?.pulledUnits ?? 0,
-					}),
+					(summary?.sent ?? 0) > 0
+						? t("sync.summaryDone", { sent: summary?.sent })
+						: t("sync.summaryUpToDate"),
 				);
 			}
 		} catch {
