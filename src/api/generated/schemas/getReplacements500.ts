@@ -8,4 +8,5 @@
 
 export type GetReplacements500 = {
 	message: string;
+	code?: string;
 };

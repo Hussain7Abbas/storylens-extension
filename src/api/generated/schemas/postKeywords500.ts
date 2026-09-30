@@ -8,4 +8,5 @@
 
 export type PostKeywords500 = {
 	message: string;
+	code?: string;
 };

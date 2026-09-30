@@ -8,4 +8,5 @@
 
 export type PutKeywordAliasesById500 = {
 	message: string;
+	code?: string;
 };

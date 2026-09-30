@@ -8,4 +8,5 @@
 
 export type GetHealthReady404 = {
 	message: string;
+	code?: string;
 };

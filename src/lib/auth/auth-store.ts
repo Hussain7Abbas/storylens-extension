@@ -19,20 +19,12 @@ export interface AuthUser {
 	role: { id: string; slug: string; name: string } | null;
 	/** Permission keys from the API, e.g. `POST /api/user/keywords/`. */
 	permissions: string[];
-	/** Access level of a session stored before roles had permissions. */
-	legacyAccess?: AccessLevel;
 }
 
 export interface AuthState {
 	user: AuthUser | null;
 	token: string | null;
 }
-
-const LEGACY_ACCESS: Record<string, AccessLevel> = {
-	guest: "guest",
-	user: "reader",
-	admin: "moderator",
-};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
@@ -50,10 +42,7 @@ function toRole(value: unknown): AuthUser["role"] {
 	return null;
 }
 
-/**
- * Accepts an API user or a stored one, including the pre-permission shape
- * (`role: "guest" | "user" | "admin"`); returns null for anything else.
- */
+/** Accepts an API user or a stored one; returns null for anything else. */
 export function normalizeAuthUser(value: unknown): AuthUser | null {
 	if (
 		!isRecord(value) ||
@@ -83,22 +72,11 @@ export function normalizeAuthUser(value: unknown): AuthUser | null {
 		};
 	}
 
-	if (typeof value.role === "string" && value.role in LEGACY_ACCESS) {
-		return {
-			...base,
-			isGuest: value.role === "guest",
-			role: null,
-			permissions: [],
-			legacyAccess: LEGACY_ACCESS[value.role],
-		};
-	}
-
 	return null;
 }
 
 export function accessLevelOf(user: AuthUser | null): AccessLevel {
 	if (!user || user.isGuest) return "guest";
-	if (user.legacyAccess) return user.legacyAccess;
 	return user.permissions.includes(MODERATE_PERMISSION)
 		? "moderator"
 		: "reader";

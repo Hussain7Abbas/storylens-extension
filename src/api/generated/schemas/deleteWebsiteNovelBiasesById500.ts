@@ -8,4 +8,5 @@
 
 export type DeleteWebsiteNovelBiasesById500 = {
 	message: string;
+	code?: string;
 };

@@ -8,4 +8,5 @@
 
 export type PostWebsiteSelectors500 = {
 	message: string;
+	code?: string;
 };

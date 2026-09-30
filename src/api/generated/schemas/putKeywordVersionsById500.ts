@@ -8,4 +8,5 @@
 
 export type PutKeywordVersionsById500 = {
 	message: string;
+	code?: string;
 };

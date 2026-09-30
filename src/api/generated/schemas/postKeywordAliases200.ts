@@ -22,7 +22,6 @@ import type { PostKeywordAliases200UpdatedAt } from "./postKeywordAliases200Upda
 
 export type PostKeywordAliases200 = {
 	id: string;
-	name: string;
 	nameAr: PostKeywordAliases200NameAr;
 	nameEn: PostKeywordAliases200NameEn;
 	description: PostKeywordAliases200Description;

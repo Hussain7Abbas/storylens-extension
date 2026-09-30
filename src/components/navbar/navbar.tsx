@@ -7,14 +7,12 @@ import {
 	useComputedColorScheme,
 	useMantineColorScheme,
 } from "@mantine/core";
-import { useQueryClient } from "@tanstack/react-query";
 import cx from "clsx";
 import type { TFunction } from "i18next";
 import { useAtom, useAtomValue } from "jotai";
 import {
 	ChevronLeft as IconChevronLeft,
 	ChevronRight as IconChevronRight,
-	CloudUpload as IconCloudUpload,
 	Languages as IconLanguage,
 	Moon as IconMoon,
 	RefreshCw as IconRefresh,
@@ -32,23 +30,17 @@ import {
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import icon from "@/assets/icon.png";
-import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
 import { userAccessAtom } from "@/lib/auth";
-import { useOnlineStatus, usePendingSyncCount } from "@/lib/offline/hooks";
 import { websitePageUrl } from "@/lib/website";
 import { localeAtom } from "@/store/locale";
-import { useActiveSyncCount } from "@/store/sync-status";
 import { refreshContentScript } from "@/utils/refresh-content-script";
 import classes from "./navbar.module.css";
+import { SyncStatusButton } from "./sync-status-button";
 
 export function Navbar() {
 	const { t, i18n } = useTranslation();
 	const dir = i18n.language === "ar" ? "rtl" : "ltr";
-	const online = useOnlineStatus();
-	const pendingCount = usePendingSyncCount();
-	const activeSyncCount = useActiveSyncCount();
-	const showSyncIndicator = pendingCount > 0 || activeSyncCount > 0;
 	const isModerator = useAtomValue(userAccessAtom) === "moderator";
 	const { canGoBack, current } = useRoutes();
 	const isOnSettings = current === "settings";
@@ -80,14 +72,7 @@ export function Navbar() {
 				</Title>
 			</Group>
 			<NavbarActionsScroll dir={dir} pinnedAction={pinnedAction}>
-				{showSyncIndicator && (
-					<SyncButton
-						t={t}
-						pendingCount={pendingCount}
-						activeSyncCount={activeSyncCount}
-						online={online}
-					/>
-				)}
+				<SyncStatusButton t={t} />
 				<RefreshContentButton t={t} />
 				<ToggleColorScheme t={t} />
 				{!isModerator && <ToggleLanguage t={t} />}
@@ -180,85 +165,6 @@ function NavbarActionsScroll({
 			</div>
 			{pinnedAction}
 		</Group>
-	);
-}
-
-function SyncButton({
-	t,
-	pendingCount,
-	activeSyncCount,
-	online,
-}: {
-	t: TFunction;
-	pendingCount: number;
-	activeSyncCount: number;
-	online: boolean;
-}) {
-	const [syncing, setSyncing] = useState(false);
-	const queryClient = useQueryClient();
-	const isBackgroundActive = activeSyncCount > 0 || syncing;
-
-	const handleSync = async () => {
-		if (!online) {
-			toast.error(t("offline.syncRequiresOnline"));
-			return;
-		}
-
-		setSyncing(true);
-		try {
-			const result = await sendMessage("triggerFullSync");
-			await queryClient.invalidateQueries({ queryKey: ["offline"] });
-			if (result.failed > 0 || result.remaining > 0) {
-				const permissionDenied = result.errors.some(
-					(error) => error.status === 403,
-				);
-				const details = [
-					...new Set(
-						result.errors.map((error) => `${error.entity}: ${error.message}`),
-					),
-				].join("; ");
-				toast.error(
-					`${t(permissionDenied ? "offline.syncPermissionDenied" : "offline.syncIncomplete", { count: result.remaining })}${details ? `: ${details}` : ""}`,
-					{ duration: 10000 },
-				);
-				return;
-			}
-			toast.success(
-				t("offline.syncSuccess", {
-					pushed: result.pushed,
-					pulled: result.pulled,
-				}),
-			);
-		} catch {
-			toast.error(t("offline.syncFailed"));
-		} finally {
-			setSyncing(false);
-		}
-	};
-
-	return (
-		<Tooltip
-			label={
-				pendingCount > 0
-					? t("offline.syncPending", { count: pendingCount })
-					: t("offline.syncNow")
-			}
-			withArrow
-		>
-			<ActionIcon
-				variant="subtle"
-				color="var(--mantine-color-dimmed)"
-				radius="sm"
-				size="lg"
-				aria-label={t("offline.syncNow")}
-				loading={isBackgroundActive}
-				onClick={() => {
-					void handleSync();
-				}}
-			>
-				<IconCloudUpload strokeWidth={1.75} />
-			</ActionIcon>
-		</Tooltip>
 	);
 }
 

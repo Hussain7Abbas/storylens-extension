@@ -8,4 +8,5 @@
 
 export type GetAuthProviders500 = {
 	message: string;
+	code?: string;
 };

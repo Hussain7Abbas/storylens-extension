@@ -6,15 +6,15 @@ import {
 	Stack,
 	type StackProps,
 	Text,
+	Tooltip,
 } from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
 import { CloudUpload as IconCloudUpload } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getReplacements } from "@/api/generated/endpoints/replacements.js";
 import type { GetReplacements200DataItem } from "@/api/generated/schemas";
+import { canEditReplacement } from "@/lib/auth/permissions";
+import { useCurrentUser } from "@/lib/auth/use-permissions";
 import {
 	useOfflineReplacements,
-	useOnlineStatus,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
@@ -38,43 +38,29 @@ export function ReplacingCards({
 	...props
 }: ReplacingFormProps) {
 	const { t } = useTranslation();
-	const online = useOnlineStatus();
+	const user = useCurrentUser();
 	const pendingEntityIds = usePendingEntityIds();
+	// One source of truth: the novel's view, online and offline (W2).
 	const offline = useOfflineReplacements(selectedNovelId, "");
-
-	const onlineQuery = useQuery({
-		queryKey: ["replacements", selectedNovelId, "all"],
-		queryFn: async ({ signal }) => {
-			const items: GetReplacements200DataItem[] = [];
-			for (let page = 1; ; page++) {
-				const response = await getReplacements(
-					{
-						pagination: { page, pageSize: 500 },
-						sorting: { column: "from", direction: "asc" },
-						query: { novelId: selectedNovelId },
-					},
-					undefined,
-					signal,
-				);
-				items.push(...response.data.data);
-				if (!response.data.data.length || items.length >= response.data.total)
-					return items;
-			}
-		},
-		enabled: !offline.useLocalCache && online,
-	});
-	const items = (
-		offline.useLocalCache ? (offline.items ?? []) : (onlineQuery.data ?? [])
-	).filter((item) => fuzzyMatches(search, [item.from, item.to]));
-	const isLoading = offline.useLocalCache
-		? offline.isLoading
-		: onlineQuery.isLoading;
+	const items = (offline.items ?? []).filter((item) =>
+		fuzzyMatches(search, [item.from, item.to]),
+	);
+	const isLoading = offline.isLoading;
+	const notAvailableOffline = offline.notAvailableOffline;
 
 	if (isLoading) {
 		return (
 			<Center>
 				<Loader />
 			</Center>
+		);
+	}
+
+	if (items.length === 0 && notAvailableOffline) {
+		return (
+			<Text ta="center" c="dimmed" size="sm">
+				{t("offline.notAvailableOffline")}
+			</Text>
 		);
 	}
 
@@ -89,41 +75,49 @@ export function ReplacingCards({
 	return (
 		<Stack gap="xs" {...props}>
 			{items.map((replacement) => {
-				const isPending =
-					pendingEntityIds.has(replacement.id) ||
-					("isDirty" in replacement && replacement.isDirty === true);
+				const isPending = pendingEntityIds.has(replacement.id);
+				const locked = !readOnly && !canEditReplacement(user, replacement);
 
 				return (
-					<ListItemCard
+					<Tooltip
 						key={replacement.id}
-						onClick={
-							readOnly
-								? undefined
-								: () => {
-										setReplacement(replacement);
-										setMode("edit");
-									}
-						}
+						label={t("permissions.creatorOrModerator")}
+						disabled={!locked}
+						withArrow
+						openDelay={300}
 					>
-						<Group wrap="nowrap" align="flex-start" gap="xs" w="100%">
-							<Text fw={500} style={{ flex: 1 }}>
-								{replacement.from}
-							</Text>
-							{isPending && (
-								<Badge
-									size="xs"
-									color="orange"
-									variant="light"
-									leftSection={<IconCloudUpload size={12} />}
-								>
-									{t("offline.pendingSync")}
-								</Badge>
-							)}
-							<Text size="sm" c="dimmed" style={{ flex: 1 }}>
-								{replacement.to}
-							</Text>
-						</Group>
-					</ListItemCard>
+						<div>
+							<ListItemCard
+								onClick={
+									readOnly || locked
+										? undefined
+										: () => {
+												setReplacement(replacement);
+												setMode("edit");
+											}
+								}
+							>
+								<Group wrap="nowrap" align="flex-start" gap="xs" w="100%">
+									<Text fw={500} style={{ flex: 1 }}>
+										{replacement.from}
+									</Text>
+									{isPending && (
+										<Badge
+											size="xs"
+											color="orange"
+											variant="light"
+											leftSection={<IconCloudUpload size={12} />}
+										>
+											{t("offline.pendingSync")}
+										</Badge>
+									)}
+									<Text size="sm" c="dimmed" style={{ flex: 1 }}>
+										{replacement.to}
+									</Text>
+								</Group>
+							</ListItemCard>
+						</div>
+					</Tooltip>
 				);
 			})}
 		</Stack>

@@ -38,6 +38,16 @@ export function useAuthInit() {
 					return;
 				}
 
+				// A session stored in an older shape still has its token: reload the
+				// user rather than turning a signed-in reader into a guest.
+				if (stored.token) {
+					const user = await refreshCurrentUser(stored.token);
+					if (user) {
+						setAuthState({ user, token: stored.token });
+						return;
+					}
+				}
+
 				const { user, token } = await createGuestAccount();
 				setAuthState({ user, token });
 			} catch (error) {

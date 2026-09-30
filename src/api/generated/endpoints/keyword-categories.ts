@@ -43,6 +43,7 @@ import type {
 	PostKeywordCategoriesBodyTwo,
 	PutKeywordCategoriesById200,
 	PutKeywordCategoriesById404,
+	PutKeywordCategoriesById409,
 	PutKeywordCategoriesById500,
 	PutKeywordCategoriesByIdBodyOne,
 	PutKeywordCategoriesByIdBodyThree,
@@ -524,7 +525,11 @@ export const putKeywordCategoriesById = (
 };
 
 export const getPutKeywordCategoriesByIdMutationOptions = <
-	TError = ErrorType<PutKeywordCategoriesById404 | PutKeywordCategoriesById500>,
+	TError = ErrorType<
+		| PutKeywordCategoriesById404
+		| PutKeywordCategoriesById409
+		| PutKeywordCategoriesById500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -587,11 +592,17 @@ export type PutKeywordCategoriesByIdMutationBody =
 	| PutKeywordCategoriesByIdBodyTwo
 	| PutKeywordCategoriesByIdBodyThree;
 export type PutKeywordCategoriesByIdMutationError = ErrorType<
-	PutKeywordCategoriesById404 | PutKeywordCategoriesById500
+	| PutKeywordCategoriesById404
+	| PutKeywordCategoriesById409
+	| PutKeywordCategoriesById500
 >;
 
 export const usePutKeywordCategoriesById = <
-	TError = ErrorType<PutKeywordCategoriesById404 | PutKeywordCategoriesById500>,
+	TError = ErrorType<
+		| PutKeywordCategoriesById404
+		| PutKeywordCategoriesById409
+		| PutKeywordCategoriesById500
+	>,
 	TContext = unknown,
 >(
 	options?: {

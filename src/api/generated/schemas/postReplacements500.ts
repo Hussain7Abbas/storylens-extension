@@ -8,4 +8,5 @@
 
 export type PostReplacements500 = {
 	message: string;
+	code?: string;
 };

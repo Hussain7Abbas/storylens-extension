@@ -8,4 +8,5 @@
 
 export type GetWebsiteSelectorsByWebsite500 = {
 	message: string;
+	code?: string;
 };

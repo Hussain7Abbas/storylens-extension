@@ -5,11 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PostKeywordNaturesBodyThreeDescription } from "./postKeywordNaturesBodyThreeDescription";
+import type { PostKeywordNaturesBodyThreeNameAr } from "./postKeywordNaturesBodyThreeNameAr";
+import type { PostKeywordNaturesBodyThreeNameEn } from "./postKeywordNaturesBodyThreeNameEn";
 
 export type PostKeywordNaturesBodyThree = {
-	nameEn?: string;
-	nameAr?: string;
+	id: string;
+	/** @nullable */
+	nameEn?: PostKeywordNaturesBodyThreeNameEn;
+	/** @nullable */
+	nameAr?: PostKeywordNaturesBodyThreeNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
 	/** @nullable */

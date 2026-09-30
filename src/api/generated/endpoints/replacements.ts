@@ -43,6 +43,7 @@ import type {
 	PostReplacementsBodyTwo,
 	PutReplacementsById200,
 	PutReplacementsById404,
+	PutReplacementsById409,
 	PutReplacementsById500,
 	PutReplacementsByIdBodyOne,
 	PutReplacementsByIdBodyThree,
@@ -520,7 +521,9 @@ export const putReplacementsById = (
 };
 
 export const getPutReplacementsByIdMutationOptions = <
-	TError = ErrorType<PutReplacementsById404 | PutReplacementsById500>,
+	TError = ErrorType<
+		PutReplacementsById404 | PutReplacementsById409 | PutReplacementsById500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -583,11 +586,13 @@ export type PutReplacementsByIdMutationBody =
 	| PutReplacementsByIdBodyTwo
 	| PutReplacementsByIdBodyThree;
 export type PutReplacementsByIdMutationError = ErrorType<
-	PutReplacementsById404 | PutReplacementsById500
+	PutReplacementsById404 | PutReplacementsById409 | PutReplacementsById500
 >;
 
 export const usePutReplacementsById = <
-	TError = ErrorType<PutReplacementsById404 | PutReplacementsById500>,
+	TError = ErrorType<
+		PutReplacementsById404 | PutReplacementsById409 | PutReplacementsById500
+	>,
 	TContext = unknown,
 >(
 	options?: {

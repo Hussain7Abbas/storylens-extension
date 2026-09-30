@@ -8,4 +8,5 @@
 
 export type GetHealth500 = {
 	message: string;
+	code?: string;
 };

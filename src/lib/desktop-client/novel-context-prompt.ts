@@ -3,22 +3,6 @@ import type { AiLanguage } from "./ai-language";
 /** Longest context kept in prompts and accepted by the API. */
 export const NOVEL_CONTEXT_CHARS = 6_000;
 
-const ENTITIES: Record<string, string> = {
-	"&lt;": "<",
-	"&gt;": ">",
-	"&quot;": '"',
-	"&#x27;": "'",
-	"&amp;": "&",
-};
-
-/** The API escapes HTML characters in stored text; prompts need the plain text back. */
-export function decodeStoredText(value: string): string {
-	return value.replace(
-		/&(lt|gt|quot|amp|#x27);/g,
-		(entity) => ENTITIES[entity],
-	);
-}
-
 export type NovelInfo = {
 	id: string;
 	name: string;
@@ -37,7 +21,7 @@ export function buildNovelContextPrompt(
 			? `Other titles or URL slugs: ${novel.slugs.join(", ")}`
 			: "",
 		novel.description?.trim()
-			? `Reader's description: ${decodeStoredText(novel.description)}`
+			? `Reader's description: ${novel.description}`
 			: "",
 	]
 		.filter(Boolean)

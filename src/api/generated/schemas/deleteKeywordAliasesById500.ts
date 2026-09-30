@@ -8,4 +8,5 @@
 
 export type DeleteKeywordAliasesById500 = {
 	message: string;
+	code?: string;
 };

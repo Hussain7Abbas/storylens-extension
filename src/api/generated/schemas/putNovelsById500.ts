@@ -8,4 +8,5 @@
 
 export type PutNovelsById500 = {
 	message: string;
+	code?: string;
 };

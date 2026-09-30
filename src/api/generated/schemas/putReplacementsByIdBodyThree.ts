@@ -8,10 +8,10 @@
 import type { PutReplacementsByIdBodyThreeMatchingType } from "./putReplacementsByIdBodyThreeMatchingType";
 
 export type PutReplacementsByIdBodyThree = {
-	novelId: string;
+	baseUpdatedAt: string;
 	/** @minLength 1 */
-	from: string;
+	from?: string;
 	/** @minLength 1 */
-	to: string;
-	matchingType: PutReplacementsByIdBodyThreeMatchingType;
+	to?: string;
+	matchingType?: PutReplacementsByIdBodyThreeMatchingType;
 };

@@ -8,4 +8,5 @@
 
 export type PostAuthChangePassword404 = {
 	message: string;
+	code?: string;
 };

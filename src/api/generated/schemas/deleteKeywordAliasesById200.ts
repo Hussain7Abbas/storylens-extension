@@ -19,7 +19,6 @@ import type { DeleteKeywordAliasesById200UpdatedAt } from "./deleteKeywordAliase
 
 export type DeleteKeywordAliasesById200 = {
 	id: string;
-	name: string;
 	nameAr: DeleteKeywordAliasesById200NameAr;
 	nameEn: DeleteKeywordAliasesById200NameEn;
 	description: DeleteKeywordAliasesById200Description;

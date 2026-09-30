@@ -27,17 +27,17 @@ import type {
 	GetKeywords200DataItem,
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
-	PostKeywordAliasesBodyOne,
-	PostKeywordsBodyOne,
-	PostKeywordVersionsBodyOne,
-	PutKeywordAliasesByIdBodyOne,
-	PutKeywordsByIdBodyOne,
-	PutKeywordVersionsByIdBodyOne,
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
 import { useIsModerator } from "@/lib/auth";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
+import { offlineErrorMessage } from "@/lib/offline/errors";
+import {
+	aliasFormChanges,
+	keywordFormChanges,
+	versionFormChanges,
+} from "@/lib/offline/form-changes";
 import {
 	useOfflineKeywordAliasMutations,
 	useOfflineKeywordCategories,
@@ -47,8 +47,12 @@ import {
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
-import { aliasMatchNames, nameFields, nameIn } from "@/utils/translation";
-import { uploadImageFile } from "@/utils/upload-image-file";
+import {
+	aliasDisplayName,
+	aliasMatchNames,
+	nameFields,
+	nameIn,
+} from "@/utils/translation";
 
 type StackFrame =
 	| {
@@ -121,7 +125,6 @@ function KeywordForm({
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
@@ -177,7 +180,6 @@ function KeywordForm({
 
 	const isPending =
 		isGeneratingImage ||
-		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
 		updateVersionMutation.isPending ||
@@ -185,67 +187,59 @@ function KeywordForm({
 
 	const handleSubmit = async (values: KeywordFormValues) => {
 		setUploadError(null);
-		let imageId = values.imageId;
-		if (imageFile) {
-			setIsUploadingImage(true);
-			try {
-				imageId = await uploadImageFile(imageFile);
-			} catch (error) {
-				setUploadError(
-					error instanceof Error
-						? error.message
-						: t("coloring.imageUploadFailed"),
-				);
-				return;
-			} finally {
-				setIsUploadingImage(false);
-			}
-		}
+		// A picked or generated image is queued on the device and uploads with the change (U6).
+		const image = imageFile
+			? { blob: imageFile, name: imageFile.name, type: imageFile.type }
+			: undefined;
 
-		if (frame.mode === "keyword-add") {
-			const payload: PostKeywordsBodyOne = {
-				novelId: selectedNovelId,
-				// The name is saved in the UI language; the other language is left untouched.
-				...nameFields(language, values.name),
-				matchingType: values.matchingType,
-				categoryId: values.categoryId,
-				natureId: values.natureId,
-				description: values.description || undefined,
-				imageId,
-			};
-			createMutation.mutate(payload, {
-				onSuccess: () => {
-					form.reset();
-					setImageFile(null);
-					onClose();
-				},
-			});
-		} else if (keyword) {
-			try {
-				await updateMutation.mutateAsync({
-					id: keyword.id,
-					data: {
-						...nameFields(language, values.name),
-						matchingType: values.matchingType,
-					} satisfies PutKeywordsByIdBodyOne,
+		try {
+			if (frame.mode === "keyword-add") {
+				await createMutation.mutateAsync({
+					// The name is saved in the UI language; the other language is left untouched.
+					...nameFields(language, values.name),
+					matchingType: values.matchingType,
+					categoryId: values.categoryId,
+					natureId: values.natureId,
+					description: values.description || null,
+					imageId: values.imageId ?? null,
+					image,
 				});
-				if (baseVersion) {
-					await updateVersionMutation.mutateAsync({
-						id: baseVersion.id,
-						data: {
-							description: values.description || undefined,
-							categoryId: values.categoryId || undefined,
-							natureId: values.natureId || undefined,
-							imageId,
-						} satisfies PutKeywordVersionsByIdBodyOne,
+			} else if (keyword) {
+				const { keyword: keywordChanges, baseVersion: versionChanges } =
+					keywordFormChanges(
+						{
+							name: nameIn(keyword, language),
+							matchingType: keyword.matchingType,
+							categoryId: baseVersion?.categoryId ?? "",
+							natureId: baseVersion?.natureId ?? "",
+							description: baseVersion?.description ?? null,
+							imageId: baseVersion?.imageId ?? null,
+						},
+						{ ...values, imageId: values.imageId ?? null },
+						language,
+					);
+				if (keywordChanges) {
+					await updateMutation.mutateAsync({
+						id: keyword.id,
+						...keywordChanges,
+						seenUpdatedAt: String(keyword.updatedAt),
 					});
 				}
-				form.reset();
-				setImageFile(null);
-				onClose();
-			} catch {
-				// errors shown via mutation.isError below
+				if (baseVersion && (versionChanges || image)) {
+					await updateVersionMutation.mutateAsync({
+						id: baseVersion.id,
+						changes: versionChanges?.changes ?? {},
+						seen: versionChanges?.seen,
+						seenUpdatedAt: String(baseVersion.updatedAt),
+						image,
+					});
+				}
 			}
+			form.reset();
+			setImageFile(null);
+			onClose();
+		} catch {
+			// Refusals (permission, validation) show below from the mutation's error.
 		}
 	};
 
@@ -342,13 +336,17 @@ function KeywordForm({
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">
-							{t("coloring.createFailed")}: {createMutation.error?.message}
+							{t("coloring.createFailed")}:{" "}
+							{offlineErrorMessage(createMutation.error, t)}
 						</Alert>
 					)}
 					{(updateMutation.isError || updateVersionMutation.isError) && (
 						<Alert color="red">
 							{t("coloring.updateFailed")}:{" "}
-							{(updateMutation.error ?? updateVersionMutation.error)?.message}
+							{offlineErrorMessage(
+								updateMutation.error ?? updateVersionMutation.error,
+								t,
+							)}
 						</Alert>
 					)}
 					<Group
@@ -451,7 +449,6 @@ function AliasForm({
 	const language = useLanguage();
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -479,9 +476,11 @@ function AliasForm({
 
 	const form = useForm<AliasFormValues>({
 		initialValues: {
-			name:
-				alias?.name ??
-				(frame.mode === "alias-add" ? (frame.initialText ?? "") : ""),
+			name: alias
+				? aliasDisplayName(alias, language)
+				: frame.mode === "alias-add"
+					? (frame.initialText ?? "")
+					: "",
 			description: alias?.description ?? suggestion?.description ?? "",
 			matchingType: alias?.matchingType ?? "FULL",
 			categoryId: alias?.categoryId ?? null,
@@ -496,66 +495,59 @@ function AliasForm({
 
 	const isPending =
 		isGeneratingImage ||
-		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
 		deleteMutation.isPending;
 
 	const handleSubmit = async (values: AliasFormValues) => {
 		setUploadError(null);
-		let imageId = values.imageId;
-		if (imageFile) {
-			setIsUploadingImage(true);
-			try {
-				imageId = await uploadImageFile(imageFile);
-			} catch (error) {
-				setUploadError(
-					error instanceof Error
-						? error.message
-						: t("coloring.imageUploadFailed"),
+		const image = imageFile
+			? { blob: imageFile, name: imageFile.name, type: imageFile.type }
+			: undefined;
+		try {
+			if (frame.mode === "alias-add") {
+				await createMutation.mutateAsync({
+					keywordId: frame.parentKeyword.id,
+					// Named in the UI language, like keywords.
+					...nameFields(language, values.name),
+					description: values.description || null,
+					matchingType: values.matchingType,
+					categoryId: values.categoryId,
+					natureId: values.natureId,
+					imageId: values.imageId ?? null,
+					overrideStyle: values.overrideStyle,
+					image,
+				});
+			} else if (alias) {
+				const initial = {
+					name: aliasDisplayName(alias, language),
+					description: alias.description ?? null,
+					matchingType: alias.matchingType,
+					categoryId: alias.categoryId ?? null,
+					natureId: alias.natureId ?? null,
+					imageId: alias.imageId ?? null,
+					overrideStyle: alias.overrideStyle,
+				};
+				const changes = aliasFormChanges(
+					initial,
+					{ ...values, imageId: values.imageId ?? null },
+					language,
 				);
-				return;
-			} finally {
-				setIsUploadingImage(false);
+				if (changes || image) {
+					await updateMutation.mutateAsync({
+						id: alias.id,
+						changes: changes?.changes ?? {},
+						seen: changes?.seen,
+						seenUpdatedAt: String(alias.updatedAt),
+						image,
+					});
+				}
 			}
-		}
-
-		if (frame.mode === "alias-add") {
-			const payload: PostKeywordAliasesBodyOne = {
-				keywordId: frame.parentKeyword.id,
-				name: values.name,
-				description: values.description || undefined,
-				matchingType: values.matchingType,
-				categoryId: values.categoryId,
-				natureId: values.natureId,
-				imageId,
-				overrideStyle: values.overrideStyle,
-			};
-			createMutation.mutate(payload, {
-				onSuccess: () => {
-					form.reset();
-					onClose();
-				},
-			});
-		} else if (alias) {
-			const data: PutKeywordAliasesByIdBodyOne = {
-				name: values.name,
-				description: values.description || undefined,
-				matchingType: values.matchingType,
-				categoryId: values.categoryId,
-				natureId: values.natureId,
-				imageId,
-				overrideStyle: values.overrideStyle,
-			};
-			updateMutation.mutate(
-				{ id: alias.id, data },
-				{
-					onSuccess: () => {
-						form.reset();
-						onClose();
-					},
-				},
-			);
+			form.reset();
+			setImageFile(null);
+			onClose();
+		} catch {
+			// Refusals (permission, validation) show below from the mutation's error.
 		}
 	};
 
@@ -673,12 +665,14 @@ function AliasForm({
 					/>
 					{createMutation.isError && (
 						<Alert color="red">
-							{t("coloring.createFailed")}: {createMutation.error?.message}
+							{t("coloring.createFailed")}:{" "}
+							{offlineErrorMessage(createMutation.error, t)}
 						</Alert>
 					)}
 					{updateMutation.isError && (
 						<Alert color="red">
-							{t("coloring.updateFailed")}: {updateMutation.error?.message}
+							{t("coloring.updateFailed")}:{" "}
+							{offlineErrorMessage(updateMutation.error, t)}
 						</Alert>
 					)}
 					<Group
@@ -778,7 +772,6 @@ function VersionForm({
 	const isModerator = useIsModerator();
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-	const [isUploadingImage, setIsUploadingImage] = useState(false);
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -839,75 +832,76 @@ function VersionForm({
 
 	const isPending =
 		isGeneratingImage ||
-		isUploadingImage ||
 		createMutation.isPending ||
 		updateMutation.isPending ||
 		deleteMutation.isPending;
 
 	const handleSubmit = async (values: VersionFormValues) => {
 		setUploadError(null);
-		let imageId = values.imageId;
-		if (imageFile) {
-			setIsUploadingImage(true);
-			try {
-				imageId = await uploadImageFile(imageFile);
-			} catch (error) {
-				setUploadError(
-					error instanceof Error
-						? error.message
-						: t("coloring.imageUploadFailed"),
-				);
-				return;
-			} finally {
-				setIsUploadingImage(false);
-			}
-		}
-
-		if (frame.mode === "version-add") {
-			const payload: PostKeywordVersionsBodyOne = {
-				keywordId: frame.parentKeyword.id,
-				categoryId: values.categoryId ?? undefined,
-				natureId: values.natureId ?? undefined,
-				description: values.description || undefined,
-				imageId,
-				currentChapter: currentChapter,
-				...(isModerator && values.startingChapter !== undefined
-					? { startingChapter: values.startingChapter }
-					: {}),
-				...(isModerator && values.endingChapter !== undefined
-					? { endingChapter: values.endingChapter }
-					: {}),
-			};
-			createMutation.mutate(payload, {
-				onSuccess: () => {
-					form.reset();
-					setImageFile(null);
-					onClose();
-				},
-			});
-		} else if (version) {
-			const data: PutKeywordVersionsByIdBodyOne = {
-				description: values.description || undefined,
-				categoryId: values.categoryId ?? undefined,
-				natureId: values.natureId ?? undefined,
-				imageId,
-				...(isModerator && values.startingChapter !== undefined
-					? { startingChapter: values.startingChapter }
-					: {}),
-				...(isModerator && values.endingChapter !== undefined
-					? { endingChapter: values.endingChapter }
-					: {}),
-			};
-			updateMutation.mutate(
-				{ id: version.id, data },
-				{
-					onSuccess: () => {
-						form.reset();
-						setImageFile(null);
-						onClose();
+		const image = imageFile
+			? { blob: imageFile, name: imageFile.name, type: imageFile.type }
+			: undefined;
+		const range = isModerator
+			? {
+					startingChapter: values.startingChapter,
+					endingChapter: values.endingChapter,
+				}
+			: {};
+		try {
+			if (frame.mode === "version-add") {
+				await createMutation.mutateAsync({
+					keywordId: frame.parentKeyword.id,
+					categoryId: values.categoryId,
+					natureId: values.natureId,
+					description: values.description || null,
+					imageId: values.imageId ?? null,
+					currentChapter,
+					...range,
+					image,
+				});
+			} else if (version) {
+				const changes = versionFormChanges(
+					{
+						categoryId: version.categoryId ?? null,
+						natureId: version.natureId ?? null,
+						description: version.description ?? null,
+						imageId: version.imageId ?? null,
+						...(isModerator
+							? {
+									startingChapter: Number(version.startingChapter),
+									endingChapter:
+										version.endingChapter == null
+											? null
+											: Number(version.endingChapter),
+								}
+							: {}),
 					},
-				},
-			);
+					{
+						...values,
+						imageId: values.imageId ?? null,
+						...(isModerator
+							? {
+									startingChapter: values.startingChapter,
+									endingChapter: values.endingChapter ?? null,
+								}
+							: {}),
+					},
+				);
+				if (changes || image) {
+					await updateMutation.mutateAsync({
+						id: version.id,
+						changes: changes?.changes ?? {},
+						seen: changes?.seen,
+						seenUpdatedAt: String(version.updatedAt),
+						image,
+					});
+				}
+			}
+			form.reset();
+			setImageFile(null);
+			onClose();
+		} catch {
+			// Refusals (permission, validation) show below from the mutation's error.
 		}
 	};
 
@@ -1050,12 +1044,14 @@ function VersionForm({
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">
-							{t("coloring.createFailed")}: {createMutation.error?.message}
+							{t("coloring.createFailed")}:{" "}
+							{offlineErrorMessage(createMutation.error, t)}
 						</Alert>
 					)}
 					{updateMutation.isError && (
 						<Alert color="red">
-							{t("coloring.updateFailed")}: {updateMutation.error?.message}
+							{t("coloring.updateFailed")}:{" "}
+							{offlineErrorMessage(updateMutation.error, t)}
 						</Alert>
 					)}
 					<Group

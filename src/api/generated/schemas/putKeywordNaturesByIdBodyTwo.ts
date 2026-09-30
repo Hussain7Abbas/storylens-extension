@@ -5,13 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PutKeywordNaturesByIdBodyTwoDescription } from "./putKeywordNaturesByIdBodyTwoDescription";
+import type { PutKeywordNaturesByIdBodyTwoNameAr } from "./putKeywordNaturesByIdBodyTwoNameAr";
+import type { PutKeywordNaturesByIdBodyTwoNameEn } from "./putKeywordNaturesByIdBodyTwoNameEn";
 
 export type PutKeywordNaturesByIdBodyTwo = {
-	nameEn?: string;
-	nameAr?: string;
+	baseUpdatedAt: string;
+	/** @nullable */
+	nameEn?: PutKeywordNaturesByIdBodyTwoNameEn;
+	/** @nullable */
+	nameAr?: PutKeywordNaturesByIdBodyTwoNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
-	color: string;
+	color?: string;
 	/** @nullable */
 	description?: PutKeywordNaturesByIdBodyTwoDescription;
 };

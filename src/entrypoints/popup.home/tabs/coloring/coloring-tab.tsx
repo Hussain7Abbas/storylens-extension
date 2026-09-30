@@ -8,7 +8,6 @@ import type {
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
 import { SearchInput } from "@/components/search-input";
-import { useNovelKeywords } from "@/hooks/use-novel-keywords";
 import { useCanMutateKeywords } from "@/lib/auth";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
@@ -16,6 +15,7 @@ import {
 	relatedSuggestionDescription,
 } from "@/lib/desktop-client/keyword-suggestion";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useNovelKeywords } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import { nameIn } from "@/utils/translation";
 import { ColoringCards } from "./coloring-cards";

@@ -6,19 +6,25 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { PostKeywordsBodyTwoDescription } from "./postKeywordsBodyTwoDescription";
+import type { PostKeywordsBodyTwoImageId } from "./postKeywordsBodyTwoImageId";
 import type { PostKeywordsBodyTwoMatchingType } from "./postKeywordsBodyTwoMatchingType";
 import type { PostKeywordsBodyTwoNameAr } from "./postKeywordsBodyTwoNameAr";
 import type { PostKeywordsBodyTwoNameEn } from "./postKeywordsBodyTwoNameEn";
 
 export type PostKeywordsBodyTwo = {
+	id: string;
+	versionId: string;
 	/** @nullable */
 	nameAr?: PostKeywordsBodyTwoNameAr;
 	/** @nullable */
 	nameEn?: PostKeywordsBodyTwoNameEn;
-	description?: string;
+	/** @nullable */
+	description?: PostKeywordsBodyTwoDescription;
 	matchingType?: PostKeywordsBodyTwoMatchingType;
 	novelId: string;
 	categoryId: string;
 	natureId: string;
-	imageId?: string;
+	/** @nullable */
+	imageId?: PostKeywordsBodyTwoImageId;
 };

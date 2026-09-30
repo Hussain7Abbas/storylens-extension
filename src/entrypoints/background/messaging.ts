@@ -6,7 +6,9 @@ import type {
 	GeneratedImage,
 	GenerateImageInput,
 } from "@/lib/desktop-client/types";
-import type { SyncResult } from "@/lib/offline/sync-engine";
+import type { PullMode } from "@/lib/offline/sync/pull";
+import type { SyncReason, SyncRunSummary } from "@/lib/offline/sync/runner";
+import type { SyncStatus } from "@/lib/offline/sync/status";
 import type { currentNovelMeta } from "@/types";
 import type { ApiProxyRequest, ApiProxyResponse } from "@/types/api-proxy";
 import type { websiteSelector } from "@/types/configs";
@@ -27,14 +29,28 @@ interface ProtocolMap {
 		website: string;
 		selector: websiteSelector;
 	}): void;
-	refreshContent(): void;
+	/** Re-run highlighting; a tab ignores a refresh meant for another novel. */
+	refreshContent(data?: { novelSlug?: string }): void;
 	apiRequest<T = unknown>(data: ApiProxyRequest): ApiProxyResponse<T>;
 	getOfflineNovelData(data: {
 		novelSlug: string;
 		chapter?: number;
 	}): NovelContentData | undefined;
 	getNovelContentData(data: currentNovelMeta): NovelContentData | undefined;
-	triggerFullSync(): SyncResult;
+	/** Best effort after an enqueue or on popup open: returns at once. */
+	syncKick(data: {
+		reason: SyncReason;
+		pull?: PullMode;
+		forceCatalogue?: boolean;
+	}): SyncStatus;
+	syncNow(): { summary: SyncRunSummary | undefined; status: SyncStatus };
+	getSyncStatus(): SyncStatus;
+	downloadNovel(novelId: string): { ok: true } | { error: string };
+	removeDownload(data: {
+		novelId: string;
+		discardPending?: boolean;
+	}): { ok: true } | { blocked: number } | { error: string };
+	requestNovelRefresh(novelId: string): void;
 	trackAnalyticsEvent(data: AnalyticsEvent): void;
 }
 

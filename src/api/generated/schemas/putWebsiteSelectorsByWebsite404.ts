@@ -8,4 +8,5 @@
 
 export type PutWebsiteSelectorsByWebsite404 = {
 	message: string;
+	code?: string;
 };

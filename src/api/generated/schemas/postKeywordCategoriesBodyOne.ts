@@ -5,11 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PostKeywordCategoriesBodyOneDescription } from "./postKeywordCategoriesBodyOneDescription";
+import type { PostKeywordCategoriesBodyOneNameAr } from "./postKeywordCategoriesBodyOneNameAr";
+import type { PostKeywordCategoriesBodyOneNameEn } from "./postKeywordCategoriesBodyOneNameEn";
 
 export type PostKeywordCategoriesBodyOne = {
-	nameEn?: string;
-	nameAr?: string;
+	id: string;
+	/** @nullable */
+	nameEn?: PostKeywordCategoriesBodyOneNameEn;
+	/** @nullable */
+	nameAr?: PostKeywordCategoriesBodyOneNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
 	/** @nullable */

@@ -8,4 +8,5 @@
 
 export type DeleteKeywordNaturesById500 = {
 	message: string;
+	code?: string;
 };

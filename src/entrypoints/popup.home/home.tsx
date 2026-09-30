@@ -1,8 +1,11 @@
 import {
 	ActionIcon,
+	Alert,
+	Button,
 	Container,
 	Group,
 	Menu,
+	Modal,
 	Select,
 	Skeleton,
 	Stack,
@@ -28,15 +31,15 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
+import { sendMessage } from "@/entrypoints/background/messaging";
 import { userAccessAtom } from "@/lib/auth";
-import { getBiasesByNovelId } from "@/lib/offline/db";
-import { downloadNovel, removeDownloadedNovel } from "@/lib/offline/download";
 import {
 	useCachedNovelsList,
 	useDownloadedNovelIds,
+	useDownloadedNovelsList,
+	useNovelBiases,
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
-import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
 import { useLanguage } from "@/store/locale";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
@@ -54,9 +57,8 @@ export function HomePage() {
 	const [downloading, setDownloading] = useState(false);
 	const [biasFormOpen, setBiasFormOpen] = useState(false);
 	const [currentHostname, setCurrentHostname] = useState<string>();
-	const [biasesForNovel, setBiasesForNovel] = useState<
-		OfflineWebsiteNovelBias[]
-	>([]);
+	/** Unsynced changes that block removing the selected download. */
+	const [removeBlocked, setRemoveBlocked] = useState<number>();
 	const [biasSelectorId, setBiasSelectorId] = useState<string>();
 	const online = useOnlineStatus();
 	const access = useAtomValue(userAccessAtom);
@@ -90,13 +92,11 @@ export function HomePage() {
 		void getHostname();
 	}, []);
 
-	useEffect(() => {
-		if (!selectedNovel?.id) {
-			setBiasesForNovel([]);
-			return;
-		}
-		void getBiasesByNovelId(selectedNovel.id).then(setBiasesForNovel);
-	}, [selectedNovel?.id]);
+	const { biases: biasesForNovel } = useNovelBiases(selectedNovel?.id);
+	const { novels: downloadedNovels } = useDownloadedNovelsList();
+	const removedOnServer = downloadedNovels.some(
+		(novel) => novel.id === selectedNovel?.id && novel.removedOnServer,
+	);
 
 	const currentBiasEntry = currentHostname
 		? biasesForNovel.find((b) => b.websiteSelector.website === currentHostname)
@@ -109,7 +109,7 @@ export function HomePage() {
 			: undefined;
 
 	const handleOpenBiasModal = async () => {
-		if (!selectedNovel?.id || !currentHostname) return;
+		if (!selectedNovel?.id || !currentHostname || !online) return;
 		if (currentBiasEntry) {
 			setBiasSelectorId(currentBiasEntry.websiteSelectorId);
 			setBiasFormOpen(true);
@@ -128,6 +128,21 @@ export function HomePage() {
 		? downloadedIds.has(selectedNovel.id)
 		: false;
 
+	const removeDownload = async (discardPending: boolean) => {
+		if (!selectedNovel?.id) return;
+		const result = await sendMessage("removeDownload", {
+			novelId: selectedNovel.id,
+			discardPending,
+		});
+		if ("blocked" in result) {
+			setRemoveBlocked(result.blocked);
+			return;
+		}
+		setRemoveBlocked(undefined);
+		if ("error" in result) throw new Error(result.error);
+		toast.success(t("offline.novelRemoved"));
+	};
+
 	const handleToggleDownload = async () => {
 		if (!selectedNovel?.id) {
 			return;
@@ -136,14 +151,14 @@ export function HomePage() {
 		setDownloading(true);
 		try {
 			if (isSelectedDownloaded) {
-				await removeDownloadedNovel(selectedNovel.id);
-				toast.success(t("offline.novelRemoved"));
+				await removeDownload(false);
 			} else {
 				if (!online) {
 					toast.error(t("offline.downloadRequiresOnline"));
 					return;
 				}
-				await downloadNovel(selectedNovel.id);
+				const result = await sendMessage("downloadNovel", selectedNovel.id);
+				if ("error" in result) throw new Error(result.error);
 				toast.success(t("offline.novelDownloaded"));
 			}
 			refreshDownloadedIds();
@@ -158,6 +173,24 @@ export function HomePage() {
 		}
 	};
 
+	const handleBlockedRemoval = async (choice: "sync" | "discard") => {
+		setDownloading(true);
+		try {
+			if (choice === "sync") {
+				setRemoveBlocked(undefined);
+				await sendMessage("syncNow");
+				await removeDownload(false);
+			} else {
+				await removeDownload(true);
+			}
+			refreshDownloadedIds();
+		} catch {
+			toast.error(t("offline.novelRemoveFailed"));
+		} finally {
+			setDownloading(false);
+		}
+	};
+
 	return (
 		<Container p="md">
 			{biasFormOpen && selectedNovel?.id && biasSelectorId ? (
@@ -167,14 +200,6 @@ export function HomePage() {
 					websiteName={currentHostname ?? ""}
 					currentBias={currentBiasValue}
 					onClose={() => setBiasFormOpen(false)}
-					onSaved={(updated) => {
-						setBiasesForNovel((prev) => {
-							const filtered = prev.filter(
-								(b) => b.websiteSelectorId !== biasSelectorId,
-							);
-							return [...filtered, ...updated];
-						});
-					}}
 				/>
 			) : mode !== undefined ? (
 				<NovelForm
@@ -275,13 +300,18 @@ export function HomePage() {
 								)}
 								{access === "moderator" && currentTabNovel && (
 									<Tooltip
-										label={t("home.chapterBias")}
+										label={
+											online
+												? t("home.chapterBias")
+												: t("offline.requiresConnection")
+										}
 										withArrow
 										openDelay={350}
 									>
 										<ActionIcon
 											size="xs"
 											variant="subtle"
+											data-disabled={!online || undefined}
 											onClick={() => {
 												void handleOpenBiasModal();
 											}}
@@ -300,17 +330,62 @@ export function HomePage() {
 									setMode={setMode}
 									refetchNovels={refreshNovelsCatalog}
 									access={access}
+									online={online}
 									t={t}
 								/>
 							)}
 						</Group>
 					)}
 
-					{selectedNovel?.id && !isSelectedDownloaded && (
-						<Text size="xs" c="orange" mt="xs">
-							{t("offline.novelNotDownloaded")}
-						</Text>
+					{removedOnServer && (
+						<Alert color="orange" variant="light" mt="xs" p="xs">
+							<Group justify="space-between" wrap="nowrap" gap="xs">
+								<Text size="xs">{t("offline.removedOnServer")}</Text>
+								<Button
+									size="compact-xs"
+									variant="light"
+									color="orange"
+									onClick={() => void handleBlockedRemoval("discard")}
+								>
+									{t("offline.removeDownload")}
+								</Button>
+							</Group>
+						</Alert>
 					)}
+
+					<Modal
+						opened={removeBlocked !== undefined}
+						onClose={() => setRemoveBlocked(undefined)}
+						title={t("offline.removeBlockedTitle")}
+						size="sm"
+					>
+						<Stack gap="sm">
+							<Text size="sm">
+								{t("offline.removeBlocked", { count: removeBlocked ?? 0 })}
+							</Text>
+							<Button
+								loading={downloading}
+								disabled={!online}
+								onClick={() => void handleBlockedRemoval("sync")}
+							>
+								{t("offline.syncNow")}
+							</Button>
+							<Button
+								color="red"
+								variant="light"
+								loading={downloading}
+								onClick={() => void handleBlockedRemoval("discard")}
+							>
+								{t("offline.discardAndRemove")}
+							</Button>
+							<Button
+								variant="default"
+								onClick={() => setRemoveBlocked(undefined)}
+							>
+								{t("_.cancel")}
+							</Button>
+						</Stack>
+					</Modal>
 
 					<Tabs defaultValue="coloring" variant="pills">
 						<Stack
@@ -361,6 +436,7 @@ function NovelMenu({
 	setMode,
 	refetchNovels,
 	access,
+	online,
 	t,
 }: {
 	currentTabNovel: currentNovelMeta | undefined;
@@ -369,6 +445,8 @@ function NovelMenu({
 	setMode: (mode: novelFormModes) => void;
 	refetchNovels: () => void;
 	access: "reader" | "moderator";
+	/** Novels, slugs and biases are online-only (D6): disabled offline. */
+	online: boolean;
 	t: TFunction;
 }) {
 	const addSlugMutation = usePutNovelsById({
@@ -426,8 +504,10 @@ function NovelMenu({
 			</Menu.Target>
 
 			<Menu.Dropdown>
+				{!online && <Menu.Label>{t("offline.requiresConnection")}</Menu.Label>}
 				<Menu.Item
 					leftSection={<IconPlus size={14} />}
+					disabled={!online}
 					onClick={() => {
 						setSelectedNovel(
 							currentTabNovel
@@ -445,6 +525,7 @@ function NovelMenu({
 				{canAddCurrentSlug && (
 					<Menu.Item
 						leftSection={<IconLink size={14} />}
+						disabled={!online}
 						onClick={handleAddSlug}
 					>
 						{t("novels.addSlug")}
@@ -455,6 +536,7 @@ function NovelMenu({
 					<>
 						<Menu.Item
 							leftSection={<IconEdit size={14} />}
+							disabled={!online}
 							onClick={() => {
 								setMode("edit");
 							}}
@@ -465,6 +547,7 @@ function NovelMenu({
 							leftSection={
 								<IconTrash size={14} color="var(--mantine-color-red-text)" />
 							}
+							disabled={!online}
 							onClick={() => {
 								setMode("delete");
 							}}

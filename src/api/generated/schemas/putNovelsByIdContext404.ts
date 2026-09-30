@@ -8,4 +8,5 @@
 
 export type PutNovelsByIdContext404 = {
 	message: string;
+	code?: string;
 };

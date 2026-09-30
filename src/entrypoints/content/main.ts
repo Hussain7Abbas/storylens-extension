@@ -148,7 +148,11 @@ export async function runContentScript(
 			});
 	});
 
-	onMessage("refreshContent", () => {
+	onMessage("refreshContent", ({ data }) => {
+		// A refresh meant for another novel (the tab navigated since) is ignored.
+		const current = detectCurrentNovel();
+		if (data?.novelSlug && current && current.novelSlug !== data.novelSlug)
+			return;
 		void refreshPageContent().catch((error) => {
 			console.error(
 				`${LOG_PREFIX} Failed to refresh content processing`,

@@ -8,4 +8,5 @@
 
 export type PostAuthLogout500 = {
 	message: string;
+	code?: string;
 };

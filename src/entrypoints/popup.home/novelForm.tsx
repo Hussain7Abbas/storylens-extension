@@ -26,7 +26,6 @@ import {
 import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userAccessAtom } from "@/lib/auth";
-import { decodeStoredText } from "@/lib/desktop-client/novel-context-prompt";
 import { useLanguage } from "@/store/locale";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
@@ -112,7 +111,7 @@ function NovelFormContent({
 				description: selectedNovel
 					? descriptionIn(selectedNovel, language)
 					: "",
-				context: decodeStoredText(selectedNovel?.context || ""),
+				context: selectedNovel?.context || "",
 				imageId: selectedNovel?.imageId || "",
 				slugs: selectedNovel?.slugs || [],
 			});

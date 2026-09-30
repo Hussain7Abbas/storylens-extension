@@ -8,4 +8,5 @@
 
 export type GetIndex404 = {
 	message: string;
+	code?: string;
 };

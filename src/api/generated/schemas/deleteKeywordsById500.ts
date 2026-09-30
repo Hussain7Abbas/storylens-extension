@@ -8,4 +8,5 @@
 
 export type DeleteKeywordsById500 = {
 	message: string;
+	code?: string;
 };

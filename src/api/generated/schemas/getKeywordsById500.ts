@@ -8,4 +8,5 @@
 
 export type GetKeywordsById500 = {
 	message: string;
+	code?: string;
 };

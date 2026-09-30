@@ -8,4 +8,5 @@
 
 export type DeleteNovelsById404 = {
 	message: string;
+	code?: string;
 };

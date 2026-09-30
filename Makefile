@@ -1,4 +1,4 @@
-.PHONY: help install dev dev-firefox build build-firefox zip zip-firefox release-chrome submit-chrome typecheck orval i18n-parse
+.PHONY: help install dev dev-firefox build build-firefox zip zip-firefox release-chrome submit-chrome typecheck test orval i18n-parse
 
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
@@ -25,6 +25,7 @@ help:
 	@echo "  $(GREEN)release-chrome$(RESET) production API client + Chrome store zip"
 	@echo "  $(GREEN)submit-chrome$(RESET)  upload current version's zip to the Chrome Web Store"
 	@echo "  $(GREEN)typecheck$(RESET)      TypeScript check"
+	@echo "  $(GREEN)test$(RESET)           unit and offline-engine tests (fake IndexedDB, browser and API)"
 	@echo "  $(GREEN)orval$(RESET)          regenerate API client from backend OpenAPI"
 	@echo "  $(GREEN)i18n-parse$(RESET)     extract i18n keys"
 	@echo ""
@@ -61,6 +62,9 @@ submit-chrome:
 
 typecheck:
 	@cd "$(ROOT)" && bun run typecheck
+
+test:
+	@cd "$(ROOT)" && bun run test
 
 orval:
 	@cd "$(ROOT)" && bun run orval

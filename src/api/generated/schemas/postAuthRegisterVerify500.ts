@@ -8,4 +8,5 @@
 
 export type PostAuthRegisterVerify500 = {
 	message: string;
+	code?: string;
 };

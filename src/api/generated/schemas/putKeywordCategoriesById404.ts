@@ -8,4 +8,5 @@
 
 export type PutKeywordCategoriesById404 = {
 	message: string;
+	code?: string;
 };

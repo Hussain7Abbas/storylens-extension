@@ -7,15 +7,22 @@
  */
 
 import type { PostKeywordAliasesBodyThreeCategoryId } from "./postKeywordAliasesBodyThreeCategoryId";
+import type { PostKeywordAliasesBodyThreeDescription } from "./postKeywordAliasesBodyThreeDescription";
 import type { PostKeywordAliasesBodyThreeImageId } from "./postKeywordAliasesBodyThreeImageId";
 import type { PostKeywordAliasesBodyThreeMatchingType } from "./postKeywordAliasesBodyThreeMatchingType";
+import type { PostKeywordAliasesBodyThreeNameAr } from "./postKeywordAliasesBodyThreeNameAr";
+import type { PostKeywordAliasesBodyThreeNameEn } from "./postKeywordAliasesBodyThreeNameEn";
 import type { PostKeywordAliasesBodyThreeNatureId } from "./postKeywordAliasesBodyThreeNatureId";
 
 export type PostKeywordAliasesBodyThree = {
+	id: string;
 	keywordId: string;
-	/** @minLength 1 */
-	name: string;
-	description?: string;
+	/** @nullable */
+	nameAr?: PostKeywordAliasesBodyThreeNameAr;
+	/** @nullable */
+	nameEn?: PostKeywordAliasesBodyThreeNameEn;
+	/** @nullable */
+	description?: PostKeywordAliasesBodyThreeDescription;
 	matchingType?: PostKeywordAliasesBodyThreeMatchingType;
 	/** @nullable */
 	categoryId?: PostKeywordAliasesBodyThreeCategoryId;

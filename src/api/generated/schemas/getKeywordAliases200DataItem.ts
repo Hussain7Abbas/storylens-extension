@@ -22,7 +22,6 @@ import type { GetKeywordAliases200DataItemUpdatedAt } from "./getKeywordAliases2
 
 export type GetKeywordAliases200DataItem = {
 	id: string;
-	name: string;
 	nameAr: GetKeywordAliases200DataItemNameAr;
 	nameEn: GetKeywordAliases200DataItemNameEn;
 	description: GetKeywordAliases200DataItemDescription;

@@ -8,4 +8,5 @@
 
 export type GetKeywordNaturesById404 = {
 	message: string;
+	code?: string;
 };

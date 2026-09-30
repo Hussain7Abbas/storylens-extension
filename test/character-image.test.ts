@@ -7,10 +7,7 @@ import {
 	buildCharacterImagePrompt,
 	chapterMentions,
 } from "../src/lib/desktop-client/character-image";
-import {
-	buildNovelContextPrompt,
-	decodeStoredText,
-} from "../src/lib/desktop-client/novel-context-prompt";
+import { buildNovelContextPrompt } from "../src/lib/desktop-client/novel-context-prompt";
 
 describe("parseAiPrompts", () => {
 	test("falls back to the defaults for missing or blank prompts", () => {
@@ -78,9 +75,9 @@ describe("novel context research", () => {
 		const prompt = buildNovelContextPrompt(
 			{
 				id: "n",
-				name: "Sword &amp; Sect",
+				name: "Sword & Sect",
 				slugs: ["sword-sect"],
-				description: "It&#x27;s long",
+				description: "It's long",
 			},
 			"ar",
 		);
@@ -90,9 +87,11 @@ describe("novel context research", () => {
 		expect(prompt).toContain("Arabic");
 	});
 
-	test("decodes the API's escaped characters", () => {
-		expect(
-			decodeStoredText("&lt;b&gt; &quot;x&quot; &#x27;y&#x27; &amp;"),
-		).toBe(`<b> "x" 'y' &`);
+	test("uses stored text as typed (the API no longer escapes it)", () => {
+		const prompt = buildNovelContextPrompt(
+			{ id: "n", name: "D'Artagnan", slugs: [], description: '<b> "x"' },
+			"en",
+		);
+		expect(prompt).toContain(`Reader's description: <b> "x"`);
 	});
 });

@@ -11,6 +11,7 @@ import type { PutKeywordsByIdBodyTwoNameAr } from "./putKeywordsByIdBodyTwoNameA
 import type { PutKeywordsByIdBodyTwoNameEn } from "./putKeywordsByIdBodyTwoNameEn";
 
 export type PutKeywordsByIdBodyTwo = {
+	baseUpdatedAt: string;
 	/** @nullable */
 	nameAr?: PutKeywordsByIdBodyTwoNameAr;
 	/** @nullable */

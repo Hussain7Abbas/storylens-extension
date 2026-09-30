@@ -8,4 +8,5 @@
 
 export type GetKeywordNatures500 = {
 	message: string;
+	code?: string;
 };

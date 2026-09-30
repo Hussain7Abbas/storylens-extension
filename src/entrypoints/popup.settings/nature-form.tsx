@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { lookupFormChanges } from "@/lib/offline/form-changes";
 import {
 	type NatureFormValues,
 	useOfflineNatureMutations,
@@ -71,8 +72,13 @@ function NatureFormContent({
 		}
 
 		if (mode === "edit" && nature?.id) {
+			const changes = lookupFormChanges(nature, payload);
+			if (!changes) {
+				onClose();
+				return;
+			}
 			updateMutation.mutate(
-				{ id: nature.id, data: payload },
+				{ id: nature.id, ...changes, seenUpdatedAt: String(nature.updatedAt) },
 				{
 					onSuccess: async () => {
 						await refreshContent();

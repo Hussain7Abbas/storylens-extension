@@ -8,4 +8,5 @@
 
 export type PostNovels404 = {
 	message: string;
+	code?: string;
 };

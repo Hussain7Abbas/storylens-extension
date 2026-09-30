@@ -69,18 +69,21 @@ import type {
 	PostKeywordVersionsBodyTwo,
 	PutKeywordAliasesById200,
 	PutKeywordAliasesById404,
+	PutKeywordAliasesById409,
 	PutKeywordAliasesById500,
 	PutKeywordAliasesByIdBodyOne,
 	PutKeywordAliasesByIdBodyThree,
 	PutKeywordAliasesByIdBodyTwo,
 	PutKeywordsById200,
 	PutKeywordsById404,
+	PutKeywordsById409,
 	PutKeywordsById500,
 	PutKeywordsByIdBodyOne,
 	PutKeywordsByIdBodyThree,
 	PutKeywordsByIdBodyTwo,
 	PutKeywordVersionsById200,
 	PutKeywordVersionsById404,
+	PutKeywordVersionsById409,
 	PutKeywordVersionsById500,
 	PutKeywordVersionsByIdBodyOne,
 	PutKeywordVersionsByIdBodyThree,
@@ -513,7 +516,9 @@ export const putKeywordsById = (
 };
 
 export const getPutKeywordsByIdMutationOptions = <
-	TError = ErrorType<PutKeywordsById404 | PutKeywordsById500>,
+	TError = ErrorType<
+		PutKeywordsById404 | PutKeywordsById409 | PutKeywordsById500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -576,11 +581,13 @@ export type PutKeywordsByIdMutationBody =
 	| PutKeywordsByIdBodyTwo
 	| PutKeywordsByIdBodyThree;
 export type PutKeywordsByIdMutationError = ErrorType<
-	PutKeywordsById404 | PutKeywordsById500
+	PutKeywordsById404 | PutKeywordsById409 | PutKeywordsById500
 >;
 
 export const usePutKeywordsById = <
-	TError = ErrorType<PutKeywordsById404 | PutKeywordsById500>,
+	TError = ErrorType<
+		PutKeywordsById404 | PutKeywordsById409 | PutKeywordsById500
+	>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1000,7 +1007,11 @@ export const putKeywordAliasesById = (
 };
 
 export const getPutKeywordAliasesByIdMutationOptions = <
-	TError = ErrorType<PutKeywordAliasesById404 | PutKeywordAliasesById500>,
+	TError = ErrorType<
+		| PutKeywordAliasesById404
+		| PutKeywordAliasesById409
+		| PutKeywordAliasesById500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -1063,11 +1074,15 @@ export type PutKeywordAliasesByIdMutationBody =
 	| PutKeywordAliasesByIdBodyTwo
 	| PutKeywordAliasesByIdBodyThree;
 export type PutKeywordAliasesByIdMutationError = ErrorType<
-	PutKeywordAliasesById404 | PutKeywordAliasesById500
+	PutKeywordAliasesById404 | PutKeywordAliasesById409 | PutKeywordAliasesById500
 >;
 
 export const usePutKeywordAliasesById = <
-	TError = ErrorType<PutKeywordAliasesById404 | PutKeywordAliasesById500>,
+	TError = ErrorType<
+		| PutKeywordAliasesById404
+		| PutKeywordAliasesById409
+		| PutKeywordAliasesById500
+	>,
 	TContext = unknown,
 >(
 	options?: {
@@ -1490,7 +1505,11 @@ export const putKeywordVersionsById = (
 };
 
 export const getPutKeywordVersionsByIdMutationOptions = <
-	TError = ErrorType<PutKeywordVersionsById404 | PutKeywordVersionsById500>,
+	TError = ErrorType<
+		| PutKeywordVersionsById404
+		| PutKeywordVersionsById409
+		| PutKeywordVersionsById500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -1553,11 +1572,17 @@ export type PutKeywordVersionsByIdMutationBody =
 	| PutKeywordVersionsByIdBodyTwo
 	| PutKeywordVersionsByIdBodyThree;
 export type PutKeywordVersionsByIdMutationError = ErrorType<
-	PutKeywordVersionsById404 | PutKeywordVersionsById500
+	| PutKeywordVersionsById404
+	| PutKeywordVersionsById409
+	| PutKeywordVersionsById500
 >;
 
 export const usePutKeywordVersionsById = <
-	TError = ErrorType<PutKeywordVersionsById404 | PutKeywordVersionsById500>,
+	TError = ErrorType<
+		| PutKeywordVersionsById404
+		| PutKeywordVersionsById409
+		| PutKeywordVersionsById500
+	>,
 	TContext = unknown,
 >(
 	options?: {

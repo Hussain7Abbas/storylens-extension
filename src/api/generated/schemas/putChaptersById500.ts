@@ -8,4 +8,5 @@
 
 export type PutChaptersById500 = {
 	message: string;
+	code?: string;
 };

@@ -8,4 +8,5 @@
 
 export type PostAuthChangeEmailVerify500 = {
 	message: string;
+	code?: string;
 };

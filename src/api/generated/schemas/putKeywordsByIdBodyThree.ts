@@ -11,6 +11,7 @@ import type { PutKeywordsByIdBodyThreeNameAr } from "./putKeywordsByIdBodyThreeN
 import type { PutKeywordsByIdBodyThreeNameEn } from "./putKeywordsByIdBodyThreeNameEn";
 
 export type PutKeywordsByIdBodyThree = {
+	baseUpdatedAt: string;
 	/** @nullable */
 	nameAr?: PutKeywordsByIdBodyThreeNameAr;
 	/** @nullable */

@@ -8,4 +8,5 @@
 
 export type PostKeywordAliases500 = {
 	message: string;
+	code?: string;
 };

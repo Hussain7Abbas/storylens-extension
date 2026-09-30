@@ -8,4 +8,5 @@
 
 export type GetNovels500 = {
 	message: string;
+	code?: string;
 };

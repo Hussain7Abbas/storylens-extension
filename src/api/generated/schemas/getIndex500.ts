@@ -8,4 +8,5 @@
 
 export type GetIndex500 = {
 	message: string;
+	code?: string;
 };

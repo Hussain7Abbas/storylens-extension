@@ -8,4 +8,5 @@
 
 export type GetKeywordAliases404 = {
 	message: string;
+	code?: string;
 };
