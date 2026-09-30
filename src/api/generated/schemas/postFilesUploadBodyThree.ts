@@ -8,6 +8,7 @@
 import type { PostFilesUploadBodyThreeType } from "./postFilesUploadBodyThreeType";
 
 export type PostFilesUploadBodyThree = {
+	id: string;
 	file: Blob;
 	type: PostFilesUploadBodyThreeType;
 };

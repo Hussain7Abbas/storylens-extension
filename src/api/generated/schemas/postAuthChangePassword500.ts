@@ -8,4 +8,5 @@
 
 export type PostAuthChangePassword500 = {
 	message: string;
+	code?: string;
 };

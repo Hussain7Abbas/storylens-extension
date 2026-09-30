@@ -1,4 +1,5 @@
 import { Box, Button, Stack, Text, Tooltip } from "@mantine/core";
+import { useAtom } from "jotai";
 import { Plus as IconPlus, Sparkles as IconSparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,7 +9,6 @@ import type {
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
 import { SearchInput } from "@/components/search-input";
-import { useNovelKeywords } from "@/hooks/use-novel-keywords";
 import { useCanMutateKeywords } from "@/lib/auth";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
@@ -16,7 +16,9 @@ import {
 	relatedSuggestionDescription,
 } from "@/lib/desktop-client/keyword-suggestion";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useNovelKeywords } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
+import { showExistingAtom } from "@/store/show-existing";
 import { nameIn } from "@/utils/translation";
 import { ColoringCards } from "./coloring-cards";
 import { ColoringForm } from "./coloring-form";
@@ -79,9 +81,17 @@ export function ColoringTab({
 				}
 			: undefined;
 	const [stack, setStack] = useState<StackFrame[]>([]);
+	const [showExisting, setShowExisting] = useAtom(showExistingAtom);
 	const [search, setSearch] = useState(
-		() => new URLSearchParams(window.location.search).get("search") ?? "",
+		() =>
+			showExisting.search ??
+			new URLSearchParams(window.location.search).get("search") ??
+			"",
 	);
+	useEffect(() => {
+		if (showExisting.search !== undefined)
+			setShowExisting((current) => ({ ...current, search: undefined }));
+	}, [showExisting.search, setShowExisting]);
 
 	const params = new URLSearchParams(window.location.search);
 	const aiConfigured = useAiConfigured();

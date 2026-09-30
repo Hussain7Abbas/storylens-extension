@@ -8,4 +8,5 @@
 
 export type GetKeywords404 = {
 	message: string;
+	code?: string;
 };

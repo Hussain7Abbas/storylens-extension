@@ -8,4 +8,5 @@
 
 export type PutWebsiteSelectorsByWebsite500 = {
 	message: string;
+	code?: string;
 };

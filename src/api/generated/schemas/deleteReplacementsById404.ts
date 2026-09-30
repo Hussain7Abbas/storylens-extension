@@ -8,4 +8,5 @@
 
 export type DeleteReplacementsById404 = {
 	message: string;
+	code?: string;
 };

@@ -8,4 +8,5 @@
 
 export type GetAuthMe500 = {
 	message: string;
+	code?: string;
 };

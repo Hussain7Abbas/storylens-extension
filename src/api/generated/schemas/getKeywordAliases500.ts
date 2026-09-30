@@ -8,4 +8,5 @@
 
 export type GetKeywordAliases500 = {
 	message: string;
+	code?: string;
 };

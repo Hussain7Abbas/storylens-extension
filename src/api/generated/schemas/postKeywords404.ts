@@ -8,4 +8,5 @@
 
 export type PostKeywords404 = {
 	message: string;
+	code?: string;
 };

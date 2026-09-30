@@ -8,4 +8,5 @@
 
 export type PostWebsiteNovelBiases500 = {
 	message: string;
+	code?: string;
 };

@@ -8,4 +8,5 @@
 
 export type PostAuthOauthSession404 = {
 	message: string;
+	code?: string;
 };

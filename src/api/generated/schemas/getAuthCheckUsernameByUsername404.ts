@@ -8,4 +8,5 @@
 
 export type GetAuthCheckUsernameByUsername404 = {
 	message: string;
+	code?: string;
 };

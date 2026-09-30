@@ -8,4 +8,5 @@
 
 export type GetKeywordsChaptersChapterByChapterId404 = {
 	message: string;
+	code?: string;
 };

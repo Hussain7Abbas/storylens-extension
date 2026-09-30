@@ -8,4 +8,5 @@
 
 export type GetKeywordCategoriesById404 = {
 	message: string;
+	code?: string;
 };

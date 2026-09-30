@@ -8,6 +8,7 @@
 import type { PostReplacementsBodyOneMatchingType } from "./postReplacementsBodyOneMatchingType";
 
 export type PostReplacementsBodyOne = {
+	id: string;
 	novelId: string;
 	/** @minLength 1 */
 	from: string;

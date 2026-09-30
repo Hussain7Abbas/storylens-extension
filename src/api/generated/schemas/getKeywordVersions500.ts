@@ -8,4 +8,5 @@
 
 export type GetKeywordVersions500 = {
 	message: string;
+	code?: string;
 };

@@ -8,4 +8,5 @@
 
 export type PostWebsiteSelectors404 = {
 	message: string;
+	code?: string;
 };

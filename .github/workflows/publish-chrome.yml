@@ -34,6 +34,9 @@ jobs:
       - name: Typecheck
         run: make typecheck
 
+      - name: Test
+        run: make test
+
       - name: Build store zip
         run: make release-chrome
 

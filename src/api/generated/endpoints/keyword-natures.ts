@@ -43,6 +43,7 @@ import type {
 	PostKeywordNaturesBodyTwo,
 	PutKeywordNaturesById200,
 	PutKeywordNaturesById404,
+	PutKeywordNaturesById409,
 	PutKeywordNaturesById500,
 	PutKeywordNaturesByIdBodyOne,
 	PutKeywordNaturesByIdBodyThree,
@@ -524,7 +525,11 @@ export const putKeywordNaturesById = (
 };
 
 export const getPutKeywordNaturesByIdMutationOptions = <
-	TError = ErrorType<PutKeywordNaturesById404 | PutKeywordNaturesById500>,
+	TError = ErrorType<
+		| PutKeywordNaturesById404
+		| PutKeywordNaturesById409
+		| PutKeywordNaturesById500
+	>,
 	TContext = unknown,
 >(options?: {
 	mutation?: UseMutationOptions<
@@ -587,11 +592,15 @@ export type PutKeywordNaturesByIdMutationBody =
 	| PutKeywordNaturesByIdBodyTwo
 	| PutKeywordNaturesByIdBodyThree;
 export type PutKeywordNaturesByIdMutationError = ErrorType<
-	PutKeywordNaturesById404 | PutKeywordNaturesById500
+	PutKeywordNaturesById404 | PutKeywordNaturesById409 | PutKeywordNaturesById500
 >;
 
 export const usePutKeywordNaturesById = <
-	TError = ErrorType<PutKeywordNaturesById404 | PutKeywordNaturesById500>,
+	TError = ErrorType<
+		| PutKeywordNaturesById404
+		| PutKeywordNaturesById409
+		| PutKeywordNaturesById500
+	>,
 	TContext = unknown,
 >(
 	options?: {

@@ -11,18 +11,18 @@ import {
 import { useForm } from "@mantine/form";
 import { Trash2 as IconTrash } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type {
-	GetReplacements200DataItem,
-	PostReplacementsBodyOne,
-	PutReplacementsByIdBodyOne,
-} from "@/api/generated/schemas";
+import type { GetReplacements200DataItem } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
+import { offlineErrorMessage } from "@/lib/offline/errors";
+import { replacementFormChanges } from "@/lib/offline/form-changes";
 import { useOfflineReplacementMutations } from "@/lib/offline/hooks";
 
 export type ReplacingFormModesType = "add" | "edit" | undefined;
 
-type ReplacingFormValues = PostReplacementsBodyOne & {
-	matchingType: NonNullable<PostReplacementsBodyOne["matchingType"]>;
+type ReplacingFormValues = {
+	from: string;
+	to: string;
+	matchingType: "FULL" | "PARTIAL";
 };
 interface ReplacingFormProps extends React.HTMLAttributes<HTMLFormElement> {
 	mode: ReplacingFormModesType;
@@ -43,7 +43,6 @@ function ReplacingFormContent({
 	const { t } = useTranslation();
 	const form = useForm<ReplacingFormValues>({
 		initialValues: {
-			novelId: replacement?.novelId || "",
 			from: replacement?.from ?? (mode === "add" ? (initialText ?? "") : ""),
 			to: replacement?.to || "",
 			matchingType: replacement?.matchingType ?? "FULL",
@@ -66,7 +65,6 @@ function ReplacingFormContent({
 		if (mode === "add") {
 			createMutation.mutate(
 				{
-					novelId: selectedNovelId,
 					from: values.from,
 					to: values.to,
 					matchingType: values.matchingType,
@@ -79,16 +77,23 @@ function ReplacingFormContent({
 				},
 			);
 		} else if (mode === "edit" && replacement?.id) {
-			const updateData: PutReplacementsByIdBodyOne = {
-				novelId: selectedNovelId,
-				from: values.from,
-				to: values.to,
-				matchingType: values.matchingType,
-			};
+			const changes = replacementFormChanges(
+				{
+					from: replacement.from,
+					to: replacement.to,
+					matchingType: replacement.matchingType,
+				},
+				values,
+			);
+			if (!changes) {
+				onClose();
+				return;
+			}
 			updateMutation.mutate(
 				{
 					id: replacement.id,
-					data: updateData,
+					...changes,
+					seenUpdatedAt: String(replacement.updatedAt),
 				},
 				{
 					onSuccess: () => {
@@ -142,9 +147,13 @@ function ReplacingFormContent({
 					required
 				/>
 
-				{createMutation.isError && (
+				{(createMutation.isError || updateMutation.isError) && (
 					<Alert color="red">
-						{t("replacing.createFailed")}: {createMutation.error?.message}
+						{t("replacing.createFailed")}:{" "}
+						{offlineErrorMessage(
+							createMutation.error ?? updateMutation.error,
+							t,
+						)}
 					</Alert>
 				)}
 

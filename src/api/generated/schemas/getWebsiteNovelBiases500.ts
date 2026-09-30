@@ -8,4 +8,5 @@
 
 export type GetWebsiteNovelBiases500 = {
 	message: string;
+	code?: string;
 };

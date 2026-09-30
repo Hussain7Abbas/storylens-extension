@@ -10,30 +10,59 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import {
-	CloudUpload as IconCloudUpload,
-	History as IconHistory,
-	Plus as IconPlus,
-} from "lucide-react";
-import { useMemo } from "react";
+import { History as IconHistory, Plus as IconPlus } from "lucide-react";
+import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type {
 	GetKeywords200DataItem,
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
-import { useNovelKeywords } from "@/hooks/use-novel-keywords";
-import { usePendingEntityIds } from "@/lib/offline/hooks";
+import { SyncBadge } from "@/components/sync-badge";
+import {
+	canEditAlias,
+	canEditKeyword,
+	canEditVersion,
+} from "@/lib/auth/permissions";
+import { useCurrentUser } from "@/lib/auth/use-permissions";
+import {
+	useNovelKeywords,
+	useNovelView,
+	useOnlineStatus,
+	usePendingEntityIds,
+} from "@/lib/offline/hooks";
+import type { EntitySyncState } from "@/lib/offline/types";
 import { useLanguage } from "@/store/locale";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import {
+	aliasDisplayName,
 	aliasMatchNames,
-	aliasNames,
 	type Language,
 	nameIn,
 } from "@/utils/translation";
 import { ListItemCard } from "../list-item-card";
+
+/** Rows the reader may not change open nothing and say who can (D12 rules). */
+function EditGate({
+	locked,
+	children,
+}: {
+	locked: boolean;
+	children: ReactNode;
+}) {
+	const { t } = useTranslation();
+	if (!locked) return <>{children}</>;
+	return (
+		<Tooltip
+			label={t("permissions.creatorOrModerator")}
+			withArrow
+			openDelay={300}
+		>
+			<div>{children}</div>
+		</Tooltip>
+	);
+}
 
 type KeywordGroup = {
 	parent: GetKeywords200DataItem;
@@ -125,12 +154,16 @@ function VersionCard({
 	currentChapter,
 	onClick,
 	readOnly,
+	locked = false,
+	syncState,
 }: {
+	syncState?: EntitySyncState;
 	version: GetKeywords200DataItemVersionsItem;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
 	currentChapter: number;
 	onClick?: () => void;
 	readOnly: boolean;
+	locked?: boolean;
 }) {
 	const { t } = useTranslation();
 	const start = Number(version.startingChapter);
@@ -161,42 +194,52 @@ function VersionCard({
 	const isDescInherited = !ownDescription && !!inheritedDescription;
 
 	return (
-		<ListItemCard onClick={readOnly ? undefined : onClick}>
-			<Group wrap="nowrap" align="center" gap={4}>
-				<Text
-					size="xs"
-					fw={600}
-					style={{
-						flex: 1,
-						opacity: isFuture ? 0.5 : 1,
-						textDecoration: isFuture ? "line-through" : undefined,
-					}}
-				>
-					{label}
-				</Text>
-				{hasOwnImage && (
-					<Badge size="xs" variant="dot" color="gray" style={{ flexShrink: 0 }}>
-						{t("coloring.hasImage")}
-					</Badge>
+		<EditGate locked={locked}>
+			<ListItemCard onClick={readOnly ? undefined : onClick}>
+				<Group wrap="nowrap" align="center" gap={4}>
+					<Text
+						size="xs"
+						fw={600}
+						style={{
+							flex: 1,
+							opacity: isFuture ? 0.5 : 1,
+							textDecoration: isFuture ? "line-through" : undefined,
+						}}
+					>
+						{label}
+					</Text>
+					<SyncBadge state={syncState} />
+					{hasOwnImage && (
+						<Badge
+							size="xs"
+							variant="dot"
+							color="gray"
+							style={{ flexShrink: 0 }}
+						>
+							{version?.imageId && !version?.image
+								? t("offline.waitingToUpload")
+								: t("coloring.hasImage")}
+						</Badge>
+					)}
+				</Group>
+				<CategoryNatureRow
+					ownCategory={ownCategory}
+					ownNature={ownNature}
+					inheritedCategory={inheritedCategory}
+					inheritedNature={inheritedNature}
+				/>
+				{displayDescription && (
+					<Text
+						size="xs"
+						c={isDescInherited ? "dimmed" : undefined}
+						style={{ opacity: isDescInherited ? 0.45 : 1 }}
+						lineClamp={2}
+					>
+						{displayDescription}
+					</Text>
 				)}
-			</Group>
-			<CategoryNatureRow
-				ownCategory={ownCategory}
-				ownNature={ownNature}
-				inheritedCategory={inheritedCategory}
-				inheritedNature={inheritedNature}
-			/>
-			{displayDescription && (
-				<Text
-					size="xs"
-					c={isDescInherited ? "dimmed" : undefined}
-					style={{ opacity: isDescInherited ? 0.45 : 1 }}
-					lineClamp={2}
-				>
-					{displayDescription}
-				</Text>
-			)}
-		</ListItemCard>
+			</ListItemCard>
+		</EditGate>
 	);
 }
 
@@ -205,13 +248,15 @@ function AliasCard({
 	baseVersion,
 	onClick,
 	readOnly,
-	isPending,
+	syncState,
+	locked = false,
 }: {
 	alias: GetKeywords200DataItemAliasesItem;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
 	onClick?: () => void;
 	readOnly: boolean;
-	isPending: boolean;
+	syncState: EntitySyncState | undefined;
+	locked?: boolean;
 }) {
 	const { t } = useTranslation();
 	const language = useLanguage();
@@ -235,51 +280,46 @@ function AliasCard({
 	const isDescInherited = !ownDescription && !!inheritedDescription;
 
 	return (
-		<ListItemCard onClick={readOnly ? undefined : onClick}>
-			<Group wrap="nowrap" align="flex-start" gap={4}>
-				<Text fw={500} size="xs" style={{ flex: 1 }}>
-					{aliasNames(alias)[language] ?? alias.name}
-				</Text>
-				<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
-					{hasOwnImage && (
-						<Badge size="xs" variant="dot" color="gray">
-							{t("coloring.hasImage")}
-						</Badge>
-					)}
-					{isPending && (
-						<Badge
-							size="xs"
-							color="orange"
-							variant="light"
-							leftSection={<IconCloudUpload size={10} />}
-						>
-							{t("offline.pendingSync")}
-						</Badge>
-					)}
-					{alias.overrideStyle && (
-						<Badge size="xs" variant="light">
-							{t("coloring.overrideStyle")}
-						</Badge>
-					)}
+		<EditGate locked={locked}>
+			<ListItemCard onClick={readOnly ? undefined : onClick}>
+				<Group wrap="nowrap" align="flex-start" gap={4}>
+					<Text fw={500} size="xs" style={{ flex: 1 }}>
+						{aliasDisplayName(alias, language)}
+					</Text>
+					<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+						{hasOwnImage && (
+							<Badge size="xs" variant="dot" color="gray">
+								{alias?.imageId && !alias?.image
+									? t("offline.waitingToUpload")
+									: t("coloring.hasImage")}
+							</Badge>
+						)}
+						<SyncBadge state={syncState} />
+						{alias.overrideStyle && (
+							<Badge size="xs" variant="light">
+								{t("coloring.overrideStyle")}
+							</Badge>
+						)}
+					</Group>
 				</Group>
-			</Group>
-			<CategoryNatureRow
-				ownCategory={ownCategory}
-				ownNature={ownNature}
-				inheritedCategory={inheritedCategory}
-				inheritedNature={inheritedNature}
-			/>
-			{displayDescription && (
-				<Text
-					size="xs"
-					c={isDescInherited ? "dimmed" : undefined}
-					style={{ opacity: isDescInherited ? 0.45 : 1 }}
-					lineClamp={2}
-				>
-					{displayDescription}
-				</Text>
-			)}
-		</ListItemCard>
+				<CategoryNatureRow
+					ownCategory={ownCategory}
+					ownNature={ownNature}
+					inheritedCategory={inheritedCategory}
+					inheritedNature={inheritedNature}
+				/>
+				{displayDescription && (
+					<Text
+						size="xs"
+						c={isDescInherited ? "dimmed" : undefined}
+						style={{ opacity: isDescInherited ? 0.45 : 1 }}
+						lineClamp={2}
+					>
+						{displayDescription}
+					</Text>
+				)}
+			</ListItemCard>
+		</EditGate>
 	);
 }
 
@@ -299,6 +339,11 @@ export function ColoringCards({
 	const language = useLanguage();
 	const pendingEntityIds = usePendingEntityIds();
 	const { keywords: allItems, isLoading } = useNovelKeywords(selectedNovelId);
+	const novelView = useNovelView(selectedNovelId).data;
+	const states = novelView?.states;
+	const online = useOnlineStatus();
+	const notAvailableOffline = novelView?.hasSnapshot === false && !online;
+	const user = useCurrentUser();
 
 	const groups = useMemo(() => {
 		const term = search.trim().toLowerCase();
@@ -323,6 +368,14 @@ export function ColoringCards({
 		);
 	}
 
+	if (groups.length === 0 && notAvailableOffline) {
+		return (
+			<Text ta="center" c="dimmed" size="sm">
+				{t("offline.notAvailableOffline")}
+			</Text>
+		);
+	}
+
 	if (groups.length === 0) {
 		return (
 			<Text ta="center" c="dimmed">
@@ -336,9 +389,8 @@ export function ColoringCards({
 	return (
 		<Stack gap="xs" {...props}>
 			{groups.map(({ parent, aliases, versions }) => {
-				const isPending =
-					pendingEntityIds.has(parent.id) ||
-					("isDirty" in parent && parent.isDirty === true);
+				const isPending = pendingEntityIds.has(parent.id);
+				const keywordLocked = !readOnly && !canEditKeyword(user, parent);
 
 				const sortedVersions = [...versions].sort(
 					(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
@@ -359,79 +411,83 @@ export function ColoringCards({
 				return (
 					<Stack key={parent.id} gap={2}>
 						{/* Keyword card — shows base/original details */}
-						<ListItemCard
-							onClick={readOnly ? undefined : () => onEditKeyword(parent)}
-						>
-							<Group wrap="nowrap" align="flex-start" gap="xs">
-								<Text fw={500} style={{ flex: 1 }}>
-									{nameIn(parent, language)}
-								</Text>
-								<Group gap="xs" wrap="nowrap">
-									{hasBaseImage && (
-										<Badge size="xs" variant="dot" color="gray">
-											{t("coloring.hasImage")}
-										</Badge>
-									)}
-									{isPending && (
-										<Badge
-											size="xs"
-											color="orange"
-											variant="light"
-											leftSection={<IconCloudUpload size={12} />}
-										>
-											{t("offline.pendingSync")}
-										</Badge>
-									)}
-									{baseCategory && (
-										<Text size="xs" style={{ color: baseCategory.color }}>
-											{baseCategory.nameEn || baseCategory.nameAr}
-										</Text>
-									)}
-									{baseNature && (
-										<Text size="xs" style={{ color: baseNature.color }}>
-											{baseNature.nameEn || baseNature.nameAr}
-										</Text>
-									)}
-									{!readOnly && onAddAlias && (
-										<Tooltip label={t("coloring.addAlias")} withArrow>
-											<ActionIcon
-												size="xs"
-												variant="subtle"
-												color="brand"
-												aria-label={t("coloring.addAlias")}
-												onClick={(e) => {
-													e.stopPropagation();
-													onAddAlias(parent);
-												}}
-											>
-												<IconPlus size={16} aria-hidden="true" />
-											</ActionIcon>
-										</Tooltip>
-									)}
-									{!readOnly && onAddVersion && (
-										<Tooltip label={t("coloring.addVersion")} withArrow>
-											<ActionIcon
-												size="xs"
-												variant="subtle"
-												color="var(--mantine-color-dimmed)"
-												aria-label={t("coloring.addVersion")}
-												onClick={(e) => {
-													e.stopPropagation();
-													onAddVersion(parent);
-												}}
-											>
-												<IconHistory size={16} aria-hidden="true" />
-											</ActionIcon>
-										</Tooltip>
-									)}
+						<EditGate locked={keywordLocked}>
+							<ListItemCard
+								onClick={
+									readOnly || keywordLocked
+										? undefined
+										: () => onEditKeyword(parent)
+								}
+							>
+								<Group wrap="nowrap" align="flex-start" gap="xs">
+									<Text fw={500} style={{ flex: 1 }}>
+										{nameIn(parent, language)}
+									</Text>
+									<Group gap="xs" wrap="nowrap">
+										{hasBaseImage && (
+											<Badge size="xs" variant="dot" color="gray">
+												{baseVersion?.imageId && !baseVersion?.image
+													? t("offline.waitingToUpload")
+													: t("coloring.hasImage")}
+											</Badge>
+										)}
+										<SyncBadge
+											state={
+												states?.get(parent.id) ??
+												(isPending ? "pending" : undefined)
+											}
+										/>
+										{baseCategory && (
+											<Text size="xs" style={{ color: baseCategory.color }}>
+												{baseCategory.nameEn || baseCategory.nameAr}
+											</Text>
+										)}
+										{baseNature && (
+											<Text size="xs" style={{ color: baseNature.color }}>
+												{baseNature.nameEn || baseNature.nameAr}
+											</Text>
+										)}
+										{!readOnly && onAddAlias && (
+											<Tooltip label={t("coloring.addAlias")} withArrow>
+												<ActionIcon
+													size="xs"
+													variant="subtle"
+													color="brand"
+													aria-label={t("coloring.addAlias")}
+													onClick={(e) => {
+														e.stopPropagation();
+														onAddAlias(parent);
+													}}
+												>
+													<IconPlus size={16} aria-hidden="true" />
+												</ActionIcon>
+											</Tooltip>
+										)}
+										{!readOnly && onAddVersion && (
+											<Tooltip label={t("coloring.addVersion")} withArrow>
+												<ActionIcon
+													size="xs"
+													variant="subtle"
+													color="var(--mantine-color-dimmed)"
+													aria-label={t("coloring.addVersion")}
+													onClick={(e) => {
+														e.stopPropagation();
+														onAddVersion(parent);
+													}}
+												>
+													<IconHistory size={16} aria-hidden="true" />
+												</ActionIcon>
+											</Tooltip>
+										)}
+									</Group>
 								</Group>
-							</Group>
-							{baseVersion?.description && (
-								<Text size="sm" c="dimmed">
-									{baseVersion.description}
-								</Text>
-							)}
-						</ListItemCard>
+								{baseVersion?.description && (
+									<Text size="sm" c="dimmed">
+										{baseVersion.description}
+									</Text>
+								)}
+							</ListItemCard>
+						</EditGate>
 
 						{/* 2-column grid: Versions (left) + Aliases (right) */}
 						{(versions.length > 1 || aliases.length > 0) && (
@@ -454,7 +510,13 @@ export function ColoringCards({
 													version={version}
 													baseVersion={baseVersion}
 													currentChapter={chapter}
-													readOnly={readOnly}
+													readOnly={
+														readOnly || !canEditVersion(user, version, parent)
+													}
+													locked={
+														!readOnly && !canEditVersion(user, version, parent)
+													}
+													syncState={states?.get(version.id)}
 													onClick={
 														onEditVersion
 															? () => onEditVersion(version, parent)
@@ -471,16 +533,20 @@ export function ColoringCards({
 												{t("coloring.aliases")}
 											</Text>
 											{aliases.map((alias) => {
-												const isAliasPending =
-													pendingEntityIds.has(alias.id) ||
-													("isDirty" in alias && alias.isDirty === true);
+												const isAliasPending = pendingEntityIds.has(alias.id);
+												const aliasLocked =
+													!readOnly && !canEditAlias(user, alias, parent);
 												return (
 													<AliasCard
 														key={alias.id}
 														alias={alias}
 														baseVersion={baseVersion}
-														readOnly={readOnly}
-														isPending={isAliasPending}
+														readOnly={readOnly || aliasLocked}
+														locked={aliasLocked}
+														syncState={
+															states?.get(alias.id) ??
+															(isAliasPending ? "pending" : undefined)
+														}
 														onClick={() => onEditAlias(alias, parent)}
 													/>
 												);

@@ -8,4 +8,5 @@
 
 export type PutAuthMe500 = {
 	message: string;
+	code?: string;
 };

@@ -8,4 +8,5 @@
 
 export type PostFilesUpload404 = {
 	message: string;
+	code?: string;
 };

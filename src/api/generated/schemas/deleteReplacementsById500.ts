@@ -8,4 +8,5 @@
 
 export type DeleteReplacementsById500 = {
 	message: string;
+	code?: string;
 };

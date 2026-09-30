@@ -8,4 +8,5 @@
 
 export type PostReplacements404 = {
 	message: string;
+	code?: string;
 };

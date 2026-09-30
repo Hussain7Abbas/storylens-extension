@@ -8,4 +8,5 @@
 
 export type DeleteKeywordNaturesById404 = {
 	message: string;
+	code?: string;
 };

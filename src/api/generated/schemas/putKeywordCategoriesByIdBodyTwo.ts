@@ -5,13 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PutKeywordCategoriesByIdBodyTwoDescription } from "./putKeywordCategoriesByIdBodyTwoDescription";
+import type { PutKeywordCategoriesByIdBodyTwoNameAr } from "./putKeywordCategoriesByIdBodyTwoNameAr";
+import type { PutKeywordCategoriesByIdBodyTwoNameEn } from "./putKeywordCategoriesByIdBodyTwoNameEn";
 
 export type PutKeywordCategoriesByIdBodyTwo = {
-	nameEn?: string;
-	nameAr?: string;
+	baseUpdatedAt: string;
+	/** @nullable */
+	nameEn?: PutKeywordCategoriesByIdBodyTwoNameEn;
+	/** @nullable */
+	nameAr?: PutKeywordCategoriesByIdBodyTwoNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
-	color: string;
+	color?: string;
 	/** @nullable */
 	description?: PutKeywordCategoriesByIdBodyTwoDescription;
 };

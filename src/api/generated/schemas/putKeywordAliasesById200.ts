@@ -22,7 +22,6 @@ import type { PutKeywordAliasesById200UpdatedAt } from "./putKeywordAliasesById2
 
 export type PutKeywordAliasesById200 = {
 	id: string;
-	name: string;
 	nameAr: PutKeywordAliasesById200NameAr;
 	nameEn: PutKeywordAliasesById200NameEn;
 	description: PutKeywordAliasesById200Description;

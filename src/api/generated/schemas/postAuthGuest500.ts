@@ -8,4 +8,5 @@
 
 export type PostAuthGuest500 = {
 	message: string;
+	code?: string;
 };

@@ -9,8 +9,8 @@ import type {
 	EnrichedNature,
 } from "@/types/content-data";
 import {
+	aliasDisplayName,
 	aliasMatchNames,
-	aliasNames,
 	type Language,
 	nameIn,
 } from "@/utils/translation";
@@ -271,7 +271,7 @@ export function resolveKeywordInfo(
 
 	const name: FieldInfo<string> = alias
 		? {
-				value: aliasNames(alias)[language] ?? alias.name,
+				value: aliasDisplayName(alias, language),
 				source: "alias",
 				overrides: [{ source: "keyword", value: keywordName }],
 			}

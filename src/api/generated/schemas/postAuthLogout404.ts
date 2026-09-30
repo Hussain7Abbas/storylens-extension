@@ -8,4 +8,5 @@
 
 export type PostAuthLogout404 = {
 	message: string;
+	code?: string;
 };

@@ -62,8 +62,10 @@ export async function checkUsernameAvailability(
 
 export function setupAuthInterceptor(): void {
 	axiosInstance.interceptors.request.use(async (config) => {
+		// A request may carry its own token: the sync runner sends each change
+		// with the session of the account that made it.
 		const { token } = await getStoredAuth();
-		if (token) {
+		if (token && !config.headers.Authorization) {
 			config.headers.Authorization = `Bearer ${token}`;
 		}
 		// The API returns novels and keywords named in this language only.

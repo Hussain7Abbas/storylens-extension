@@ -12,10 +12,23 @@ import {
 	loadDesktopCapabilities,
 	shareAccountSession,
 } from "@/lib/desktop-client/background";
-import { updateSyncBadge } from "@/lib/offline/badge";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
-import { isOnline } from "@/lib/offline/online-status";
-import { fullSync, syncPendingOperations } from "@/lib/offline/sync-engine";
+import {
+	downloadNovel,
+	initSyncBackground,
+	kickSync,
+	removeDownload,
+	requestNovelRefresh,
+	setTabNovelId,
+	setTabRefresher,
+	syncNow,
+} from "@/lib/offline/sync/service";
+import { getSyncStatus, updateBadge } from "@/lib/offline/sync/status";
+import {
+	getTabNovel,
+	removeTabNovel,
+	setTabNovel,
+} from "@/lib/offline/sync/tabs";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector } from "@/types/configs";
 import { handleApiProxyRequest } from "@/utils/api-proxy-handler";
@@ -26,7 +39,6 @@ import {
 } from "@/utils/load-website-selectors";
 import { setupApiClient } from "@/utils/setup-api-client";
 
-const tabNovels = new Map<number, currentNovelMeta>();
 /** Owner key for desktop jobs started by an extension page outside a tab (the toolbar popup). */
 const EXTENSION_PAGE_OWNER = -1;
 
@@ -48,17 +60,12 @@ function desktopJobOwner(sender: {
 	return EXTENSION_PAGE_OWNER;
 }
 
-const SYNC_ALARM_NAME = "storylens-periodic-sync";
-const SYNC_INTERVAL_MINUTES = 5;
-
-async function runSyncCycle(): Promise<void> {
-	if (!isOnline()) {
-		await updateSyncBadge();
-		return;
-	}
-
-	await syncPendingOperations();
-	await updateSyncBadge();
+/** Page data for a detected novel, pulling it through the runner when it is missing. */
+function contentDataFor(meta: currentNovelMeta) {
+	return loadNovelContentDataForMeta(meta, {
+		kick: (options) => kickSync("page", options),
+		onResolved: setTabNovelId,
+	});
 }
 
 async function notifyWebsiteSelectorUpdated(
@@ -109,10 +116,10 @@ export default defineBackground(() => {
 
 	console.log("🔥", "Background script loaded");
 
-	void updateSyncBadge();
-	void browser.alarms.create(SYNC_ALARM_NAME, {
-		periodInMinutes: SYNC_INTERVAL_MINUTES,
-	});
+	initSyncBackground();
+	setTabRefresher((tabId, novelSlug) =>
+		sendMessage("refreshContent", { novelSlug }, { tabId }),
+	);
 
 	browser.runtime.onInstalled.addListener((details) => {
 		if (details.reason === "install") {
@@ -126,7 +133,7 @@ export default defineBackground(() => {
 	});
 
 	browser.tabs.onRemoved.addListener((tabId) => {
-		tabNovels.delete(tabId);
+		void removeTabNovel(tabId);
 		cancelTabPrompts(tabId);
 	});
 
@@ -141,24 +148,7 @@ export default defineBackground(() => {
 		cancelPrompt(data, desktopJobOwner(sender));
 	});
 
-	browser.alarms.onAlarm.addListener((alarm) => {
-		if (alarm.name === SYNC_ALARM_NAME) {
-			void runSyncCycle();
-		}
-	});
-
-	self.addEventListener("online", () => {
-		void fullSync().then(() => updateSyncBadge());
-	});
-
-	self.addEventListener("offline", () => {
-		void updateSyncBadge();
-	});
-
 	browser.storage.onChanged.addListener((changes, areaName) => {
-		if (areaName === "local" && changes["storylens-sync-state"]) {
-			void updateSyncBadge();
-		}
 		// Keep the paired desktop client's crawler on the current account.
 		if (areaName === "local" && changes[AUTH_STORAGE_KEY]) {
 			void shareAccountSession().catch(() => {});
@@ -175,12 +165,10 @@ export default defineBackground(() => {
 			tabId,
 			novel: data,
 		});
-		tabNovels.set(tabId, data);
+		void setTabNovel(tabId, data);
 	});
 
-	onMessage("getCachedTabNovel", ({ data: tabId }) => {
-		return tabNovels.get(tabId);
-	});
+	onMessage("getCachedTabNovel", ({ data: tabId }) => getTabNovel(tabId));
 
 	onMessage("getWebsiteSelector", async ({ data: website }) => {
 		const cached = await getCachedWebsiteSelector(website);
@@ -197,22 +185,28 @@ export default defineBackground(() => {
 		return handleApiProxyRequest(data);
 	});
 
-	onMessage("getNovelContentData", ({ data }) => {
-		return loadNovelContentDataForMeta(data);
-	});
+	onMessage("getNovelContentData", ({ data }) => contentDataFor(data));
 
-	onMessage("getOfflineNovelData", ({ data }) => {
-		return loadNovelContentDataForMeta({
-			novelSlug: data.novelSlug,
-			chapter: data.chapter,
-		});
-	});
+	onMessage("getOfflineNovelData", ({ data }) =>
+		contentDataFor({ novelSlug: data.novelSlug, chapter: data.chapter }),
+	);
 
 	onMessage("trackAnalyticsEvent", ({ data }) => trackAnalyticsEvent(data));
 
-	onMessage("triggerFullSync", async () => {
-		const result = await fullSync(true);
-		await updateSyncBadge();
-		return result;
+	onMessage("syncKick", async ({ data }) => {
+		void kickSync(data.reason, {
+			pull: data.pull,
+			forceCatalogue: data.forceCatalogue,
+		});
+		return updateBadge();
 	});
+	onMessage("syncNow", () => syncNow());
+	onMessage("getSyncStatus", () => getSyncStatus());
+	onMessage("downloadNovel", ({ data: novelId }) => downloadNovel(novelId));
+	onMessage("removeDownload", ({ data }) =>
+		removeDownload(data.novelId, { discardPending: data.discardPending }),
+	);
+	onMessage("requestNovelRefresh", ({ data: novelId }) =>
+		requestNovelRefresh(novelId),
+	);
 });

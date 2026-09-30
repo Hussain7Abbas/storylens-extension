@@ -8,4 +8,5 @@
 
 export type GetKeywordNaturesById500 = {
 	message: string;
+	code?: string;
 };

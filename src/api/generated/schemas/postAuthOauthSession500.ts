@@ -8,4 +8,5 @@
 
 export type PostAuthOauthSession500 = {
 	message: string;
+	code?: string;
 };

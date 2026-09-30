@@ -5,14 +5,19 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+import type { PostKeywordVersionsBodyOneDescription } from "./postKeywordVersionsBodyOneDescription";
 import type { PostKeywordVersionsBodyOneEndingChapter } from "./postKeywordVersionsBodyOneEndingChapter";
+import type { PostKeywordVersionsBodyOneImageId } from "./postKeywordVersionsBodyOneImageId";
 
 export type PostKeywordVersionsBodyOne = {
+	id: string;
 	keywordId: string;
 	categoryId?: string;
 	natureId?: string;
-	description?: string;
-	imageId?: string;
+	/** @nullable */
+	description?: PostKeywordVersionsBodyOneDescription;
+	/** @nullable */
+	imageId?: PostKeywordVersionsBodyOneImageId;
 	/** @minimum 0 */
 	currentChapter?: number;
 	/** @minimum 0 */

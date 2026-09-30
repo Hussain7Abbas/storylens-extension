@@ -8,4 +8,5 @@
 
 export type PutReplacementsById404 = {
 	message: string;
+	code?: string;
 };

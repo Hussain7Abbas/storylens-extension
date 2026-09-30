@@ -8,4 +8,5 @@
 
 export type DeleteKeywordCategoriesById500 = {
 	message: string;
+	code?: string;
 };

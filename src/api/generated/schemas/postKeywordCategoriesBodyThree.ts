@@ -5,11 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
 import type { PostKeywordCategoriesBodyThreeDescription } from "./postKeywordCategoriesBodyThreeDescription";
+import type { PostKeywordCategoriesBodyThreeNameAr } from "./postKeywordCategoriesBodyThreeNameAr";
+import type { PostKeywordCategoriesBodyThreeNameEn } from "./postKeywordCategoriesBodyThreeNameEn";
 
 export type PostKeywordCategoriesBodyThree = {
-	nameEn?: string;
-	nameAr?: string;
+	id: string;
+	/** @nullable */
+	nameEn?: PostKeywordCategoriesBodyThreeNameEn;
+	/** @nullable */
+	nameAr?: PostKeywordCategoriesBodyThreeNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
 	/** @nullable */

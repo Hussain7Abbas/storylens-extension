@@ -8,4 +8,5 @@
 
 export type PutKeywordNaturesById404 = {
 	message: string;
+	code?: string;
 };

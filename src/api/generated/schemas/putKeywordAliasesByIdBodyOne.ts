@@ -7,14 +7,21 @@
  */
 
 import type { PutKeywordAliasesByIdBodyOneCategoryId } from "./putKeywordAliasesByIdBodyOneCategoryId";
+import type { PutKeywordAliasesByIdBodyOneDescription } from "./putKeywordAliasesByIdBodyOneDescription";
 import type { PutKeywordAliasesByIdBodyOneImageId } from "./putKeywordAliasesByIdBodyOneImageId";
 import type { PutKeywordAliasesByIdBodyOneMatchingType } from "./putKeywordAliasesByIdBodyOneMatchingType";
+import type { PutKeywordAliasesByIdBodyOneNameAr } from "./putKeywordAliasesByIdBodyOneNameAr";
+import type { PutKeywordAliasesByIdBodyOneNameEn } from "./putKeywordAliasesByIdBodyOneNameEn";
 import type { PutKeywordAliasesByIdBodyOneNatureId } from "./putKeywordAliasesByIdBodyOneNatureId";
 
 export type PutKeywordAliasesByIdBodyOne = {
-	/** @minLength 1 */
-	name?: string;
-	description?: string;
+	baseUpdatedAt: string;
+	/** @nullable */
+	nameAr?: PutKeywordAliasesByIdBodyOneNameAr;
+	/** @nullable */
+	nameEn?: PutKeywordAliasesByIdBodyOneNameEn;
+	/** @nullable */
+	description?: PutKeywordAliasesByIdBodyOneDescription;
 	matchingType?: PutKeywordAliasesByIdBodyOneMatchingType;
 	/** @nullable */
 	categoryId?: PutKeywordAliasesByIdBodyOneCategoryId;

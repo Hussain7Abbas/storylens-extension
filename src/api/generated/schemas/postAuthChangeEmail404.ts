@@ -8,4 +8,5 @@
 
 export type PostAuthChangeEmail404 = {
 	message: string;
+	code?: string;
 };

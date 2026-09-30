@@ -8,4 +8,5 @@
 
 export type GetWebsiteSelectorsByWebsite404 = {
 	message: string;
+	code?: string;
 };

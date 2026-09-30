@@ -17,7 +17,6 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import type { GetKeywords200DataItem } from "@/api/generated/schemas";
 import { sendMessage } from "@/entrypoints/background/messaging";
-import { useNovelKeywords } from "@/hooks/use-novel-keywords";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
 import { trackEvent } from "@/lib/analytics/client";
 import { useCanMutateKeywords } from "@/lib/auth";
@@ -36,8 +35,10 @@ import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
 import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
 	useCachedNovelsList,
+	useNovelKeywords,
 	useOfflineKeywordAliasMutations,
 	useOfflineKeywordCategories,
 	useOfflineKeywordMutations,
@@ -64,6 +65,8 @@ type Row = ExtractedKeyword & {
 	parentTouched?: boolean;
 	saving?: RowAction;
 	saved?: RowAction;
+	/** The keyword this row created, so rows suggesting it as parent link at once (W3). */
+	savedKeywordId?: string;
 	error?: string;
 };
 
@@ -326,7 +329,18 @@ export function ExtractionView() {
 
 	const save = async (row: Row, action: RowAction) => {
 		if (!novelId) return;
-		const parent = keywords.find((keyword) => keyword.id === row.parentId);
+		// A parent saved from this list moments ago may not be in the keyword list yet.
+		const savedParent = rows.find(
+			(item) => item.savedKeywordId && item.savedKeywordId === row.parentId,
+		);
+		const parent =
+			keywords.find((keyword) => keyword.id === row.parentId) ??
+			(savedParent?.savedKeywordId
+				? {
+						id: savedParent.savedKeywordId,
+						...nameFields(language, savedParent.name),
+					}
+				: undefined);
 		if (action === "new" && (!row.categoryId || !row.natureId)) {
 			updateRow(row.key, { error: t("extract.categoryNatureRequired") });
 			return;
@@ -349,20 +363,34 @@ export function ExtractionView() {
 							},
 							language,
 						);
-			if (action === "new")
-				await keywordMutations.createMutation.mutateAsync({
-					novelId,
+			// Rows save one at a time through the outbox; client IDs let a
+			// child row reference a keyword saved moments ago.
+			if (action === "new") {
+				const { entityId } = await keywordMutations.createMutation.mutateAsync({
 					...nameFields(language, row.name),
 					matchingType: "FULL",
 					categoryId: row.categoryId as string,
 					natureId: row.natureId as string,
-					description: description || undefined,
+					description: description || null,
 				});
-			else if (action === "alias" && parent)
+				setRows((current) =>
+					current.map((item) =>
+						item.key === row.key
+							? { ...item, savedKeywordId: entityId }
+							: item.suggestedParent &&
+									!item.parentId &&
+									!item.parentTouched &&
+									item.suggestedParent.name.trim().toLowerCase() ===
+										row.name.trim().toLowerCase()
+								? { ...item, parentId: entityId }
+								: item,
+					),
+				);
+			} else if (action === "alias" && parent)
 				await aliasMutations.createMutation.mutateAsync({
 					keywordId: parent.id,
-					name: row.name,
-					description: description || undefined,
+					...nameFields(language, row.name),
+					description: description || null,
 					matchingType: "FULL",
 					categoryId: row.categoryId ?? null,
 					natureId: row.natureId ?? null,
@@ -373,7 +401,7 @@ export function ExtractionView() {
 					keywordId: parent.id,
 					categoryId: row.categoryId,
 					natureId: row.natureId,
-					description: description || undefined,
+					description: description || null,
 					currentChapter: chapter,
 				});
 			updateRow(row.key, { saving: undefined, saved: action });
@@ -382,7 +410,10 @@ export function ExtractionView() {
 		} catch (error) {
 			updateRow(row.key, {
 				saving: undefined,
-				error: error instanceof Error ? error.message : t("extract.saveFailed"),
+				error:
+					error instanceof Error
+						? offlineErrorMessage(error, t)
+						: t("extract.saveFailed"),
 			});
 		}
 	};

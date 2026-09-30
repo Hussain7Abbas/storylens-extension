@@ -1,199 +1,149 @@
-import { getKeywords } from "@/api/generated/endpoints/keywords.js";
-import { getNovels } from "@/api/generated/endpoints/novels.js";
-import { getReplacements } from "@/api/generated/endpoints/replacements.js";
-import { getWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
+import { getStoredAuth } from "@/lib/auth/auth-storage";
 import {
-	getAllCatalogNovels,
-	getAssembledKeywordsByNovelId,
-	getBiasesByNovelId,
-	getCatalogNovelBySlug,
-	getOfflineNovelBySlug,
-	getReplacementsByNovelId,
-	writeNovelContentCache,
+	isOfflineUnavailable,
+	offlineDb,
+	type StoryLensDatabase,
 } from "@/lib/offline/db";
+import { getMeta, requestRefresh } from "@/lib/offline/meta";
 import { isOnline } from "@/lib/offline/online-status";
+import { projectNovel } from "@/lib/offline/projection";
+import { splitKeywords } from "@/lib/offline/snapshot";
+import {
+	fetchNovelBundle,
+	fetchNovels,
+	NOVEL_STALE_MS,
+} from "@/lib/offline/sync/pull";
+import { getCatalogueView, getNovelView } from "@/lib/offline/views";
 import type { currentNovelMeta } from "@/types";
 import type { NovelContentData } from "@/types/content-data";
-import {
-	KEYWORD_LIST_SORTING,
-	REPLACEMENT_LIST_SORTING,
-	withListQueryParams,
-} from "@/utils/api-list-params";
 import { findNovelBySlug } from "@/utils/novel-matching";
 import { getStoredLanguage } from "@/utils/stored-language";
 import { type Language, namedIn } from "@/utils/translation";
 
 const LOG_PREFIX = "[StoryLens]";
-const CONTENT_PAGE_SIZE = 500;
+/** How long a page waits for a first pull before rendering without data. */
+export const FIRST_PULL_WAIT_MS = 10_000;
 
-async function loadLocalNovelContentData(
-	novelSlug: string,
-	language: Language,
-	chapter?: number,
-): Promise<NovelContentData | undefined> {
-	const downloadedNovel = await getOfflineNovelBySlug(novelSlug);
-	if (downloadedNovel) {
-		const [rawKeywords, replacements, biases] = await Promise.all([
-			getAssembledKeywordsByNovelId(downloadedNovel.id),
-			getReplacementsByNovelId(downloadedNovel.id),
-			getBiasesByNovelId(downloadedNovel.id),
-		]);
+export type ContentDataDeps = {
+	db?: StoryLensDatabase;
+	/** Starts a runner pass (under the sync lock) that pulls what was requested. */
+	kick: (options: { forceCatalogue?: boolean }) => Promise<unknown>;
+	/** Records which novel a tab's slug resolved to. */
+	onResolved?: (novelSlug: string, novelId: string) => Promise<void>;
+	waitMs?: number;
+};
 
-		// Local data may hold both languages; pages only match the UI language's names.
-		const keywords = namedIn(rawKeywords, language);
-
-		console.log(`${LOG_PREFIX} Loaded downloaded novel content from local DB`, {
-			novelId: downloadedNovel.id,
-			keywordsCount: keywords.length,
-			replacementsCount: replacements.length,
-		});
-
-		return {
-			novel: downloadedNovel,
-			language,
-			chapterNumber: chapter,
-			keywords,
-			replacements,
-			biases,
-		};
-	}
-
-	const catalogNovel = await getCatalogNovelBySlug(novelSlug);
-	if (!catalogNovel) {
-		return undefined;
-	}
-
-	const [rawKeywords, replacements, biases] = await Promise.all([
-		getAssembledKeywordsByNovelId(catalogNovel.id),
-		getReplacementsByNovelId(catalogNovel.id),
-		getBiasesByNovelId(catalogNovel.id),
-	]);
-
-	const keywords = namedIn(rawKeywords, language);
-	if (keywords.length === 0 && replacements.length === 0) {
-		return undefined;
-	}
-
-	console.log(`${LOG_PREFIX} Loaded cached novel content from local DB`, {
-		novelId: catalogNovel.id,
-		keywordsCount: keywords.length,
-		replacementsCount: replacements.length,
-	});
-
-	return {
-		novel: catalogNovel,
-		language,
-		chapterNumber: chapter,
-		keywords,
-		replacements,
-		biases,
-	};
-}
-
-async function loadRemoteNovelContentData(
+/** Online-only mode (IndexedDB unavailable): the novel straight from the API. */
+async function loadOnline(
 	meta: currentNovelMeta,
 	language: Language,
 ): Promise<NovelContentData | undefined> {
-	const catalogNovels = await getAllCatalogNovels();
-	let novel = findNovelBySlug(catalogNovels, meta.novelSlug);
-
-	if (!novel) {
-		const novelsResponse = await getNovels(
-			withListQueryParams({
-				pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-				sorting: { column: "name", direction: "asc" },
-			}),
-		);
-		novel = findNovelBySlug(novelsResponse.data.data, meta.novelSlug);
-	}
-
-	if (!novel) {
-		console.warn(
-			`${LOG_PREFIX} No database novel matched slug "${meta.novelSlug}". Add the novel with this slug in the extension.`,
-		);
-		return undefined;
-	}
-
-	const [keywordsResponse, replacementsResponse, biasesResponse] =
-		await Promise.all([
-			getKeywords(
-				withListQueryParams(
-					{
-						pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-						query: { novelId: novel.id },
-					},
-					KEYWORD_LIST_SORTING,
-				),
-			),
-			getReplacements(
-				withListQueryParams(
-					{
-						pagination: { page: 1, pageSize: CONTENT_PAGE_SIZE },
-						query: { novelId: novel.id },
-					},
-					REPLACEMENT_LIST_SORTING,
-				),
-			),
-			getWebsiteNovelBiases({ novelId: novel.id }),
-		]);
-
-	const rawKeywords = keywordsResponse.data.data;
-	const biases = biasesResponse.data;
-
-	await writeNovelContentCache(
-		novel,
-		rawKeywords,
-		replacementsResponse.data.data,
-		biases,
-	);
-
-	const keywords = namedIn(rawKeywords, language);
-
-	console.log(
-		`${LOG_PREFIX} Loaded novel content from API and cached locally`,
-		{
-			novelId: novel.id,
-			keywordsCount: keywords.length,
-			replacementsCount: replacementsResponse.data.data.length,
+	if (!isOnline()) return undefined;
+	const novel = findNovelBySlug(await fetchNovels({}), meta.novelSlug);
+	if (!novel) return undefined;
+	const bundle = await fetchNovelBundle(novel.id, {});
+	const { keywords, aliases, versions } = splitKeywords(bundle.keywords);
+	const view = projectNovel({
+		novelId: novel.id,
+		snapshot: {
+			novel: bundle.novel,
+			keywords,
+			aliases,
+			versions,
+			replacements: bundle.replacements,
+			biases: bundle.biases,
 		},
-	);
-
+		mutations: [],
+		userId: null,
+	});
 	return {
-		novel,
+		novel: bundle.novel,
 		language,
 		chapterNumber: meta.chapter,
-		keywords,
-		replacements: replacementsResponse.data.data,
-		biases,
+		keywords: namedIn(view.keywords, language),
+		replacements: view.replacements,
+		biases: view.biases,
 	};
 }
 
+async function waitFor(
+	check: () => Promise<boolean>,
+	timeoutMs: number,
+): Promise<boolean> {
+	const until = Date.now() + timeoutMs;
+	while (Date.now() < until) {
+		if (await check()) return true;
+		await new Promise((resolve) => setTimeout(resolve, 150));
+	}
+	return check();
+}
+
+/**
+ * Page data for a detected novel, built from the local view (background only;
+ * content scripts never open the extension database). A novel missing from the
+ * catalogue or without a snapshot is pulled first when online (up to 10 s); a
+ * stale one is served at once and refreshed in the background
+ * (stale-while-revalidate). Both languages are stored, so a language switch
+ * needs no network.
+ */
 export async function loadNovelContentDataForMeta(
 	meta: currentNovelMeta,
+	deps: ContentDataDeps,
 ): Promise<NovelContentData | undefined> {
-	console.log(`${LOG_PREFIX} Loading content data for detected novel`, meta);
+	const db = deps.db ?? offlineDb();
+	const waitMs = deps.waitMs ?? FIRST_PULL_WAIT_MS;
+	const [language, { user }] = await Promise.all([
+		getStoredLanguage(),
+		getStoredAuth(),
+	]);
+	if (!deps.db && isOfflineUnavailable()) return loadOnline(meta, language);
 
-	const language = await getStoredLanguage();
-	const localData = await loadLocalNovelContentData(
-		meta.novelSlug,
-		language,
-		meta.chapter,
-	);
-	if (localData) {
-		return localData;
+	let novel = findNovelBySlug(await getCatalogueView(db), meta.novelSlug);
+	if (!novel && isOnline()) {
+		const pulledBefore = (await getMeta("catalogPulledAt", db)) ?? 0;
+		void deps.kick({ forceCatalogue: true });
+		await waitFor(
+			async () => ((await getMeta("catalogPulledAt", db)) ?? 0) > pulledBefore,
+			waitMs,
+		);
+		novel = findNovelBySlug(await getCatalogueView(db), meta.novelSlug);
 	}
-
-	if (!isOnline()) {
-		return undefined;
-	}
-
-	try {
-		return await loadRemoteNovelContentData(meta, language);
-	} catch (error) {
-		console.error(
-			`${LOG_PREFIX} Failed to load novel content data from API`,
-			error,
+	if (!novel) {
+		console.warn(
+			`${LOG_PREFIX} No novel matched slug "${meta.novelSlug}". Add the novel with this slug in the extension.`,
 		);
 		return undefined;
 	}
+	const novelId = novel.id;
+	await deps.onResolved?.(meta.novelSlug, novelId);
+
+	const sync = await db.novelSync.get(novelId);
+	if (!sync?.lastPulledAt) {
+		if (!isOnline()) return undefined;
+		await requestRefresh(novelId, db);
+		void deps.kick({});
+		const pulled = await waitFor(
+			async () => !!(await db.novelSync.get(novelId))?.lastPulledAt,
+			waitMs,
+		);
+		if (!pulled) return undefined;
+	} else if (
+		Date.now() - sync.lastPulledAt > NOVEL_STALE_MS &&
+		isOnline() &&
+		!sync.pinned
+	) {
+		// Served now from local data; the refresh updates the tab when it lands.
+		await requestRefresh(novelId, db);
+		void deps.kick({});
+	}
+
+	const view = await getNovelView(novelId, user?.id, db);
+	return {
+		novel: view.novel ?? novel,
+		language,
+		chapterNumber: meta.chapter,
+		keywords: namedIn(view.keywords, language),
+		replacements: view.replacements,
+		biases: view.biases,
+	};
 }

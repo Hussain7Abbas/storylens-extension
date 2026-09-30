@@ -3,8 +3,9 @@ import { useRoutes } from "@/hooks/useRoutes";
 import { trackEvent } from "@/lib/analytics/client";
 import { HomePage } from "../popup.home";
 import { SettingsPage } from "../popup.settings";
+import { SyncPage } from "../popup.sync/sync-page";
 
-export type Routes = "home" | "settings";
+export type Routes = "home" | "settings" | "sync";
 
 export function Router() {
 	const { current: currentRoute } = useRoutes();
@@ -22,6 +23,8 @@ export function Router() {
 			return <HomePage />;
 		case "settings":
 			return <SettingsPage />;
+		case "sync":
+			return <SyncPage />;
 		default:
 			return <HomePage />;
 	}

@@ -8,4 +8,5 @@
 
 export type DeleteWebsiteNovelBiasesById404 = {
 	message: string;
+	code?: string;
 };

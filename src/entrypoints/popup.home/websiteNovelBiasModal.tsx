@@ -12,8 +12,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { usePostWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
 import { FormPage } from "@/components/form-page";
-import { replaceBiasesForNovel } from "@/lib/offline/db";
-import type { OfflineWebsiteNovelBias } from "@/lib/offline/types";
+import { sendMessage } from "@/entrypoints/background/messaging";
 
 type Props = {
 	novelId: string;
@@ -21,7 +20,6 @@ type Props = {
 	websiteName: string;
 	currentBias: number;
 	onClose: () => void;
-	onSaved: (updatedBiases: OfflineWebsiteNovelBias[]) => void;
 };
 
 function WebsiteNovelBiasFormContent({
@@ -30,20 +28,17 @@ function WebsiteNovelBiasFormContent({
 	websiteName,
 	currentBias,
 	onClose,
-	onSaved,
 }: Props) {
 	const { t } = useTranslation();
 	const [biasValue, setBiasValue] = useState<number>(currentBias);
 
 	const mutation = usePostWebsiteNovelBiases({
 		mutation: {
-			onSuccess: async (response) => {
-				const bias = response?.data ?? null;
-				const updated: OfflineWebsiteNovelBias[] = bias
-					? [bias as unknown as OfflineWebsiteNovelBias]
-					: [];
-				await replaceBiasesForNovel(novelId, updated);
-				onSaved(updated);
+			onSuccess: async () => {
+				// Biases are online-only; the runner pulls the novel so its view and pages update.
+				await sendMessage("requestNovelRefresh", novelId).catch(
+					() => undefined,
+				);
 
 				if (biasValue === 0) {
 					toast.success(t("home.chapterBiasResetSuccessfully"));

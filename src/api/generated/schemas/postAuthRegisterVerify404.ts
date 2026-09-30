@@ -8,4 +8,5 @@
 
 export type PostAuthRegisterVerify404 = {
 	message: string;
+	code?: string;
 };

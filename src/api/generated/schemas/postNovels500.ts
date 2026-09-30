@@ -8,4 +8,5 @@
 
 export type PostNovels500 = {
 	message: string;
+	code?: string;
 };

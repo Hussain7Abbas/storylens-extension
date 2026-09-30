@@ -3,16 +3,18 @@ import "@mantine/core/styles.css";
 import "@/styles/global.css";
 import "./App.css";
 import {
+	Alert,
 	Center,
 	ColorSchemeScript,
 	Loader,
 	MantineProvider,
 	ScrollArea,
 	Stack,
+	Text,
 } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
@@ -21,6 +23,8 @@ import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { EXTRACTION_VIEW } from "@/lib/desktop-client/chapter-extraction";
+import { isOfflineUnavailable, openOfflineDb } from "@/lib/offline/db";
+import { useOfflineInvalidation } from "@/lib/offline/hooks";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
 import {
 	APPEARANCE_FONT_FACE_KEY,
@@ -36,7 +40,23 @@ import { SelectionView } from "./selection-view";
 
 function PopupAutoSync({ enabled }: { enabled: boolean }) {
 	usePopupAutoSync(enabled);
+	useOfflineInvalidation();
 	return null;
+}
+
+/** IndexedDB could not be opened (for example site data blocked): online-only mode. */
+function OfflineUnavailableBanner() {
+	const { t } = useTranslation();
+	const [unavailable, setUnavailable] = useState(false);
+	useEffect(() => {
+		void openOfflineDb().then(() => setUnavailable(isOfflineUnavailable()));
+	}, []);
+	if (!unavailable) return null;
+	return (
+		<Alert color="orange" variant="light" radius={0} p="xs">
+			<Text size="xs">{t("offline.storageUnavailable")}</Text>
+		</Alert>
+	);
 }
 
 function AppContent({ type }: { type: "popup" | "options" }) {
@@ -87,6 +107,7 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 			<PopupAutoSync enabled={type === "popup"} />
 			<Stack h={height} w={width} gap={0} dir={locale === "ar" ? "rtl" : "ltr"}>
 				<Navbar />
+				<OfflineUnavailableBanner />
 				<ScrollArea flex={1} type="auto">
 					<PageContent>
 						<Router />
@@ -103,7 +124,9 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const fontFace = useAtomValue(fontFaceAtom);
 	const fontSize = useAtomValue(fontSizeAtom);
 
-	const queryClient = new QueryClient();
+	// One client for the popup's lifetime: locale and font changes re-render App
+	// and must keep the cache and running mutations.
+	const [queryClient] = useState(() => new QueryClient());
 
 	useEffect(() => {
 		i18n.changeLanguage(locale);

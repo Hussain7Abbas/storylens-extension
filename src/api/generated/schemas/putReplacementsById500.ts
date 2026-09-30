@@ -8,4 +8,5 @@
 
 export type PutReplacementsById500 = {
 	message: string;
+	code?: string;
 };

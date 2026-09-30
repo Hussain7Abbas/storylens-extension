@@ -8,4 +8,5 @@
 
 export type GetWebsiteNovelBiases404 = {
 	message: string;
+	code?: string;
 };

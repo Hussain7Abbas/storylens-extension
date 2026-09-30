@@ -8,4 +8,5 @@
 
 export type DeleteKeywordsChaptersById404 = {
 	message: string;
+	code?: string;
 };

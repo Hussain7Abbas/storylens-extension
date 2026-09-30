@@ -8,4 +8,5 @@
 
 export type GetChaptersById500 = {
 	message: string;
+	code?: string;
 };

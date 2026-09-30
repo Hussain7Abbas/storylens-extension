@@ -8,4 +8,5 @@
 
 export type GetAuthMe404 = {
 	message: string;
+	code?: string;
 };

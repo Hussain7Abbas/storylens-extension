@@ -3,7 +3,7 @@ import { useDebouncedValue } from "@mantine/hooks";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetKeywords200DataItem } from "@/api/generated/schemas";
-import { useNovelKeywords } from "@/hooks/use-novel-keywords";
+import { useNovelKeywords } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import { aliasMatchNames, nameIn } from "@/utils/translation";

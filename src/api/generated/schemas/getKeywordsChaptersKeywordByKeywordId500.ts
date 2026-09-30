@@ -8,4 +8,5 @@
 
 export type GetKeywordsChaptersKeywordByKeywordId500 = {
 	message: string;
+	code?: string;
 };

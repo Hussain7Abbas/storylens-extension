@@ -8,4 +8,5 @@
 
 export type GetReplacementsById404 = {
 	message: string;
+	code?: string;
 };

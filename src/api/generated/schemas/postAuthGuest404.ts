@@ -8,4 +8,5 @@
 
 export type PostAuthGuest404 = {
 	message: string;
+	code?: string;
 };

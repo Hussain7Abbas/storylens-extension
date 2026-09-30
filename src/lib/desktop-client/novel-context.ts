@@ -2,15 +2,15 @@ import {
 	getNovelsById,
 	putNovelsByIdContext,
 } from "@/api/generated/endpoints/novels";
+import { sendMessage } from "@/entrypoints/background/messaging";
 import { trackEvent } from "@/lib/analytics/client";
-import { getDownloadedNovel, offlineDb } from "@/lib/offline/db";
+import { offlineDb } from "@/lib/offline/db";
 import { isOnline } from "@/lib/offline/online-status";
 import { descriptionIn, nameIn } from "@/utils/translation";
 import type { AiLanguage } from "./ai-language";
 import { executeLocalizedPrompt } from "./localized-prompt";
 import {
 	buildNovelContextPrompt,
-	decodeStoredText,
 	NOVEL_CONTEXT_CHARS,
 	type NovelInfo,
 } from "./novel-context-prompt";
@@ -47,20 +47,8 @@ async function loadNovel(
 			// Fall back to the offline copies below.
 		}
 	}
-	const novel =
-		(await getDownloadedNovel(novelId)) ??
-		(await offlineDb.catalogNovels.get(novelId));
+	const novel = await offlineDb().novels.get(novelId);
 	return novel ? toNovelInfo(novel, language) : undefined;
-}
-
-async function storeOfflineContext(
-	novelId: string,
-	context: string,
-): Promise<void> {
-	await Promise.all([
-		offlineDb.novels.update(novelId, { context }),
-		offlineDb.catalogNovels.update(novelId, { context }),
-	]);
 }
 
 /**
@@ -80,7 +68,8 @@ export async function ensureNovelContext(input: {
 	);
 	if (!novel) return "";
 	const existing = novel.context?.trim();
-	if (existing) return decodeStoredText(existing).slice(0, NOVEL_CONTEXT_CHARS);
+	// Stored text is plain (the API no longer HTML-escapes it).
+	if (existing) return existing.slice(0, NOVEL_CONTEXT_CHARS);
 	if (!isOnline()) return "";
 	try {
 		const context = await executeLocalizedPrompt({
@@ -96,7 +85,10 @@ export async function ensureNovelContext(input: {
 		trackEvent("ai_novel_context_generated", { effort: input.settings.effort });
 		try {
 			await putNovelsByIdContext(input.novelId, { context });
-			await storeOfflineContext(input.novelId, context);
+			// The runner pulls the novel; only it writes the local snapshot.
+			void sendMessage("requestNovelRefresh", input.novelId).catch(
+				() => undefined,
+			);
 		} catch {
 			// Saving is best effort: someone may have written a context meanwhile.
 		}
