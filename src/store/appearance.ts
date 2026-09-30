@@ -1,4 +1,6 @@
+import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import { FONT_SIZE_DEFAULT, parseFontSize } from "@/lib/font-size";
 import {
 	NIGHT_LIGHT_DEFAULT_LEVEL,
 	NIGHT_LIGHT_LEVEL_KEY,
@@ -23,9 +25,17 @@ export const fontFaceAtom = atomWithStorage<FontFace>(
 	"Default",
 );
 
-export const fontSizeAtom = atomWithStorage<number>(
+const storedFontSizeAtom = atomWithStorage<number>(
 	APPEARANCE_FONT_SIZE_KEY,
-	14,
+	FONT_SIZE_DEFAULT,
+	undefined,
+	{ getOnInit: true },
+);
+
+/** The tooltip font size, always inside the supported range. */
+export const fontSizeAtom = atom(
+	(get) => parseFontSize(get(storedFontSizeAtom)),
+	(_get, set, size: number) => set(storedFontSizeAtom, parseFontSize(size)),
 );
 
 export const nightLightLevelAtom = atomWithStorage<number>(

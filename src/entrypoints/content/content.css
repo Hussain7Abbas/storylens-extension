@@ -33,7 +33,7 @@
 	border-radius: 8px;
 	padding: 6px 12px;
 	box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
-	font-size: var(--storylens-font-size, 14px) !important;
+	font-size: var(--storylens-font-size, 24px) !important;
 	font-family: var(--storylens-font-face, inherit) !important;
 	z-index: 2147483647;
 	margin: 0;
@@ -93,9 +93,9 @@
 	pointer-events: none;
 }
 
-/* Keyword info in tooltip */
+/* Keyword info in tooltip; in em so the box keeps its proportions at every font size */
 .storylens-keyword-info {
-	max-width: 16rem;
+	max-width: 18em;
 }
 
 .storylens-keyword-info strong {

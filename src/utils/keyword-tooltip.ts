@@ -5,6 +5,7 @@ import {
 	canEditKeyword,
 	canEditVersion,
 } from "@/lib/auth/permissions";
+import { parseFontSize } from "@/lib/font-size";
 import type {
 	EnrichedCategory,
 	EnrichedKeyword,
@@ -119,7 +120,7 @@ export function setTooltipFontFace(fontFace: string | null): void {
 }
 
 export function setTooltipFontSize(fontSize: number | null): void {
-	cachedFontSize = fontSize;
+	cachedFontSize = fontSize === null ? null : parseFontSize(fontSize);
 	if (activeTooltip) applyAppearanceToRoot(getTooltipRoot());
 }
 

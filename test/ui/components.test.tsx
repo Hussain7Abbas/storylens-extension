@@ -5,7 +5,15 @@ GlobalRegistrator.register({
 	url: "chrome-extension://storylens-test/popup.html",
 });
 
-import { afterAll, beforeEach, describe, expect, it, mock } from "bun:test";
+import {
+	afterAll,
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	mock,
+} from "bun:test";
 import { makeUser, setOnline, setupEngine } from "../helpers/engine";
 import { fakeBrowser } from "../helpers/fake-browser";
 
@@ -80,6 +88,12 @@ const { usePopupAutoSync } = await import(
 );
 const { loadFormValues } = await import("../../src/utils/form-baseline");
 const { useForm } = await import("@mantine/form");
+const { AppearanceTab } = await import(
+	"../../src/entrypoints/popup.settings/appearance-tab"
+);
+const { NIGHT_LIGHT_LEVEL_KEY } = await import("../../src/lib/night-light");
+const { APPEARANCE_FONT_SIZE_KEY, fontSizeAtom, nightLightLevelAtom } =
+	await import("../../src/store/appearance");
 
 type Env = Awaited<ReturnType<typeof setupEngine>>;
 let env: Env;
@@ -721,5 +735,140 @@ describe("values a form loads by itself", () => {
 		);
 
 		expect(result.current.isDirty()).toBe(true);
+	});
+});
+
+function renderAppearanceTab(appearanceStore = createStore()) {
+	const view = render(
+		React.createElement(
+			JotaiProvider,
+			{ store: appearanceStore },
+			React.createElement(
+				MantineProvider,
+				null,
+				React.createElement(AppearanceTab),
+			),
+		),
+	);
+	const sliders = view.getAllByRole("slider");
+	return {
+		view,
+		store: appearanceStore,
+		fontSize: sliders[0],
+		nightLight: sliders[1],
+	};
+}
+
+const range = (slider: HTMLElement | undefined) => [
+	slider?.getAttribute("aria-valuemin"),
+	slider?.getAttribute("aria-valuemax"),
+	slider?.getAttribute("aria-valuenow"),
+];
+
+describe("appearance settings", () => {
+	afterEach(() => {
+		window.localStorage.clear();
+		document.documentElement.removeAttribute("dir");
+	});
+
+	it("starts the popup atom at the saved size and resets the old default", async () => {
+		// A fresh popup evaluates its store module after localStorage is available.
+		const load = async (suffix: string) => {
+			const path = `../../src/store/appearance.ts?${suffix}`;
+			const { fontSizeAtom: atom } = (await import(
+				path
+			)) as typeof import("../../src/store/appearance");
+			return createStore().get(atom);
+		};
+		expect(await load("font-size-unset")).toBe(24);
+		window.localStorage.setItem(APPEARANCE_FONT_SIZE_KEY, "30");
+		expect(await load("font-size-saved")).toBe(30);
+		window.localStorage.setItem(APPEARANCE_FONT_SIZE_KEY, "14");
+		expect(await load("font-size-old-default")).toBe(24);
+	});
+
+	it("shows font size and night light as sliders with their ranges", () => {
+		const { view, fontSize, nightLight } = renderAppearanceTab();
+		expect(range(fontSize)).toEqual(["18", "42", "24"]);
+		expect(range(nightLight)).toEqual(["10", "80", "30"]);
+		expect(fontSize?.getAttribute("aria-label")).toBe(
+			"settings.appearance.fontSize",
+		);
+		expect(nightLight?.getAttribute("aria-label")).toBe(
+			"settings.appearance.nightLightLevel",
+		);
+		for (const text of ["24px", "18px", "42px", "30%", "10%", "80%"])
+			expect(view.getByText(text)).toBeTruthy();
+		// No number fields left (Mantine's NumberInput sets an input mode).
+		expect(view.container.querySelectorAll("input[inputmode]")).toHaveLength(0);
+	});
+
+	it("saves each step, stopping at the ends of the range", () => {
+		const { view, store, fontSize, nightLight } = renderAppearanceTab();
+		if (!fontSize || !nightLight) throw new Error("sliders missing");
+		fireEvent.keyDown(fontSize, { key: "ArrowRight" });
+		expect(store.get(fontSizeAtom)).toBe(25);
+		expect(window.localStorage.getItem(APPEARANCE_FONT_SIZE_KEY)).toBe("25");
+		expect(view.getByText("25px")).toBeTruthy();
+		fireEvent.keyDown(fontSize, { key: "End" });
+		fireEvent.keyDown(fontSize, { key: "ArrowRight" });
+		expect(store.get(fontSizeAtom)).toBe(42);
+		fireEvent.keyDown(fontSize, { key: "Home" });
+		expect(store.get(fontSizeAtom)).toBe(18);
+
+		fireEvent.keyDown(nightLight, { key: "ArrowRight" });
+		expect(store.get(nightLightLevelAtom)).toBe(35);
+		expect(window.localStorage.getItem(NIGHT_LIGHT_LEVEL_KEY)).toBe("35");
+		fireEvent.keyDown(nightLight, { key: "ArrowLeft" });
+		fireEvent.keyDown(nightLight, { key: "ArrowLeft" });
+		expect(store.get(nightLightLevelAtom)).toBe(25);
+	});
+
+	it("maps English track clicks to their positions even after a language change", async () => {
+		// The document may still have the previous language's direction during a
+		// render; the control must use the selected language instead.
+		document.documentElement.setAttribute("dir", "rtl");
+		const appearanceStore = createStore();
+		appearanceStore.set(fontSizeAtom, 42);
+		appearanceStore.set(nightLightLevelAtom, 80);
+		const { store, fontSize, nightLight } =
+			renderAppearanceTab(appearanceStore);
+		if (!fontSize || !nightLight) throw new Error("sliders missing");
+		expect(fontSize.style.left).toBe("var(--slider-thumb-offset)");
+		expect(fontSize.style.right).toBe("auto");
+		const fontTrack = fontSize.parentElement?.parentElement;
+		const nightTrack = nightLight.parentElement?.parentElement;
+		if (!fontTrack || !nightTrack) throw new Error("slider tracks missing");
+		const bounds = () =>
+			({ left: 0, top: 0, width: 100, height: 16 }) as DOMRect;
+		fontTrack.getBoundingClientRect = bounds;
+		nightTrack.getBoundingClientRect = bounds;
+		fireEvent.mouseDown(fontTrack, { clientX: 25, clientY: 8 });
+		await waitFor(() => expect(store.get(fontSizeAtom)).toBe(24));
+		fireEvent.mouseUp(document);
+		fireEvent.mouseDown(nightTrack, { clientX: 29, clientY: 8 });
+		await waitFor(() => expect(store.get(nightLightLevelAtom)).toBe(30));
+		fireEvent.mouseUp(document);
+	});
+
+	it("shows a saved night light level outside 10 to 80 clamped", () => {
+		const saved = createStore();
+		saved.set(nightLightLevelAtom, 95);
+		const { nightLight } = renderAppearanceTab(saved);
+		expect(range(nightLight)).toEqual(["10", "80", "80"]);
+	});
+
+	it("follows the selected language, so ArrowLeft raises the level in Arabic", () => {
+		const appearanceStore = createStore();
+		appearanceStore.set(localeAtom, "ar");
+		const { store, fontSize } = renderAppearanceTab(appearanceStore);
+		if (!fontSize) throw new Error("slider missing");
+		expect(fontSize.closest('[dir="rtl"]')).not.toBeNull();
+		expect(fontSize.style.left).toBe("auto");
+		fireEvent.keyDown(fontSize, { key: "ArrowLeft" });
+		expect(store.get(fontSizeAtom)).toBe(25);
+		fireEvent.keyDown(fontSize, { key: "ArrowRight" });
+		fireEvent.keyDown(fontSize, { key: "ArrowRight" });
+		expect(store.get(fontSizeAtom)).toBe(23);
 	});
 });

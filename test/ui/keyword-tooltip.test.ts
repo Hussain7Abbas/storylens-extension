@@ -22,6 +22,7 @@ const {
 	destroyKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
 	setTooltipActions,
+	setTooltipFontSize,
 	setTooltipLocale,
 	setTooltipUser,
 } = await import("../../src/utils/keyword-tooltip");
@@ -65,11 +66,35 @@ afterEach(() => {
 	setTooltipActions(null);
 	setTooltipUser(null);
 	setTooltipLocale("en");
+	setTooltipFontSize(null);
 	document.body.replaceChildren();
 });
 
 afterAll(async () => {
 	if (registeredHere) await GlobalRegistrator.unregister();
+});
+
+describe("tooltip font size", () => {
+	const size = () =>
+		document
+			.getElementById("storylens-keyword-tooltip-root")
+			?.style.getPropertyValue("--storylens-font-size");
+
+	it("uses the saved size, and the 24px default for a size outside 18 to 42", () => {
+		const raw = keyword({ nameEn: "Mira" });
+		setTooltipFontSize(42);
+		hover(raw);
+		expect(size()).toBe("42px");
+		setTooltipFontSize(18);
+		expect(size()).toBe("18px");
+		// 14 was the earlier default; it and the rest of the old range reset.
+		setTooltipFontSize(14);
+		expect(size()).toBe("24px");
+		setTooltipFontSize(43);
+		expect(size()).toBe("24px");
+		setTooltipFontSize(null);
+		expect(size()).toBe("");
+	});
 });
 
 describe("tooltip image", () => {

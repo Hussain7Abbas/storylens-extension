@@ -1,8 +1,10 @@
-import { NumberInput, Select, Stack, Text, Title } from "@mantine/core";
+import { Select, Stack, Text, Title } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
+import { LevelSlider } from "@/components/level-slider";
 import { trackEvent } from "@/lib/analytics/client";
+import { FONT_SIZE_MAX, FONT_SIZE_MIN } from "@/lib/font-size";
 import {
 	NIGHT_LIGHT_MAX_LEVEL,
 	NIGHT_LIGHT_MIN_LEVEL,
@@ -15,13 +17,15 @@ import {
 	fontSizeAtom,
 	nightLightLevelAtom,
 } from "@/store/appearance";
+import { localeAtom } from "@/store/locale";
 
 export function AppearanceTab() {
 	const { t } = useTranslation();
 	const [fontFace, setFontFace] = useAtom(fontFaceAtom);
 	const [fontSize, setFontSize] = useAtom(fontSizeAtom);
 	const [nightLightLevel, setNightLightLevel] = useAtom(nightLightLevelAtom);
-	// One event per adjustment, not one per keystroke or stepper click.
+	const direction = useAtomValue(localeAtom) === "ar" ? "rtl" : "ltr";
+	// One event per adjustment, not one per step of a drag or key press.
 	const trackNightLightLevel = useDebouncedCallback(
 		(level: number) =>
 			trackEvent("night_light_level_changed", {
@@ -53,15 +57,13 @@ export function AppearanceTab() {
 				}}
 			/>
 
-			<NumberInput
+			<LevelSlider
 				label={t("settings.appearance.fontSize")}
-				min={10}
-				max={22}
-				step={1}
+				direction={direction}
+				min={FONT_SIZE_MIN}
+				max={FONT_SIZE_MAX}
 				value={fontSize}
-				onChange={(val) => {
-					if (typeof val === "number") setFontSize(val);
-				}}
+				onChange={setFontSize}
 				suffix="px"
 			/>
 
@@ -74,16 +76,16 @@ export function AppearanceTab() {
 				</Text>
 			</div>
 
-			<NumberInput
+			<LevelSlider
 				label={t("settings.appearance.nightLightLevel")}
+				direction={direction}
 				min={NIGHT_LIGHT_MIN_LEVEL}
 				max={NIGHT_LIGHT_MAX_LEVEL}
 				step={5}
-				value={nightLightLevel}
-				onChange={(val) => {
-					if (typeof val !== "number") return;
-					setNightLightLevel(val);
-					trackNightLightLevel(val);
+				value={parseNightLightLevel(nightLightLevel)}
+				onChange={(level) => {
+					setNightLightLevel(level);
+					trackNightLightLevel(level);
 				}}
 				suffix="%"
 			/>
