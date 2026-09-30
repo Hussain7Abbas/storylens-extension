@@ -2,7 +2,9 @@ import {
 	createElement,
 	type IconNode,
 	ListFilter,
+	Moon,
 	Plus,
+	Sun,
 	TextSearch,
 } from "lucide";
 import { browser } from "#imports";
@@ -28,6 +30,13 @@ import {
 	parsePopupAnswer,
 	parsePopupState,
 } from "@/lib/launcher-frame/messages";
+import {
+	NIGHT_LIGHT_DEFAULT_LEVEL,
+	NIGHT_LIGHT_ENABLED_KEY,
+	NIGHT_LIGHT_LEVEL_KEY,
+	parseNightLightLevel,
+	setNightLightOverlay,
+} from "@/lib/night-light";
 import { contentThemeCss, palette } from "@/styles/palette";
 import {
 	setTooltipActions,
@@ -78,6 +87,8 @@ function labels(locale: string): {
 	select: string;
 	summarize: string;
 	extract: string;
+	nightLightOn: string;
+	nightLightOff: string;
 	configureAi: string;
 	selectHint: string;
 	finishForm: string;
@@ -92,6 +103,8 @@ function labels(locale: string): {
 				select: "حدد نصاً في الصفحة",
 				summarize: "لخّص الصفحة بالذكاء الاصطناعي",
 				extract: "استخرج شخصيات الفصل بالذكاء الاصطناعي",
+				nightLightOn: "شغّل الإضاءة الليلية",
+				nightLightOff: "أوقف الإضاءة الليلية",
 				configureAi: "يرجى إعداد الذكاء الاصطناعي من الإعدادات.",
 				selectHint: "انقر على كلمة أو اسحب لتحديد نص. اضغط Escape للإلغاء.",
 				finishForm: "احفظ النموذج المفتوح أو أغلقه أولاً.",
@@ -105,6 +118,8 @@ function labels(locale: string): {
 				select: "Select text on page",
 				summarize: "Summarize page with AI",
 				extract: "Extract chapter characters with AI",
+				nightLightOn: "Turn on night light",
+				nightLightOff: "Turn off night light",
 				configureAi: "Please configure AI in the settings.",
 				selectHint:
 					"Click a word or drag to select text. Press Escape to cancel.",
@@ -165,6 +180,10 @@ function createLauncher(locale: string): Launcher {
 	let currentLocale = locale;
 	let selecting = false;
 	let desktop: DesktopSettings = parseDesktopSettings(undefined);
+	let nightLight = { enabled: false, level: NIGHT_LIGHT_DEFAULT_LEVEL };
+	// A local click or storage event may arrive before the initial read resolves.
+	let nightLightEnabledChanged = false;
+	let nightLightLevelChanged = false;
 	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 	let selectionStart: Position | undefined;
 	let position: Position = { x: window.innerWidth - BUTTON_SIZE - 16, y: 16 };
@@ -260,20 +279,23 @@ function createLauncher(locale: string): Launcher {
 	const actions = document.createElement("div");
 	actions.id = "actions";
 	actions.hidden = true;
+	const setActionIcon = (element: HTMLButtonElement, icon: IconNode) =>
+		element.replaceChildren(
+			createElement(icon, { "aria-hidden": "true", "stroke-width": 1.75 }),
+		);
 	const createAction = (name: string, icon: IconNode) => {
 		const element = document.createElement("button");
 		element.className = "action";
 		element.dataset.action = name;
 		element.type = "button";
-		element.append(
-			createElement(icon, { "aria-hidden": "true", "stroke-width": 1.75 }),
-		);
+		setActionIcon(element, icon);
 		actions.append(element);
 		return element;
 	};
 	const action = createAction("select", Plus);
 	const summarizeAction = createAction("summarize", TextSearch);
 	const extractAction = createAction("extract", ListFilter);
+	const nightLightAction = createAction("night-light", Moon);
 	const panel = document.createElement("section");
 	panel.id = "panel";
 	panel.hidden = true;
@@ -307,6 +329,16 @@ function createLauncher(locale: string): Launcher {
 		describe(action, text.select);
 		describe(summarizeAction, text.summarize, true);
 		describe(extractAction, text.extract, true);
+		describe(
+			nightLightAction,
+			nightLight.enabled ? text.nightLightOff : text.nightLightOn,
+		);
+	};
+	/** Applies the night light to the page and shows on the action what a click does. */
+	const updateNightLight = () => {
+		setNightLightOverlay(nightLight.enabled, nightLight.level);
+		setActionIcon(nightLightAction, nightLight.enabled ? Sun : Moon);
+		updateActionLabels();
 	};
 	updateHint();
 	updateActionLabels();
@@ -511,6 +543,16 @@ function createLauncher(locale: string): Launcher {
 		hideAction();
 		// The embedded extraction page runs the AI request and tracks it.
 		startChapterExtraction(currentLocale);
+	};
+	// A toggle keeps the action row open, so the reader can switch it back.
+	const onNightLightClick = () => {
+		nightLightEnabledChanged = true;
+		nightLight = { ...nightLight, enabled: !nightLight.enabled };
+		updateNightLight();
+		void browser.storage.local
+			.set({ [NIGHT_LIGHT_ENABLED_KEY]: nightLight.enabled })
+			.catch(() => {});
+		trackEvent("night_light_toggled", { enabled: nightLight.enabled });
 	};
 	const onCursorMove = (event: PointerEvent) => {
 		cursor = { x: event.clientX, y: event.clientY };
@@ -929,12 +971,32 @@ function createLauncher(locale: string): Launcher {
 	action.addEventListener("click", onActionClick);
 	summarizeAction.addEventListener("click", onSummarizeClick);
 	extractAction.addEventListener("click", onExtractClick);
+	nightLightAction.addEventListener("click", onNightLightClick);
 	const onStorageChange: Parameters<
 		typeof browser.storage.onChanged.addListener
 	>[0] = (changes, area) => {
-		if (area !== "local" || !(DESKTOP_SETTINGS_KEY in changes)) return;
-		desktop = parseDesktopSettings(changes[DESKTOP_SETTINGS_KEY].newValue);
-		updateActionLabels();
+		if (area !== "local") return;
+		if (DESKTOP_SETTINGS_KEY in changes) {
+			desktop = parseDesktopSettings(changes[DESKTOP_SETTINGS_KEY].newValue);
+			updateActionLabels();
+		}
+		// Another tab's toggle and the Appearance level apply here at once.
+		if (
+			NIGHT_LIGHT_ENABLED_KEY in changes ||
+			NIGHT_LIGHT_LEVEL_KEY in changes
+		) {
+			if (NIGHT_LIGHT_ENABLED_KEY in changes) {
+				nightLightEnabledChanged = true;
+				nightLight.enabled = changes[NIGHT_LIGHT_ENABLED_KEY].newValue === true;
+			}
+			if (NIGHT_LIGHT_LEVEL_KEY in changes) {
+				nightLightLevelChanged = true;
+				nightLight.level = parseNightLightLevel(
+					changes[NIGHT_LIGHT_LEVEL_KEY].newValue,
+				);
+			}
+			updateNightLight();
+		}
 	};
 	browser.storage.onChanged.addListener(onStorageChange);
 	document.addEventListener("pointermove", onCursorMove);
@@ -946,11 +1008,24 @@ function createLauncher(locale: string): Launcher {
 	window.addEventListener("message", onPopupMessage);
 	setPosition(position);
 	void browser.storage.local
-		.get([POSITION_KEY, DESKTOP_SETTINGS_KEY])
+		.get([
+			POSITION_KEY,
+			DESKTOP_SETTINGS_KEY,
+			NIGHT_LIGHT_ENABLED_KEY,
+			NIGHT_LIGHT_LEVEL_KEY,
+		])
 		.then((stored) => {
 			if (!host.isConnected) return;
 			desktop = parseDesktopSettings(stored[DESKTOP_SETTINGS_KEY]);
-			updateActionLabels();
+			nightLight = {
+				enabled: nightLightEnabledChanged
+					? nightLight.enabled
+					: stored[NIGHT_LIGHT_ENABLED_KEY] === true,
+				level: nightLightLevelChanged
+					? nightLight.level
+					: parseNightLightLevel(stored[NIGHT_LIGHT_LEVEL_KEY]),
+			};
+			updateNightLight();
 			if (!interacted) {
 				const saved = storedPosition(stored[POSITION_KEY]);
 				if (saved) setPosition(saved);
@@ -984,6 +1059,8 @@ function createLauncher(locale: string): Launcher {
 		dispose: () => {
 			close();
 			discardPopup();
+			// The layer goes with the launcher, which holds its only switch.
+			setNightLightOverlay(false, nightLight.level);
 			browser.storage.onChanged.removeListener(onStorageChange);
 			document.removeEventListener("pointermove", onCursorMove);
 			document.documentElement.removeEventListener(

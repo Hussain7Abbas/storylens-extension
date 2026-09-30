@@ -199,7 +199,10 @@
 			"description": "خصّص الخط المعروض في تلميحات الكلمات المفتاحية.",
 			"fontFace": "الخط",
 			"fontDefault": "افتراضي",
-			"fontSize": "حجم الخط"
+			"fontSize": "حجم الخط",
+			"nightLight": "الإضاءة الليلية",
+			"nightLightDescription": "ضوء أصفر فوق صفحة الرواية. شغّله أو أوقفه من زر Story Lens داخل الموقع.",
+			"nightLightLevel": "المستوى"
 		},
 		"inSitePopup": "النافذة داخل الموقع",
 		"show": "إظهار",

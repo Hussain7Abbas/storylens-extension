@@ -23,6 +23,7 @@ import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { EXTRACTION_VIEW } from "@/lib/desktop-client/chapter-extraction";
+import { NIGHT_LIGHT_LEVEL_KEY } from "@/lib/night-light";
 import { isOfflineUnavailable, openOfflineDb } from "@/lib/offline/db";
 import { useOfflineInvalidation } from "@/lib/offline/hooks";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
@@ -31,6 +32,7 @@ import {
 	APPEARANCE_FONT_SIZE_KEY,
 	fontFaceAtom,
 	fontSizeAtom,
+	nightLightLevelAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
 import { cssVariablesResolver, theme } from "@/styles/theme";
@@ -123,6 +125,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const locale = useAtomValue(localeAtom);
 	const fontFace = useAtomValue(fontFaceAtom);
 	const fontSize = useAtomValue(fontSizeAtom);
+	const nightLightLevel = useAtomValue(nightLightLevelAtom);
 
 	// One client for the popup's lifetime: locale and font changes re-render App
 	// and must keep the cache and running mutations.
@@ -142,6 +145,12 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	useEffect(() => {
 		void browser.storage.local.set({ [APPEARANCE_FONT_SIZE_KEY]: fontSize });
 	}, [fontSize]);
+
+	useEffect(() => {
+		void browser.storage.local.set({
+			[NIGHT_LIGHT_LEVEL_KEY]: nightLightLevel,
+		});
+	}, [nightLightLevel]);
 
 	return (
 		<>

@@ -170,7 +170,10 @@
 			"description": "Customize the font displayed in keyword tooltips.",
 			"fontFace": "Font",
 			"fontDefault": "Default",
-			"fontSize": "Font Size"
+			"fontSize": "Font Size",
+			"nightLight": "Night Light",
+			"nightLightDescription": "A yellow light over the novel page. Turn it on or off from the in-site Story Lens button.",
+			"nightLightLevel": "Level"
 		},
 		"inSitePopup": "In site popup",
 		"show": "Show",
