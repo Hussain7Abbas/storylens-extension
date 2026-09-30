@@ -356,9 +356,9 @@ describe("pull scenarios (phase 5 tests 2, 3, 6 and phase 9 test 6)", () => {
 		const summary = await pullDueUnits({ db: env.db, token }, { mode: "all" });
 		expect(summary.pulledUnits).toBe(4);
 		const paths = env.api.requests.map((request) => request.path);
-		expect(paths).toContain(`/novels/${env.novel.id}`);
-		expect(paths).toContain(`/novels/${other.id}`);
-		expect(paths).toContain("/keyword-categories/");
+		expect(paths).toContain(`/sync/snapshot/novels/${env.novel.id}`);
+		expect(paths).toContain(`/sync/snapshot/novels/${other.id}`);
+		expect(paths).toContain("/sync/snapshot/lookups");
 	});
 
 	it("turns a pending create using a category deleted on the server into parent-missing", async () => {

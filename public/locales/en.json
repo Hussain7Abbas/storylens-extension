@@ -206,6 +206,7 @@
 		"discardAndRemove": "Discard changes and remove",
 		"removeBlocked": "This novel has {{count}} changes that have not synced yet. Sync them first, or discard them and remove the download.",
 		"removeBlockedTitle": "Unsynced changes",
+		"otherAccountChanges": "Another account has unsynced changes for this novel. Sign in to that account and sync or discard them before removing the download.",
 		"removedOnServer": "This novel was removed from Story Lens. You can remove its download.",
 		"requiresConnection": "Needs an internet connection",
 		"storageUnavailable": "Offline storage is unavailable in this browser profile; changes need a connection.",

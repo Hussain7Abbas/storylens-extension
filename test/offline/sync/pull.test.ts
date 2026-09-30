@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { beforeEach, describe, expect, it } from "bun:test";
-import { setOnline, setupEngine } from "../../helpers/engine";
+import { makeUser, setOnline, setupEngine, signIn } from "../../helpers/engine";
 import { fakeBrowser } from "../../helpers/fake-browser";
 
 const { enqueue } = await import("../../../src/lib/offline/outbox");
@@ -10,7 +10,7 @@ const { getNovelView, getCatalogueView, getDownloadedNovels } = await import(
 const { runSync } = await import("../../../src/lib/offline/sync/runner");
 const { pullNovel, pullLookups, pullCatalogue, pullDueUnits, refreshNovel } =
 	await import("../../../src/lib/offline/sync/pull");
-const { pinNovel, getNovelSync } = await import(
+const { pinNovel, getNovelSync, requestRefresh } = await import(
 	"../../../src/lib/offline/meta"
 );
 const { loadNovelContentDataForMeta } = await import(
@@ -85,7 +85,7 @@ describe("pulls", () => {
 		expect((await env.db.keywords.get(keyword.id))?.nameEn).toBe("K");
 	});
 
-	it("fetch every page of large novels in both languages", async () => {
+	it("fetches large novels in a single consistent snapshot", async () => {
 		for (let index = 0; index < 1100; index++) {
 			env.api.seedKeyword(
 				env.novel.id,
@@ -169,7 +169,8 @@ describe("pulls", () => {
 		await pinNovel(other.id, env.db);
 		env.api.failNext(
 			{ kind: "status", status: 500 },
-			(method, path) => method === "GET" && path === `/novels/${env.novel.id}`,
+			(method, path) =>
+				method === "GET" && path === `/sync/snapshot/novels/${env.novel.id}`,
 		);
 		const summary = await pullDueUnits(ctx(), { mode: "all" });
 		expect(summary.failedUnits).toBe(1);
@@ -319,7 +320,9 @@ describe("delta sync", () => {
 		env.api.requests = [];
 		await refreshNovel(env.novel.id, ctx());
 		expect(
-			gets().some((request) => request.path === `/novels/${env.novel.id}`),
+			gets().some(
+				(request) => request.path === `/sync/snapshot/novels/${env.novel.id}`,
+			),
 		).toBe(true);
 		expect(
 			await env.db.keywords.where("novelId").equals(env.novel.id).count(),
@@ -435,6 +438,37 @@ describe("page data and downloads", () => {
 		).toEqual({ ok: true });
 		expect(await env.db.mutations.count()).toBe(0);
 		expect(await getDownloadedNovels(env.db)).toEqual([]);
+	});
+
+	it("honors an explicit refresh while the cached novel is still fresh", async () => {
+		await pullNovel(env.novel.id, ctx());
+		await requestRefresh(env.novel.id, env.db);
+		const summary = await pullDueUnits(ctx(), { reason: "page" });
+		expect(summary.changedNovels).toContain(env.novel.id);
+		expect(
+			(await getNovelSync(env.novel.id, env.db))?.refreshRequestedAt,
+		).toBeUndefined();
+	});
+
+	it("keeps a former account's unsent edits when removing a download", async () => {
+		await downloadNovel(env.novel.id, env.db);
+		await enqueue(
+			{
+				entity: "replacement",
+				op: "create",
+				novelId: env.novel.id,
+				values: { from: "old", to: "new" },
+			},
+			{ db: env.db },
+		);
+		await signIn(makeUser("reader-2"));
+		expect(
+			await removeDownload(env.novel.id, { discardPending: true }, env.db),
+		).toEqual({ error: "other-account-changes" });
+		expect(await env.db.mutations.count()).toBe(1);
+		expect(
+			(await getDownloadedNovels(env.db)).map((novel) => novel.id),
+		).toEqual([env.novel.id]);
 	});
 
 	it("refreshes tabs showing a changed novel, throttled, across worker restarts", async () => {

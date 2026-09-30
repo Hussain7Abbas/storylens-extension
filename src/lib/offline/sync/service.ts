@@ -126,15 +126,22 @@ export async function removeDownload(
 	db: StoryLensDatabase = offlineDb(),
 ): Promise<{ ok: true } | { blocked: number } | { error: string }> {
 	const { user } = await getStoredAuth();
-	const mutations = user
-		? await db.mutations.where("userId").equals(user.id).toArray()
-		: [];
-	const own = mutations.filter((mutation) => mutation.novelId === novelId);
-	if (own.length && !discardPending) return { blocked: own.length };
 
 	for (let attempt = 0; attempt < 50; attempt++) {
 		const locked = await withSyncLock(() =>
 			db.transaction("rw", allTables(db), async () => {
+				const mutations = await db.mutations.toArray();
+				const forNovel = mutations.filter(
+					(mutation) => mutation.novelId === novelId,
+				);
+				const otherAccount = forNovel.filter(
+					(mutation) => mutation.userId !== user?.id,
+				);
+				// An account switch must never discard another reader's local edits.
+				if (otherAccount.length) return { error: "other-account-changes" };
+				if (forNovel.length && !discardPending)
+					return { blocked: forNovel.length };
+				const own = forNovel;
 				const doomed = new Map(own.map((mutation) => [mutation.id, mutation]));
 				for (const mutation of own)
 					for (const dependant of dependantsOf(mutations, mutation.entityId))
@@ -157,11 +164,13 @@ export async function removeDownload(
 				// A novel the server removed leaves the catalogue with its download.
 				if (sync?.removedOnServer) await db.novels.delete(novelId);
 				await bumpChangeCounter(db, [novelId]);
+				return { ok: true } as const;
 			}),
 		);
 		if (locked.ran) {
-			await updateBadge(db).catch(() => undefined);
-			return { ok: true };
+			if (locked.value && "ok" in locked.value)
+				await updateBadge(db).catch(() => undefined);
+			return locked.value ?? { error: "busy" };
 		}
 		await new Promise((resolve) => setTimeout(resolve, 200));
 	}

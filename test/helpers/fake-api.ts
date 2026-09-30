@@ -561,6 +561,7 @@ export class FakeApi {
 				return { version: 2 };
 			}
 			if (this.oldApi) fail(404, "NOT_FOUND", "NOT_FOUND");
+			if (id === "snapshot") return this.snapshot(segments);
 			return this.feed(segments, params);
 		}
 
@@ -1227,6 +1228,43 @@ export class FakeApi {
 		};
 		this.files.set(file.id, file);
 		return clone(file);
+	}
+
+	private snapshot(segments: string[]): unknown {
+		const scope = segments[2];
+		const cursor = this.seq;
+		if (scope === "catalogue") {
+			return {
+				novels: [...this.novels.values()].map((row) => ({
+					...clone(row),
+					image: null,
+				})),
+				cursor,
+			};
+		}
+		if (scope === "lookups") {
+			return {
+				categories: [...this.categories.values()].map(clone),
+				natures: [...this.natures.values()].map(clone),
+				cursor,
+			};
+		}
+		const novelId = segments[3];
+		const novel = this.novels.get(novelId as string);
+		if (!novel) fail(404, "NOT_FOUND", "Novel not found");
+		return {
+			novel: { ...clone(novel), image: null },
+			keywords: [...this.keywords.values()]
+				.filter((row) => row.novelId === novelId)
+				.map((row) => this.keywordShape(row)),
+			replacements: [...this.replacements.values()]
+				.filter((row) => row.novelId === novelId)
+				.map((row) => this.replacementShape(row)),
+			biases: [...this.biases.values()]
+				.filter((row) => row.novelId === novelId)
+				.map(clone),
+			cursor,
+		};
 	}
 
 	private feed(segments: string[], params: Record<string, unknown>): unknown {

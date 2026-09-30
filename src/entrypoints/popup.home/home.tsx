@@ -154,7 +154,13 @@ export function HomePage() {
 			return;
 		}
 		setRemoveBlocked(undefined);
-		if ("error" in result) throw new Error(result.error);
+		if ("error" in result) {
+			if (result.error === "other-account-changes") {
+				toast.error(t("offline.otherAccountChanges"));
+				return;
+			}
+			throw new Error(result.error);
+		}
 		toast.success(t("offline.novelRemoved"));
 	};
 

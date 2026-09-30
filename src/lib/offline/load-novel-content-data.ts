@@ -37,11 +37,17 @@ export type ContentDataDeps = {
 async function loadOnline(
 	meta: currentNovelMeta,
 	language: Language,
+	token?: string | null,
 ): Promise<NovelContentData | undefined> {
 	if (!isOnline()) return undefined;
-	const novel = findNovelBySlug(await fetchNovels({}), meta.novelSlug);
+	const novel = findNovelBySlug(
+		await fetchNovels({ token: token ?? undefined }),
+		meta.novelSlug,
+	);
 	if (!novel) return undefined;
-	const bundle = await fetchNovelBundle(novel.id, {});
+	const bundle = await fetchNovelBundle(novel.id, {
+		token: token ?? undefined,
+	});
 	const { keywords, aliases, versions } = splitKeywords(bundle.keywords);
 	const view = projectNovel({
 		novelId: novel.id,
@@ -92,11 +98,12 @@ export async function loadNovelContentDataForMeta(
 ): Promise<NovelContentData | undefined> {
 	const db = deps.db ?? offlineDb();
 	const waitMs = deps.waitMs ?? FIRST_PULL_WAIT_MS;
-	const [language, { user }] = await Promise.all([
+	const [language, { user, token }] = await Promise.all([
 		getStoredLanguage(),
 		getStoredAuth(),
 	]);
-	if (!deps.db && isOfflineUnavailable()) return loadOnline(meta, language);
+	if (!deps.db && isOfflineUnavailable())
+		return loadOnline(meta, language, token);
 
 	let novel = findNovelBySlug(await getCatalogueView(db), meta.novelSlug);
 	if (!novel && isOnline()) {

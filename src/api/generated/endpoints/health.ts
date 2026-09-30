@@ -24,11 +24,9 @@ import { customInstance } from "../../axios-instance";
 import type {
 	GetHealth200,
 	GetHealth404,
-	GetHealth422,
 	GetHealth500,
 	GetHealthReady200,
 	GetHealthReady404,
-	GetHealthReady422,
 	GetHealthReady500,
 	GetHealthReady503,
 } from "../schemas";
@@ -51,7 +49,7 @@ export const getGetHealthQueryKey = () => {
 
 export const getGetHealthQueryOptions = <
 	TData = Awaited<ReturnType<typeof getHealth>>,
-	TError = ErrorType<GetHealth404 | GetHealth422 | GetHealth500>,
+	TError = ErrorType<GetHealth404 | GetHealth500>,
 >(options?: {
 	query?: Partial<
 		UseQueryOptions<Awaited<ReturnType<typeof getHealth>>, TError, TData>
@@ -76,13 +74,11 @@ export const getGetHealthQueryOptions = <
 export type GetHealthQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getHealth>>
 >;
-export type GetHealthQueryError = ErrorType<
-	GetHealth404 | GetHealth422 | GetHealth500
->;
+export type GetHealthQueryError = ErrorType<GetHealth404 | GetHealth500>;
 
 export function useGetHealth<
 	TData = Awaited<ReturnType<typeof getHealth>>,
-	TError = ErrorType<GetHealth404 | GetHealth422 | GetHealth500>,
+	TError = ErrorType<GetHealth404 | GetHealth500>,
 >(
 	options: {
 		query: Partial<
@@ -104,7 +100,7 @@ export function useGetHealth<
 };
 export function useGetHealth<
 	TData = Awaited<ReturnType<typeof getHealth>>,
-	TError = ErrorType<GetHealth404 | GetHealth422 | GetHealth500>,
+	TError = ErrorType<GetHealth404 | GetHealth500>,
 >(
 	options?: {
 		query?: Partial<
@@ -126,7 +122,7 @@ export function useGetHealth<
 };
 export function useGetHealth<
 	TData = Awaited<ReturnType<typeof getHealth>>,
-	TError = ErrorType<GetHealth404 | GetHealth422 | GetHealth500>,
+	TError = ErrorType<GetHealth404 | GetHealth500>,
 >(
 	options?: {
 		query?: Partial<
@@ -141,7 +137,7 @@ export function useGetHealth<
 
 export function useGetHealth<
 	TData = Awaited<ReturnType<typeof getHealth>>,
-	TError = ErrorType<GetHealth404 | GetHealth422 | GetHealth500>,
+	TError = ErrorType<GetHealth404 | GetHealth500>,
 >(
 	options?: {
 		query?: Partial<
@@ -181,12 +177,7 @@ export const getGetHealthReadyQueryKey = () => {
 
 export const getGetHealthReadyQueryOptions = <
 	TData = Awaited<ReturnType<typeof getHealthReady>>,
-	TError = ErrorType<
-		| GetHealthReady404
-		| GetHealthReady422
-		| GetHealthReady500
-		| GetHealthReady503
-	>,
+	TError = ErrorType<GetHealthReady404 | GetHealthReady500 | GetHealthReady503>,
 >(options?: {
 	query?: Partial<
 		UseQueryOptions<Awaited<ReturnType<typeof getHealthReady>>, TError, TData>
@@ -212,17 +203,12 @@ export type GetHealthReadyQueryResult = NonNullable<
 	Awaited<ReturnType<typeof getHealthReady>>
 >;
 export type GetHealthReadyQueryError = ErrorType<
-	GetHealthReady404 | GetHealthReady422 | GetHealthReady500 | GetHealthReady503
+	GetHealthReady404 | GetHealthReady500 | GetHealthReady503
 >;
 
 export function useGetHealthReady<
 	TData = Awaited<ReturnType<typeof getHealthReady>>,
-	TError = ErrorType<
-		| GetHealthReady404
-		| GetHealthReady422
-		| GetHealthReady500
-		| GetHealthReady503
-	>,
+	TError = ErrorType<GetHealthReady404 | GetHealthReady500 | GetHealthReady503>,
 >(
 	options: {
 		query: Partial<
@@ -244,12 +230,7 @@ export function useGetHealthReady<
 };
 export function useGetHealthReady<
 	TData = Awaited<ReturnType<typeof getHealthReady>>,
-	TError = ErrorType<
-		| GetHealthReady404
-		| GetHealthReady422
-		| GetHealthReady500
-		| GetHealthReady503
-	>,
+	TError = ErrorType<GetHealthReady404 | GetHealthReady500 | GetHealthReady503>,
 >(
 	options?: {
 		query?: Partial<
@@ -271,12 +252,7 @@ export function useGetHealthReady<
 };
 export function useGetHealthReady<
 	TData = Awaited<ReturnType<typeof getHealthReady>>,
-	TError = ErrorType<
-		| GetHealthReady404
-		| GetHealthReady422
-		| GetHealthReady500
-		| GetHealthReady503
-	>,
+	TError = ErrorType<GetHealthReady404 | GetHealthReady500 | GetHealthReady503>,
 >(
 	options?: {
 		query?: Partial<
@@ -291,12 +267,7 @@ export function useGetHealthReady<
 
 export function useGetHealthReady<
 	TData = Awaited<ReturnType<typeof getHealthReady>>,
-	TError = ErrorType<
-		| GetHealthReady404
-		| GetHealthReady422
-		| GetHealthReady500
-		| GetHealthReady503
-	>,
+	TError = ErrorType<GetHealthReady404 | GetHealthReady500 | GetHealthReady503>,
 >(
 	options?: {
 		query?: Partial<

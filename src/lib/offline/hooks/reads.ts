@@ -4,6 +4,7 @@ import Dexie from "dexie";
 import { useAtomValue } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { getStoredAuth } from "@/lib/auth/auth-storage";
 import { currentUserAtom } from "@/lib/auth/auth-store";
 import { isOfflineUnavailable, offlineDb } from "@/lib/offline/db";
 import { getMeta } from "@/lib/offline/meta";
@@ -89,9 +90,11 @@ function useUserId(): string | undefined {
  * projected without local changes (edits need offline storage).
  */
 async function onlineNovelView(novelId: string) {
+	const { token } = await getStoredAuth();
+	const context = { token: token ?? undefined };
 	const [bundle, lookups] = await Promise.all([
-		fetchNovelBundle(novelId, {}),
-		fetchLookups({}),
+		fetchNovelBundle(novelId, context),
+		fetchLookups(context),
 	]);
 	const { keywords, aliases, versions } = splitKeywords(bundle.keywords);
 	const view = projectNovel({
@@ -264,8 +267,9 @@ function useLookupsView() {
 		queryKey: [OFFLINE_QUERY_KEY, "lookups", userId],
 		queryFn: async () => {
 			if (!isOfflineUnavailable()) return getLookupsView(userId);
+			const { token } = await getStoredAuth();
 			return {
-				...(await fetchLookups({})),
+				...(await fetchLookups({ token: token ?? undefined })),
 				states: new Map<string, EntitySyncState>(),
 			};
 		},
@@ -329,8 +333,11 @@ export function useCachedNovelsList(): {
 	const query = useQuery({
 		networkMode: "always",
 		queryKey: [OFFLINE_QUERY_KEY, "catalogue"],
-		queryFn: () =>
-			isOfflineUnavailable() ? fetchNovels({}) : getCatalogueView(),
+		queryFn: async () => {
+			if (!isOfflineUnavailable()) return getCatalogueView();
+			const { token } = await getStoredAuth();
+			return fetchNovels({ token: token ?? undefined });
+		},
 	});
 	const novels = useMemo(
 		() =>

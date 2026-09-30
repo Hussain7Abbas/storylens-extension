@@ -37,6 +37,15 @@ import type {
 	GetSyncProtocol200,
 	GetSyncProtocol404,
 	GetSyncProtocol500,
+	GetSyncSnapshotCatalogue200,
+	GetSyncSnapshotCatalogue404,
+	GetSyncSnapshotCatalogue500,
+	GetSyncSnapshotLookups200,
+	GetSyncSnapshotLookups404,
+	GetSyncSnapshotLookups500,
+	GetSyncSnapshotNovelsById200,
+	GetSyncSnapshotNovelsById404,
+	GetSyncSnapshotNovelsById500,
 } from "../schemas";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -180,6 +189,494 @@ export function useGetSyncProtocol<
 	queryKey: DataTag<QueryKey, TData, TError>;
 } {
 	const queryOptions = getGetSyncProtocolQueryOptions(options);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getSyncSnapshotCatalogue = (
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetSyncSnapshotCatalogue200>(
+		{
+			url: `http://localhost:3031/api/user/sync/snapshot/catalogue`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getGetSyncSnapshotCatalogueQueryKey = () => {
+	return [`http://localhost:3031/api/user/sync/snapshot/catalogue`] as const;
+};
+
+export const getGetSyncSnapshotCatalogueQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+	TError = ErrorType<GetSyncSnapshotCatalogue404 | GetSyncSnapshotCatalogue500>,
+>(options?: {
+	query?: Partial<
+		UseQueryOptions<
+			Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+			TError,
+			TData
+		>
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetSyncSnapshotCatalogueQueryKey();
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>
+	> = ({ signal }) => getSyncSnapshotCatalogue(requestOptions, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+		Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSyncSnapshotCatalogueQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>
+>;
+export type GetSyncSnapshotCatalogueQueryError = ErrorType<
+	GetSyncSnapshotCatalogue404 | GetSyncSnapshotCatalogue500
+>;
+
+export function useGetSyncSnapshotCatalogue<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+	TError = ErrorType<GetSyncSnapshotCatalogue404 | GetSyncSnapshotCatalogue500>,
+>(
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+					TError,
+					Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSyncSnapshotCatalogue<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+	TError = ErrorType<GetSyncSnapshotCatalogue404 | GetSyncSnapshotCatalogue500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+					TError,
+					Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSyncSnapshotCatalogue<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+	TError = ErrorType<GetSyncSnapshotCatalogue404 | GetSyncSnapshotCatalogue500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useGetSyncSnapshotCatalogue<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+	TError = ErrorType<GetSyncSnapshotCatalogue404 | GetSyncSnapshotCatalogue500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotCatalogue>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetSyncSnapshotCatalogueQueryOptions(options);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getSyncSnapshotLookups = (
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetSyncSnapshotLookups200>(
+		{
+			url: `http://localhost:3031/api/user/sync/snapshot/lookups`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getGetSyncSnapshotLookupsQueryKey = () => {
+	return [`http://localhost:3031/api/user/sync/snapshot/lookups`] as const;
+};
+
+export const getGetSyncSnapshotLookupsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+	TError = ErrorType<GetSyncSnapshotLookups404 | GetSyncSnapshotLookups500>,
+>(options?: {
+	query?: Partial<
+		UseQueryOptions<
+			Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+			TError,
+			TData
+		>
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetSyncSnapshotLookupsQueryKey();
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getSyncSnapshotLookups>>
+	> = ({ signal }) => getSyncSnapshotLookups(requestOptions, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+		Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSyncSnapshotLookupsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getSyncSnapshotLookups>>
+>;
+export type GetSyncSnapshotLookupsQueryError = ErrorType<
+	GetSyncSnapshotLookups404 | GetSyncSnapshotLookups500
+>;
+
+export function useGetSyncSnapshotLookups<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+	TError = ErrorType<GetSyncSnapshotLookups404 | GetSyncSnapshotLookups500>,
+>(
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+					TError,
+					Awaited<ReturnType<typeof getSyncSnapshotLookups>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSyncSnapshotLookups<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+	TError = ErrorType<GetSyncSnapshotLookups404 | GetSyncSnapshotLookups500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+					TError,
+					Awaited<ReturnType<typeof getSyncSnapshotLookups>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSyncSnapshotLookups<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+	TError = ErrorType<GetSyncSnapshotLookups404 | GetSyncSnapshotLookups500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useGetSyncSnapshotLookups<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+	TError = ErrorType<GetSyncSnapshotLookups404 | GetSyncSnapshotLookups500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotLookups>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetSyncSnapshotLookupsQueryOptions(options);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+export const getSyncSnapshotNovelsById = (
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetSyncSnapshotNovelsById200>(
+		{
+			url: `http://localhost:3031/api/user/sync/snapshot/novels/${id}`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getGetSyncSnapshotNovelsByIdQueryKey = (id?: string) => {
+	return [`http://localhost:3031/api/user/sync/snapshot/novels/${id}`] as const;
+};
+
+export const getGetSyncSnapshotNovelsByIdQueryOptions = <
+	TData = Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+	TError = ErrorType<
+		GetSyncSnapshotNovelsById404 | GetSyncSnapshotNovelsById500
+	>,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ?? getGetSyncSnapshotNovelsByIdQueryKey(id);
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>
+	> = ({ signal }) => getSyncSnapshotNovelsById(id, requestOptions, signal);
+
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!id,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSyncSnapshotNovelsByIdQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>
+>;
+export type GetSyncSnapshotNovelsByIdQueryError = ErrorType<
+	GetSyncSnapshotNovelsById404 | GetSyncSnapshotNovelsById500
+>;
+
+export function useGetSyncSnapshotNovelsById<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+	TError = ErrorType<
+		GetSyncSnapshotNovelsById404 | GetSyncSnapshotNovelsById500
+	>,
+>(
+	id: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+					TError,
+					Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSyncSnapshotNovelsById<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+	TError = ErrorType<
+		GetSyncSnapshotNovelsById404 | GetSyncSnapshotNovelsById500
+	>,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+					TError,
+					Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSyncSnapshotNovelsById<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+	TError = ErrorType<
+		GetSyncSnapshotNovelsById404 | GetSyncSnapshotNovelsById500
+	>,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+
+export function useGetSyncSnapshotNovelsById<
+	TData = Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+	TError = ErrorType<
+		GetSyncSnapshotNovelsById404 | GetSyncSnapshotNovelsById500
+	>,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getSyncSnapshotNovelsById>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetSyncSnapshotNovelsByIdQueryOptions(id, options);
 
 	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
 		TData,

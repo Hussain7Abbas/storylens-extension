@@ -1,18 +1,10 @@
 import type { AxiosRequestConfig } from "axios";
-import { getKeywordCategories } from "@/api/generated/endpoints/keyword-categories";
-import { getKeywordNatures } from "@/api/generated/endpoints/keyword-natures";
-import {
-	getKeywords,
-	getKeywordVersions,
-} from "@/api/generated/endpoints/keywords";
-import { getNovels, getNovelsById } from "@/api/generated/endpoints/novels";
-import { getReplacements } from "@/api/generated/endpoints/replacements";
+import { customInstance } from "@/api/axios-instance";
 import {
 	getSyncCatalogueChanges,
 	getSyncLookupsChanges,
 	getSyncNovelsByIdChanges,
 } from "@/api/generated/endpoints/sync";
-import { getWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases";
 import type { StoryLensDatabase } from "@/lib/offline/db";
 import {
 	getMeta,
@@ -30,7 +22,6 @@ import {
 	replaceCatalogue,
 	replaceLookups,
 	replaceNovelSnapshot,
-	upsertRows,
 } from "@/lib/offline/snapshot";
 import type {
 	AssembledKeyword,
@@ -40,10 +31,7 @@ import type {
 	NatureRow,
 	NovelSync,
 	ReplacementRow,
-	VersionRow,
 } from "@/lib/offline/types";
-import { fetchAllPages, type ListPage } from "@/utils/fetch-all-pages";
-import type { Language } from "@/utils/translation";
 import { REQUEST_TIMEOUT_MS } from "./transport";
 
 /** Pinned novels, cached novels and the lookups refresh after this long. */
@@ -63,23 +51,14 @@ export type PullContext = {
 	now?: number;
 };
 
-const LANGUAGES: Language[] = ["ar", "en"];
-
-function request(ctx: FetchContext, language?: Language): AxiosRequestConfig {
+function request(ctx: FetchContext): AxiosRequestConfig {
 	return {
 		timeout: REQUEST_TIMEOUT_MS,
 		signal: ctx.signal,
 		headers: {
 			...(ctx.token ? { Authorization: `Bearer ${ctx.token}` } : {}),
-			...(language ? { "Accept-Language": language } : {}),
 		},
 	};
-}
-
-function mergeById<T extends { id: string }>(lists: T[][]): T[] {
-	const byId = new Map<string, T>();
-	for (const list of lists) for (const row of list) byId.set(row.id, row);
-	return [...byId.values()];
 }
 
 function statusOf(error: unknown): number | undefined {
@@ -90,153 +69,78 @@ function statusOf(error: unknown): number | undefined {
 // Full pulls
 // ---------------------------------------------------------------------------
 
+type CatalogueSnapshot = { novels: CatalogNovel[]; cursor: number };
+type LookupsSnapshot = {
+	categories: CategoryRow[];
+	natures: NatureRow[];
+	cursor: number;
+};
+type NovelSnapshot = {
+	novel: CatalogNovel;
+	keywords: AssembledKeyword[];
+	replacements: ReplacementRow[];
+	biases: BiasRow[];
+	cursor: number;
+};
+
+async function snapshot<T>(path: string, ctx: FetchContext): Promise<T> {
+	return (
+		await customInstance<T>(
+			{ url: `/api/user/sync/snapshot/${path}`, method: "GET" },
+			request(ctx),
+		)
+	).data;
+}
+
 export async function fetchNovels(ctx: FetchContext): Promise<CatalogNovel[]> {
-	const lists = await Promise.all(
-		LANGUAGES.map((language) =>
-			fetchAllPages<CatalogNovel>(
-				async (pagination, options) =>
-					(
-						await getNovels(
-							{
-								pagination,
-								sorting: { column: "createdAt", direction: "asc" },
-							},
-							{ ...request(ctx, language), timeout: options.timeout },
-						)
-					).data as ListPage<CatalogNovel>,
-				{ signal: ctx.signal },
-			),
-		),
-	);
-	return mergeById(lists);
+	return (await snapshot<CatalogueSnapshot>("catalogue", ctx)).novels;
 }
 
 export async function fetchLookups(
 	ctx: FetchContext,
 ): Promise<{ categories: CategoryRow[]; natures: NatureRow[] }> {
-	const [categories, natures] = await Promise.all([
-		fetchAllPages<CategoryRow>(
-			async (pagination) =>
-				(
-					await getKeywordCategories(
-						{ pagination, sorting: { column: "createdAt", direction: "asc" } },
-						request(ctx),
-					)
-				).data as ListPage<CategoryRow>,
-			{ signal: ctx.signal },
-		),
-		fetchAllPages<NatureRow>(
-			async (pagination) =>
-				(
-					await getKeywordNatures(
-						{ pagination, sorting: { column: "createdAt", direction: "asc" } },
-						request(ctx),
-					)
-				).data as ListPage<NatureRow>,
-			{ signal: ctx.signal },
-		),
-	]);
+	const { categories, natures } = await snapshot<LookupsSnapshot>(
+		"lookups",
+		ctx,
+	);
 	return { categories, natures };
 }
 
-/** The feed cursor before a full pull: changes during the pull are fetched again next time. */
-async function cursorBefore(
-	fetch: () => Promise<{ data: { cursor: number } }>,
-): Promise<number | undefined> {
-	try {
-		return (await fetch()).data.cursor;
-	} catch {
-		return undefined;
-	}
-}
-
-/** All novels in both languages; deleted ones are pruned, removed downloads are marked. */
+/** All novels in one server snapshot; the cursor describes those same rows. */
 export async function pullCatalogue(ctx: PullContext): Promise<void> {
-	const cursor = await cursorBefore(() =>
-		getSyncCatalogueChanges({}, request(ctx)),
+	const { novels, cursor } = await snapshot<CatalogueSnapshot>(
+		"catalogue",
+		ctx,
 	);
-	const novels = await fetchNovels(ctx);
 	await replaceCatalogue(novels, ctx.db);
-	if (cursor !== undefined) await setMeta("catalogueCursor", cursor, ctx.db);
+	await setMeta("catalogueCursor", cursor, ctx.db);
 	await setMeta("catalogFullPullAt", ctx.now ?? Date.now(), ctx.db);
 }
 
-/** Categories and natures, pruned; never skipped for pending lookup changes (views keep them). */
+/** Categories and natures from one server snapshot. */
 export async function pullLookups(ctx: PullContext): Promise<void> {
-	const cursor = await cursorBefore(() =>
-		getSyncLookupsChanges({}, request(ctx)),
+	const { cursor, ...lookups } = await snapshot<LookupsSnapshot>(
+		"lookups",
+		ctx,
 	);
-	const lookups = await fetchLookups(ctx);
 	await replaceLookups(lookups, ctx.db);
-	if (cursor !== undefined) await setMeta("lookupsCursor", cursor, ctx.db);
+	await setMeta("lookupsCursor", cursor, ctx.db);
 	await setMeta("lookupsFullPullAt", ctx.now ?? Date.now(), ctx.db);
 }
 
-/** A novel's server rows in both languages, every page; rejects on a 404. */
-export async function fetchNovelBundle(novelId: string, ctx: FetchContext) {
-	const {
-		chapters: _chapters,
-		image: _image,
-		...novel
-	} = (await getNovelsById(novelId, request(ctx))).data as CatalogNovel & {
-		chapters?: unknown;
-		image?: unknown;
-	};
-	const keywordLists = await Promise.all(
-		LANGUAGES.map((language) =>
-			fetchAllPages<AssembledKeyword>(
-				async (pagination) =>
-					(
-						await getKeywords(
-							{
-								pagination,
-								sorting: { column: "createdAt", direction: "asc" },
-								query: { novelId },
-							},
-							request(ctx, language),
-						)
-					).data as ListPage<AssembledKeyword>,
-				{ signal: ctx.signal },
-			),
-		),
-	);
-	const replacements = await fetchAllPages<ReplacementRow>(
-		async (pagination) =>
-			(
-				await getReplacements(
-					{
-						pagination,
-						sorting: { column: "from", direction: "asc" },
-						query: { novelId },
-					},
-					request(ctx),
-				)
-			).data as ListPage<ReplacementRow>,
-		{ signal: ctx.signal },
-	);
-	const biases = (await getWebsiteNovelBiases({ novelId }, request(ctx)))
-		.data as BiasRow[];
-	return {
-		novel: novel as CatalogNovel,
-		keywords: mergeById(keywordLists),
-		replacements,
-		biases,
-	};
+/** A novel and every related row from one server snapshot. */
+export async function fetchNovelBundle(
+	novelId: string,
+	ctx: FetchContext,
+): Promise<NovelSnapshot> {
+	return snapshot<NovelSnapshot>(`novels/${novelId}`, ctx);
 }
 
-/**
- * One novel with its keywords (both languages, every page), replacements and
- * chapter biases, written in one transaction. A 404 marks it removed on the
- * server and turns its pending changes into conflicts.
- */
 export async function pullNovel(
 	novelId: string,
 	ctx: PullContext,
 ): Promise<"pulled" | "removed"> {
-	const cursor = await cursorBefore(() =>
-		getSyncNovelsByIdChanges(novelId, {}, request(ctx)),
-	);
-	let bundle: Awaited<ReturnType<typeof fetchNovelBundle>>;
+	let bundle: NovelSnapshot;
 	try {
 		bundle = await fetchNovelBundle(novelId, ctx);
 	} catch (error) {
@@ -258,35 +162,20 @@ export async function pullNovel(
 		if (sync)
 			await ctx.db.novelSync.put({
 				...sync,
-				cursor,
+				cursor: bundle.cursor,
 				removedOnServer: undefined,
 			});
 	});
 	return "pulled";
 }
 
-/** Re-reads a keyword's versions after a version create (the server closed the previous one). */
+/** A version create also closes its predecessor; refresh the whole novel atomically. */
 export async function refreshKeywordVersions(
 	keywordId: string,
 	ctx: PullContext,
 ): Promise<void> {
-	const versions = await fetchAllPages<VersionRow>(
-		async (pagination) =>
-			(
-				await getKeywordVersions(
-					{
-						pagination,
-						sorting: { column: "startingChapter", direction: "asc" },
-						query: { keywordId },
-					},
-					request(ctx),
-				)
-			).data as ListPage<VersionRow>,
-		{ signal: ctx.signal },
-	);
-	await ctx.db.transaction("rw", ctx.db.keywordVersions, async () =>
-		upsertRows(ctx.db.keywordVersions, versions),
-	);
+	const keyword = await ctx.db.keywords.get(keywordId);
+	if (keyword) await pullNovel(keyword.novelId, ctx);
 }
 
 // ---------------------------------------------------------------------------
@@ -508,7 +397,10 @@ export async function pullDueUnits(
 	for (const sync of [...pinned, ...requested]) {
 		if (sync.removedOnServer) continue;
 		const stale = now - (sync.lastPulledAt ?? 0) > NOVEL_STALE_MS;
-		const due = sync.pullDue || (sync.pinned ? all || stale : stale);
+		const due =
+			!!sync.pullDue ||
+			!!sync.refreshRequestedAt ||
+			(sync.pinned ? all || stale : stale);
 		if (!due) {
 			if (sync.refreshRequestedAt)
 				await ctx.db.novelSync.update(sync.novelId, {
