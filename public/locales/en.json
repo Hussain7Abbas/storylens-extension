@@ -180,7 +180,8 @@
 		"usageAnalytics": "Anonymous usage analytics",
 		"usageAnalyticsDescription": "Send anonymous feature usage to Google Analytics to help improve Story Lens. No page content or account details are sent.",
 		"description": "Description",
-		"descriptionHint": "Explain when to use it; AI suggestions read this to choose."
+		"descriptionHint": "Explain when to use it; AI suggestions read this to choose.",
+		"version": "Version"
 	},
 	"category": {
 		"noRecords": "There is no categories to show"

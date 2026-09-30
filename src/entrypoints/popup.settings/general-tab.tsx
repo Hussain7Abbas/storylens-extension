@@ -131,6 +131,9 @@ export function GeneralTab() {
 			<Fieldset legend={t("nodeSelector.nodeSelector")}>
 				<NodeSelector />
 			</Fieldset>
+			<Text size="sm" c="dimmed">
+				{t("settings.version")}: {browser.runtime.getManifest().version}
+			</Text>
 		</Stack>
 	);
 }

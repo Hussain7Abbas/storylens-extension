@@ -76,6 +76,8 @@ export default defineConfig({
 		},
 		chromiumArgs: ["--user-data-dir=./.wxt/chromium-data"],
 		keepProfileChanges: true,
-		startUrls: ["https://seanovel.org/novels/shadow-slave/chapters/235"],
+		startUrls: [
+			"https://seanovel.org/novels/the-steward-demonic-emperor/chapters/10",
+		],
 	},
 });
