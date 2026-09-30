@@ -282,6 +282,8 @@
 		"websiteDeleteSuccess": "Website deleted successfully",
 		"websiteDeleteFailed": "Failed to delete website",
 		"autoDetect": "Auto-detect from current tab",
+		"detectProviderDesktop": "Uses your configured AI provider through Story Lens Client. A short page outline and URL are sent to that provider.",
+		"detectProviderBackend": "Without a configured AI provider, detection sends the page URL and HTML through Story Lens to OpenRouter.",
 		"detectSuccess": "Selectors detected successfully",
 		"detectPartial": "Selectors detected with validation warnings",
 		"detectFailed": "Failed to detect selectors",

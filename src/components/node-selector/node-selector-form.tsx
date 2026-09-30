@@ -3,12 +3,13 @@ import {
 	Button,
 	Group,
 	Stack,
+	Text,
 	TextInput,
 	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Sparkles as IconSparkles, Trash2 as IconTrash } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -23,6 +24,7 @@ import type {
 	PutWebsiteSelectorsByWebsiteBodyOne,
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
+import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
 import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
@@ -115,10 +117,13 @@ function NodeSelectorFormContent({
 	onClose,
 	editedWebsite,
 }: NodeSelectorFormProps) {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const navigate = useNavigate();
+	const aiConfigured = useAiConfigured();
 	const [isDetecting, setIsDetecting] = useState(false);
 	const [pageContext, setPageContext] = useState<PageContext | null>(null);
+	const detectionController = useRef<AbortController | null>(null);
+	useEffect(() => () => detectionController.current?.abort(), []);
 
 	const isEdit = !!editedWebsite;
 
@@ -218,10 +223,14 @@ function NodeSelectorFormContent({
 	}
 
 	async function handleAutoDetect() {
+		if (detectionController.current) return;
 		setIsDetecting(true);
+		const controller = new AbortController();
+		detectionController.current = controller;
 
 		try {
 			const tabResult = await getActiveTabPageContext();
+			if (controller.signal.aborted) return;
 			const page = tabResult.ok ? tabResult.page : pageContext;
 
 			if (!page) {
@@ -238,7 +247,10 @@ function NodeSelectorFormContent({
 			const detection = await detectChapterSelectors({
 				url: page.url,
 				html: page.html,
+				language: i18n.language,
+				signal: controller.signal,
 			});
+			if (controller.signal.aborted) return;
 
 			form.setValues(detection.nodeSelectorForm);
 
@@ -253,6 +265,7 @@ function NodeSelectorFormContent({
 				`${t("nodeSelector.detectSuccess")} (${detection.result.confidence})`,
 			);
 		} catch (error) {
+			if (controller.signal.aborted) return;
 			console.error("[StoryLens] Auto-detect selectors failed", error);
 			const message =
 				error instanceof Error && error.message
@@ -260,7 +273,9 @@ function NodeSelectorFormContent({
 					: t("nodeSelector.detectFailed");
 			toast.error(message);
 		} finally {
-			setIsDetecting(false);
+			if (detectionController.current === controller)
+				detectionController.current = null;
+			if (!controller.signal.aborted) setIsDetecting(false);
 		}
 	}
 
@@ -315,6 +330,13 @@ function NodeSelectorFormContent({
 					{t("nodeSelector.autoDetect")}
 				</Button>
 			</Tooltip>
+			<Text size="xs" c="dimmed">
+				{t(
+					aiConfigured
+						? "nodeSelector.detectProviderDesktop"
+						: "nodeSelector.detectProviderBackend",
+				)}
+			</Text>
 
 			<TextInput
 				key={form.key("novelXpath")}

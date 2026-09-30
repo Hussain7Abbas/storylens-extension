@@ -282,6 +282,8 @@
 		"websiteDeleteSuccess": "تم حذف الموقع بنجاح",
 		"websiteDeleteFailed": "فشل حذف الموقع",
 		"autoDetect": "اكتشاف تلقائي من التبويب الحالي",
+		"detectProviderDesktop": "يستخدم مزود الذكاء الاصطناعي المضبوط عبر تطبيق Story Lens. يُرسل إليه رابط الصفحة وملخص قصير لعناصرها.",
+		"detectProviderBackend": "دون مزود ذكاء اصطناعي مضبوط، يُرسل الكشف رابط الصفحة وHTML عبر Story Lens إلى OpenRouter.",
 		"detectSuccess": "تم اكتشاف المحددات بنجاح",
 		"detectPartial": "تم اكتشاف المحددات مع تحذيرات التحقق",
 		"detectFailed": "فشل اكتشاف المحددات",
