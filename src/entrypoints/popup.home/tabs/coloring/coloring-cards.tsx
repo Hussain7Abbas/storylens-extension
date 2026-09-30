@@ -216,7 +216,9 @@ function VersionCard({
 							color="gray"
 							style={{ flexShrink: 0 }}
 						>
-							{t("coloring.hasImage")}
+							{version?.imageId && !version?.image
+								? t("offline.waitingToUpload")
+								: t("coloring.hasImage")}
 						</Badge>
 					)}
 				</Group>
@@ -287,7 +289,9 @@ function AliasCard({
 					<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
 						{hasOwnImage && (
 							<Badge size="xs" variant="dot" color="gray">
-								{t("coloring.hasImage")}
+								{alias?.imageId && !alias?.image
+									? t("offline.waitingToUpload")
+									: t("coloring.hasImage")}
 							</Badge>
 						)}
 						{isPending && (
@@ -434,7 +438,9 @@ export function ColoringCards({
 									<Group gap="xs" wrap="nowrap">
 										{hasBaseImage && (
 											<Badge size="xs" variant="dot" color="gray">
-												{t("coloring.hasImage")}
+												{baseVersion?.imageId && !baseVersion?.image
+													? t("offline.waitingToUpload")
+													: t("coloring.hasImage")}
 											</Badge>
 										)}
 										{needsAttention ? (

@@ -1,4 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { t } from "i18next";
+import toast from "react-hot-toast";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import {
 	type AliasValues,
@@ -44,7 +46,9 @@ function useEnqueue<TInput>(
 	return useMutation<EnqueueResult, Error, TInput>({
 		networkMode: "always",
 		mutationFn: (input) => enqueue(toInput(input)),
-		onSuccess: async () => {
+		onSuccess: async (result) => {
+			if (result.warning === "QUEUED_IMAGES_LARGE")
+				toast(t("offline.queuedImagesLarge"));
 			await queryClient.invalidateQueries({ queryKey: [OFFLINE_QUERY_KEY] });
 			void sendMessage("syncKick", { reason: "enqueue" }).catch(
 				() => undefined,
