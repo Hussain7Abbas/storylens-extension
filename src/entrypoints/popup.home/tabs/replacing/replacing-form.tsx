@@ -13,6 +13,7 @@ import { Trash2 as IconTrash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { GetReplacements200DataItem } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import { replacementFormChanges } from "@/lib/offline/form-changes";
 import { useOfflineReplacementMutations } from "@/lib/offline/hooks";
@@ -115,6 +116,8 @@ function ReplacingFormContent({
 			});
 		}
 	};
+
+	useLauncherWork({ dirty: form.isDirty() });
 
 	const isPending =
 		createMutation.isPending ||

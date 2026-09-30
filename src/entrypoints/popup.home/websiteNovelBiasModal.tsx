@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { usePostWebsiteNovelBiases } from "@/api/generated/endpoints/website-novel-biases.js";
 import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 
 type Props = {
 	novelId: string;
@@ -31,6 +32,7 @@ function WebsiteNovelBiasFormContent({
 }: Props) {
 	const { t } = useTranslation();
 	const [biasValue, setBiasValue] = useState<number>(currentBias);
+	useLauncherWork({ dirty: biasValue !== currentBias });
 
 	const mutation = usePostWebsiteNovelBiases({
 		mutation: {

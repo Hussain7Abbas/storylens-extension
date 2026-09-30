@@ -26,9 +26,11 @@ import {
 import { FormPage } from "@/components/form-page";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userAccessAtom } from "@/lib/auth";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { useLanguage } from "@/store/locale";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
+import { loadFormValues } from "@/utils/form-baseline";
 import { loadWebsiteSelector } from "@/utils/load-website-selectors";
 import { isSlugInList } from "@/utils/novel-matching";
 import { previewXpathRegexResultFromHtml } from "@/utils/selector-preview";
@@ -101,33 +103,38 @@ function NovelFormContent({
 			slugs: [] as string[],
 		},
 	});
-	const { setValues, setFieldValue } = form;
+	const { setValues, setFieldValue, isDirty, resetDirty } = form;
+	useLauncherWork({ dirty: form.isDirty() });
 
 	useEffect(() => {
 		if (mode === "edit") {
-			setValues({
-				// The form edits the UI language's name and description only.
-				name: selectedNovel ? nameIn(selectedNovel, language) : "",
-				description: selectedNovel
-					? descriptionIn(selectedNovel, language)
-					: "",
-				context: selectedNovel?.context || "",
-				imageId: selectedNovel?.imageId || "",
-				slugs: selectedNovel?.slugs || [],
-			});
+			loadFormValues({ isDirty, resetDirty }, () =>
+				setValues({
+					// The form edits the UI language's name and description only.
+					name: selectedNovel ? nameIn(selectedNovel, language) : "",
+					description: selectedNovel
+						? descriptionIn(selectedNovel, language)
+						: "",
+					context: selectedNovel?.context || "",
+					imageId: selectedNovel?.imageId || "",
+					slugs: selectedNovel?.slugs || [],
+				}),
+			);
 			return;
 		}
 
 		if (mode === "add") {
-			setValues({
-				name: "",
-				description: "",
-				context: "",
-				imageId: "",
-				slugs: selectedNovel?.slugs || [],
-			});
+			loadFormValues({ isDirty, resetDirty }, () =>
+				setValues({
+					name: "",
+					description: "",
+					context: "",
+					imageId: "",
+					slugs: selectedNovel?.slugs || [],
+				}),
+			);
 		}
-	}, [mode, selectedNovel, setValues, language]);
+	}, [mode, selectedNovel, setValues, isDirty, resetDirty, language]);
 
 	useEffect(() => {
 		if (mode !== "add") {
@@ -148,11 +155,14 @@ function NovelFormContent({
 			const novelName = await getNovelNameFromRegex(tab.id);
 			if (novelName) {
 				setDetectedName(novelName);
-				setFieldValue("name", novelName);
+				// A name the reader typed while detection ran is theirs to keep.
+				loadFormValues({ isDirty, resetDirty }, () => {
+					if (!isDirty("name")) setFieldValue("name", novelName);
+				});
 			}
 			setDetectingName(false);
 		})();
-	}, [mode, setFieldValue]);
+	}, [mode, setFieldValue, isDirty, resetDirty]);
 
 	const createNovelMutation = usePostNovels({
 		mutation: {

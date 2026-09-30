@@ -25,7 +25,9 @@ import type {
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
+import { loadFormValues } from "@/utils/form-baseline";
 import { getActiveTabPageContext } from "@/utils/get-active-tab-page-context";
 import {
 	computeSelectorPreviews,
@@ -140,6 +142,8 @@ function NodeSelectorFormContent({
 		mode: "controlled",
 		initialValues: INITIAL_FORM_VALUES,
 	});
+	useLauncherWork({ dirty: form.isDirty(), working: isDetecting });
+	const { isDirty, resetDirty } = form;
 
 	const xpathTexts = useMemo(() => {
 		if (!pageContext) {
@@ -206,9 +210,13 @@ function NodeSelectorFormContent({
 			}
 
 			setPageContext(page);
-			form.setFieldValue("website", new URL(page.url).hostname);
+			// A website the reader typed while the page loaded is theirs to keep.
+			loadFormValues({ isDirty, resetDirty }, () => {
+				if (!isDirty("website"))
+					form.setFieldValue("website", new URL(page.url).hostname);
+			});
 		});
-	}, [isEdit, form.setFieldValue]);
+	}, [isEdit, form.setFieldValue, isDirty, resetDirty]);
 
 	useEffect(() => {
 		void loadPageContext().then((page) => {
@@ -298,16 +306,18 @@ function NodeSelectorFormContent({
 
 		const existingSelector = selectorData.data;
 
-		form.setValues({
-			website: existingSelector.website,
-			novelXpath: existingSelector.novel?.xpath?.value ?? "",
-			novelXpathRegex: existingSelector.novel?.xpath?.regex ?? "(.*)",
-			novelUrlRegex: existingSelector.novel?.url?.regex ?? "",
-			chapterXpath: existingSelector.chapter?.xpath?.value ?? "",
-			chapterXpathRegex: existingSelector.chapter?.xpath?.regex ?? "\\d+",
-			chapterUrlRegex: existingSelector.chapter?.url?.regex ?? "",
-		});
-	}, [editedWebsite, selectorData?.data, form.setValues]);
+		loadFormValues({ isDirty, resetDirty }, () =>
+			form.setValues({
+				website: existingSelector.website,
+				novelXpath: existingSelector.novel?.xpath?.value ?? "",
+				novelXpathRegex: existingSelector.novel?.xpath?.regex ?? "(.*)",
+				novelUrlRegex: existingSelector.novel?.url?.regex ?? "",
+				chapterXpath: existingSelector.chapter?.xpath?.value ?? "",
+				chapterXpathRegex: existingSelector.chapter?.xpath?.regex ?? "\\d+",
+				chapterUrlRegex: existingSelector.chapter?.url?.regex ?? "",
+			}),
+		);
+	}, [editedWebsite, selectorData?.data, form.setValues, isDirty, resetDirty]);
 
 	const isSaving = createSelector.isPending || updateSelector.isPending;
 

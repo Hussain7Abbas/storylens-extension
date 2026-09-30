@@ -34,6 +34,7 @@ import { UnsentDependants } from "@/components/unsent-dependants";
 import { trackEvent } from "@/lib/analytics/client";
 import { useIsModerator } from "@/lib/auth";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
 	aliasFormChanges,
@@ -181,6 +182,8 @@ function KeywordForm({
 			natureId: (v) => (!v ? t("home.natureRequired") : null),
 		},
 	});
+
+	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
 	const isPending =
 		isGeneratingImage ||
@@ -522,6 +525,8 @@ function AliasForm({
 			name: (v) => (!v ? t("home.nameRequired") : null),
 		},
 	});
+
+	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
 	const isPending =
 		isGeneratingImage ||
@@ -881,6 +886,8 @@ function VersionForm({
 		useOfflineKeywordNatures();
 
 	const displayedImageUrl = imagePreviewUrl ?? version?.image?.url ?? null;
+
+	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
 	const isPending =
 		isGeneratingImage ||

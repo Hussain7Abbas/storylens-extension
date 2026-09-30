@@ -10,6 +10,12 @@ import type {
 } from "@/api/generated/schemas";
 import { SearchInput } from "@/components/search-input";
 import { useCanMutateKeywords } from "@/lib/auth";
+import {
+	canEditAlias,
+	canEditKeyword,
+	canEditVersion,
+} from "@/lib/auth/permissions";
+import { useCurrentUser } from "@/lib/auth/use-permissions";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
 	type KeywordSuggestion,
@@ -54,6 +60,17 @@ type StackFrame =
 			parentKeyword: GetKeywords200DataItem;
 	  };
 
+/**
+ * Drops a handled form request from the popup's URL. The launcher keeps the
+ * popup loaded, so without this the tab would reopen the same form each time
+ * it mounts again (for example after a visit to Settings).
+ */
+function consumeRequest(...names: string[]): void {
+	const url = new URL(window.location.href);
+	for (const name of names) url.searchParams.delete(name);
+	window.history.replaceState(window.history.state, "", url);
+}
+
 export function ColoringTab({
 	selectedNovelId,
 	currentChapter,
@@ -97,8 +114,13 @@ export function ColoringTab({
 	const aiConfigured = useAiConfigured();
 	const hasAiContext = params.has("aiContext") && aiConfigured;
 	const requested = params.get("create");
+	// A page tooltip's Edit button names the entry whose form to open.
+	const requestedEdit = params.get("edit");
+	const user = useCurrentUser();
 	const { keywords, isLoading } = useNovelKeywords(
-		requested && requested !== "keyword" ? selectedNovelId : undefined,
+		(requested && requested !== "keyword") || requestedEdit
+			? selectedNovelId
+			: undefined,
 	);
 	const opened = useRef(false);
 	useEffect(() => {
@@ -115,6 +137,7 @@ export function ColoringTab({
 			aiSuggestion.status === "ready" ? aiSuggestion.suggestion : undefined;
 		if (requested === "keyword") {
 			opened.current = true;
+			consumeRequest("create", "aiContext");
 			setStack([
 				{ mode: "keyword-add", initialText: search.trim(), suggestion },
 			]);
@@ -129,6 +152,7 @@ export function ColoringTab({
 			);
 			if (!parent) return;
 			opened.current = true;
+			consumeRequest("create", "parentId", "aiContext");
 			setStack([
 				{
 					mode: requested === "alias" ? "alias-add" : "version-add",
@@ -163,6 +187,36 @@ export function ColoringTab({
 		i18n.language,
 		language,
 	]);
+	useEffect(() => {
+		if (opened.current || !selectedNovelId || !requestedEdit || isLoading)
+			return;
+		const search = new URLSearchParams(window.location.search);
+		const id = search.get("id");
+		const parent = keywords.find((item) => item.id === search.get("parentId"));
+		if (!parent) return;
+		// Same per-row rules as the cards: a row the reader may not change stays closed.
+		let frame: StackFrame | undefined;
+		if (requestedEdit === "keyword") {
+			if (canEditKeyword(user, parent))
+				frame = { mode: "keyword-edit", keyword: parent };
+		} else if (requestedEdit === "alias") {
+			const alias = parent.aliases.find((item) => item.id === id);
+			if (alias && canEditAlias(user, alias, parent))
+				frame = { mode: "alias-edit", keyword: alias, parentKeyword: parent };
+		} else if (requestedEdit === "version") {
+			const version = parent.versions.find((item) => item.id === id);
+			if (version && canEditVersion(user, version, parent))
+				frame = {
+					mode: "version-edit",
+					keyword: version,
+					parentKeyword: parent,
+				};
+		}
+		if (!frame) return;
+		opened.current = true;
+		consumeRequest("edit", "id", "parentId");
+		setStack([frame]);
+	}, [selectedNovelId, requestedEdit, isLoading, keywords, user]);
 	const currentFrame = stack[stack.length - 1];
 
 	function pushFrame(frame: StackFrame) {

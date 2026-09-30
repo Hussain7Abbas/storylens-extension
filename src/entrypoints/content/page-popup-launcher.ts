@@ -20,7 +20,19 @@ import {
 	DESKTOP_SETTINGS_KEY,
 	type DesktopSettings,
 } from "@/lib/desktop-client/types";
+import {
+	isPopupReady,
+	POPUP_REQUEST_MESSAGE,
+	POPUP_SHOWN_MESSAGE,
+	type PopupRequest,
+	parsePopupAnswer,
+	parsePopupState,
+} from "@/lib/launcher-frame/messages";
 import { contentThemeCss, palette } from "@/styles/palette";
+import {
+	setTooltipActions,
+	type TooltipEditTarget,
+} from "@/utils/keyword-tooltip";
 import { textAround } from "@/utils/page-text";
 
 const HOST_ID = "storylens-page-launcher";
@@ -35,6 +47,8 @@ const ACTION_GAP = 8;
 const ACTION_SHOW_DELAY = 200;
 const ACTION_HIDE_DELAY = 300;
 const NOTICE_DURATION = 3500;
+// A popup frame that has not announced itself by then failed to load.
+const POPUP_READY_TIMEOUT = 5000;
 const UNLOCK_STYLE_ID = "storylens-selection-unlock";
 // Page handlers for these events can cancel or clear a selection; skip them while picking.
 const SELECTION_GUARD_EVENTS = [
@@ -49,9 +63,12 @@ type Position = { x: number; y: number };
 type Launcher = {
 	host: HTMLElement;
 	setLocale: (locale: string) => void;
-	close: () => void;
+	edit: (target: TooltipEditTarget) => void;
+	navigated: () => void;
 	dispose: () => void;
 };
+/** What the launcher button shows about a popup that is out of sight. */
+type Status = "working" | "ready" | "failed";
 
 let launcher: Launcher | undefined;
 
@@ -63,6 +80,10 @@ function labels(locale: string): {
 	extract: string;
 	configureAi: string;
 	selectHint: string;
+	finishForm: string;
+	working: string;
+	ready: string;
+	failed: string;
 } {
 	return locale.toLowerCase().startsWith("ar")
 		? {
@@ -73,6 +94,10 @@ function labels(locale: string): {
 				extract: "استخرج شخصيات الفصل بالذكاء الاصطناعي",
 				configureAi: "يرجى إعداد الذكاء الاصطناعي من الإعدادات.",
 				selectHint: "انقر على كلمة أو اسحب لتحديد نص. اضغط Escape للإلغاء.",
+				finishForm: "احفظ النموذج المفتوح أو أغلقه أولاً.",
+				working: "الذكاء الاصطناعي يعمل",
+				ready: "نتيجة الذكاء الاصطناعي جاهزة",
+				failed: "فشل طلب الذكاء الاصطناعي",
 			}
 		: {
 				open: "Open Story Lens",
@@ -83,6 +108,10 @@ function labels(locale: string): {
 				configureAi: "Please configure AI in the settings.",
 				selectHint:
 					"Click a word or drag to select text. Press Escape to cancel.",
+				finishForm: "Save or close the open form first.",
+				working: "AI is working",
+				ready: "AI result is ready",
+				failed: "AI request failed",
 			};
 }
 
@@ -145,6 +174,24 @@ function createLauncher(locale: string): Launcher {
 	let revealed = false;
 	let tucked = false;
 	let actionTimer: ReturnType<typeof setTimeout> | undefined;
+	// The popup frame outlives closing, so an open form and its AI request continue.
+	let popupFrame: HTMLIFrameElement | undefined;
+	let chooserFrame: HTMLIFrameElement | undefined;
+	// The last state the popup reported. It lags behind the popup, so it drives
+	// the status dot only; replacing the popup is decided by the popup's answer.
+	let popupState = { dirty: false, working: false };
+	// Whether the popup document announced itself, and when its frame started loading.
+	let popupReady = false;
+	let popupStarted = 0;
+	// The request the popup has not answered yet; a newer one replaces it.
+	let request: PopupRequest | undefined;
+	let requests = 0;
+	// How the AI request that ended while the popup was out of sight turned out.
+	let outcome: "ready" | "failed" | undefined;
+	// The page changed under a kept popup; it is removed once it holds no unsaved work.
+	let stale = false;
+	const popupUrl = browser.runtime.getURL("/popup.html");
+	const popupOrigin = new URL(popupUrl).origin;
 	let drag:
 		| {
 				pointerId: number;
@@ -166,13 +213,20 @@ function createLauncher(locale: string): Launcher {
 		:host{all:initial}
 		${contentThemeCss}
 		button{font:600 14px system-ui,sans-serif;cursor:pointer}
-		#launcher{display:grid;place-items:center;width:100%;height:100%;padding:2px;border:1px solid var(--border);border-radius:50%;background:var(--surface);box-shadow:0 3px 14px rgb(32 33 50 / .35);touch-action:none;user-select:none;box-sizing:border-box;transition:transform 180ms ease}
-		@media(prefers-reduced-motion:reduce){#launcher{transition:none}}
+		#launcher{position:relative;display:grid;place-items:center;width:100%;height:100%;padding:2px;border:1px solid var(--border);border-radius:50%;background:var(--surface);box-shadow:0 3px 14px rgb(32 33 50 / .35);touch-action:none;user-select:none;box-sizing:border-box;transition:transform 180ms ease}
+		#status{position:absolute;top:0;inset-inline-end:0;width:14px;height:14px;border:2px solid var(--surface);border-radius:50%;box-sizing:border-box;pointer-events:none}
+		#status[hidden]{display:none}
+		#status[data-state="working"]{background:var(--accent);animation:status-pulse 1.2s ease-in-out infinite}
+		#status[data-state="ready"]{background:var(--success)}
+		#status[data-state="failed"]{background:var(--error)}
+		@keyframes status-pulse{50%{opacity:.3}}
+		@media(prefers-reduced-motion:reduce){#launcher{transition:none}#status{animation:none}}
 		#launcher:hover,#launcher:focus-visible{border-color:var(--accent);outline:3px solid var(--accent);outline-offset:2px}
 		#logo{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 		#panel{position:fixed;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;background:var(--paper);box-shadow:0 24px 80px rgb(32 33 50 / .25);overflow:hidden}
 		#panel[hidden]{display:none}
 		iframe{display:block;border:0;background:var(--paper);transform-origin:top left}
+		iframe[hidden]{display:none}
 		@media(prefers-color-scheme:dark){#panel{box-shadow:0 24px 80px #0008}}
 		#actions{position:absolute;display:flex;gap:${ACTION_GAP}px}
 		#actions[hidden]{display:none}
@@ -198,7 +252,11 @@ function createLauncher(locale: string): Launcher {
 	logo.alt = "";
 	logo.draggable = false;
 	logo.src = browser.runtime.getURL("/icons/128.png");
-	button.append(logo);
+	const status = document.createElement("span");
+	status.id = "status";
+	status.hidden = true;
+	status.setAttribute("aria-hidden", "true");
+	button.append(logo, status);
 	const actions = document.createElement("div");
 	actions.id = "actions";
 	actions.hidden = true;
@@ -317,7 +375,7 @@ function createLauncher(locale: string): Launcher {
 		panel.style.top = `${clamp(y, 0, viewportHeight - height)}px`;
 		panel.style.width = `${width}px`;
 		panel.style.height = `${height}px`;
-		const frame = panel.querySelector("iframe");
+		const frame = popupFrame;
 		if (frame) {
 			const contentWidth = Math.max(1, width - 2);
 			const scale = Math.min(1, contentWidth / 384);
@@ -355,6 +413,8 @@ function createLauncher(locale: string): Launcher {
 			!!drag ||
 			!panel.hidden ||
 			!actions.hidden ||
+			// A finished AI request brings the launcher back from the edge.
+			outcome !== undefined ||
 			shadow.activeElement === button ||
 			actions.contains(shadow.activeElement);
 		revealed =
@@ -472,49 +532,182 @@ function createLauncher(locale: string): Launcher {
 		layoutPopup();
 	};
 	let selectionMessageCleanup: (() => void) | undefined;
-	const close = () => {
+	const popupVisible = () =>
+		!panel.hidden && !!popupFrame && !popupFrame.hidden;
+	/** Shows the state of an out-of-sight popup on the button and in its label. */
+	const updateStatus = () => {
+		const text = labels(currentLocale);
+		const state: Status | undefined = popupVisible()
+			? undefined
+			: popupState.working
+				? "working"
+				: outcome;
+		status.hidden = !state;
+		if (state) status.dataset.state = state;
+		else delete status.dataset.state;
+		const label = state ? `${text.open} (${text[state]})` : text.open;
+		button.setAttribute("aria-label", label);
+		button.title = label;
+	};
+	const createFrame = (query: string) => {
+		const frame = document.createElement("iframe");
+		frame.title = labels(currentLocale).open;
+		frame.src = popupUrl + (query ? `?${query}` : "");
+		return frame;
+	};
+	const discardPopup = () => {
+		popupFrame?.remove();
+		popupFrame = undefined;
+		popupState = { dirty: false, working: false };
+		popupReady = false;
+		request = undefined;
+		outcome = undefined;
+		stale = false;
+	};
+	const sendRequest = () => {
+		// A frame that is still loading gets the request once it announces itself.
+		if (!popupFrame || !popupReady || !request) return;
+		popupFrame.contentWindow?.postMessage(
+			{ type: POPUP_REQUEST_MESSAGE, ...request },
+			popupOrigin,
+		);
+	};
+	/**
+	 * Asks the popup to load `query` (`reload`), or whether it can be removed.
+	 * Only the popup knows its unsaved work at this moment, so nothing is
+	 * replaced until it answers.
+	 */
+	const ask = (query: string, reload: boolean) => {
+		requests += 1;
+		request = { id: String(requests), query, reload };
+		sendRequest();
+	};
+	const removeChooser = () => {
 		selectionMessageCleanup?.();
 		selectionMessageCleanup = undefined;
 		layoutSelection = undefined;
+		chooserFrame?.remove();
+		chooserFrame = undefined;
+	};
+	const stopPicking = () => {
+		removeChooser();
 		hideAction();
 		clearNotice();
 		selecting = false;
 		setPageSelectionUnlocked(false);
 		hint.hidden = true;
 		selectionStart = undefined;
+	};
+	/** Hides the panel; the popup frame stays loaded so its state survives. */
+	const close = () => {
+		stopPicking();
+		// A hidden frame must not keep the keyboard from the page.
+		if (popupFrame && shadow.activeElement === popupFrame) popupFrame.blur();
 		panel.hidden = true;
 		button.setAttribute("aria-expanded", "false");
-		panel.querySelector("iframe")?.remove();
+		if (stale) ask("", false);
+		updateStatus();
 		updateTuck();
 	};
+	/**
+	 * Shows the popup. Parameters name a form to open: the kept popup loads it
+	 * itself, unless it holds unsaved work, which it answers instead.
+	 */
 	const open = (
 		search?: string,
 		context?: KeywordContext,
 		extra?: Record<string, string>,
 	) => {
-		layoutSelection = undefined;
-		hideAction();
-		clearNotice();
-		selecting = false;
-		setPageSelectionUnlocked(false);
-		hint.hidden = true;
-		selectionStart = undefined;
-		const frame = document.createElement("iframe");
-		frame.title = labels(currentLocale).open;
+		stopPicking();
 		const params = new URLSearchParams(extra);
 		if (search) params.set("search", search);
 		// The popup reads this hidden context to request AI keyword suggestions.
 		if (context)
 			params.set(KEYWORD_CONTEXT_PARAM, encodeKeywordContext(context));
 		const query = params.toString();
-		frame.src =
-			browser.runtime.getURL("/popup.html") + (query ? `?${query}` : "");
-		panel.querySelector("iframe")?.remove();
+		// A frame that never loaded holds nothing and would never answer.
+		if (
+			popupFrame &&
+			!popupReady &&
+			Date.now() - popupStarted > POPUP_READY_TIMEOUT
+		)
+			discardPopup();
+		if (!popupFrame) {
+			popupFrame = createFrame(query);
+			popupStarted = Date.now();
+			panel.append(popupFrame);
+		} else {
+			popupFrame.hidden = false;
+			if (query) ask(query, true);
+			else
+				popupFrame.contentWindow?.postMessage(
+					{ type: POPUP_SHOWN_MESSAGE },
+					popupOrigin,
+				);
+		}
+		outcome = undefined;
+		panel.hidden = false;
+		button.setAttribute("aria-expanded", "true");
+		updateStatus();
+		updateTuck();
+		layoutPopup();
+	};
+	/** Shows the Keyword/Alias/Version chooser in its own frame, beside the kept popup. */
+	const openChooser = (text: string) => {
+		stopPicking();
+		const frame = createFrame(
+			new URLSearchParams({ view: "selection", search: text }).toString(),
+		);
+		chooserFrame = frame;
+		if (popupFrame) popupFrame.hidden = true;
 		panel.append(frame);
 		panel.hidden = false;
 		button.setAttribute("aria-expanded", "true");
+		updateStatus();
 		updateTuck();
-		layoutPopup();
+		return frame;
+	};
+	const onPopupAnswer = (kept: boolean, reload: boolean) => {
+		if (kept) {
+			if (reload) showNotice(labels(currentLocale).finishForm);
+		} else if (reload) {
+			// The popup is loading the requested form in the same frame.
+			popupState = { dirty: false, working: false };
+			popupReady = false;
+			popupStarted = Date.now();
+			outcome = undefined;
+			stale = false;
+		} else if (!popupVisible()) discardPopup();
+	};
+	const onPopupMessage = (message: MessageEvent) => {
+		if (
+			!popupFrame ||
+			!message.source ||
+			message.source !== popupFrame.contentWindow ||
+			message.origin !== popupOrigin
+		)
+			return;
+		const answer = parsePopupAnswer(message.data);
+		const next = parsePopupState(message.data);
+		if (answer) {
+			if (answer.id !== request?.id) return;
+			const { reload } = request;
+			request = undefined;
+			onPopupAnswer(answer.kept, reload);
+		} else if (isPopupReady(message.data)) {
+			// A freshly loaded popup document holds nothing yet.
+			popupReady = true;
+			popupState = { dirty: false, working: false };
+			sendRequest();
+		} else if (next) {
+			const finished = popupState.working && !next.working;
+			popupState = { dirty: next.dirty, working: next.working };
+			if (finished && !popupVisible())
+				outcome = next.failed ? "failed" : "ready";
+			if (stale && !next.dirty && !popupVisible()) ask("", false);
+		} else return;
+		updateStatus();
+		updateTuck();
 	};
 	const onButtonClick = () => {
 		if (suppressClick) {
@@ -627,8 +820,7 @@ function createLauncher(locale: string): Launcher {
 			if (!text) return;
 			const context = picked ? textAround(picked) : undefined;
 			const rect = picked?.getBoundingClientRect();
-			open(text, undefined, { view: "selection" });
-			const chooser = panel.querySelector("iframe");
+			const chooser = openChooser(text);
 			let chooserHeight = 300;
 			layoutSelection = () => {
 				const width = Math.min(390, window.innerWidth - EDGE * 2);
@@ -637,18 +829,15 @@ function createLauncher(locale: string): Launcher {
 				panel.style.height = `${height}px`;
 				panel.style.left = `${clamp((rect?.left ?? event.clientX) + (rect?.width ?? 0) / 2 - width / 2, EDGE, window.innerWidth - width - EDGE)}px`;
 				panel.style.top = `${clamp((rect?.top ?? event.clientY) - height - GAP, EDGE, window.innerHeight - height - EDGE)}px`;
-				if (chooser) {
-					chooser.style.width = "100%";
-					chooser.style.height = "100%";
-					chooser.style.transform = "none";
-				}
+				chooser.style.width = "100%";
+				chooser.style.height = "100%";
+				chooser.style.transform = "none";
 			};
 			layoutSelection();
 			const receive = (message: MessageEvent) => {
 				if (
-					message.source !== chooser?.contentWindow ||
-					message.origin !==
-						new URL(browser.runtime.getURL("/popup.html")).origin
+					message.source !== chooser.contentWindow ||
+					message.origin !== popupOrigin
 				)
 					return;
 				const data: unknown = message.data;
@@ -698,7 +887,6 @@ function createLauncher(locale: string): Launcher {
 				window.removeEventListener("message", receive);
 				open(text, data.ai ? context : undefined, extra);
 			};
-			selectionMessageCleanup?.();
 			selectionMessageCleanup = () =>
 				window.removeEventListener("message", receive);
 			window.addEventListener("message", receive);
@@ -755,6 +943,7 @@ function createLauncher(locale: string): Launcher {
 	document.addEventListener("pointerup", onSelectionEnd);
 	document.addEventListener("keydown", onKeyDown);
 	window.addEventListener("resize", onResize);
+	window.addEventListener("message", onPopupMessage);
 	setPosition(position);
 	void browser.storage.local
 		.get([POSITION_KEY, DESKTOP_SETTINGS_KEY])
@@ -773,17 +962,28 @@ function createLauncher(locale: string): Launcher {
 		setLocale: (nextLocale) => {
 			currentLocale = nextLocale;
 			if (!noticeTimer) updateHint();
-			button.setAttribute("aria-label", labels(nextLocale).open);
-			button.title = labels(nextLocale).open;
+			updateStatus();
 			panel.setAttribute("aria-label", labels(nextLocale).open);
 			updateActionLabels();
-
-			const frame = panel.querySelector("iframe");
-			if (frame) frame.title = labels(nextLocale).open;
+			for (const frame of [popupFrame, chooserFrame])
+				if (frame) frame.title = labels(nextLocale).open;
 		},
-		close,
+		// The popup opens the form of the entry named by these parameters.
+		edit: (target) =>
+			open(undefined, undefined, {
+				edit: target.kind,
+				id: target.id,
+				parentId: target.keywordId,
+				novelId: target.novelId,
+			}),
+		// An in-site navigation: a popup without unsaved work is removed, so the next one detects the new page.
+		navigated: () => {
+			stale = !!popupFrame;
+			close();
+		},
 		dispose: () => {
 			close();
+			discardPopup();
 			browser.storage.onChanged.removeListener(onStorageChange);
 			document.removeEventListener("pointermove", onCursorMove);
 			document.documentElement.removeEventListener(
@@ -794,22 +994,41 @@ function createLauncher(locale: string): Launcher {
 			document.removeEventListener("pointerup", onSelectionEnd);
 			document.removeEventListener("keydown", onKeyDown);
 			window.removeEventListener("resize", onResize);
+			window.removeEventListener("message", onPopupMessage);
 			host.remove();
 		},
 	};
+}
+
+/** Opens the launcher popup on the edit form of a keyword, alias or version. */
+function openPagePopupEditor(target: TooltipEditTarget): void {
+	if (!launcher?.host.isConnected) return;
+	launcher.edit(target);
+	trackEvent("tooltip_edit_requested", { kind: target.kind });
+}
+
+function trackTooltipImage(): void {
+	trackEvent("tooltip_image_opened");
 }
 
 export function setPagePopupLauncher(visible: boolean, locale: string): void {
 	if (!visible) {
 		launcher?.dispose();
 		launcher = undefined;
+		// Keyword tooltips offer Edit only while the launcher can open the form.
+		setTooltipActions({ onImageOpen: trackTooltipImage });
 		return;
 	}
 	if (!launcher || !launcher.host.isConnected)
 		launcher = createLauncher(locale);
 	launcher.setLocale(locale);
+	setTooltipActions({
+		onEdit: openPagePopupEditor,
+		onImageOpen: trackTooltipImage,
+	});
 }
 
-export function closePagePopupLauncher(): void {
-	launcher?.close();
+/** Hides the launcher popup after the page changed without a reload. */
+export function pagePopupLauncherNavigated(): void {
+	launcher?.navigated();
 }

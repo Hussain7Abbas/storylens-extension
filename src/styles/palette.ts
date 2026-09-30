@@ -34,7 +34,7 @@ export const palette = {
 } as const;
 
 function pageVariables(colors: (typeof palette)[keyof typeof palette]) {
-	return `--paper:${colors.paper};--surface:${colors.surface};--ink:${colors.ink};--muted:${colors.muted};--border:${colors.border};--accent:${colors.accent};--accent-hover:${colors.accentHover};--on-accent:${colors.onAccent};--wash:${colors.wash};--soft:${colors.soft}`;
+	return `--paper:${colors.paper};--surface:${colors.surface};--ink:${colors.ink};--muted:${colors.muted};--border:${colors.border};--accent:${colors.accent};--accent-hover:${colors.accentHover};--on-accent:${colors.onAccent};--wash:${colors.wash};--soft:${colors.soft};--success:${colors.success};--error:${colors.error}`;
 }
 
 // Shadow roots use the system preference; extension pages use their saved theme.

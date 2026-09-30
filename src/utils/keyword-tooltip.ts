@@ -1,3 +1,10 @@
+import { createElement, Pencil } from "lucide";
+import type { AuthUser } from "@/lib/auth/auth-store";
+import {
+	canEditAlias,
+	canEditKeyword,
+	canEditVersion,
+} from "@/lib/auth/permissions";
 import type {
 	EnrichedCategory,
 	EnrichedKeyword,
@@ -5,6 +12,7 @@ import type {
 	RawKeyword,
 	RawKeywordAlias,
 } from "@/types/content-data";
+import { closeImageModal, openImageModal } from "@/utils/image-modal";
 import {
 	type FieldInfo,
 	pickBaseVersion,
@@ -42,6 +50,9 @@ const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
 		alias: "Alias",
 		showMore: "↗",
 		noImage: "—",
+		edit: "Edit",
+		viewImage: "View full image",
+		close: "Close",
 	},
 	ar: {
 		info: "معلومات",
@@ -52,6 +63,9 @@ const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
 		alias: "الاسم البديل",
 		showMore: "↗",
 		noImage: "—",
+		edit: "تعديل",
+		viewImage: "عرض الصورة كاملة",
+		close: "إغلاق",
 	},
 };
 
@@ -67,6 +81,33 @@ function getLocale(): string {
 
 function tt(key: string): string {
 	return TOOLTIP_STRINGS[cachedLocale]?.[key] ?? TOOLTIP_STRINGS.en[key] ?? key;
+}
+
+/** The entry an Edit button opens: a keyword, or one of its aliases or versions. */
+export type TooltipEditTarget = {
+	kind: "keyword" | "alias" | "version";
+	id: string;
+	/** The keyword itself, or the alias's or version's parent keyword. */
+	keywordId: string;
+	novelId: string;
+};
+
+type TooltipActions = {
+	/** Opens the entry's form; Edit buttons appear only while this is set. */
+	onEdit?: (target: TooltipEditTarget) => void;
+	onImageOpen?: () => void;
+};
+
+let actions: TooltipActions | null = null;
+let currentUser: AuthUser | null = null;
+
+export function setTooltipActions(next: TooltipActions | null): void {
+	actions = next;
+}
+
+/** The signed-in reader, for the per-row edit rules. */
+export function setTooltipUser(user: AuthUser | null): void {
+	currentUser = user;
 }
 
 let cachedFontFace: string | null = null;
@@ -116,6 +157,51 @@ function getTooltipRoot(): HTMLElement {
 	root.className = "storylens-keyword-tooltip-root";
 	document.body.appendChild(root);
 	return root;
+}
+
+/** An Edit button for a row the reader may change, or null when there is none to show. */
+function buildEditButton(
+	target: TooltipEditTarget,
+	allowed: boolean,
+): HTMLButtonElement | null {
+	if (!actions?.onEdit || !allowed) return null;
+
+	const btn = document.createElement("button");
+	btn.type = "button";
+	btn.className = "storylens-edit-btn";
+	btn.dataset.editKind = target.kind;
+	btn.append(
+		createElement(Pencil, {
+			width: 12,
+			height: 12,
+			"aria-hidden": "true",
+			"stroke-width": 1.75,
+		}),
+		document.createTextNode(tt("edit")),
+	);
+	btn.addEventListener("click", (e) => {
+		e.stopPropagation();
+		hideActiveTooltip();
+		actions?.onEdit?.(target);
+	});
+	return btn;
+}
+
+/** Wraps a tooltip image in a button that opens it at full size. */
+function buildImageButton(image: HTMLImageElement): HTMLButtonElement {
+	const btn = document.createElement("button");
+	btn.type = "button";
+	btn.className = "storylens-image-btn";
+	btn.setAttribute("aria-label", tt("viewImage"));
+	btn.title = tt("viewImage");
+	btn.append(image);
+	btn.addEventListener("click", (e) => {
+		e.stopPropagation();
+		hideActiveTooltip();
+		openImageModal(image.src, image.alt, tt("close"));
+		actions?.onImageOpen?.();
+	});
+	return btn;
 }
 
 // Build a "show more" toggle with expandable provenance rows.
@@ -209,7 +295,9 @@ function buildInfoPanel(
 		image.src = info.image.value.url;
 		image.alt = rawName;
 		image.loading = "lazy";
-		imageWrapper.append(image);
+		// The image sizes the tooltip once it loads; keep it clear of the word.
+		image.addEventListener("load", onLayoutChange);
+		imageWrapper.append(buildImageButton(image));
 
 		if (info.image.source !== "keyword" && info.image.overrides.length > 0) {
 			const btn = document.createElement("button");
@@ -240,7 +328,7 @@ function buildInfoPanel(
 					thumb.src = o.value.url;
 					thumb.alt = sourceLabel.textContent;
 					thumb.loading = "lazy";
-					row.append(sourceLabel, thumb);
+					row.append(sourceLabel, buildImageButton(thumb));
 				} else {
 					const placeholder = document.createElement("span");
 					placeholder.textContent = tt("noImage");
@@ -328,6 +416,22 @@ function buildInfoPanel(
 
 	if (meta.children.length > 0) panel.append(meta);
 
+	const editBtn = buildEditButton(
+		{
+			kind: "keyword",
+			id: data.raw.id,
+			keywordId: data.raw.id,
+			novelId: data.raw.novelId,
+		},
+		canEditKeyword(currentUser, data.raw),
+	);
+	if (editBtn) {
+		const actionsRow = document.createElement("div");
+		actionsRow.className = "storylens-keyword-actions";
+		actionsRow.append(editBtn);
+		panel.append(actionsRow);
+	}
+
 	return panel;
 }
 
@@ -357,6 +461,16 @@ function buildAliasesPanel(raw: RawKeyword, language: Language): HTMLElement {
 			imgBadge.textContent = "img";
 			nameRow.append(imgBadge);
 		}
+		const editBtn = buildEditButton(
+			{
+				kind: "alias",
+				id: alias.id,
+				keywordId: raw.id,
+				novelId: raw.novelId,
+			},
+			canEditAlias(currentUser, alias, raw),
+		);
+		if (editBtn) nameRow.append(editBtn);
 		item.append(nameRow);
 
 		// Category / Nature
@@ -444,6 +558,16 @@ function buildVersionsPanel(raw: RawKeyword): HTMLElement {
 			imgBadge.textContent = "img";
 			labelEl.append(imgBadge);
 		}
+		const editBtn = buildEditButton(
+			{
+				kind: "version",
+				id: version.id,
+				keywordId: raw.id,
+				novelId: raw.novelId,
+			},
+			canEditVersion(currentUser, version, raw),
+		);
+		if (editBtn) labelEl.append(editBtn);
 		item.append(labelEl);
 
 		// Category / Nature (own + inherited from base if not base)
@@ -732,6 +856,7 @@ export function initKeywordTooltipPortal(): void {
 export function destroyKeywordTooltipPortal(): void {
 	clearHideTimeout();
 	hideActiveTooltip();
+	closeImageModal();
 	document.getElementById(TOOLTIP_ROOT_ID)?.remove();
 	detachScrollListener();
 	portalInitialized = false;

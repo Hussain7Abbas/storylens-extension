@@ -100,12 +100,15 @@ export function resolveStyle(
 		override,
 	);
 
+	// An alias shows its own image; without one it falls back to its keyword's.
+	const ownImage = alias?.image?.url ? alias : undefined;
+
 	return {
 		category,
 		nature,
 		description,
-		imageId: active?.imageId ?? base?.imageId ?? null,
-		image: active?.image ?? base?.image ?? null,
+		imageId: ownImage?.imageId ?? active?.imageId ?? base?.imageId ?? null,
+		image: ownImage?.image ?? active?.image ?? base?.image ?? null,
 	};
 }
 
@@ -135,10 +138,10 @@ export function enrichKeywords(
 			name: nameIn(kw, language),
 			description: kwStyle.description,
 			matchingType: kw.matchingType,
+			fuzzyMatchArabicCharacters: kw.fuzzyMatchArabicCharacters ?? true,
 			categoryId: kwStyle.category.id,
 			natureId: kwStyle.nature.id,
 			imageId: kwStyle.imageId,
-			fuzzyMatchArabicCharacters: kw.fuzzyMatchArabicCharacters ?? true,
 			keywordId: null,
 			novelId: kw.novelId,
 			createdById: kw.createdById ?? null,
@@ -160,10 +163,10 @@ export function enrichKeywords(
 					name,
 					description: aliasStyle.description,
 					matchingType: alias.matchingType,
+					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 					categoryId: aliasStyle.category.id,
 					natureId: aliasStyle.nature.id,
 					imageId: aliasStyle.imageId,
-					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 					keywordId: kw.id,
 					novelId: kw.novelId,
 					createdById: alias.createdById ?? null,
@@ -303,11 +306,13 @@ export function resolveKeywordInfo(
 		activeIsBase,
 	);
 
+	// Unlike style fields, an alias's own image always wins (no override needed);
+	// an alias without one falls back to its keyword's image.
 	const image = resolveFieldInfo<RawImage>(
 		active?.image as RawImage | null | undefined,
 		base?.image as RawImage | null | undefined,
-		alias?.image as RawImage | null | undefined,
-		override,
+		alias?.image?.url ? alias.image : null,
+		true,
 		activeIsBase,
 	);
 

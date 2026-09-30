@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import { lookupFormChanges } from "@/lib/offline/form-changes";
 import {
@@ -102,6 +103,8 @@ function NatureFormContent({
 			});
 		}
 	};
+
+	useLauncherWork({ dirty: form.isDirty() });
 
 	const isPending =
 		createMutation.isPending ||

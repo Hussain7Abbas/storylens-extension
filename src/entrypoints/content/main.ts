@@ -1,6 +1,7 @@
 import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { trackEvent } from "@/lib/analytics/client";
+import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
 import { CHAPTER_TEXT_CHARS } from "@/lib/desktop-client/chapter-extraction";
 import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
@@ -15,13 +16,14 @@ import {
 	setTooltipFontFace,
 	setTooltipFontSize,
 	setTooltipLocale,
+	setTooltipUser,
 } from "@/utils/keyword-tooltip";
 import { readPageText } from "@/utils/page-text";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { getAllNovelData } from "@/utils/site-detection";
 import {
-	closePagePopupLauncher,
+	pagePopupLauncherNavigated,
 	setPagePopupLauncher,
 } from "./page-popup-launcher";
 
@@ -182,11 +184,14 @@ export async function runContentScript(
 
 	const stored = await browser.storage.local.get([
 		PAGE_POPUP_VISIBLE_KEY,
+		AUTH_STORAGE_KEY,
 		"storylens-locale",
 		"storylens-font-face",
 		"storylens-font-size",
 	]);
 	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
+	// Tooltip Edit buttons follow the reader's per-row permissions.
+	setTooltipUser(parseStoredAuth(stored[AUTH_STORAGE_KEY]).user);
 	if (typeof stored["storylens-locale"] === "string") {
 		currentLocale = stored["storylens-locale"];
 		setTooltipLocale(currentLocale);
@@ -200,6 +205,9 @@ export async function runContentScript(
 
 	browser.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
+		if (AUTH_STORAGE_KEY in changes) {
+			setTooltipUser(parseStoredAuth(changes[AUTH_STORAGE_KEY].newValue).user);
+		}
 		if (PAGE_POPUP_VISIBLE_KEY in changes) {
 			pagePopupVisible = changes[PAGE_POPUP_VISIBLE_KEY].newValue !== false;
 			setPagePopupLauncher(
@@ -255,7 +263,7 @@ export async function runContentScript(
 	ctx.addEventListener(window, "wxt:locationchange", () => {
 		clearPageSummary();
 		clearChapterExtraction();
-		closePagePopupLauncher();
+		pagePopupLauncherNavigated();
 		console.log(`${LOG_PREFIX} Location changed`, window.location.href);
 		lastProcessedKey = undefined;
 		void loadWebsiteSelector()

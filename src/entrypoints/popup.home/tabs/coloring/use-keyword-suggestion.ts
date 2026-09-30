@@ -13,6 +13,7 @@ import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
 import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import {
 	useOfflineKeywordCategories,
 	useOfflineKeywordNatures,
@@ -116,6 +117,11 @@ export function useKeywordSuggestion(
 		});
 		return () => controller.abort();
 	}, [request, enabled, aiConfigured, lookupsReady, language, novelId, t]);
+	// The launcher keeps the popup and shows progress while the suggestion is written.
+	useLauncherWork({
+		working: state.status === "loading",
+		failed: state.status === "error",
+	});
 
 	return state;
 }
