@@ -20,6 +20,7 @@ export type GetKeywords200DataItem = {
 	nameAr: GetKeywords200DataItemNameAr;
 	nameEn: GetKeywords200DataItemNameEn;
 	matchingType: GetKeywords200DataItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetKeywords200DataItemCreatedById;
 	createdAt: GetKeywords200DataItemCreatedAt;

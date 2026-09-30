@@ -26,6 +26,7 @@ export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItem = {
 	nameEn: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNameEn;
 	description: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescription;
 	matchingType: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryId;
 	natureId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNatureId;

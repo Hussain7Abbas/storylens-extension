@@ -18,6 +18,7 @@ export type PostKeywordsChapters200Keyword = {
 	nameAr: PostKeywordsChapters200KeywordNameAr;
 	nameEn: PostKeywordsChapters200KeywordNameEn;
 	matchingType: PostKeywordsChapters200KeywordMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: PostKeywordsChapters200KeywordCreatedById;
 	createdAt: PostKeywordsChapters200KeywordCreatedAt;

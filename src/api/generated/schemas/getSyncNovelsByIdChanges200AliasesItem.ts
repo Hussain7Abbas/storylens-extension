@@ -26,6 +26,7 @@ export type GetSyncNovelsByIdChanges200AliasesItem = {
 	nameEn: GetSyncNovelsByIdChanges200AliasesItemNameEn;
 	description: GetSyncNovelsByIdChanges200AliasesItemDescription;
 	matchingType: GetSyncNovelsByIdChanges200AliasesItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: GetSyncNovelsByIdChanges200AliasesItemCategoryId;
 	natureId: GetSyncNovelsByIdChanges200AliasesItemNatureId;

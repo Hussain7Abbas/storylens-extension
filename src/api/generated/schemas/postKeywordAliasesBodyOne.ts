@@ -24,6 +24,7 @@ export type PostKeywordAliasesBodyOne = {
 	/** @nullable */
 	description?: PostKeywordAliasesBodyOneDescription;
 	matchingType?: PostKeywordAliasesBodyOneMatchingType;
+	fuzzyMatchArabicCharacters?: boolean;
 	/** @nullable */
 	categoryId?: PostKeywordAliasesBodyOneCategoryId;
 	/** @nullable */

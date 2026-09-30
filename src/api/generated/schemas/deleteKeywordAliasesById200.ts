@@ -23,6 +23,7 @@ export type DeleteKeywordAliasesById200 = {
 	nameEn: DeleteKeywordAliasesById200NameEn;
 	description: DeleteKeywordAliasesById200Description;
 	matchingType: DeleteKeywordAliasesById200MatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: DeleteKeywordAliasesById200CategoryId;
 	natureId: DeleteKeywordAliasesById200NatureId;

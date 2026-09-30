@@ -18,6 +18,7 @@ export type DeleteKeywordsById200 = {
 	nameAr: DeleteKeywordsById200NameAr;
 	nameEn: DeleteKeywordsById200NameEn;
 	matchingType: DeleteKeywordsById200MatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: DeleteKeywordsById200CreatedById;
 	createdAt: DeleteKeywordsById200CreatedAt;

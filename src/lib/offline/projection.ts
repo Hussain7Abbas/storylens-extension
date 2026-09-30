@@ -76,7 +76,12 @@ function pick(patch: Row, fields: readonly string[]): Row {
 	return out;
 }
 
-const KEYWORD_FIELDS = ["nameAr", "nameEn", "matchingType"] as const;
+const KEYWORD_FIELDS = [
+	"nameAr",
+	"nameEn",
+	"matchingType",
+	"fuzzyMatchArabicCharacters",
+] as const;
 const BASE_VERSION_FIELDS = [
 	"description",
 	"categoryId",
@@ -88,6 +93,7 @@ const ALIAS_FIELDS = [
 	"nameEn",
 	"description",
 	"matchingType",
+	"fuzzyMatchArabicCharacters",
 	"overrideStyle",
 	"categoryId",
 	"natureId",
@@ -245,6 +251,7 @@ function applyKeyword(
 		nameAr: null,
 		nameEn: null,
 		matchingType: "FULL",
+		fuzzyMatchArabicCharacters: true,
 		createdAt,
 		updatedAt: createdAt,
 		...existing,
@@ -307,6 +314,7 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		nameEn: null,
 		description: null,
 		matchingType: "FULL",
+		fuzzyMatchArabicCharacters: true,
 		overrideStyle: false,
 		categoryId: null,
 		natureId: null,

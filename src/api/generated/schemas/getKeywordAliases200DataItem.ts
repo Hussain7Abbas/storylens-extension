@@ -26,6 +26,7 @@ export type GetKeywordAliases200DataItem = {
 	nameEn: GetKeywordAliases200DataItemNameEn;
 	description: GetKeywordAliases200DataItemDescription;
 	matchingType: GetKeywordAliases200DataItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: GetKeywordAliases200DataItemCategoryId;
 	natureId: GetKeywordAliases200DataItemNatureId;

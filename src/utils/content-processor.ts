@@ -138,6 +138,63 @@ function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
 	}
 }
 
+const ARABIC_ALEF_VARIANTS = new Set(["ا", "أ", "إ", "آ", "ٱ"]);
+const ARABIC_ALEF_PATTERN = "(?:ا[\u0653\u0654\u0655]|[اأإآٱ])";
+const CANONICAL_ALEF_PATTERNS: Record<string, string> = {
+	أ: "(?:أ|ا\u0654)",
+	إ: "(?:إ|ا\u0655)",
+	آ: "(?:آ|ا\u0653)",
+};
+
+/** Keep the original text for display; only the regex accepts alternate alifs. */
+function keywordTermPattern(term: string, fuzzy: boolean): string {
+	return [...term.normalize("NFC")]
+		.map((letter) =>
+			fuzzy && ARABIC_ALEF_VARIANTS.has(letter)
+				? ARABIC_ALEF_PATTERN
+				: (CANONICAL_ALEF_PATTERNS[letter] ?? escapeRegex(letter)),
+		)
+		.join("");
+}
+
+function buildKeywordPattern(keywords: EnrichedKeyword[]):
+	| {
+			regex: RegExp;
+			entries: EnrichedKeyword[];
+	  }
+	| undefined {
+	const seen = new Set<string>();
+	const entries = [...keywords]
+		.filter((keyword) => keyword.name)
+		.sort(
+			(left, right) =>
+				right.name.length - left.name.length ||
+				Number(left.fuzzyMatchArabicCharacters) -
+					Number(right.fuzzyMatchArabicCharacters),
+		)
+		.filter((keyword) => {
+			const key = `${keyword.name.toLowerCase()}\0${keyword.matchingType}\0${keyword.fuzzyMatchArabicCharacters}`;
+			if (seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		});
+	if (entries.length === 0) return undefined;
+	const pattern = entries
+		.map((keyword) => {
+			const core = `(${keywordTermPattern(keyword.name, keyword.fuzzyMatchArabicCharacters)})`;
+			return keyword.matchingType === "FULL"
+				? wrapFullTermPattern(core, keyword.name)
+				: core;
+		})
+		.join("|");
+	try {
+		return { regex: new RegExp(pattern, "giu"), entries };
+	} catch (error) {
+		console.error(`${LOG_PREFIX} Failed to build keyword pattern`, error);
+		return undefined;
+	}
+}
+
 export function findContentRoot(): HTMLElement {
 	for (const selector of CONTENT_ROOT_SELECTORS) {
 		const element = document.querySelector(selector);
@@ -193,7 +250,7 @@ function collectTextNodes(
 function processTextNodeMatches(
 	textNode: Text,
 	regex: RegExp,
-	handler: (matchedText: string) => Node | Node[] | null,
+	handler: (match: RegExpExecArray) => Node | Node[] | null,
 ): number {
 	const text = textNode.textContent ?? "";
 	if (!text) {
@@ -221,7 +278,7 @@ function processTextNodeMatches(
 			);
 		}
 
-		const replacementNodes = handler(matchedText);
+		const replacementNodes = handler(match);
 		if (replacementNodes) {
 			const nodes = Array.isArray(replacementNodes)
 				? replacementNodes
@@ -338,24 +395,6 @@ function buildReplacementLookup(
 	return lookup;
 }
 
-function buildKeywordLookup(
-	keywords: EnrichedKeyword[],
-): Map<string, EnrichedKeyword> {
-	const lookup = new Map<string, EnrichedKeyword>();
-	const sortedKeywords = [...keywords].sort(
-		(left, right) => right.name.length - left.name.length,
-	);
-
-	for (const keyword of sortedKeywords) {
-		const key = keyword.name.toLowerCase();
-		if (!lookup.has(key)) {
-			lookup.set(key, keyword);
-		}
-	}
-
-	return lookup;
-}
-
 function applyReplacements(
 	root: HTMLElement,
 	replacements: NovelContentData["replacements"],
@@ -375,7 +414,8 @@ function applyReplacements(
 	let applied = 0;
 
 	for (const textNode of textNodes) {
-		applied += processTextNodeMatches(textNode, regex, (matchedText) => {
+		applied += processTextNodeMatches(textNode, regex, (match) => {
+			const matchedText = match[0];
 			const found = findKeywordMatch(matchedText, lookup);
 			if (!found) return null;
 			return createReplacedElement(found.prefix + found.value.to);
@@ -395,33 +435,30 @@ function applyKeywordHighlights(
 	currentChapter: number,
 	language: Language,
 ): number {
-	const regex = buildCombinedPattern(
-		keywords.map((keyword) => ({
-			term: keyword.name,
-			matchingType: keyword.matchingType ?? "FULL",
-		})),
-	);
-	if (!regex) {
+	const pattern = buildKeywordPattern(keywords);
+	if (!pattern) {
 		return 0;
 	}
-
-	const lookup = buildKeywordLookup(keywords);
 	const textNodes = collectTextNodes(root, DEFAULT_MARKUP_SKIP_SELECTOR);
 	let highlighted = 0;
 
 	for (const textNode of textNodes) {
-		highlighted += processTextNodeMatches(textNode, regex, (matchedText) => {
-			const found = findKeywordMatch(matchedText, lookup);
-			if (!found) return null;
+		highlighted += processTextNodeMatches(textNode, pattern.regex, (match) => {
+			const index = match.slice(1).findIndex((group) => group !== undefined);
+			if (index < 0) return null;
+			const keyword = pattern.entries[index];
+			const core = match[index + 1];
+			if (!keyword || !core) return null;
+			const prefix = match[0].slice(0, match[0].length - core.length);
 			const keywordEl = createKeywordElement(
-				found.core,
-				found.value,
+				core,
+				keyword,
 				rawContextLookup,
 				currentChapter,
 				language,
 			);
-			if (!found.prefix) return keywordEl;
-			return [document.createTextNode(withTatweel(found.prefix)), keywordEl];
+			if (!prefix) return keywordEl;
+			return [document.createTextNode(withTatweel(prefix)), keywordEl];
 		});
 	}
 

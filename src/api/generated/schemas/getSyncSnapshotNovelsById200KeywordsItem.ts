@@ -20,6 +20,7 @@ export type GetSyncSnapshotNovelsById200KeywordsItem = {
 	nameAr: GetSyncSnapshotNovelsById200KeywordsItemNameAr;
 	nameEn: GetSyncSnapshotNovelsById200KeywordsItemNameEn;
 	matchingType: GetSyncSnapshotNovelsById200KeywordsItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetSyncSnapshotNovelsById200KeywordsItemCreatedById;
 	createdAt: GetSyncSnapshotNovelsById200KeywordsItemCreatedAt;

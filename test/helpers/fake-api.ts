@@ -188,6 +188,7 @@ export class FakeApi {
 			nameAr: null,
 			nameEn: null,
 			matchingType: "FULL",
+			fuzzyMatchArabicCharacters: true,
 			novelId,
 			createdById,
 			createdAt: now,
@@ -675,6 +676,7 @@ export class FakeApi {
 				nameAr: body.nameAr ?? null,
 				nameEn: body.nameEn ?? null,
 				matchingType: body.matchingType ?? "FULL",
+				fuzzyMatchArabicCharacters: body.fuzzyMatchArabicCharacters ?? true,
 				novelId: body.novelId,
 				createdById: user.id,
 				createdAt: now,
@@ -726,6 +728,9 @@ export class FakeApi {
 				...keyword,
 				...names,
 				...(body.matchingType ? { matchingType: body.matchingType } : {}),
+				...(body.fuzzyMatchArabicCharacters === undefined
+					? {}
+					: { fuzzyMatchArabicCharacters: body.fuzzyMatchArabicCharacters }),
 				updatedAt: this.now(),
 			};
 			this.keywords.set(keyword.id, next);
@@ -758,6 +763,7 @@ export class FakeApi {
 			"nameEn",
 			"description",
 			"matchingType",
+			"fuzzyMatchArabicCharacters",
 			"overrideStyle",
 			"categoryId",
 			"natureId",
@@ -791,6 +797,7 @@ export class FakeApi {
 				nameEn: null,
 				description: null,
 				matchingType: "FULL",
+				fuzzyMatchArabicCharacters: true,
 				overrideStyle: false,
 				categoryId: null,
 				natureId: null,

@@ -34,6 +34,7 @@ function diff<T extends Row>(
 export type KeywordFormFields = {
 	name: string;
 	matchingType: "FULL" | "PARTIAL";
+	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string;
 	natureId: string;
 	description: string | null;
@@ -53,8 +54,16 @@ export function keywordFormChanges(
 	const name = nameKey(language);
 	return {
 		keyword: diff(
-			{ [name]: initial.name.trim(), matchingType: initial.matchingType },
-			{ [name]: values.name.trim(), matchingType: values.matchingType },
+			{
+				[name]: initial.name.trim(),
+				matchingType: initial.matchingType,
+				fuzzyMatchArabicCharacters: initial.fuzzyMatchArabicCharacters,
+			},
+			{
+				[name]: values.name.trim(),
+				matchingType: values.matchingType,
+				fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
+			},
 		),
 		baseVersion: diff(
 			{
@@ -77,6 +86,7 @@ export function keywordFormChanges(
 export type AliasFormFields = {
 	name: string;
 	matchingType: "FULL" | "PARTIAL";
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: string | null;
 	natureId: string | null;
@@ -94,6 +104,7 @@ export function aliasFormChanges(
 	const shape = (fields: AliasFormFields) => ({
 		[name]: fields.name.trim() || null,
 		matchingType: fields.matchingType,
+		fuzzyMatchArabicCharacters: fields.fuzzyMatchArabicCharacters,
 		overrideStyle: fields.overrideStyle,
 		categoryId: fields.categoryId || null,
 		natureId: fields.natureId || null,

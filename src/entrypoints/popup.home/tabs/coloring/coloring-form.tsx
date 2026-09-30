@@ -31,6 +31,7 @@ import type {
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
 import { UnsentDependants } from "@/components/unsent-dependants";
+import { trackEvent } from "@/lib/analytics/client";
 import { useIsModerator } from "@/lib/auth";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
 import { offlineErrorMessage } from "@/lib/offline/errors";
@@ -107,6 +108,7 @@ type KeywordFormValues = {
 	name: string;
 	matchingType: "FULL" | "PARTIAL";
 	categoryId: string;
+	fuzzyMatchArabicCharacters: boolean;
 	natureId: string;
 	description: string;
 	imageId?: string;
@@ -168,6 +170,7 @@ function KeywordForm({
 					: "",
 			matchingType: keyword?.matchingType ?? "FULL",
 			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
+			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
 			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
 			description: baseVersion?.description ?? suggestion?.description ?? "",
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
@@ -202,6 +205,7 @@ function KeywordForm({
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					description: values.description || null,
+					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					imageId: values.imageId ?? null,
 					image,
 				});
@@ -214,6 +218,8 @@ function KeywordForm({
 							categoryId: baseVersion?.categoryId ?? "",
 							natureId: baseVersion?.natureId ?? "",
 							description: baseVersion?.description ?? null,
+							fuzzyMatchArabicCharacters:
+								keyword.fuzzyMatchArabicCharacters ?? true,
 							imageId: baseVersion?.imageId ?? null,
 						},
 						{ ...values, imageId: values.imageId ?? null },
@@ -239,6 +245,17 @@ function KeywordForm({
 			form.reset();
 			setImageFile(null);
 			onClose();
+			if (
+				/\p{Script=Arabic}/u.test(values.name) &&
+				(frame.mode === "keyword-add" ||
+					(keyword?.fuzzyMatchArabicCharacters ?? true) !==
+						values.fuzzyMatchArabicCharacters)
+			) {
+				trackEvent("keyword_arabic_match_saved", {
+					kind: "keyword",
+					enabled: values.fuzzyMatchArabicCharacters,
+				});
+			}
 		} catch {
 			// Refusals (permission, validation) show below from the mutation's error.
 		}
@@ -268,6 +285,15 @@ function KeywordForm({
 					<Select
 						label={t("coloring.category")}
 						placeholder={t("coloring.selectCategory")}
+					{/\p{Script=Arabic}/u.test(form.values.name) && (
+						<Switch
+							label={t("coloring.fuzzyMatchArabicCharacters")}
+							description={t("coloring.fuzzyMatchArabicCharactersDescription")}
+							{...form.getInputProps("fuzzyMatchArabicCharacters", {
+								type: "checkbox",
+							})}
+						/>
+					)}
 						allowDeselect={false}
 						data={categoriesData?.map((cat: KeywordCategory) => ({
 							value: cat.id,
@@ -435,6 +461,7 @@ type AliasFormValues = {
 	categoryId: string | null;
 	natureId: string | null;
 	imageId?: string;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 };
 
@@ -488,6 +515,7 @@ function AliasForm({
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
 			imageId: (alias?.imageId as string | undefined) ?? undefined,
+			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
 		validate: {
@@ -519,6 +547,7 @@ function AliasForm({
 					imageId: values.imageId ?? null,
 					overrideStyle: values.overrideStyle,
 					image,
+					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 				});
 			} else if (alias) {
 				const initial = {
@@ -530,6 +559,7 @@ function AliasForm({
 					imageId: alias.imageId ?? null,
 					overrideStyle: alias.overrideStyle,
 				};
+					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 				const changes = aliasFormChanges(
 					initial,
 					{ ...values, imageId: values.imageId ?? null },
@@ -550,6 +580,17 @@ function AliasForm({
 			onClose();
 		} catch {
 			// Refusals (permission, validation) show below from the mutation's error.
+			if (
+				/\p{Script=Arabic}/u.test(values.name) &&
+				(frame.mode === "alias-add" ||
+					(alias?.fuzzyMatchArabicCharacters ?? true) !==
+						values.fuzzyMatchArabicCharacters)
+			) {
+				trackEvent("keyword_arabic_match_saved", {
+					kind: "alias",
+					enabled: values.fuzzyMatchArabicCharacters,
+				});
+			}
 		}
 	};
 
@@ -595,6 +636,15 @@ function AliasForm({
 						{...form.getInputProps("description")}
 					/>
 					<Select
+					{/\p{Script=Arabic}/u.test(form.values.name) && (
+						<Switch
+							label={t("coloring.fuzzyMatchArabicCharacters")}
+							description={t("coloring.fuzzyMatchArabicCharactersDescription")}
+							{...form.getInputProps("fuzzyMatchArabicCharacters", {
+								type: "checkbox",
+							})}
+						/>
+					)}
 						label={t("coloring.category")}
 						placeholder={t("coloring.selectCategory")}
 						clearable

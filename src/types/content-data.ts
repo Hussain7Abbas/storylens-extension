@@ -29,6 +29,7 @@ export type EnrichedKeyword = {
 	name: string;
 	description: string | null;
 	matchingType: "FULL" | "PARTIAL";
+	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string;
 	natureId: string;
 	imageId: string | null;

@@ -22,6 +22,7 @@ export type PostKeywordsBodyThree = {
 	/** @nullable */
 	description?: PostKeywordsBodyThreeDescription;
 	matchingType?: PostKeywordsBodyThreeMatchingType;
+	fuzzyMatchArabicCharacters?: boolean;
 	novelId: string;
 	categoryId: string;
 	natureId: string;

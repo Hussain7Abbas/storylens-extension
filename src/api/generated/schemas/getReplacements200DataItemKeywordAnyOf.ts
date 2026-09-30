@@ -18,6 +18,7 @@ export type GetReplacements200DataItemKeywordAnyOf = {
 	nameAr: GetReplacements200DataItemKeywordAnyOfNameAr;
 	nameEn: GetReplacements200DataItemKeywordAnyOfNameEn;
 	matchingType: GetReplacements200DataItemKeywordAnyOfMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetReplacements200DataItemKeywordAnyOfCreatedById;
 	createdAt: GetReplacements200DataItemKeywordAnyOfCreatedAt;

@@ -23,6 +23,7 @@ export type GetKeywordsById200 = {
 	nameAr: GetKeywordsById200NameAr;
 	nameEn: GetKeywordsById200NameEn;
 	matchingType: GetKeywordsById200MatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetKeywordsById200CreatedById;
 	createdAt: GetKeywordsById200CreatedAt;

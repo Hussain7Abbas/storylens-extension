@@ -18,6 +18,7 @@ export type GetSyncNovelsByIdChanges200KeywordsItem = {
 	nameAr: GetSyncNovelsByIdChanges200KeywordsItemNameAr;
 	nameEn: GetSyncNovelsByIdChanges200KeywordsItemNameEn;
 	matchingType: GetSyncNovelsByIdChanges200KeywordsItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetSyncNovelsByIdChanges200KeywordsItemCreatedById;
 	createdAt: GetSyncNovelsByIdChanges200KeywordsItemCreatedAt;

@@ -26,6 +26,7 @@ export type PutKeywordsById409CurrentAliasesItem = {
 	nameEn: PutKeywordsById409CurrentAliasesItemNameEn;
 	description: PutKeywordsById409CurrentAliasesItemDescription;
 	matchingType: PutKeywordsById409CurrentAliasesItemMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: PutKeywordsById409CurrentAliasesItemCategoryId;
 	natureId: PutKeywordsById409CurrentAliasesItemNatureId;

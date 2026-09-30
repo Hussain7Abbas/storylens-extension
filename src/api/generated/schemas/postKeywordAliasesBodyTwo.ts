@@ -24,6 +24,7 @@ export type PostKeywordAliasesBodyTwo = {
 	/** @nullable */
 	description?: PostKeywordAliasesBodyTwoDescription;
 	matchingType?: PostKeywordAliasesBodyTwoMatchingType;
+	fuzzyMatchArabicCharacters?: boolean;
 	/** @nullable */
 	categoryId?: PostKeywordAliasesBodyTwoCategoryId;
 	/** @nullable */

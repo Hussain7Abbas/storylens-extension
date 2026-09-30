@@ -51,6 +51,8 @@
 		"createFailed": "Failed to create keyword",
 		"updateFailed": "Failed to update keyword",
 		"fullWordMatch": "Full word match",
+		"fuzzyMatchArabicCharacters": "Fuzzy Match Arabic Characters Variants",
+		"fuzzyMatchArabicCharactersDescription": "Treat ا, أ, إ, آ and ٱ as the same letter when highlighting.",
 		"aliasOf": "Alias of",
 		"overrideStyle": "Override style",
 		"aliases": "Aliases",

@@ -47,6 +47,57 @@ beforeEach(async () => {
 });
 
 describe("sync runner", () => {
+	it("syncs Arabic variant settings for a keyword and its alias", async () => {
+		const created = await enqueue(
+			{
+				entity: "keyword",
+				op: "create",
+				novelId: env.novel.id,
+				values: {
+					...keywordValues(),
+					nameEn: undefined,
+					nameAr: "أمل",
+					fuzzyMatchArabicCharacters: false,
+				},
+			},
+			{ db: env.db },
+		);
+		const addedAlias = await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "create",
+				keywordId: created.entityId,
+				values: { nameAr: "إمل", fuzzyMatchArabicCharacters: false },
+			},
+			{ db: env.db },
+		);
+		expect(
+			(await getNovelView(env.novel.id, env.user.id, env.db)).keywords.find(
+				(item) => item.id === created.entityId,
+			)?.fuzzyMatchArabicCharacters,
+		).toBe(false);
+		await run();
+		expect(
+			env.api.keywords.get(created.entityId)?.fuzzyMatchArabicCharacters,
+		).toBe(false);
+		expect(
+			env.api.aliases.get(addedAlias.entityId)?.fuzzyMatchArabicCharacters,
+		).toBe(false);
+		await enqueue(
+			{
+				entity: "keyword",
+				op: "update",
+				id: created.entityId,
+				changes: { fuzzyMatchArabicCharacters: true },
+			},
+			{ db: env.db },
+		);
+		await run();
+		expect(
+			env.api.keywords.get(created.entityId)?.fuzzyMatchArabicCharacters,
+		).toBe(true);
+	});
+
 	it("sends an offline keyword, alias, version and base-version edit in order with client IDs", async () => {
 		setOnline(false);
 		const keyword = await enqueue(

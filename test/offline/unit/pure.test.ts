@@ -411,6 +411,7 @@ describe("form changes", () => {
 	const keyword = {
 		name: "Mira",
 		matchingType: "FULL" as const,
+		fuzzyMatchArabicCharacters: true,
 		categoryId: "c",
 		natureId: "n",
 		description: "d",
@@ -452,6 +453,7 @@ describe("form changes", () => {
 		const alias = {
 			name: "ميرا",
 			matchingType: "FULL" as const,
+			fuzzyMatchArabicCharacters: true,
 			overrideStyle: false,
 			categoryId: null,
 			natureId: null,

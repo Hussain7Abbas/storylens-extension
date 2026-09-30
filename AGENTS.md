@@ -38,6 +38,8 @@ Offline data is local-first (`src/lib/offline/`, see the [extension guide](../..
 Novel and keyword names are translated (`nameAr`/`nameEn`; novels also `descriptionAr`/`descriptionEn`). Readers see and write only the UI language's field: use `nameIn`/`descriptionIn`/`nameFields` from `src/utils/translation.ts` and `useLanguage()` from `src/store/locale.ts`, never fall back to the other language in UI, and hide items without a name in the UI language (`namedIn`). The Axios interceptor sends the UI language as `Accept-Language` (`src/utils/stored-language.ts`), so the API filters online lists; the novel catalogue and downloads fetch both languages so local data survives a language switch, and every local read filters by language. Page highlighting matches the UI language's names (`NovelContentData.language`) and re-runs when the language changes. Aliases are named by `nameAr`/`nameEn` like keywords: forms edit the UI language's name through `nameFields`, both names are highlighted and searched (`aliasMatchNames`, one enriched entry per name in `resolve-keyword-version.ts`), and displays use `aliasDisplayName` (the UI language's name, or the alias's other name when it has only that one). Versions, replacements and chapters are not translated yet.
 
 For a field that needs offline support, update its snapshot row type, the `enqueue` input and diff, the projection, the transport body, the form's change set, and localization as applicable. UI-only state does not need to enter the offline store.
+Keyword and alias forms show `fuzzyMatchArabicCharacters` only for names containing Arabic letters. It defaults to `true` in the backend, offline outbox/projection and forms. The page matcher treats ا/أ/إ/آ/ٱ as equivalent only for enabled Arabic terms, preserves page text, and keeps full-word behavior separate. Strict terms take priority over fuzzy terms when both could match. Keep regex capture resolution aligned with each enriched keyword or alias; replacements do not use this setting.
+
 
 ## Analytics events
 
@@ -69,6 +71,7 @@ Keep events in step with features as part of every task, without being asked:
 | `sync_manual_requested` | none | `components/navbar/sync-status-button.tsx` when **Sync now** is pressed |
 | `sync_conflict_detected` | `kind` (`stale`, `deleted`, `duplicate`, `parent-missing`, `rule`, `permission`) | `lib/offline/sync/runner.ts` when a change enters `conflict` or `rejected` |
 | `sync_issue_resolved` | `kind` (the above or `other-account`), `resolution` (`keep_mine`, `use_theirs`, `merge`, `edit`, `discard`, `recreate`, `sign_in`) | `popup.sync/sync-page.tsx` when a resolution is applied |
+| `keyword_arabic_match_saved` | `kind` (`keyword` or `alias`), `enabled` | `popup.home/tabs/coloring/coloring-form.tsx` when an Arabic entry is saved with a new variant-match setting |
 
 Every event also carries `session_id`, `engagement_time_msec`, and `extension_version`, added in `background.ts`.
 

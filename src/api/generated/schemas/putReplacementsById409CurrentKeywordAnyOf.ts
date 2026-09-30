@@ -18,6 +18,7 @@ export type PutReplacementsById409CurrentKeywordAnyOf = {
 	nameAr: PutReplacementsById409CurrentKeywordAnyOfNameAr;
 	nameEn: PutReplacementsById409CurrentKeywordAnyOfNameEn;
 	matchingType: PutReplacementsById409CurrentKeywordAnyOfMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: PutReplacementsById409CurrentKeywordAnyOfCreatedById;
 	createdAt: PutReplacementsById409CurrentKeywordAnyOfCreatedAt;

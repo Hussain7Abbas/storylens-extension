@@ -18,6 +18,7 @@ export type GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOf = {
 	nameAr: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfNameAr;
 	nameEn: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfNameEn;
 	matchingType: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedById;
 	createdAt: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedAt;

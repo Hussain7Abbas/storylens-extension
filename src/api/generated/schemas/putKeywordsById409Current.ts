@@ -20,6 +20,7 @@ export type PutKeywordsById409Current = {
 	nameAr: PutKeywordsById409CurrentNameAr;
 	nameEn: PutKeywordsById409CurrentNameEn;
 	matchingType: PutKeywordsById409CurrentMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: PutKeywordsById409CurrentCreatedById;
 	createdAt: PutKeywordsById409CurrentCreatedAt;

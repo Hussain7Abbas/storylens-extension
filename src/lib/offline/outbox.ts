@@ -89,6 +89,7 @@ export type KeywordValues = {
 	nameAr?: string | null;
 	nameEn?: string | null;
 	matchingType?: MatchingType;
+	fuzzyMatchArabicCharacters?: boolean;
 	categoryId: string;
 	natureId: string;
 	description?: string | null;
@@ -96,7 +97,7 @@ export type KeywordValues = {
 };
 export type KeywordFields = Pick<
 	KeywordValues,
-	"nameAr" | "nameEn" | "matchingType"
+	"nameAr" | "nameEn" | "matchingType" | "fuzzyMatchArabicCharacters"
 >;
 
 export type AliasValues = {
@@ -104,6 +105,7 @@ export type AliasValues = {
 	nameEn?: string | null;
 	description?: string | null;
 	matchingType?: MatchingType;
+	fuzzyMatchArabicCharacters?: boolean;
 	overrideStyle?: boolean;
 	categoryId?: string | null;
 	natureId?: string | null;
@@ -626,6 +628,8 @@ async function enqueueKeyword(
 			novelId: input.novelId,
 			...names,
 			matchingType: input.values.matchingType ?? "FULL",
+			fuzzyMatchArabicCharacters:
+				input.values.fuzzyMatchArabicCharacters ?? true,
 			categoryId: input.values.categoryId,
 			natureId: input.values.natureId,
 			description: cleanText(input.values.description) ?? null,
@@ -688,6 +692,7 @@ async function enqueueKeyword(
 		nameAr: cleanText(input.changes.nameAr),
 		nameEn: cleanText(input.changes.nameEn),
 		matchingType: input.changes.matchingType,
+		fuzzyMatchArabicCharacters: input.changes.fuzzyMatchArabicCharacters,
 	}) as Partial<KeywordFields>;
 	const { patch, base } = diffChanges(changes, input.seen, keyword);
 	if (!Object.keys(patch).length)
@@ -720,6 +725,7 @@ const ALIAS_FIELDS = [
 	"nameEn",
 	"description",
 	"matchingType",
+	"fuzzyMatchArabicCharacters",
 	"overrideStyle",
 	"categoryId",
 	"natureId",
@@ -732,6 +738,7 @@ function aliasValues(values: Partial<AliasValues>): Row {
 		nameEn: cleanText(values.nameEn),
 		description: cleanText(values.description),
 		matchingType: values.matchingType,
+		fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 		overrideStyle: values.overrideStyle,
 		categoryId: values.categoryId,
 		natureId: values.natureId,
@@ -759,6 +766,7 @@ async function enqueueAlias(
 			nameEn: null,
 			description: null,
 			matchingType: "FULL",
+			fuzzyMatchArabicCharacters: true,
 			overrideStyle: false,
 			categoryId: null,
 			natureId: null,
@@ -1388,6 +1396,7 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				nameAr: row.nameAr ?? null,
 				nameEn: row.nameEn ?? null,
 				matchingType: row.matchingType ?? "FULL",
+				fuzzyMatchArabicCharacters: row.fuzzyMatchArabicCharacters ?? true,
 				categoryId: base.categoryId ?? row.categoryId,
 				natureId: base.natureId ?? row.natureId,
 				description: base.description ?? row.description ?? null,

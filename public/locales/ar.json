@@ -51,6 +51,8 @@
 		"createFailed": "فشل إنشاء الكلمة المفتاحية",
 		"updateFailed": "فشل تحديث الكلمة المفتاحية",
 		"fullWordMatch": "مطابقة الكلمة كاملة",
+		"fuzzyMatchArabicCharacters": "مطابقة تنويعات حروف الألف العربية",
+		"fuzzyMatchArabicCharactersDescription": "تُطابق ا وأ وإ وآ وٱ كأنها الحرف نفسه عند التمييز.",
 		"aliasOf": "اسم بديل لـ",
 		"overrideStyle": "تجاوز النمط",
 		"aliases": "الأسماء البديلة",

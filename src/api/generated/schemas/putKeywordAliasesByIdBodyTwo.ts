@@ -23,6 +23,7 @@ export type PutKeywordAliasesByIdBodyTwo = {
 	/** @nullable */
 	description?: PutKeywordAliasesByIdBodyTwoDescription;
 	matchingType?: PutKeywordAliasesByIdBodyTwoMatchingType;
+	fuzzyMatchArabicCharacters?: boolean;
 	/** @nullable */
 	categoryId?: PutKeywordAliasesByIdBodyTwoCategoryId;
 	/** @nullable */

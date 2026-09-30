@@ -18,6 +18,7 @@ export type PostReplacements200KeywordAnyOf = {
 	nameAr: PostReplacements200KeywordAnyOfNameAr;
 	nameEn: PostReplacements200KeywordAnyOfNameEn;
 	matchingType: PostReplacements200KeywordAnyOfMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: PostReplacements200KeywordAnyOfCreatedById;
 	createdAt: PostReplacements200KeywordAnyOfCreatedAt;

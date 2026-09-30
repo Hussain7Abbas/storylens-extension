@@ -18,6 +18,7 @@ export type GetChaptersById200KeywordsChaptersItemKeyword = {
 	nameAr: GetChaptersById200KeywordsChaptersItemKeywordNameAr;
 	nameEn: GetChaptersById200KeywordsChaptersItemKeywordNameEn;
 	matchingType: GetChaptersById200KeywordsChaptersItemKeywordMatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: GetChaptersById200KeywordsChaptersItemKeywordCreatedById;
 	createdAt: GetChaptersById200KeywordsChaptersItemKeywordCreatedAt;

@@ -20,6 +20,7 @@ export type PostKeywords200 = {
 	nameAr: PostKeywords200NameAr;
 	nameEn: PostKeywords200NameEn;
 	matchingType: PostKeywords200MatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	novelId: string;
 	createdById: PostKeywords200CreatedById;
 	createdAt: PostKeywords200CreatedAt;

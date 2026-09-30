@@ -26,6 +26,7 @@ export type PostKeywordAliases200 = {
 	nameEn: PostKeywordAliases200NameEn;
 	description: PostKeywordAliases200Description;
 	matchingType: PostKeywordAliases200MatchingType;
+	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 	categoryId: PostKeywordAliases200CategoryId;
 	natureId: PostKeywordAliases200NatureId;
