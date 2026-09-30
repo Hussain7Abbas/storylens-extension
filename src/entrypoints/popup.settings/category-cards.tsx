@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Box,
 	Center,
 	Group,
@@ -9,8 +8,8 @@ import {
 	Text,
 } from "@mantine/core";
 import { useAtomValue } from "jotai";
-import { CloudUpload as IconCloudUpload } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SyncBadge } from "@/components/sync-badge";
 import { ListItemCard } from "@/entrypoints/popup.home/tabs/list-item-card";
 import {
 	useOfflineKeywordCategories,
@@ -35,7 +34,11 @@ export function CategoryCards({
 	const { t } = useTranslation();
 	const locale = useAtomValue(localeAtom);
 	const pendingEntityIds = usePendingEntityIds();
-	const { data: items, isLoading } = useOfflineKeywordCategories(search);
+	const {
+		data: items,
+		isLoading,
+		states,
+	} = useOfflineKeywordCategories(search);
 
 	if (isLoading) {
 		return (
@@ -84,16 +87,12 @@ export function CategoryCards({
 								{displayName}
 							</Text>
 							<Group gap="xs" wrap="nowrap">
-								{isPending && (
-									<Badge
-										size="xs"
-										color="orange"
-										variant="light"
-										leftSection={<IconCloudUpload size={12} />}
-									>
-										{t("offline.pendingSync")}
-									</Badge>
-								)}
+								<SyncBadge
+									state={
+										states.get(category.id) ??
+										(isPending ? "pending" : undefined)
+									}
+								/>
 								<Text size="xs" c="dimmed">
 									{category.color}
 								</Text>

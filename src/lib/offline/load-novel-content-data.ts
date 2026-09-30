@@ -1,14 +1,24 @@
 import { getStoredAuth } from "@/lib/auth/auth-storage";
-import { offlineDb, type StoryLensDatabase } from "@/lib/offline/db";
+import {
+	isOfflineUnavailable,
+	offlineDb,
+	type StoryLensDatabase,
+} from "@/lib/offline/db";
 import { getMeta, requestRefresh } from "@/lib/offline/meta";
 import { isOnline } from "@/lib/offline/online-status";
-import { NOVEL_STALE_MS } from "@/lib/offline/sync/pull";
+import { projectNovel } from "@/lib/offline/projection";
+import { splitKeywords } from "@/lib/offline/snapshot";
+import {
+	fetchNovelBundle,
+	fetchNovels,
+	NOVEL_STALE_MS,
+} from "@/lib/offline/sync/pull";
 import { getCatalogueView, getNovelView } from "@/lib/offline/views";
 import type { currentNovelMeta } from "@/types";
 import type { NovelContentData } from "@/types/content-data";
 import { findNovelBySlug } from "@/utils/novel-matching";
 import { getStoredLanguage } from "@/utils/stored-language";
-import { namedIn } from "@/utils/translation";
+import { type Language, namedIn } from "@/utils/translation";
 
 const LOG_PREFIX = "[StoryLens]";
 /** How long a page waits for a first pull before rendering without data. */
@@ -22,6 +32,39 @@ export type ContentDataDeps = {
 	onResolved?: (novelSlug: string, novelId: string) => Promise<void>;
 	waitMs?: number;
 };
+
+/** Online-only mode (IndexedDB unavailable): the novel straight from the API. */
+async function loadOnline(
+	meta: currentNovelMeta,
+	language: Language,
+): Promise<NovelContentData | undefined> {
+	if (!isOnline()) return undefined;
+	const novel = findNovelBySlug(await fetchNovels({}), meta.novelSlug);
+	if (!novel) return undefined;
+	const bundle = await fetchNovelBundle(novel.id, {});
+	const { keywords, aliases, versions } = splitKeywords(bundle.keywords);
+	const view = projectNovel({
+		novelId: novel.id,
+		snapshot: {
+			novel: bundle.novel,
+			keywords,
+			aliases,
+			versions,
+			replacements: bundle.replacements,
+			biases: bundle.biases,
+		},
+		mutations: [],
+		userId: null,
+	});
+	return {
+		novel: bundle.novel,
+		language,
+		chapterNumber: meta.chapter,
+		keywords: namedIn(view.keywords, language),
+		replacements: view.replacements,
+		biases: view.biases,
+	};
+}
 
 async function waitFor(
 	check: () => Promise<boolean>,
@@ -53,6 +96,7 @@ export async function loadNovelContentDataForMeta(
 		getStoredLanguage(),
 		getStoredAuth(),
 	]);
+	if (!deps.db && isOfflineUnavailable()) return loadOnline(meta, language);
 
 	let novel = findNovelBySlug(await getCatalogueView(db), meta.novelSlug);
 	if (!novel && isOnline()) {

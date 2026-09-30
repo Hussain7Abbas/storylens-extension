@@ -10,12 +10,7 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import {
-	CloudAlert as IconCloudAlert,
-	CloudUpload as IconCloudUpload,
-	History as IconHistory,
-	Plus as IconPlus,
-} from "lucide-react";
+import { History as IconHistory, Plus as IconPlus } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type {
@@ -23,6 +18,7 @@ import type {
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
+import { SyncBadge } from "@/components/sync-badge";
 import {
 	canEditAlias,
 	canEditKeyword,
@@ -35,6 +31,7 @@ import {
 	useOnlineStatus,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
+import type { EntitySyncState } from "@/lib/offline/types";
 import { useLanguage } from "@/store/locale";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
@@ -158,7 +155,9 @@ function VersionCard({
 	onClick,
 	readOnly,
 	locked = false,
+	syncState,
 }: {
+	syncState?: EntitySyncState;
 	version: GetKeywords200DataItemVersionsItem;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
 	currentChapter: number;
@@ -209,6 +208,7 @@ function VersionCard({
 					>
 						{label}
 					</Text>
+					<SyncBadge state={syncState} />
 					{hasOwnImage && (
 						<Badge
 							size="xs"
@@ -248,14 +248,14 @@ function AliasCard({
 	baseVersion,
 	onClick,
 	readOnly,
-	isPending,
+	syncState,
 	locked = false,
 }: {
 	alias: GetKeywords200DataItemAliasesItem;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
 	onClick?: () => void;
 	readOnly: boolean;
-	isPending: boolean;
+	syncState: EntitySyncState | undefined;
 	locked?: boolean;
 }) {
 	const { t } = useTranslation();
@@ -294,16 +294,7 @@ function AliasCard({
 									: t("coloring.hasImage")}
 							</Badge>
 						)}
-						{isPending && (
-							<Badge
-								size="xs"
-								color="orange"
-								variant="light"
-								leftSection={<IconCloudUpload size={10} />}
-							>
-								{t("offline.pendingSync")}
-							</Badge>
-						)}
+						<SyncBadge state={syncState} />
 						{alias.overrideStyle && (
 							<Badge size="xs" variant="light">
 								{t("coloring.overrideStyle")}
@@ -399,9 +390,6 @@ export function ColoringCards({
 		<Stack gap="xs" {...props}>
 			{groups.map(({ parent, aliases, versions }) => {
 				const isPending = pendingEntityIds.has(parent.id);
-				const needsAttention =
-					states?.get(parent.id) === "conflict" ||
-					states?.get(parent.id) === "rejected";
 				const keywordLocked = !readOnly && !canEditKeyword(user, parent);
 
 				const sortedVersions = [...versions].sort(
@@ -443,27 +431,12 @@ export function ColoringCards({
 													: t("coloring.hasImage")}
 											</Badge>
 										)}
-										{needsAttention ? (
-											<Badge
-												size="xs"
-												color="red"
-												variant="light"
-												leftSection={<IconCloudAlert size={12} />}
-											>
-												{t("sync.needsAttentionShort")}
-											</Badge>
-										) : (
-											isPending && (
-												<Badge
-													size="xs"
-													color="orange"
-													variant="light"
-													leftSection={<IconCloudUpload size={12} />}
-												>
-													{t("offline.pendingSync")}
-												</Badge>
-											)
-										)}
+										<SyncBadge
+											state={
+												states?.get(parent.id) ??
+												(isPending ? "pending" : undefined)
+											}
+										/>
 										{baseCategory && (
 											<Text size="xs" style={{ color: baseCategory.color }}>
 												{baseCategory.nameEn || baseCategory.nameAr}
@@ -543,6 +516,7 @@ export function ColoringCards({
 													locked={
 														!readOnly && !canEditVersion(user, version, parent)
 													}
+													syncState={states?.get(version.id)}
 													onClick={
 														onEditVersion
 															? () => onEditVersion(version, parent)
@@ -569,7 +543,10 @@ export function ColoringCards({
 														baseVersion={baseVersion}
 														readOnly={readOnly || aliasLocked}
 														locked={aliasLocked}
-														isPending={isAliasPending}
+														syncState={
+															states?.get(alias.id) ??
+															(isAliasPending ? "pending" : undefined)
+														}
 														onClick={() => onEditAlias(alias, parent)}
 													/>
 												);

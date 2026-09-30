@@ -8,6 +8,13 @@ import { currentUserAtom } from "@/lib/auth/auth-store";
 import { isOfflineUnavailable, offlineDb } from "@/lib/offline/db";
 import { getMeta } from "@/lib/offline/meta";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
+import { projectNovel } from "@/lib/offline/projection";
+import { splitKeywords } from "@/lib/offline/snapshot";
+import {
+	fetchLookups,
+	fetchNovelBundle,
+	fetchNovels,
+} from "@/lib/offline/sync/pull";
 import type {
 	AssembledKeyword,
 	CatalogNovel,
@@ -77,6 +84,33 @@ function useUserId(): string | undefined {
 	return useAtomValue(currentUserAtom)?.id;
 }
 
+/**
+ * Online-only mode (IndexedDB unavailable): the novel straight from the API,
+ * projected without local changes (edits need offline storage).
+ */
+async function onlineNovelView(novelId: string) {
+	const [bundle, lookups] = await Promise.all([
+		fetchNovelBundle(novelId, {}),
+		fetchLookups({}),
+	]);
+	const { keywords, aliases, versions } = splitKeywords(bundle.keywords);
+	const view = projectNovel({
+		novelId,
+		snapshot: {
+			novel: bundle.novel,
+			keywords,
+			aliases,
+			versions,
+			replacements: bundle.replacements,
+			biases: bundle.biases,
+		},
+		lookups: { ...lookups, states: new Map() },
+		mutations: [],
+		userId: null,
+	});
+	return { ...view, hasSnapshot: true, removedOnServer: false };
+}
+
 /** A novel's view (snapshot plus this account's changes). */
 export function useNovelView(novelId: string | undefined) {
 	const userId = useUserId();
@@ -84,6 +118,7 @@ export function useNovelView(novelId: string | undefined) {
 		networkMode: "always",
 		queryKey: [OFFLINE_QUERY_KEY, "novel-view", novelId, userId],
 		queryFn: async () => {
+			if (isOfflineUnavailable()) return onlineNovelView(novelId as string);
 			const view = await getNovelView(novelId as string, userId);
 			const sync = await offlineDb().novelSync.get(novelId as string);
 			return {
@@ -227,7 +262,13 @@ function useLookupsView() {
 	return useQuery({
 		networkMode: "always",
 		queryKey: [OFFLINE_QUERY_KEY, "lookups", userId],
-		queryFn: () => getLookupsView(userId),
+		queryFn: async () => {
+			if (!isOfflineUnavailable()) return getLookupsView(userId);
+			return {
+				...(await fetchLookups({})),
+				states: new Map<string, EntitySyncState>(),
+			};
+		},
 	});
 }
 
@@ -288,7 +329,8 @@ export function useCachedNovelsList(): {
 	const query = useQuery({
 		networkMode: "always",
 		queryKey: [OFFLINE_QUERY_KEY, "catalogue"],
-		queryFn: () => getCatalogueView(),
+		queryFn: () =>
+			isOfflineUnavailable() ? fetchNovels({}) : getCatalogueView(),
 	});
 	const novels = useMemo(
 		() =>

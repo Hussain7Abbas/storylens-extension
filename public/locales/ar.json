@@ -459,6 +459,11 @@
 		"matching": {
 			"FULL": "كلمة كاملة",
 			"PARTIAL": "جزئي"
-		}
+		},
+		"deleteDiscardsUnsent": "سيُتجاهل أيضاً {{count}} من التغييرات غير المُرسلة التي أُجريت تحته.",
+		"openStatus": "فتح حالة المزامنة",
+		"showExisting": "عرض الموجود",
+		"image": "صورة",
+		"unknown": "(محذوف)"
 	}
 }

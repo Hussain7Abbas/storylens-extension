@@ -6,6 +6,7 @@ import {
 	Card,
 	Container,
 	Group,
+	Image,
 	SegmentedControl,
 	Stack,
 	Table,
@@ -15,12 +16,13 @@ import {
 } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { Copy as IconCopy } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { useRoutes } from "@/hooks/useRoutes";
 import { trackEvent } from "@/lib/analytics/client";
 import { currentUserAtom } from "@/lib/auth/auth-store";
 import { offlineDb } from "@/lib/offline/db";
@@ -30,7 +32,12 @@ import {
 	issueKind,
 } from "@/lib/offline/describe";
 import { offlineErrorMessage } from "@/lib/offline/errors";
-import { useCachedNovelsList, useOutbox } from "@/lib/offline/hooks";
+import {
+	useCachedNovelsList,
+	useOfflineKeywordCategories,
+	useOfflineKeywordNatures,
+	useOutbox,
+} from "@/lib/offline/hooks";
 import {
 	applyResolution,
 	dependantsOf,
@@ -41,6 +48,7 @@ import { tableOf } from "@/lib/offline/snapshot";
 import type { Mutation } from "@/lib/offline/types";
 import { websitePageUrl } from "@/lib/website";
 import { localeAtom, useLanguage } from "@/store/locale";
+import { showExistingAtom } from "@/store/show-existing";
 import { type Language, nameIn, nameKey } from "@/utils/translation";
 
 type Resolved =
@@ -93,13 +101,70 @@ function editableField(mutation: Mutation, language: Language): string {
 	return nameKey(language);
 }
 
-function formatValue(value: unknown, t: TFunction): string {
+type Lookups = {
+	categories: { id: string; nameAr: string | null; nameEn: string | null }[];
+	natures: { id: string; nameAr: string | null; nameEn: string | null }[];
+};
+
+/** A field value as the reader knows it: lookup names, chapters and labels instead of IDs. */
+function formatValue(
+	field: string,
+	value: unknown,
+	t: TFunction,
+	lookups: Lookups,
+	language: Language,
+): string {
 	if (value === null || value === undefined || value === "")
 		return t("sync.empty");
+	if (field === "categoryId" || field === "natureId") {
+		const rows = field === "categoryId" ? lookups.categories : lookups.natures;
+		const row = rows.find((item) => item.id === value);
+		return row
+			? nameIn(row, language) || row.nameAr || row.nameEn || t("sync.unknown")
+			: t("sync.unknown");
+	}
+	if (
+		field === "startingChapter" ||
+		field === "endingChapter" ||
+		field === "currentChapter"
+	)
+		return `ch.${value}`;
+	if (field === "imageId") return t("sync.image");
 	if (value === "FULL" || value === "PARTIAL")
 		return t(`sync.matching.${value}`);
 	if (typeof value === "boolean") return value ? t("sync.yes") : t("sync.no");
 	return String(value);
+}
+
+/** A value cell; an image the server holds shows as a thumbnail. */
+function ValueCell({
+	field,
+	value,
+	image,
+	t,
+	lookups,
+	language,
+}: {
+	field: string;
+	value: unknown;
+	image: string | null;
+	t: TFunction;
+	lookups: Lookups;
+	language: Language;
+}) {
+	if (field === "imageId" && value && image) {
+		return (
+			<Image
+				src={image}
+				alt={t("sync.image")}
+				w={32}
+				h={32}
+				radius="sm"
+				fit="cover"
+			/>
+		);
+	}
+	return <>{formatValue(field, value, t, lookups, language)}</>;
 }
 
 function StaleTable({
@@ -107,12 +172,21 @@ function StaleTable({
 	choices,
 	onChange,
 	t,
+	lookups,
+	language,
 }: {
+	lookups: Lookups;
+	language: Language;
 	mutation: Mutation;
 	choices: Record<string, "mine" | "theirs">;
 	onChange: (field: string, choice: "mine" | "theirs") => void;
 	t: TFunction;
 }) {
+	const server = mutation.conflict?.server as
+		| { image?: { url?: string } | null }
+		| null
+		| undefined;
+	const serverImage = server?.image?.url ?? null;
 	return (
 		<Table withTableBorder striped fz="xs" aria-label={t("sync.fieldsTable")}>
 			<Table.Thead>
@@ -130,9 +204,36 @@ function StaleTable({
 						<Table.Td>
 							{t(`sync.fields.${item.field}`, { defaultValue: item.field })}
 						</Table.Td>
-						<Table.Td dir="auto">{formatValue(item.mine, t)}</Table.Td>
-						<Table.Td dir="auto">{formatValue(item.theirs, t)}</Table.Td>
-						<Table.Td dir="auto">{formatValue(item.base, t)}</Table.Td>
+						<Table.Td dir="auto">
+							<ValueCell
+								field={item.field}
+								value={item.mine}
+								image={null}
+								t={t}
+								lookups={lookups}
+								language={language}
+							/>
+						</Table.Td>
+						<Table.Td dir="auto">
+							<ValueCell
+								field={item.field}
+								value={item.theirs}
+								image={serverImage}
+								t={t}
+								lookups={lookups}
+								language={language}
+							/>
+						</Table.Td>
+						<Table.Td dir="auto">
+							<ValueCell
+								field={item.field}
+								value={item.base}
+								image={null}
+								t={t}
+								lookups={lookups}
+								language={language}
+							/>
+						</Table.Td>
 						<Table.Td>
 							<SegmentedControl
 								size="xs"
@@ -161,6 +262,8 @@ function IssueCard({
 	all,
 	t,
 	language,
+	lookups,
+	onResolved,
 }: {
 	mutation: Mutation;
 	kind: IssueKind;
@@ -169,7 +272,11 @@ function IssueCard({
 	all: Mutation[];
 	t: TFunction;
 	language: Language;
+	lookups: Lookups;
+	onResolved: () => void;
 }) {
+	const { goHome } = useRoutes();
+	const setShowExisting = useSetAtom(showExistingAtom);
 	const queryClient = useQueryClient();
 	const locale = useAtomValue(localeAtom);
 	const [busy, setBusy] = useState(false);
@@ -191,6 +298,7 @@ function IssueCard({
 			trackEvent("sync_issue_resolved", { kind, resolution });
 			kick();
 			await queryClient.invalidateQueries({ queryKey: ["offline"] });
+			onResolved();
 		} catch (error) {
 			toast.error(offlineErrorMessage(error, t));
 		} finally {
@@ -217,6 +325,8 @@ function IssueCard({
 		<Card
 			withBorder
 			p="xs"
+			tabIndex={-1}
+			data-issue-card
 			aria-label={`${t(`sync.entity.${mutation.entity}`)} ${name}: ${t(`sync.kindTitle.${kind}`)}`}
 		>
 			<Stack gap={6}>
@@ -243,6 +353,8 @@ function IssueCard({
 						mutation={mutation}
 						choices={choices}
 						t={t}
+						lookups={lookups}
+						language={language}
 						onChange={(field, choice) =>
 							setChoices((current) => ({ ...current, [field]: choice }))
 						}
@@ -378,6 +490,21 @@ function IssueCard({
 									{t("sync.retry")}
 								</Button>
 							)}
+						{kind === "duplicate" && mutation.entity === "keyword" && (
+							<Button
+								size="compact-xs"
+								variant="subtle"
+								onClick={() => {
+									setShowExisting({
+										novelId: mutation.novelId ?? undefined,
+										search: name,
+									});
+									goHome();
+								}}
+							>
+								{t("sync.showExisting")}
+							</Button>
+						)}
 						{kind === "parent-missing" && name && (
 							<Button
 								size="compact-xs"
@@ -429,6 +556,20 @@ export function SyncPage() {
 	const { mutations } = useOutbox();
 	const { novels } = useCachedNovelsList();
 	const rows = useSnapshotRows(mutations).data ?? new Map();
+	const lookups = {
+		categories: useOfflineKeywordCategories().data,
+		natures: useOfflineKeywordNatures().data,
+	};
+	const container = useRef<HTMLDivElement>(null);
+	/** After a resolution, focus the card that took its place (or the one before). */
+	const focusAfter = (index: number) => () => {
+		requestAnimationFrame(() => {
+			const cards =
+				container.current?.querySelectorAll<HTMLElement>("[data-issue-card]") ??
+				[];
+			(cards[index] ?? cards[index - 1])?.focus();
+		});
+	};
 	const novelName = (novelId: string | null) => {
 		const novel = novels.find((item) => item.id === novelId);
 		return novel ? nameIn(novel, language) : "";
@@ -445,7 +586,7 @@ export function SyncPage() {
 	const waiting = mutations.filter(
 		(mutation) => mutation.userId === userId && !issueKind(mutation, userId),
 	);
-	const card = (mutation: Mutation) => {
+	const card = (mutation: Mutation, index: number) => {
 		const kind = issueKind(mutation, userId) ?? "rule";
 		return (
 			<IssueCard
@@ -457,12 +598,14 @@ export function SyncPage() {
 				all={mutations}
 				t={t}
 				language={language}
+				lookups={lookups}
+				onResolved={focusAfter(index)}
 			/>
 		);
 	};
 
 	return (
-		<Container p="md">
+		<Container p="md" ref={container}>
 			<Stack gap="sm">
 				<Title order={4}>{t("sync.title")}</Title>
 				{!issues.length && !otherAccount.length && !waiting.length && (
@@ -489,7 +632,9 @@ export function SyncPage() {
 								user: otherAccount[0]?.userLabel ?? "",
 							})}
 						</Text>
-						{otherAccount.map(card)}
+						{otherAccount.map((mutation, index) =>
+							card(mutation, issues.length + index),
+						)}
 					</Stack>
 				)}
 				{waiting.length > 0 && (

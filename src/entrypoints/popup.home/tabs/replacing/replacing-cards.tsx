@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Center,
 	Group,
 	Loader,
@@ -8,9 +7,9 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import { CloudUpload as IconCloudUpload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { GetReplacements200DataItem } from "@/api/generated/schemas";
+import { SyncBadge } from "@/components/sync-badge";
 import { canEditReplacement } from "@/lib/auth/permissions";
 import { useCurrentUser } from "@/lib/auth/use-permissions";
 import {
@@ -101,16 +100,12 @@ export function ReplacingCards({
 									<Text fw={500} style={{ flex: 1 }}>
 										{replacement.from}
 									</Text>
-									{isPending && (
-										<Badge
-											size="xs"
-											color="orange"
-											variant="light"
-											leftSection={<IconCloudUpload size={12} />}
-										>
-											{t("offline.pendingSync")}
-										</Badge>
-									)}
+									<SyncBadge
+										state={
+											offline.states.get(replacement.id) ??
+											(isPending ? "pending" : undefined)
+										}
+									/>
 									<Text size="sm" c="dimmed" style={{ flex: 1 }}>
 										{replacement.to}
 									</Text>

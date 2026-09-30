@@ -30,6 +30,7 @@ import type {
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
+import { UnsentDependants } from "@/components/unsent-dependants";
 import { useIsModerator } from "@/lib/auth";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
 import { offlineErrorMessage } from "@/lib/offline/errors";
@@ -388,6 +389,7 @@ function KeywordForm({
 								<Text size="xs" c="dimmed">
 									{t("coloring.deleteAliasesWarning")}
 								</Text>
+								<UnsentDependants entityId={keyword.id} />
 								<Group grow>
 									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
 										<Button

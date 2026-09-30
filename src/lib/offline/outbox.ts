@@ -13,7 +13,12 @@ import {
 	canManageLookups,
 	isModerator,
 } from "@/lib/auth/permissions";
-import { allTables, offlineDb, type StoryLensDatabase } from "@/lib/offline/db";
+import {
+	allTables,
+	isOfflineUnavailable,
+	offlineDb,
+	type StoryLensDatabase,
+} from "@/lib/offline/db";
 import { newId } from "@/lib/offline/ids";
 import { bumpChangeCounter } from "@/lib/offline/meta";
 import { projectLookups, projectNovel } from "@/lib/offline/projection";
@@ -56,6 +61,14 @@ export class PermissionDenied extends Error {
 	constructor() {
 		super("Only the creator or a moderator can change this");
 		this.name = "PermissionDenied";
+	}
+}
+
+/** IndexedDB could not be opened: changes cannot be kept, so they are refused. */
+export class StorageUnavailable extends Error {
+	constructor() {
+		super("Offline storage is unavailable");
+		this.name = "StorageUnavailable";
 	}
 }
 
@@ -1239,6 +1252,7 @@ export async function enqueue(
 	input: EnqueueInput,
 	options: EnqueueOptions = {},
 ): Promise<EnqueueResult> {
+	if (!options.db && isOfflineUnavailable()) throw new StorageUnavailable();
 	const db = options.db ?? offlineDb();
 	const user =
 		options.user === undefined ? (await getStoredAuth()).user : options.user;

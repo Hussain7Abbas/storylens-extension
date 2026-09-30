@@ -53,6 +53,9 @@ export const CATALOGUE_STALE_MS = 30 * 60 * 1000;
 /** Delta-refreshed units are pulled in full once a week to reconcile. */
 export const RECONCILE_MS = 7 * 24 * 60 * 60 * 1000;
 
+/** Reads that write nothing (online-only mode when IndexedDB is unavailable). */
+export type FetchContext = { token?: string; signal?: AbortSignal };
+
 export type PullContext = {
 	db: StoryLensDatabase;
 	token: string;
@@ -62,12 +65,12 @@ export type PullContext = {
 
 const LANGUAGES: Language[] = ["ar", "en"];
 
-function request(ctx: PullContext, language?: Language): AxiosRequestConfig {
+function request(ctx: FetchContext, language?: Language): AxiosRequestConfig {
 	return {
 		timeout: REQUEST_TIMEOUT_MS,
 		signal: ctx.signal,
 		headers: {
-			Authorization: `Bearer ${ctx.token}`,
+			...(ctx.token ? { Authorization: `Bearer ${ctx.token}` } : {}),
 			...(language ? { "Accept-Language": language } : {}),
 		},
 	};
@@ -87,7 +90,7 @@ function statusOf(error: unknown): number | undefined {
 // Full pulls
 // ---------------------------------------------------------------------------
 
-async function fetchNovels(ctx: PullContext): Promise<CatalogNovel[]> {
+export async function fetchNovels(ctx: FetchContext): Promise<CatalogNovel[]> {
 	const lists = await Promise.all(
 		LANGUAGES.map((language) =>
 			fetchAllPages<CatalogNovel>(
@@ -108,8 +111,8 @@ async function fetchNovels(ctx: PullContext): Promise<CatalogNovel[]> {
 	return mergeById(lists);
 }
 
-async function fetchLookups(
-	ctx: PullContext,
+export async function fetchLookups(
+	ctx: FetchContext,
 ): Promise<{ categories: CategoryRow[]; natures: NatureRow[] }> {
 	const [categories, natures] = await Promise.all([
 		fetchAllPages<CategoryRow>(
@@ -169,41 +172,16 @@ export async function pullLookups(ctx: PullContext): Promise<void> {
 	await setMeta("lookupsFullPullAt", ctx.now ?? Date.now(), ctx.db);
 }
 
-/**
- * One novel with its keywords (both languages, every page), replacements and
- * chapter biases, written in one transaction. A 404 marks it removed on the
- * server and turns its pending changes into conflicts.
- */
-export async function pullNovel(
-	novelId: string,
-	ctx: PullContext,
-): Promise<"pulled" | "removed"> {
-	const cursor = await cursorBefore(() =>
-		getSyncNovelsByIdChanges(novelId, {}, request(ctx)),
-	);
-	let novel: CatalogNovel;
-	try {
-		const {
-			chapters: _chapters,
-			image: _image,
-			...row
-		} = (await getNovelsById(novelId, request(ctx))).data as CatalogNovel & {
-			chapters?: unknown;
-			image?: unknown;
-		};
-		novel = row;
-	} catch (error) {
-		if (statusOf(error) !== 404) throw error;
-		await ctx.db.transaction(
-			"rw",
-			[ctx.db.novelSync, ctx.db.mutations, ctx.db.syncMeta],
-			async () => {
-				await markRemovedOnServer(novelId, ctx.db);
-				await markNovelMutationsDeleted(ctx.db, novelId);
-			},
-		);
-		return "removed";
-	}
+/** A novel's server rows in both languages, every page; rejects on a 404. */
+export async function fetchNovelBundle(novelId: string, ctx: FetchContext) {
+	const {
+		chapters: _chapters,
+		image: _image,
+		...novel
+	} = (await getNovelsById(novelId, request(ctx))).data as CatalogNovel & {
+		chapters?: unknown;
+		image?: unknown;
+	};
 	const keywordLists = await Promise.all(
 		LANGUAGES.map((language) =>
 			fetchAllPages<AssembledKeyword>(
@@ -238,11 +216,42 @@ export async function pullNovel(
 	);
 	const biases = (await getWebsiteNovelBiases({ novelId }, request(ctx)))
 		.data as BiasRow[];
-	await replaceNovelSnapshot(
-		novelId,
-		{ novel, keywords: mergeById(keywordLists), replacements, biases },
-		ctx.db,
+	return {
+		novel: novel as CatalogNovel,
+		keywords: mergeById(keywordLists),
+		replacements,
+		biases,
+	};
+}
+
+/**
+ * One novel with its keywords (both languages, every page), replacements and
+ * chapter biases, written in one transaction. A 404 marks it removed on the
+ * server and turns its pending changes into conflicts.
+ */
+export async function pullNovel(
+	novelId: string,
+	ctx: PullContext,
+): Promise<"pulled" | "removed"> {
+	const cursor = await cursorBefore(() =>
+		getSyncNovelsByIdChanges(novelId, {}, request(ctx)),
 	);
+	let bundle: Awaited<ReturnType<typeof fetchNovelBundle>>;
+	try {
+		bundle = await fetchNovelBundle(novelId, ctx);
+	} catch (error) {
+		if (statusOf(error) !== 404) throw error;
+		await ctx.db.transaction(
+			"rw",
+			[ctx.db.novelSync, ctx.db.mutations, ctx.db.syncMeta],
+			async () => {
+				await markRemovedOnServer(novelId, ctx.db);
+				await markNovelMutationsDeleted(ctx.db, novelId);
+			},
+		);
+		return "removed";
+	}
+	await replaceNovelSnapshot(novelId, bundle, ctx.db);
 	await ctx.db.transaction("rw", ctx.db.novelSync, async () => {
 		await markPulled(novelId, undefined, ctx.db);
 		const sync = await ctx.db.novelSync.get(novelId);

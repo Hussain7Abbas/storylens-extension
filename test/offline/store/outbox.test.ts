@@ -832,7 +832,8 @@ describe("3.2.x cleanup", () => {
 
 	it("falls back when IndexedDB cannot be opened", async () => {
 		const broken = new StoryLensDatabase("broken");
-		broken.open = () => Promise.reject(new Error("blocked")) as ReturnType<typeof broken.open>;
+		broken.open = () =>
+			Promise.reject(new Error("blocked")) as ReturnType<typeof broken.open>;
 		setOfflineDbForTests(broken);
 		expect(await openOfflineDb()).toBeNull();
 		expect(isOfflineUnavailable()).toBe(true);

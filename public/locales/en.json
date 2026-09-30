@@ -459,6 +459,11 @@
 		"matching": {
 			"FULL": "Full word",
 			"PARTIAL": "Partial"
-		}
+		},
+		"deleteDiscardsUnsent": "{{count}} unsent changes made under it will be discarded too.",
+		"openStatus": "Open Sync status",
+		"showExisting": "Show existing",
+		"image": "Image",
+		"unknown": "(removed)"
 	}
 }

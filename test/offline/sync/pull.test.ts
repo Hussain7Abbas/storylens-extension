@@ -450,3 +450,42 @@ describe("page data and downloads", () => {
 		).toEqual([7]);
 	});
 });
+
+describe("offline storage unavailable (phase 6.7)", () => {
+	it("serves page data from the API and refuses edits with a reason", async () => {
+		const { StoryLensDatabase, setOfflineDbForTests, openOfflineDb } =
+			await import("../../../src/lib/offline/db");
+		const { StorageUnavailable } = await import(
+			"../../../src/lib/offline/outbox"
+		);
+		env.api.seedKeyword(env.novel.id, {
+			nameEn: "Online only",
+			categoryId: env.category.id,
+			natureId: env.nature.id,
+		});
+		const broken = new StoryLensDatabase("broken-profile");
+		broken.open = () =>
+			Promise.reject(new Error("blocked")) as ReturnType<typeof broken.open>;
+		setOfflineDbForTests(broken);
+		expect(await openOfflineDb()).toBeNull();
+		try {
+			const data = await loadNovelContentDataForMeta(
+				{ novelSlug: "novel-slug" },
+				{ kick: async () => undefined },
+			);
+			expect(data?.keywords.map((keyword) => keyword.nameEn)).toEqual([
+				"Online only",
+			]);
+			await expect(
+				enqueue({
+					entity: "replacement",
+					op: "create",
+					novelId: env.novel.id,
+					values: { from: "a", to: "b" },
+				}),
+			).rejects.toBeInstanceOf(StorageUnavailable);
+		} finally {
+			setOfflineDbForTests(env.db);
+		}
+	});
+});

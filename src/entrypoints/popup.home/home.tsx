@@ -14,7 +14,7 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import type { TFunction } from "i18next";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
 	Check as IconCheck,
 	CloudDownload as IconCloudDownload,
@@ -41,6 +41,7 @@ import {
 	useOnlineStatus,
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
+import { showExistingAtom } from "@/store/show-existing";
 import type { currentNovelMeta } from "@/types";
 import type { Novel } from "@/types/models";
 import { isSlugInList } from "@/utils/novel-matching";
@@ -74,6 +75,20 @@ export function HomePage() {
 		availableNovels,
 		availableNovels,
 	);
+	const [showExisting, setShowExisting] = useAtom(showExistingAtom);
+	useEffect(() => {
+		const novel = availableNovels.find(
+			(item) => item.id === showExisting.novelId,
+		);
+		if (!novel) return;
+		setSelectedNovel(novel);
+		setShowExisting((current) => ({ ...current, novelId: undefined }));
+	}, [
+		availableNovels,
+		showExisting.novelId,
+		setSelectedNovel,
+		setShowExisting,
+	]);
 
 	useEffect(() => {
 		const getHostname = async () => {
@@ -429,7 +444,7 @@ export function HomePage() {
 	);
 }
 
-function NovelMenu({
+export function NovelMenu({
 	currentTabNovel,
 	selectedNovel,
 	setSelectedNovel,

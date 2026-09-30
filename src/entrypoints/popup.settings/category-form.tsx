@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { offlineErrorMessage } from "@/lib/offline/errors";
 import { lookupFormChanges } from "@/lib/offline/form-changes";
 import {
 	type CategoryFormValues,
@@ -143,7 +144,12 @@ function CategoryFormContent({
 				/>
 
 				{(createMutation.isError || updateMutation.isError) && (
-					<Alert color="red">{t("settings.update")}</Alert>
+					<Alert color="red">
+						{offlineErrorMessage(
+							createMutation.error ?? updateMutation.error,
+							t,
+						)}
+					</Alert>
 				)}
 
 				<Group justify="space-between" mt="md">
