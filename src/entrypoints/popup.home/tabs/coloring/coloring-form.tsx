@@ -107,8 +107,8 @@ function categoryLabel(
 type KeywordFormValues = {
 	name: string;
 	matchingType: "FULL" | "PARTIAL";
-	categoryId: string;
 	fuzzyMatchArabicCharacters: boolean;
+	categoryId: string;
 	natureId: string;
 	description: string;
 	imageId?: string;
@@ -169,8 +169,8 @@ function KeywordForm({
 					? (frame.initialText ?? "")
 					: "",
 			matchingType: keyword?.matchingType ?? "FULL",
-			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
 			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
+			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
 			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
 			description: baseVersion?.description ?? suggestion?.description ?? "",
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
@@ -202,10 +202,10 @@ function KeywordForm({
 					// The name is saved in the UI language; the other language is left untouched.
 					...nameFields(language, values.name),
 					matchingType: values.matchingType,
+					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					description: values.description || null,
-					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					imageId: values.imageId ?? null,
 					image,
 				});
@@ -215,11 +215,11 @@ function KeywordForm({
 						{
 							name: nameIn(keyword, language),
 							matchingType: keyword.matchingType,
+							fuzzyMatchArabicCharacters:
+								keyword.fuzzyMatchArabicCharacters ?? true,
 							categoryId: baseVersion?.categoryId ?? "",
 							natureId: baseVersion?.natureId ?? "",
 							description: baseVersion?.description ?? null,
-							fuzzyMatchArabicCharacters:
-								keyword.fuzzyMatchArabicCharacters ?? true,
 							imageId: baseVersion?.imageId ?? null,
 						},
 						{ ...values, imageId: values.imageId ?? null },
@@ -242,9 +242,6 @@ function KeywordForm({
 					});
 				}
 			}
-			form.reset();
-			setImageFile(null);
-			onClose();
 			if (
 				/\p{Script=Arabic}/u.test(values.name) &&
 				(frame.mode === "keyword-add" ||
@@ -256,6 +253,9 @@ function KeywordForm({
 					enabled: values.fuzzyMatchArabicCharacters,
 				});
 			}
+			form.reset();
+			setImageFile(null);
+			onClose();
 		} catch {
 			// Refusals (permission, validation) show below from the mutation's error.
 		}
@@ -282,9 +282,6 @@ function KeywordForm({
 							)
 						}
 					/>
-					<Select
-						label={t("coloring.category")}
-						placeholder={t("coloring.selectCategory")}
 					{/\p{Script=Arabic}/u.test(form.values.name) && (
 						<Switch
 							label={t("coloring.fuzzyMatchArabicCharacters")}
@@ -294,6 +291,9 @@ function KeywordForm({
 							})}
 						/>
 					)}
+					<Select
+						label={t("coloring.category")}
+						placeholder={t("coloring.selectCategory")}
 						allowDeselect={false}
 						data={categoriesData?.map((cat: KeywordCategory) => ({
 							value: cat.id,
@@ -458,10 +458,10 @@ type AliasFormValues = {
 	name: string;
 	description: string;
 	matchingType: "FULL" | "PARTIAL";
+	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string | null;
 	natureId: string | null;
 	imageId?: string;
-	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
 };
 
@@ -512,10 +512,10 @@ function AliasForm({
 					: "",
 			description: alias?.description ?? suggestion?.description ?? "",
 			matchingType: alias?.matchingType ?? "FULL",
+			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
 			imageId: (alias?.imageId as string | undefined) ?? undefined,
-			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
 		validate: {
@@ -542,24 +542,24 @@ function AliasForm({
 					...nameFields(language, values.name),
 					description: values.description || null,
 					matchingType: values.matchingType,
+					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					imageId: values.imageId ?? null,
 					overrideStyle: values.overrideStyle,
 					image,
-					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 				});
 			} else if (alias) {
 				const initial = {
 					name: aliasDisplayName(alias, language),
 					description: alias.description ?? null,
 					matchingType: alias.matchingType,
+					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 					categoryId: alias.categoryId ?? null,
 					natureId: alias.natureId ?? null,
 					imageId: alias.imageId ?? null,
 					overrideStyle: alias.overrideStyle,
 				};
-					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 				const changes = aliasFormChanges(
 					initial,
 					{ ...values, imageId: values.imageId ?? null },
@@ -575,11 +575,6 @@ function AliasForm({
 					});
 				}
 			}
-			form.reset();
-			setImageFile(null);
-			onClose();
-		} catch {
-			// Refusals (permission, validation) show below from the mutation's error.
 			if (
 				/\p{Script=Arabic}/u.test(values.name) &&
 				(frame.mode === "alias-add" ||
@@ -591,6 +586,11 @@ function AliasForm({
 					enabled: values.fuzzyMatchArabicCharacters,
 				});
 			}
+			form.reset();
+			setImageFile(null);
+			onClose();
+		} catch {
+			// Refusals (permission, validation) show below from the mutation's error.
 		}
 	};
 
@@ -631,11 +631,6 @@ function AliasForm({
 							)
 						}
 					/>
-					<TextInput
-						label={t("coloring.description")}
-						{...form.getInputProps("description")}
-					/>
-					<Select
 					{/\p{Script=Arabic}/u.test(form.values.name) && (
 						<Switch
 							label={t("coloring.fuzzyMatchArabicCharacters")}
@@ -645,6 +640,11 @@ function AliasForm({
 							})}
 						/>
 					)}
+					<TextInput
+						label={t("coloring.description")}
+						{...form.getInputProps("description")}
+					/>
+					<Select
 						label={t("coloring.category")}
 						placeholder={t("coloring.selectCategory")}
 						clearable
