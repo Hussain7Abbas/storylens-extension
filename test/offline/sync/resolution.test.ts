@@ -217,6 +217,14 @@ describe("resolution actions (phase 7 tests 3–5)", () => {
 		expect(
 			[...env.api.keywords.values()].some((row) => row.nameEn === "Lost 2"),
 		).toBe(true);
+		// Its alias's keyword is gone, so the alias cannot be created again.
+		await expect(
+			applyResolution(
+				aliasUpdate?.id as string,
+				{ kind: "createAgain" },
+				{ db: env.db },
+			),
+		).rejects.toThrow("PARENT_NOT_FOUND");
 		await discardMutation(aliasUpdate?.id as string, { db: env.db });
 		expect(await outbox()).toEqual([]);
 	});

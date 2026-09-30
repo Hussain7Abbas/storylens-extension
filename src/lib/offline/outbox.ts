@@ -1470,6 +1470,20 @@ export async function applyResolution(
 		if (resolution.kind === "createAgain") {
 			const patch = createAgainPatch(mutation);
 			if (!patch) throw new ValidationFailed("PARENT_NOT_FOUND");
+			// An alias or version needs its keyword: on the device, or created by an unsent change.
+			if (
+				mutation.entity === "keywordAlias" ||
+				mutation.entity === "keywordVersion"
+			) {
+				const keywordId = patch.keywordId as string | undefined;
+				const parentKnown =
+					!!keywordId &&
+					(!!(await db.keywords.get(keywordId)) ||
+						(
+							await db.mutations.where("entityId").equals(keywordId).toArray()
+						).some((item) => item.op === "create"));
+				if (!parentKnown) throw new ValidationFailed("PARENT_NOT_FOUND");
+			}
 			const op: MutationOp = "create";
 			await db.mutations.update(mutation.seq, {
 				...reset,
