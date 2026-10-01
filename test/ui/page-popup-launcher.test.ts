@@ -33,6 +33,7 @@ const {
 	POPUP_SHOWN_MESSAGE,
 	POPUP_STATE_MESSAGE,
 } = await import("../../src/lib/launcher-frame/messages");
+const { pageAiTasks } = await import("../../src/lib/launcher-frame/ai-tasks");
 
 const POPUP = "chrome-extension://storylens-test/popup.html";
 // Bun gives extension URLs an opaque origin; browsers report the extension's own.
@@ -58,9 +59,19 @@ const panel = () => element("#panel");
 const status = () => element("#status");
 const frames = () => [...root().querySelectorAll("iframe")];
 
-/** The popup frame: the one that is not the selection chooser. */
+/** The popup frames (tabs): every frame but the selection chooser. */
+function popupFrames(): HTMLIFrameElement[] {
+	return frames().filter((frame) => !frame.src.includes("view=selection"));
+}
+
+/** The first popup frame. */
 function popupFrame(): HTMLIFrameElement | undefined {
-	return frames().find((frame) => !frame.src.includes("view=selection"));
+	return popupFrames()[0];
+}
+
+/** The popup tab the panel shows. */
+function shownFrame(): HTMLIFrameElement | undefined {
+	return popupFrames().find((frame) => !frame.hidden);
 }
 
 /** happy-dom cannot load extension pages, so each frame gets a stand-in window. */
@@ -193,6 +204,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	setPagePopupLauncher(false, "en");
+	pageAiTasks.drop(() => true);
 	document.body.replaceChildren();
 	settings.disableIframePageLoading = iframeLoading;
 	console.error = loggedErrors;
@@ -309,12 +321,15 @@ describe("form requested while a popup is kept", () => {
 		report(frame, { dirty: true });
 		expect(frame.isConnected).toBe(true);
 
+		// The form opens in a tab of its own; the kept one stays as it was.
 		answer(frame, true);
 		expect(popupFrame()).toBe(frame);
 		expect(frame.src).toBe(POPUP);
+		expect(frame.hidden).toBe(true);
+		expect(popupFrames()).toHaveLength(2);
+		expect(shownFrame()?.src).toBe(`${POPUP}?${formQuery("Rand")}`);
 		expect(panel().hidden).toBe(false);
-		expect(notice().hidden).toBe(false);
-		expect(notice().textContent).toBe("Save or close the open form first.");
+		expect(notice().hidden).toBe(true);
 	});
 
 	it("keeps the popup when it does not answer", async () => {
@@ -341,16 +356,17 @@ describe("form requested while a popup is kept", () => {
 		]);
 
 		post(frame, { type: POPUP_ANSWER_MESSAGE, id: first.id, kept: true });
-		expect(notice().hidden).toBe(true);
+		expect(popupFrames()).toHaveLength(1);
 		post(
 			frame,
 			{ type: POPUP_ANSWER_MESSAGE, id: requests(frame)[1].id, kept: true },
 			{ source: window },
 		);
-		expect(notice().hidden).toBe(true);
+		expect(popupFrames()).toHaveLength(1);
 
 		answer(frame, true);
-		expect(notice().hidden).toBe(false);
+		expect(popupFrames()).toHaveLength(2);
+		expect(shownFrame()?.src).toBe(`${POPUP}?${formQuery("Perrin")}`);
 	});
 
 	it("treats an answer without a clear 'nothing held' as kept", async () => {
@@ -359,7 +375,8 @@ describe("form requested while a popup is kept", () => {
 		await requestForm("Rand");
 
 		post(frame, { type: POPUP_ANSWER_MESSAGE, id: requests(frame)[0].id });
-		expect(notice().hidden).toBe(false);
+		expect(popupFrames()).toHaveLength(2);
+		expect(frame.isConnected).toBe(true);
 	});
 
 	it("sends the request once a popup that is still loading announces itself", async () => {
@@ -678,5 +695,415 @@ describe("launcher near an edge", () => {
 		} finally {
 			fakeBrowser.storage.local.reset();
 		}
+	});
+});
+
+describe("AI tasks under the launcher", () => {
+	type Source = "popup" | "panel" | "page";
+	type Operation = "generate-image" | "suggest-keyword" | "summarize";
+	// Task IDs are single-use, so each test gets its own.
+	let run = 0;
+	beforeEach(() => {
+		run += 1;
+	});
+	const key = (id: string) => `${run}-${id}`;
+	const tasks = () => element("#tasks");
+	const rows = () => [...tasks().querySelectorAll<HTMLElement>(".task")];
+	const texts = () => rows().map((row) => row.textContent);
+	const start = (
+		id: string,
+		{
+			source = "popup",
+			operation = "generate-image",
+			subject = "Rand",
+			frame,
+		}: {
+			source?: Source;
+			operation?: Operation;
+			subject?: string;
+			frame?: string;
+		} = {},
+	) =>
+		pageAiTasks.apply({
+			id: key(id),
+			state: "working",
+			operation,
+			subject,
+			source,
+			...(frame ? { frame: key(frame) } : {}),
+		});
+	const finish = (
+		id: string,
+		{
+			source = "popup",
+			state = "done",
+			at = Date.now(),
+		}: { source?: Source; state?: "done" | "failed"; at?: number } = {},
+	) =>
+		pageAiTasks.apply(
+			{
+				id: key(id),
+				state,
+				operation: "generate-image",
+				subject: "Rand",
+				source,
+			},
+			at,
+		);
+	const release = (id: string, source: Source = "popup") =>
+		pageAiTasks.apply({ id: key(id), state: "released", source });
+	/** Opens the popup, whose document announces `name` as its task key. */
+	const openKeyed = (name: string) => {
+		button().click();
+		const frame = shownFrame();
+		if (!frame) throw new Error("popup frame is missing");
+		post(frame, { type: POPUP_READY_MESSAGE, key: key(name) });
+		return frame;
+	};
+	/** Whether leaving the page now would ask the reader first. */
+	const leavingAsks = () => {
+		const event = new Event("beforeunload", { cancelable: true });
+		window.dispatchEvent(event);
+		return event.defaultPrevented;
+	};
+
+	it("releases a held result when the popup reloads itself with a new document key", () => {
+		const frame = openKeyed("old-document");
+		clickPage();
+		start("a", { frame: "old-document" });
+		finish("a");
+		expect(leavingAsks()).toBe(true);
+
+		// Repeating the same document's ready message must preserve its result.
+		post(frame, { type: POPUP_READY_MESSAGE, key: key("old-document") });
+		expect(leavingAsks()).toBe(true);
+
+		// Selector saves reload the iframe directly, without a launcher request.
+		post(frame, { type: POPUP_READY_MESSAGE, key: key("new-document") });
+		expect(pageAiTasks.unsaved()).toBe(false);
+		expect(leavingAsks()).toBe(false);
+		expect(rows()).toEqual([]);
+	});
+
+	it("drops only the replaced popup document's tasks on reload", () => {
+		const frame = openKeyed("old-document");
+		clickPage();
+		start("popup", { frame: "old-document" });
+		start("page", { source: "page", operation: "summarize" });
+		start("panel", { source: "panel" });
+		start("other-popup", { frame: "other-document" });
+
+		post(frame, { type: POPUP_READY_MESSAGE, key: key("new-document") });
+		expect(pageAiTasks.shown().map((task) => task.id)).toEqual([
+			key("page"),
+			key("panel"),
+			key("other-popup"),
+		]);
+		expect(leavingAsks()).toBe(true);
+	});
+
+	it("lists a running task under the button without hovering, then checks it off", () => {
+		expect(tasks().hidden).toBe(true);
+		start("a");
+		expect(tasks().hidden).toBe(false);
+		expect(element("#actions").hidden).toBe(true);
+		expect(rows()).toHaveLength(1);
+		const [row] = rows();
+		expect(row?.dataset.state).toBe("working");
+		expect(row?.textContent).toBe("Rand - Generating image");
+		expect(row?.querySelector("svg")).not.toBeNull();
+		// The launcher sits in the top half, so the list opens below it.
+		expect(tasks().dataset.side).toBe("below");
+
+		finish("a");
+		expect(rows()).toEqual([row as HTMLElement]);
+		expect(row?.dataset.state).toBe("done");
+		expect(row?.textContent).toBe("Rand - Generating image (done)");
+		expect(row?.title).toBe("Rand - Generating image (done)");
+	});
+
+	it("lists every running task and names the operation alone without a subject", () => {
+		start("a");
+		start("b", { source: "page", operation: "summarize", subject: "" });
+		start("c", {
+			source: "panel",
+			operation: "suggest-keyword",
+			subject: "Mat",
+		});
+		expect(texts()).toEqual([
+			"Rand - Generating image",
+			"Summarizing page",
+			"Mat - Generating keyword",
+		]);
+		finish("b", { source: "page", state: "failed" });
+		expect(rows()[1]?.dataset.state).toBe("failed");
+	});
+
+	it("moves past the action row while it is open", async () => {
+		start("a");
+		button().dispatchEvent(new PointerEvent("pointerenter"));
+		await new Promise((resolve) => setTimeout(resolve, 250));
+		expect(element("#actions").hidden).toBe(false);
+		expect(tasks().hasAttribute("data-shifted")).toBe(true);
+	});
+
+	it("shows a tab's requests on its card and drops the results the reader saw", () => {
+		openKeyed("tab");
+		clickPage();
+		start("a", { frame: "tab" });
+		start("b", { frame: "tab", operation: "suggest-keyword", subject: "Mat" });
+		// One card per tab: its latest request, spinning while any runs.
+		expect(texts()).toEqual(["Mat - Generating keyword"]);
+		finish("b");
+		expect(rows()[0]?.dataset.state).toBe("working");
+		finish("a");
+		expect(rows()[0]?.dataset.state).toBe("done");
+
+		button().click();
+		expect(tasks().hidden).toBe(true);
+		clickPage();
+		// Both results were on screen; one tab with nothing running needs no card.
+		expect(rows()).toEqual([]);
+	});
+
+	it("opens the tab of a card", () => {
+		const frame = openKeyed("tab");
+		clickPage();
+		start("a", { frame: "tab" });
+		const row = rows()[0];
+		if (!(row instanceof HTMLButtonElement))
+			throw new Error("a tab card is a button");
+		row.click();
+		expect(panel().hidden).toBe(false);
+		expect(shownFrame()).toBe(frame);
+	});
+
+	it("opens the shown tab from a popup task of an unknown document", () => {
+		start("a");
+		finish("a");
+		const row = rows()[0];
+		if (!(row instanceof HTMLButtonElement))
+			throw new Error("a popup task is a button");
+		row.click();
+		expect(panel().hidden).toBe(false);
+		expect(shownFrame()).toBeDefined();
+	});
+
+	it("removes a finished summary after a while and keeps a popup result", async () => {
+		start("a");
+		finish("a", { at: Date.now() - 60_000 });
+		start("b", { source: "page", operation: "summarize" });
+		finish("b", { source: "page", at: Date.now() - 8000 });
+		await new Promise((resolve) => setTimeout(resolve, 5));
+		expect(texts()).toEqual(["Rand - Generating image (done)"]);
+	});
+
+	it("removes a cancelled request at once", () => {
+		start("a");
+		release("a");
+		expect(rows()).toEqual([]);
+		expect(tasks().hidden).toBe(true);
+	});
+
+	it("asks before leaving while a request runs or its result is unsaved", () => {
+		expect(leavingAsks()).toBe(false);
+		start("a");
+		expect(leavingAsks()).toBe(true);
+		finish("a");
+		expect(leavingAsks()).toBe(true);
+		release("a");
+		expect(leavingAsks()).toBe(false);
+
+		start("b");
+		finish("b", { state: "failed" });
+		expect(leavingAsks()).toBe(false);
+	});
+
+	it("asks before leaving while a popup tab holds unsaved changes", () => {
+		const frame = openPopup();
+		report(frame, { dirty: true });
+		expect(leavingAsks()).toBe(true);
+		report(frame, { dirty: false });
+		expect(leavingAsks()).toBe(false);
+	});
+
+	it("forgets a tab's tasks with its frame and stops asking with the launcher", () => {
+		const frame = openKeyed("tab");
+		clickPage();
+		start("a", { frame: "tab" });
+		release("a");
+		start("b", { source: "page", operation: "summarize", subject: "" });
+		pagePopupLauncherNavigated();
+		answer(frame, false);
+		expect(frame.isConnected).toBe(false);
+		expect(texts()).toEqual(["Summarizing page"]);
+
+		setPagePopupLauncher(false, "en");
+		expect(leavingAsks()).toBe(false);
+		// A new launcher lists what still runs in the page.
+		setPagePopupLauncher(true, "en");
+		expect(texts()).toEqual(["Summarizing page"]);
+		expect(leavingAsks()).toBe(true);
+	});
+
+	it("follows the launcher language", () => {
+		start("a", { source: "page", operation: "summarize", subject: "الفصل" });
+		setPagePopupLauncher(true, "ar");
+		expect(rows()[0]?.dir).toBe("rtl");
+		expect(rows()[0]?.textContent).toBe("الفصل - تلخيص الصفحة");
+	});
+});
+
+describe("popup tabs", () => {
+	const rows = () => [
+		...element("#tasks").querySelectorAll<HTMLButtonElement>("button.task"),
+	];
+	const texts = () => rows().map((row) => row.textContent);
+
+	/** Picks `text` and asks for its keyword form with AI, as the chooser does. */
+	async function requestCharacter(text: string): Promise<void> {
+		const node = document.createElement("p");
+		node.textContent = text;
+		document.body.append(node);
+		const chooser = await pick(node);
+		post(chooser, {
+			type: "storylens-selection-create",
+			kind: "keyword",
+			novelId: "novel-1",
+			ai: false,
+		});
+	}
+
+	it("opens a form in a new tab at once while the shown tab is known to hold work", async () => {
+		const first = openPopup();
+		report(first, { dirty: true, working: true });
+		clickPage();
+		await requestCharacter("Rand");
+
+		// Nothing needs asking: a new tab replaces nothing.
+		expect(requests(first)).toEqual([]);
+		expect(popupFrames()).toHaveLength(2);
+		expect(first.hidden).toBe(true);
+		const second = shownFrame();
+		expect(second?.src).toBe(`${POPUP}?${formQuery("Rand")}`);
+		if (!second) throw new Error("the new tab is missing");
+		post(second, { type: POPUP_READY_MESSAGE });
+		report(second, { dirty: true, working: true });
+
+		clickPage();
+		await requestCharacter("Mat");
+		expect(popupFrames()).toHaveLength(3);
+		expect(shownFrame()?.src).toBe(`${POPUP}?${formQuery("Mat")}`);
+		clickPage();
+
+		// Every tab has a card; the one the button opens is marked.
+		expect(texts()).toEqual([
+			"Story Lens",
+			"Rand - New keyword",
+			"Mat - New keyword",
+		]);
+		expect(rows()[2]?.getAttribute("aria-current")).toBe("true");
+		// Two tabs run AI requests out of sight.
+		expect(status().dataset.state).toBe("working");
+	});
+
+	it("switches tabs from their cards and keeps each one as it was", async () => {
+		const first = openPopup();
+		report(first, { dirty: true });
+		clickPage();
+		await requestCharacter("Rand");
+		const second = shownFrame();
+		if (!second) throw new Error("the new tab is missing");
+		post(second, { type: POPUP_READY_MESSAGE });
+		report(second, { dirty: true });
+		clickPage();
+
+		rows()[0]?.click();
+		expect(panel().hidden).toBe(false);
+		expect(shownFrame()).toBe(first);
+		expect(second.hidden).toBe(true);
+		expect(frameWindow(first).posted.at(-1)?.message).toEqual({
+			type: POPUP_SHOWN_MESSAGE,
+		});
+
+		clickPage();
+		button().click();
+		// The launcher button opens the tab shown last.
+		expect(shownFrame()).toBe(first);
+	});
+
+	it("removes a tab out of sight once it answers that it holds nothing", async () => {
+		const first = openPopup();
+		report(first, { dirty: true });
+		clickPage();
+		await requestCharacter("Rand");
+		const second = shownFrame();
+		if (!second) throw new Error("the new tab is missing");
+		post(second, { type: POPUP_READY_MESSAGE });
+		clickPage();
+
+		// The reader saves the first tab's form while it is out of sight.
+		report(first, { dirty: false });
+		expect(requests(first).at(-1)).toMatchObject({ query: "", reload: false });
+		answer(first, false);
+		expect(first.isConnected).toBe(false);
+		expect(popupFrames()).toEqual([second]);
+		// One tab left: no cards.
+		expect(rows()).toEqual([]);
+	});
+
+	it("keeps a tab out of sight whose AI result was not looked at", async () => {
+		const first = openPopup();
+		post(first, { type: POPUP_READY_MESSAGE, key: "first-tab" });
+		report(first, { dirty: true, working: true });
+		pageAiTasks.apply({
+			id: "tab-task",
+			state: "working",
+			operation: "suggest-keyword",
+			subject: "Rand",
+			source: "popup",
+			frame: "first-tab",
+		});
+		clickPage();
+		await requestCharacter("Mat");
+		post(shownFrame() as HTMLIFrameElement, { type: POPUP_READY_MESSAGE });
+		clickPage();
+
+		pageAiTasks.apply({
+			id: "tab-task",
+			state: "failed",
+			operation: "suggest-keyword",
+			subject: "Rand",
+			source: "popup",
+		});
+		report(first, { dirty: false, working: false, failed: true });
+		expect(requests(first)).toEqual([]);
+		expect(texts()[0]).toBe("Rand - Generating keyword (failed)");
+	});
+
+	it("stops opening tabs at the limit and says so", async () => {
+		const first = openPopup();
+		report(first, { dirty: true });
+		clickPage();
+		for (const name of ["A", "B", "C", "D", "E"]) {
+			await requestCharacter(name);
+			const tab = shownFrame();
+			if (!tab) throw new Error("the new tab is missing");
+			post(tab, { type: POPUP_READY_MESSAGE });
+			report(tab, { dirty: true });
+			clickPage();
+		}
+		expect(popupFrames()).toHaveLength(6);
+
+		await requestCharacter("F");
+		const shown = shownFrame();
+		if (!shown) throw new Error("no tab is shown");
+		// At the limit the shown tab is asked; it holds work, so nothing opens.
+		answer(shown, true);
+		expect(popupFrames()).toHaveLength(6);
+		expect(notice().hidden).toBe(false);
+		expect(notice().textContent).toBe(
+			"Save or close one of the open forms first.",
+		);
 	});
 });

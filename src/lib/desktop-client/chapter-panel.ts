@@ -1,4 +1,5 @@
 import { browser } from "#imports";
+import { pageAiTasks } from "@/lib/launcher-frame/ai-tasks";
 import { contentThemeCss } from "@/styles/palette";
 import { findContentRoot } from "@/utils/content-processor";
 import { EXTRACTION_VIEW } from "./chapter-extraction";
@@ -21,6 +22,8 @@ const labels = {
 
 export function clearChapterExtraction(): void {
 	if (!current) return;
+	// The frame goes with the panel, so its extraction and unsaved rows end here.
+	pageAiTasks.drop((task) => task.source === "panel");
 	window.removeEventListener("message", current.onMessage);
 	current.host.remove();
 	current = undefined;

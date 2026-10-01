@@ -1,4 +1,5 @@
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { pageAiTasks } from "@/lib/launcher-frame/ai-tasks";
 import { contentThemeCss } from "@/styles/palette";
 
 const PANEL_ID = "storylens-page-summary";
@@ -98,8 +99,21 @@ function panel(
 	return { host, content };
 }
 
+/** Ends the summary's task under the launcher; a summary has nothing to save. */
+function finishTask(id: string, state: "done" | "failed"): void {
+	pageAiTasks.apply({
+		id,
+		state,
+		operation: "summarize",
+		subject: "",
+		source: "page",
+	});
+	pageAiTasks.apply({ id, state: "released", source: "page" });
+}
+
 export function clearPageSummary(): void {
 	if (current) {
+		pageAiTasks.apply({ id: current.id, state: "released", source: "page" });
 		if (current.running)
 			void sendMessage("cancelDesktopPrompt", current.id).catch(() => {});
 		current.host.remove();
@@ -141,6 +155,13 @@ export function startPageSummary(data: {
 		content.textContent = messages[locale].tooLarge;
 		return { started: true };
 	}
+	pageAiTasks.apply({
+		id,
+		state: "working",
+		operation: "summarize",
+		subject: document.title.trim() || window.location.hostname,
+		source: "page",
+	});
 	void sendMessage("executeDesktopPrompt", {
 		requestId: id,
 		prompt,
@@ -149,6 +170,7 @@ export function startPageSummary(data: {
 		responseLanguage: locale,
 	})
 		.then((output) => {
+			finishTask(id, "done");
 			if (current?.id === id) current.running = false;
 			if (
 				current?.id === id &&
@@ -158,6 +180,7 @@ export function startPageSummary(data: {
 				content.textContent = output;
 		})
 		.catch((error) => {
+			finishTask(id, "failed");
 			if (current?.id === id) current.running = false;
 			if (current?.id === id && host.isConnected)
 				content.textContent =

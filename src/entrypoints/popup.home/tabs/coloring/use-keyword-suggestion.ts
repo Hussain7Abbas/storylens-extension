@@ -13,6 +13,7 @@ import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
 import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import {
 	useOfflineKeywordCategories,
@@ -33,7 +34,7 @@ export type KeywordSuggestionState =
 export function useKeywordSuggestion(
 	enabled: boolean,
 	novelId: string | undefined,
-): KeywordSuggestionState {
+): { state: KeywordSuggestionState; clear: () => void } {
 	const { t, i18n } = useTranslation();
 	const request = useMemo(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -122,6 +123,14 @@ export function useKeywordSuggestion(
 		working: state.status === "loading",
 		failed: state.status === "error",
 	});
+	// Listed under the launcher until the form holding the suggestion closes.
+	useAiTask({
+		operation: "suggest-keyword",
+		subject: request?.name ?? "",
+		working: state.status === "loading",
+		failed: state.status === "error",
+		holding: state.status === "ready",
+	});
 
-	return state;
+	return { state, clear: () => setState({ status: "idle" }) };
 }

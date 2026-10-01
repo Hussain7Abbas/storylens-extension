@@ -6,6 +6,7 @@ import type {
 	GeneratedImage,
 	GenerateImageInput,
 } from "@/lib/desktop-client/types";
+import type { AiTaskReport, AiTaskUpdate } from "@/lib/launcher-frame/ai-tasks";
 import type { PullMode } from "@/lib/offline/sync/pull";
 import type { SyncReason, SyncRunSummary } from "@/lib/offline/sync/runner";
 import type { SyncStatus } from "@/lib/offline/sync/status";
@@ -52,6 +53,10 @@ interface ProtocolMap {
 	}): { ok: true } | { blocked: number } | { error: string };
 	requestNovelRefresh(novelId: string): void;
 	trackAnalyticsEvent(data: AnalyticsEvent): void;
+	/** A Story Lens frame's AI task, relayed to the launcher of its tab. */
+	reportAiTask(data: AiTaskUpdate & { source: "popup" | "panel" }): void;
+	/** Background → content script: an AI task of a Story Lens frame in this tab. */
+	aiTaskUpdated(data: AiTaskReport): void;
 }
 
 export const { sendMessage, onMessage } =

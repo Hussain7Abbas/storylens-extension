@@ -81,7 +81,8 @@ export function ColoringTab({
 	const { t, i18n } = useTranslation();
 	const language = useLanguage();
 	const canMutate = useCanMutateKeywords();
-	const aiSuggestion = useKeywordSuggestion(canMutate, selectedNovelId);
+	const { state: aiSuggestion, clear: clearAiSuggestion } =
+		useKeywordSuggestion(canMutate, selectedNovelId);
 	// Aliases and versions reuse the suggestion, noting which character they belong to.
 	const relatedSuggestion = (
 		kind: "alias" | "version",
@@ -224,6 +225,8 @@ export function ColoringTab({
 	}
 
 	function popFrame() {
+		// The tab stays mounted after its last form closes; its AI result no longer does.
+		if (stack.length === 1) clearAiSuggestion();
 		setStack((prev) => prev.slice(0, -1));
 	}
 

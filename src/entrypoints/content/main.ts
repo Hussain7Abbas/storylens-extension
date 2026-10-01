@@ -5,6 +5,7 @@ import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
 import { CHAPTER_TEXT_CHARS } from "@/lib/desktop-client/chapter-extraction";
 import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
+import { pageAiTasks, parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
@@ -168,6 +169,12 @@ export async function runContentScript(
 			url: window.location.href,
 			html: sanitizePageHtml(),
 		};
+	});
+
+	// AI tasks of the Story Lens frames in this tab, listed under the launcher.
+	onMessage("aiTaskUpdated", ({ data }) => {
+		const report = parseAiTaskReport(data);
+		if (report) pageAiTasks.apply(report);
 	});
 
 	onMessage("getChapterText", () => ({

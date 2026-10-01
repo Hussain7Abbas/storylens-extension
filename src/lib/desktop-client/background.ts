@@ -1,5 +1,11 @@
 import { env } from "@/env";
 import { getStoredAuth } from "@/lib/auth/auth-storage";
+import {
+	DesktopBusyError,
+	type ResultFrame,
+	readResultFrame,
+	retryWhileBusy,
+} from "./job-stream";
 import { desktopSettings } from "./settings";
 import type {
 	DesktopCapabilities,
@@ -65,8 +71,12 @@ async function request(
 	});
 	if (!response.ok) {
 		const body = (await response.json().catch(() => null)) as {
-			error?: { message?: string };
+			error?: { code?: string; message?: string };
 		} | null;
+		if (response.status === 429 && body?.error?.code === "BUSY")
+			throw new DesktopBusyError(
+				body.error.message ?? "Desktop client is busy.",
+			);
 		throw new Error(
 			body?.error?.message ??
 				`Desktop client returned HTTP ${response.status}.`,
@@ -120,60 +130,11 @@ export function cancelPrompt(requestId: string, tabId: number): void {
 	}
 }
 
-type ResultFrame = {
-	type?: string;
-	output?: string;
-	mimeType?: string;
-	data?: string;
-	error?: { message?: string };
-};
-
-/** Reads an NDJSON job stream until its single result frame, enforcing a size limit. */
-async function readResultFrame(
-	response: Response,
-	maxBytes: number,
-): Promise<ResultFrame> {
-	if (!response.body) throw new Error("Desktop client sent no response body.");
-	const reader = response.body.getReader();
-	const decoder = new TextDecoder();
-	let buffer = "",
-		received = 0,
-		result: ResultFrame | undefined;
-	while (true) {
-		const next = await reader.read();
-		if (next.done) break;
-		received += next.value.byteLength;
-		if (received > maxBytes)
-			throw new Error("Desktop client response exceeded the size limit.");
-		buffer += decoder.decode(next.value, { stream: true });
-		let newline = buffer.indexOf("\n");
-		while (newline >= 0) {
-			const line = buffer.slice(0, newline);
-			buffer = buffer.slice(newline + 1);
-			if (line) {
-				let frame: ResultFrame;
-				try {
-					frame = JSON.parse(line) as ResultFrame;
-				} catch {
-					throw new Error("Desktop client returned malformed data.");
-				}
-				if (result)
-					throw new Error("Desktop client returned multiple results.");
-				if (frame.type === "result") result = frame;
-				else if (frame.type === "error")
-					throw new Error(frame.error?.message ?? "Desktop client failed.");
-				else if (frame.type !== "started" && frame.type !== "heartbeat")
-					throw new Error("Desktop client returned an unknown event.");
-			}
-			newline = buffer.indexOf("\n");
-		}
-	}
-	if (!result || buffer.trim())
-		throw new Error("Desktop client connection ended before a result arrived.");
-	return result;
-}
-
-/** Runs one streamed desktop job that can be canceled by request ID or by closing its tab. */
+/**
+ * Runs one streamed desktop job that can be canceled by request ID or by
+ * closing its tab. While the client is busy with other jobs it waits and
+ * tries again, so several popup tabs can run AI requests at the same time.
+ */
 async function runDesktopJob<T>(
 	path: string,
 	requestId: string,
@@ -187,7 +148,39 @@ async function runDesktopJob<T>(
 		throw new Error("This request is already running.");
 	const controller = new AbortController();
 	active.set(requestId, { tabId, controller });
-	const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
+	try {
+		return await retryWhileBusy(
+			() =>
+				attemptDesktopJob(
+					path,
+					settings,
+					body,
+					options,
+					pick,
+					controller.signal,
+				),
+			controller.signal,
+		);
+	} finally {
+		active.delete(requestId);
+		controller.abort();
+	}
+}
+
+/** One try of a desktop job; the time limit starts again with each try. */
+async function attemptDesktopJob<T>(
+	path: string,
+	settings: DesktopSettings,
+	body: Record<string, unknown>,
+	options: { timeoutMs: number; maxBytes: number },
+	pick: (frame: ResultFrame) => T,
+	cancel: AbortSignal,
+): Promise<T> {
+	const controller = new AbortController();
+	const abort = () => controller.abort();
+	cancel.addEventListener("abort", abort, { once: true });
+	if (cancel.aborted) controller.abort();
+	const timeout = setTimeout(abort, options.timeoutMs);
 	try {
 		const response = await request(path, settings, {
 			method: "POST",
@@ -201,7 +194,7 @@ async function runDesktopJob<T>(
 		return pick(await readResultFrame(response, options.maxBytes));
 	} finally {
 		clearTimeout(timeout);
-		active.delete(requestId);
+		cancel.removeEventListener("abort", abort);
 		controller.abort();
 	}
 }

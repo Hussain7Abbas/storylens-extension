@@ -25,6 +25,7 @@ import type {
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
 import { loadFormValues } from "@/utils/form-baseline";
@@ -123,6 +124,7 @@ function NodeSelectorFormContent({
 	const navigate = useNavigate();
 	const aiConfigured = useAiConfigured();
 	const [isDetecting, setIsDetecting] = useState(false);
+	const [detectFailed, setDetectFailed] = useState(false);
 	const [pageContext, setPageContext] = useState<PageContext | null>(null);
 	const detectionController = useRef<AbortController | null>(null);
 	useEffect(() => () => detectionController.current?.abort(), []);
@@ -143,6 +145,14 @@ function NodeSelectorFormContent({
 		initialValues: INITIAL_FORM_VALUES,
 	});
 	useLauncherWork({ dirty: form.isDirty(), working: isDetecting });
+	useAiTask({
+		operation: "detect-selectors",
+		subject:
+			form.values.website ||
+			(pageContext ? new URL(pageContext.url).hostname : ""),
+		working: isDetecting,
+		failed: detectFailed,
+	});
 	const { isDirty, resetDirty } = form;
 
 	const xpathTexts = useMemo(() => {
@@ -233,6 +243,7 @@ function NodeSelectorFormContent({
 	async function handleAutoDetect() {
 		if (detectionController.current) return;
 		setIsDetecting(true);
+		setDetectFailed(false);
 		const controller = new AbortController();
 		detectionController.current = controller;
 
@@ -242,6 +253,7 @@ function NodeSelectorFormContent({
 			const page = tabResult.ok ? tabResult.page : pageContext;
 
 			if (!page) {
+				setDetectFailed(true);
 				toast.error(
 					tabResult.ok
 						? t("nodeSelector.detectFailed")
@@ -275,6 +287,7 @@ function NodeSelectorFormContent({
 		} catch (error) {
 			if (controller.signal.aborted) return;
 			console.error("[StoryLens] Auto-detect selectors failed", error);
+			setDetectFailed(true);
 			const message =
 				error instanceof Error && error.message
 					? error.message

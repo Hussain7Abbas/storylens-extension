@@ -35,6 +35,7 @@ import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
 import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
 	useCachedNovelsList,
@@ -191,6 +192,14 @@ export function ExtractionView() {
 	const inputs = useRef({ categories, natures, keywords, novelId });
 	inputs.current = { categories, natures, keywords, novelId };
 	const aiConfigured = useAiConfigured();
+	// Listed under the launcher; its rows count as unsaved until each is saved.
+	useAiTask({
+		operation: "extract-characters",
+		subject: selectedNovel ? nameIn(selectedNovel, language) : "",
+		working: state.status === "loading",
+		failed: state.status === "error",
+		holding: rows.some((row) => !row.saved),
+	});
 	const ready =
 		aiConfigured &&
 		!!novelId &&

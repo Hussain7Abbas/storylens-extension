@@ -13,6 +13,7 @@ import {
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
 import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
 import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 
 /** Reads the chapter shown in the active tab; empty when no novel page is open. */
@@ -76,6 +77,12 @@ export function GenerateImageButton({
 	const requestId = useRef<string | null>(null);
 	// The launcher keeps the popup and shows progress while the image is drawn.
 	useLauncherWork({ working: busy, failed: !!error });
+	useAiTask({
+		operation: "generate-image",
+		subject: name,
+		working: busy,
+		failed: !!error,
+	});
 
 	useEffect(
 		() => () => {

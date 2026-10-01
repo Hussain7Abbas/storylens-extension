@@ -12,6 +12,7 @@ import {
 	loadDesktopCapabilities,
 	shareAccountSession,
 } from "@/lib/desktop-client/background";
+import { parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
 import {
 	downloadNovel,
@@ -192,6 +193,21 @@ export default defineBackground(() => {
 	);
 
 	onMessage("trackAnalyticsEvent", ({ data }) => trackAnalyticsEvent(data));
+	onMessage("reportAiTask", ({ data, sender }) => {
+		// Only Story Lens pages framed in a tab have a launcher to show the task.
+		const tabId = sender.tab?.id;
+		if (
+			sender.id !== browser.runtime.id ||
+			tabId === undefined ||
+			!sender.url?.startsWith(browser.runtime.getURL("/"))
+		)
+			return;
+		const report = parseAiTaskReport(data);
+		if (!report || report.source === "page") return;
+		void sendMessage("aiTaskUpdated", report, { tabId, frameId: 0 }).catch(
+			() => {},
+		);
+	});
 
 	onMessage("syncKick", async ({ data }) => {
 		void kickSync(data.reason, {

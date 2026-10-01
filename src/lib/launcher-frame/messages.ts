@@ -67,6 +67,14 @@ export function isPopupReady(data: unknown): boolean {
 	return typed(data, POPUP_READY_MESSAGE);
 }
 
+/** The key a ready popup announced for its AI tasks, if any. */
+export function popupReadyKey(data: unknown): string | undefined {
+	if (!typed(data, POPUP_READY_MESSAGE) || !("key" in data)) return undefined;
+	return typeof data.key === "string" && data.key && data.key.length <= 64
+		? data.key
+		: undefined;
+}
+
 export function parsePopupRequest(data: unknown): PopupRequest | undefined {
 	if (!typed(data, POPUP_REQUEST_MESSAGE)) return undefined;
 	if (!("id" in data) || typeof data.id !== "string") return undefined;

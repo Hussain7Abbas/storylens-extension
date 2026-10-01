@@ -12,6 +12,19 @@ const reporter = createPopupWorkReporter((state) =>
 	// The parent is the novel site, whose origin is unknown; the message carries only flags.
 	window.parent.postMessage({ type: POPUP_STATE_MESSAGE, ...state }, "*"),
 );
+let launcherPopup = false;
+// Names this popup document to the launcher, which shows its AI tasks on its tab.
+const frameKey = crypto.randomUUID();
+
+/** Whether this document is the launcher's kept popup, not a short-lived view. */
+export function isLauncherPopup(): boolean {
+	return launcherPopup;
+}
+
+/** This popup document's key, announced in its ready message; none outside the launcher. */
+export function launcherFrameKey(): string | undefined {
+	return launcherPopup ? frameKey : undefined;
+}
 
 /**
  * Answers the launcher's requests from the popup's state at that moment, so a
@@ -22,6 +35,7 @@ export function connectLauncherFrame(
 	load: (url: string) => void = (url) => window.location.replace(url),
 ): () => void {
 	if (window.parent === window) return () => {};
+	launcherPopup = true;
 	const receive = (message: MessageEvent) => {
 		// The novel site is the parent too and can send this; a request only reloads a popup that holds nothing.
 		if (message.source !== window.parent) return;
@@ -37,7 +51,8 @@ export function connectLauncherFrame(
 		load(window.location.pathname + (query ? `?${query}` : ""));
 	};
 	window.addEventListener("message", receive);
-	window.parent.postMessage({ type: POPUP_READY_MESSAGE }, "*");
+	// The key only labels this document's AI tasks; it grants nothing.
+	window.parent.postMessage({ type: POPUP_READY_MESSAGE, key: frameKey }, "*");
 	return () => window.removeEventListener("message", receive);
 }
 

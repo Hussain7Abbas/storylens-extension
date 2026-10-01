@@ -76,6 +76,10 @@ const { localeAtom } = await import("../../src/store/locale");
 const { default: App } = await import("../../src/entrypoints/popup/App");
 const { connectLauncherFrame, useLauncherShown, useLauncherWork } =
 	await import("../../src/lib/launcher-frame/use-launcher-work");
+const { useAiTask } = await import("../../src/lib/launcher-frame/use-ai-task");
+const { useAiConfigured } = await import(
+	"../../src/lib/desktop-client/use-ai-configured"
+);
 const {
 	POPUP_ANSWER_MESSAGE,
 	POPUP_READY_MESSAGE,
@@ -569,7 +573,10 @@ describe("popup inside the launcher frame", () => {
 		const loaded: string[] = [];
 		const disconnect = connectLauncherFrame((url) => loaded.push(url));
 		try {
-			expect(posted).toEqual([{ type: POPUP_READY_MESSAGE }]);
+			// The key labels this document's AI tasks on its launcher tab.
+			expect(posted).toEqual([
+				{ type: POPUP_READY_MESSAGE, key: expect.any(String) },
+			]);
 			const form = renderHook((work: Work) => useLauncherWork(work), {
 				initialProps: { dirty: false } as Work,
 			});
@@ -676,6 +683,304 @@ describe("popup inside the launcher frame", () => {
 			runtime.sendMessage = original;
 			embed(false);
 		}
+	});
+
+	describe("AI tasks listed under the launcher", () => {
+		type Task = Parameters<typeof useAiTask>[0];
+		const runtime = fakeBrowser.runtime as { sendMessage: unknown };
+		let original: unknown;
+		let reports: Record<string, unknown>[] = [];
+
+		beforeEach(() => {
+			reports = [];
+			original = runtime.sendMessage;
+			runtime.sendMessage = async (message: unknown) => {
+				const { type, data } = message as {
+					type: string;
+					data: Record<string, unknown>;
+				};
+				if (type === "reportAiTask") reports.push(data);
+			};
+			embed(true);
+			// This document is the launcher's kept popup.
+			connectLauncherFrame(() => {})();
+		});
+
+		afterEach(() => {
+			runtime.sendMessage = original;
+			embed(false);
+		});
+
+		const states = () =>
+			reports.map(
+				(report) => `${report.state}:${String(report.id).slice(0, 4)}`,
+			);
+		const task = (props: Partial<Task> = {}): Task => ({
+			operation: "generate-image",
+			subject: "Rand",
+			working: false,
+			...props,
+		});
+
+		for (const action of ["cancel", "save"] as const)
+			it(`releases a keyword suggestion after ${action} while its Coloring tab stays mounted`, async () => {
+				const previousUrl = window.location.href;
+				await pullLookups({ db: env.db, token: "token-reader-1" });
+				await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+				await fakeBrowser.storage.local.set({
+					"storylens-desktop-client": {
+						port: 43127,
+						token: "paired",
+						model: "test-model",
+						effort: "low",
+					},
+				});
+				// App normally loads the shared AI settings before rendering the tab.
+				const configured = renderHook(() => useAiConfigured(), { wrapper });
+				await waitFor(() => expect(configured.result.current).toBe(true));
+				configured.unmount();
+				runtime.sendMessage = async (message: unknown) => {
+					const { type, data } = message as {
+						type: string;
+						data: Record<string, unknown>;
+					};
+					if (type === "reportAiTask") reports.push(data);
+					if (type === "executeDesktopPrompt")
+						return {
+							res: data.webSearch
+								? "A fantasy novel."
+								: JSON.stringify({
+										description: "A shepherd.",
+										category: 1,
+										nature: 1,
+									}),
+						};
+					return { res: undefined };
+				};
+				window.history.replaceState(
+					null,
+					"",
+					`?${new URLSearchParams({
+						create: "keyword",
+						search: "Rand",
+						aiContext: JSON.stringify({ before: "", after: "" }),
+					})}`,
+				);
+				posted.length = 0;
+				const view = render(
+					React.createElement(
+						PageContent,
+						null,
+						React.createElement(ColoringTab, {
+							selectedNovelId: env.novel.id,
+							currentChapter: 0,
+						}),
+					),
+					{ wrapper },
+				);
+				try {
+					await waitFor(() => {
+						expect(view.getByRole("button", { name: "_.save" })).toBeTruthy();
+						expect(view.getByDisplayValue("A shepherd.")).toBeTruthy();
+						expect(reports.at(-1)).toMatchObject({ state: "done" });
+						expect(posted.at(-1)).toMatchObject({ dirty: true });
+					});
+					const button = view.getByRole("button", { name: `_.${action}` });
+					if (action === "save") {
+						fireEvent.click(
+							view.getByLabelText(/^coloring.category/, { selector: "input" }),
+						);
+						fireEvent.click(
+							view.getByRole("option", { name: "Hero", hidden: true }),
+						);
+						fireEvent.click(
+							view.getByLabelText(/^coloring.nature/, { selector: "input" }),
+						);
+						fireEvent.click(
+							view.getByRole("option", { name: "Human", hidden: true }),
+						);
+						const form = button.closest("form");
+						if (!form) throw new Error("the keyword form is missing");
+						fireEvent.submit(form);
+					} else fireEvent.click(button);
+					await waitFor(() => {
+						expect(store.get(formPageAtom)).toBeNull();
+						expect(view.getByRole("button", { name: "_.add" })).toBeTruthy();
+						expect(reports.at(-1)).toMatchObject({ state: "released" });
+						expect(posted.at(-1)).toMatchObject({ dirty: false });
+					});
+					expect(await env.db.mutations.count()).toBe(
+						action === "save" ? 1 : 0,
+					);
+					expect(view.queryByText("coloring.aiSuggestionReady")).toBeNull();
+				} finally {
+					view.unmount();
+					window.history.replaceState(null, "", previousUrl);
+				}
+			});
+
+		it("reports a request from start to done and releases it when the form closes", async () => {
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task(),
+			});
+			await act(async () => {});
+			expect(reports).toEqual([]);
+
+			hook.rerender(task({ working: true }));
+			await act(async () => {});
+			// The subject is read when the request starts.
+			hook.rerender(task({ working: true, subject: "Renamed" }));
+			hook.rerender(task({ working: false, subject: "Renamed" }));
+			await act(async () => {});
+			expect(
+				reports.map(({ state, subject, operation, source }) => ({
+					state,
+					subject,
+					operation,
+					source,
+				})),
+			).toEqual([
+				{
+					state: "working",
+					subject: "Rand",
+					operation: "generate-image",
+					source: "popup",
+				},
+				{
+					state: "done",
+					subject: "Rand",
+					operation: "generate-image",
+					source: "popup",
+				},
+			]);
+			expect(reports[0]?.id).toBe(reports[1]?.id);
+
+			// Every report names this popup document, so the launcher shows it on its tab.
+			expect(reports[0]?.frame).toEqual(expect.any(String));
+			hook.unmount();
+			await act(async () => {});
+			expect(reports.at(-1)).toEqual({
+				id: reports[0]?.id,
+				state: "released",
+				source: "popup",
+				frame: reports[0]?.frame,
+			});
+		});
+
+		it("counts a result it holds as unsaved work in the popup", async () => {
+			posted.length = 0;
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task({ working: true }),
+			});
+			hook.rerender(task());
+			await act(async () => {});
+			// The launcher keeps this tab and opens the next form in a new one.
+			expect(posted.at(-1)).toMatchObject({
+				type: POPUP_STATE_MESSAGE,
+				dirty: true,
+			});
+
+			hook.rerender(task({ holding: false }));
+			await act(async () => {});
+			expect(posted.at(-1)).toMatchObject({
+				type: POPUP_STATE_MESSAGE,
+				dirty: false,
+			});
+			hook.unmount();
+		});
+
+		it("holds nothing for a failed request", async () => {
+			posted.length = 0;
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task({ working: true }),
+			});
+			hook.rerender(task({ failed: true }));
+			await act(async () => {});
+			expect(
+				posted.filter(
+					(message) =>
+						(message as { type?: string }).type === POPUP_STATE_MESSAGE,
+				),
+			).toEqual([]);
+			expect(reports.map((report) => report.state)).toEqual([
+				"working",
+				"failed",
+				"released",
+			]);
+			hook.unmount();
+		});
+
+		it("reports a failure and releases the previous result when a new request starts", async () => {
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task({ working: true }),
+			});
+			hook.rerender(task({ failed: true }));
+			hook.rerender(task({ working: true }));
+			hook.rerender(task());
+			await act(async () => {});
+			const [first, second] = [reports[0]?.id, reports[3]?.id];
+			expect(reports.map((report) => [report.id, report.state])).toEqual([
+				[first, "working"],
+				[first, "failed"],
+				[first, "released"],
+				[second, "working"],
+				[second, "done"],
+			]);
+			expect(first).not.toBe(second);
+			hook.unmount();
+		});
+
+		it("cancels a running request when its component goes away", async () => {
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task({ working: true }),
+			});
+			hook.unmount();
+			await act(async () => {});
+			expect(states()).toEqual([
+				`working:${String(reports[0]?.id).slice(0, 4)}`,
+				`released:${String(reports[0]?.id).slice(0, 4)}`,
+			]);
+		});
+
+		it("releases a result once nothing is held, at once or later", async () => {
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task({ working: true, holding: false }),
+			});
+			hook.rerender(task({ holding: false }));
+			await act(async () => {});
+			expect(reports.map((report) => report.state)).toEqual([
+				"working",
+				"done",
+				"released",
+			]);
+
+			hook.rerender(task({ working: true }));
+			hook.rerender(task({ holding: true }));
+			hook.rerender(task({ holding: false }));
+			await act(async () => {});
+			expect(reports.map((report) => report.state)).toEqual([
+				"working",
+				"done",
+				"released",
+				"working",
+				"done",
+				"released",
+			]);
+			hook.unmount();
+			await act(async () => {});
+			expect(reports).toHaveLength(6);
+		});
+
+		it("reports nothing from the toolbar popup", async () => {
+			embed(false);
+			const hook = renderHook((props: Task) => useAiTask(props), {
+				initialProps: task({ working: true }),
+			});
+			hook.rerender(task());
+			hook.unmount();
+			await act(async () => {});
+			expect(reports).toEqual([]);
+		});
 	});
 });
 
