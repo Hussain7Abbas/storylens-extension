@@ -643,3 +643,40 @@ describe("launcher popup messages", () => {
 		expect(status().dataset.state).toBe("working");
 	});
 });
+
+describe("launcher near an edge", () => {
+	it("stays visible for 3 seconds after it appears, then tucks", async () => {
+		setPagePopupLauncher(false, "en");
+		await fakeBrowser.storage.local.set({
+			"storylens-page-launcher-position": { x: 0, y: 100 },
+		});
+		const realSetTimeout = globalThis.setTimeout;
+		const reveals: (() => void)[] = [];
+		globalThis.setTimeout = ((handler: () => void, delay?: number) => {
+			if (delay === 3000) {
+				reveals.push(handler);
+				return 0;
+			}
+			return realSetTimeout(handler, delay);
+		}) as typeof setTimeout;
+		try {
+			setPagePopupLauncher(true, "en");
+		} finally {
+			globalThis.setTimeout = realSetTimeout;
+		}
+		try {
+			// The saved position at the left edge is restored asynchronously.
+			await new Promise((resolve) => setTimeout(resolve, 5));
+			const host = document.getElementById("storylens-page-launcher");
+			// Clamped 8 px from the edge, inside the 10 px tuck range.
+			expect(host?.style.left).toBe("8px");
+			expect(button().style.transform).toBe("");
+
+			expect(reveals).toHaveLength(1);
+			reveals[0]?.();
+			expect(button().style.transform).toMatch(/^translate\(/);
+		} finally {
+			fakeBrowser.storage.local.reset();
+		}
+	});
+});

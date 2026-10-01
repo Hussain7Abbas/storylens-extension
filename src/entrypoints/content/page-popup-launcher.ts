@@ -56,6 +56,8 @@ const ACTION_GAP = 8;
 const ACTION_SHOW_DELAY = 200;
 const ACTION_HIDE_DELAY = 300;
 const NOTICE_DURATION = 3500;
+// A launcher near an edge stays visible this long after it appears, so readers notice it.
+const LOAD_REVEAL_DURATION = 3000;
 // A popup frame that has not announced itself by then failed to load.
 const POPUP_READY_TIMEOUT = 5000;
 const UNLOCK_STYLE_ID = "storylens-selection-unlock";
@@ -192,6 +194,8 @@ function createLauncher(locale: string): Launcher {
 	let cursor: Position | undefined;
 	let revealed = false;
 	let tucked = false;
+	let loadReveal = true;
+	let loadRevealTimer: ReturnType<typeof setTimeout> | undefined;
 	let actionTimer: ReturnType<typeof setTimeout> | undefined;
 	// The popup frame outlives closing, so an open form and its AI request continue.
 	let popupFrame: HTMLIFrameElement | undefined;
@@ -442,6 +446,7 @@ function createLauncher(locale: string): Launcher {
 			cursor.y >= point.y - 10 &&
 			cursor.y <= point.y + size + 10;
 		const keepVisible =
+			loadReveal ||
 			!!drag ||
 			!panel.hidden ||
 			!actions.hidden ||
@@ -1007,6 +1012,11 @@ function createLauncher(locale: string): Launcher {
 	window.addEventListener("resize", onResize);
 	window.addEventListener("message", onPopupMessage);
 	setPosition(position);
+	loadRevealTimer = setTimeout(() => {
+		loadRevealTimer = undefined;
+		loadReveal = false;
+		updateTuck();
+	}, LOAD_REVEAL_DURATION);
 	void browser.storage.local
 		.get([
 			POSITION_KEY,
@@ -1057,6 +1067,7 @@ function createLauncher(locale: string): Launcher {
 			close();
 		},
 		dispose: () => {
+			clearTimeout(loadRevealTimer);
 			close();
 			discardPopup();
 			// The layer goes with the launcher, which holds its only switch.
