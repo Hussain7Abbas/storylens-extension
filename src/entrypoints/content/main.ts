@@ -9,10 +9,7 @@ import { pageAiTasks, parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
-import {
-	findContentRoot,
-	removeExtensionMarkup,
-} from "@/utils/content-processor";
+import { findContentRoot } from "@/utils/content-processor";
 import {
 	setTooltipFontFace,
 	setTooltipFontSize,
@@ -112,7 +109,6 @@ async function handleDetectedNovel(force = false): Promise<void> {
 export async function refreshPageContent(): Promise<void> {
 	console.log(`${LOG_PREFIX} Refreshing content processing`);
 
-	removeExtensionMarkup();
 	lastProcessedKey = undefined;
 
 	const novel = detectCurrentNovel();
