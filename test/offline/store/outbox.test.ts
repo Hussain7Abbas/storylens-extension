@@ -284,6 +284,82 @@ describe("enqueue", () => {
 		expect(result.mutationId).toBeNull();
 	});
 
+	it("stores keyword and alias names without Arabic diacritics, like the API", async () => {
+		const created = await enqueue(
+			{
+				entity: "keyword",
+				op: "create",
+				novelId: env.novel.id,
+				values: { ...keywordValues(), nameEn: null, nameAr: " مُحَمَّدٌ " },
+			},
+			{ db: env.db },
+		);
+		const keyword = (await view()).keywords.find(
+			(item) => item.id === created.entityId,
+		);
+		expect(keyword?.nameAr).toBe("محمد");
+		expect((await outbox())[0]?.patch.nameAr).toBe("محمد");
+
+		const twin = await enqueue(
+			{
+				entity: "keyword",
+				op: "create",
+				novelId: env.novel.id,
+				values: { ...keywordValues(), nameEn: null, nameAr: "محمّد" },
+			},
+			{ db: env.db },
+		).catch((caught) => caught);
+		expect((twin as InstanceType<typeof ValidationFailed>).code).toBe(
+			"KEYWORD_NAME_TAKEN",
+		);
+		const marksOnly = await enqueue(
+			{
+				entity: "keyword",
+				op: "create",
+				novelId: env.novel.id,
+				values: { ...keywordValues(), nameEn: null, nameAr: "ً" },
+			},
+			{ db: env.db },
+		).catch((caught) => caught);
+		expect((marksOnly as InstanceType<typeof ValidationFailed>).code).toBe(
+			"NAME_REQUIRED",
+		);
+
+		const alias = await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "create",
+				keywordId: created.entityId,
+				values: { nameAr: "سَيْفُ الدِّين" },
+			},
+			{ db: env.db },
+		);
+		expect(
+			(await view()).keywords
+				.find((item) => item.id === created.entityId)
+				?.aliases.find((item) => item.id === alias.entityId)?.nameAr,
+		).toBe("سيف الدين");
+	});
+
+	it("treats a name that differs only in diacritics as unchanged", async () => {
+		const server = env.api.seedKeyword(
+			env.novel.id,
+			{ nameAr: "محمد", categoryId: env.category.id, natureId: env.nature.id },
+			env.user.id,
+		);
+		await pull();
+		const result = await enqueue(
+			{
+				entity: "keyword",
+				op: "update",
+				id: server.id,
+				changes: { nameAr: "مُحَمَّد" },
+			},
+			{ db: env.db },
+		);
+		expect(result.mutationId).toBeNull();
+	});
+
 	it("refuses what the server would refuse, writing nothing", async () => {
 		const other = env.api.seedKeyword(
 			env.novel.id,

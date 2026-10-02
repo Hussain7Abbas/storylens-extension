@@ -2,104 +2,32 @@
 	background: var(--sl-surface);
 	border-bottom: 1px solid var(--mantine-color-default-border);
 }
-
 .brand {
-	flex-shrink: 0;
 	min-width: 0;
+	flex: 1;
+	overflow: hidden;
 }
-
 .wordmark {
-	font-size: 1.15rem;
+	font-size: 1.05rem;
 	font-family: var(--mantine-font-family);
 	font-weight: 600;
 	letter-spacing: -0.03em;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
-
 .brandDot {
 	color: var(--mantine-primary-color-filled);
 }
-
-.actionsWrapper {
-	flex: 1;
-	min-width: 0;
+.balancePulse {
+	animation: balance-pulse 600ms ease-out;
 }
-
-.actionsScrollRegion {
-	position: relative;
-	flex: 1;
-	min-width: 0;
-	display: flex;
-	justify-content: flex-end;
-	overflow: hidden;
+@keyframes balance-pulse {
+	50% {
+		background: var(--mantine-primary-color-light);
+	}
 }
-
-.actionsScroll {
-	overflow-x: auto;
-	overflow-y: hidden;
-	max-width: 100%;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-}
-
-.actionsScroll::-webkit-scrollbar {
-	display: none;
-}
-
-.actionsInner {
-	width: max-content;
-}
-
-.actionsFadeStart,
-.actionsFadeEnd {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	width: 1.25rem;
-	pointer-events: none;
-	z-index: 1;
-	opacity: 0;
-	transition: opacity 150ms ease;
-}
-
-.actionsFadeStart[data-visible="true"],
-.actionsFadeEnd[data-visible="true"] {
-	opacity: 1;
-}
-
-.actionsFadeStart {
-	inset-block: 0;
-	inset-inline-start: 0;
-	background: linear-gradient(to right, var(--sl-surface) 0%, transparent 100%);
-}
-
-.actionsFadeEnd {
-	inset-block: 0;
-	inset-inline-end: 0;
-	background: linear-gradient(to left, var(--sl-surface) 0%, transparent 100%);
-}
-
-.actionsWrapper[dir="rtl"] .actionsFadeStart {
-	background: linear-gradient(to left, var(--sl-surface) 0%, transparent 100%);
-}
-
-.actionsWrapper[dir="rtl"] .actionsFadeEnd {
-	background: linear-gradient(to right, var(--sl-surface) 0%, transparent 100%);
-}
-
-.icon {
-	width: 22px;
-	height: 22px;
-}
-
-.dark {
-	display: block;
-}
-.light {
-	display: none;
-}
-[data-mantine-color-scheme="dark"] .dark {
-	display: none;
-}
-[data-mantine-color-scheme="dark"] .light {
-	display: block;
+@media (prefers-reduced-motion: reduce) {
+	.balancePulse {
+		animation: none;
+	}
 }

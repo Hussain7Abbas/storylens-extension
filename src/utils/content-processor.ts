@@ -6,6 +6,11 @@ import type {
 	RawKeywordAlias,
 } from "@/types/content-data";
 import {
+	ARABIC_DIACRITICS_CLASS,
+	isArabicDiacritic,
+	stripArabicDiacritics,
+} from "@/utils/arabic";
+import {
 	destroyKeywordTooltipPortal,
 	initKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
@@ -44,6 +49,11 @@ function sortTermsByLengthDesc(terms: TermWithMatching[]): TermWithMatching[] {
 	return [...terms].sort((left, right) => right.term.length - left.term.length);
 }
 
+/** Matching compares letters only: Arabic diacritics never change a match. */
+function matchKey(value: string): string {
+	return stripArabicDiacritics(value).toLowerCase();
+}
+
 function escapeRegex(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -75,47 +85,70 @@ const ARABIC_SINGLE_LETTER_PREFIXES = new Set(["و", "ف", "ب", "ل", "ك", "س
 const ARABIC_CONNECTING_LETTERS = new Set(["ب", "ف", "ل", "ك", "س"]);
 
 function withTatweel(prefix: string): string {
-	if (!prefix) return prefix;
-	const last = prefix[prefix.length - 1];
-	return ARABIC_CONNECTING_LETTERS.has(last) ? `${prefix}ـ` : prefix;
+	if (!prefix || prefix.includes("ـ")) return prefix;
+	const last = [...prefix].findLast((letter) => !isArabicDiacritic(letter));
+	return last && ARABIC_CONNECTING_LETTERS.has(last) ? `${prefix}ـ` : prefix;
+}
+
+/** Where `text` continues after its first `count` letters and their diacritics. */
+function afterLetters(text: string, count: number): number {
+	let letters = 0;
+	let index = 0;
+	for (const character of text) {
+		if (!isArabicDiacritic(character)) {
+			if (letters === count) break;
+			letters += 1;
+		}
+		index += character.length;
+	}
+	return index;
 }
 
 function findKeywordMatch<T>(
 	matchedText: string,
 	lookup: Map<string, T>,
 ): { prefix: string; core: string; value: T } | null {
+	const letters = stripArabicDiacritics(matchedText);
+	const split = (count: number) => {
+		const at = afterLetters(matchedText, count);
+		return { prefix: matchedText.slice(0, at), core: matchedText.slice(at) };
+	};
+
 	// Form 1: bare keyword — exact match, always tried first.
-	const exact = lookup.get(matchedText.toLowerCase());
+	const exact = lookup.get(letters.toLowerCase());
 	if (exact) return { prefix: "", core: matchedText, value: exact };
 
 	// Form 2: ال + keyword.
-	if (matchedText.startsWith("ال")) {
-		const core = matchedText.slice(2);
-		const value = lookup.get(core.toLowerCase());
-		if (value) return { prefix: "ال", core, value };
+	if (letters.startsWith("ال")) {
+		const value = lookup.get(letters.slice(2).toLowerCase());
+		if (value) return { ...split(2), value };
 	}
 
 	// Forms 3–8: single-letter proclitic + keyword.
-	const first = matchedText[0];
+	const first = letters[0];
 	if (first && ARABIC_SINGLE_LETTER_PREFIXES.has(first)) {
-		const core = matchedText.slice(1);
-		const value = lookup.get(core.toLowerCase());
-		if (value) return { prefix: first, core, value };
+		const value = lookup.get(letters.slice(1).toLowerCase());
+		if (value) return { ...split(1), value };
 	}
 
 	return null;
 }
 
+const DIACRITICS = `${ARABIC_DIACRITICS_CLASS}*`;
+const ARABIC_PREFIX_PATTERN = `(?:ا${DIACRITICS}ل${DIACRITICS}|[وفبلكس]${DIACRITICS})?`;
+
 function wrapFullTermPattern(escaped: string, term: string): string {
 	if (/^\p{Script=Arabic}/u.test(term)) {
-		return `(?<![\\p{L}\\p{N}_])(?:ال|[وفبلكس])?${escaped}(?![\\p{L}\\p{N}_])`;
+		return `(?<![\\p{L}\\p{M}\\p{N}_])${ARABIC_PREFIX_PATTERN}${escaped}(?![\\p{L}\\p{M}\\p{N}_])`;
 	}
-	return `(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`;
+	return `(?<![\\p{L}\\p{M}\\p{N}_])${escaped}(?![\\p{L}\\p{M}\\p{N}_])`;
 }
 
 function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
 	const uniqueTerms = dedupeTermsCaseInsensitive(
-		terms.filter((entry) => entry.term),
+		terms
+			.map((entry) => ({ ...entry, term: stripArabicDiacritics(entry.term) }))
+			.filter((entry) => entry.term),
 	);
 	if (uniqueTerms.length === 0) {
 		return undefined;
@@ -123,7 +156,7 @@ function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
 
 	const pattern = uniqueTerms
 		.map(({ term, matchingType }) => {
-			const escaped = escapeRegex(term);
+			const escaped = termPattern(term, false);
 			return matchingType === "FULL"
 				? wrapFullTermPattern(escaped, term)
 				: escaped;
@@ -140,19 +173,26 @@ function buildCombinedPattern(terms: TermWithMatching[]): RegExp | undefined {
 
 const ARABIC_ALEF_VARIANTS = new Set(["ا", "أ", "إ", "آ", "ٱ"]);
 const ARABIC_ALEF_PATTERN = "(?:ا[\u0653\u0654\u0655]|[اأإآٱ])";
-const CANONICAL_ALEF_PATTERNS: Record<string, string> = {
-	أ: "(?:أ|ا\u0654)",
-	إ: "(?:إ|ا\u0655)",
-	آ: "(?:آ|ا\u0653)",
-};
 
-/** Keep the original text for display; only the regex accepts alternate alifs. */
-function keywordTermPattern(term: string, fuzzy: boolean): string {
-	return [...term.normalize("NFC")]
+function letterPattern(letter: string, fuzzy: boolean): string {
+	if (fuzzy && ARABIC_ALEF_VARIANTS.has(letter)) return ARABIC_ALEF_PATTERN;
+	// A page may write أ as ا + U+0654 (and similar letters decomposed).
+	const decomposed = letter.normalize("NFD");
+	return decomposed === letter
+		? escapeRegex(letter)
+		: `(?:${escapeRegex(letter)}|${escapeRegex(decomposed)})`;
+}
+
+/**
+ * Keep the original text for display; only the regex accepts alternate alifs
+ * and skips any diacritics (حركات) the page puts after an Arabic letter.
+ */
+function termPattern(term: string, fuzzy: boolean): string {
+	return [...stripArabicDiacritics(term)]
 		.map((letter) =>
-			fuzzy && ARABIC_ALEF_VARIANTS.has(letter)
-				? ARABIC_ALEF_PATTERN
-				: (CANONICAL_ALEF_PATTERNS[letter] ?? escapeRegex(letter)),
+			/\p{Script=Arabic}/u.test(letter)
+				? `${letterPattern(letter, fuzzy)}${DIACRITICS}`
+				: letterPattern(letter, fuzzy),
 		)
 		.join("");
 }
@@ -165,6 +205,10 @@ function buildKeywordPattern(keywords: EnrichedKeyword[]):
 	| undefined {
 	const seen = new Set<string>();
 	const entries = [...keywords]
+		.map((keyword) => ({
+			...keyword,
+			name: stripArabicDiacritics(keyword.name),
+		}))
 		.filter((keyword) => keyword.name)
 		.sort(
 			(left, right) =>
@@ -181,7 +225,7 @@ function buildKeywordPattern(keywords: EnrichedKeyword[]):
 	if (entries.length === 0) return undefined;
 	const pattern = entries
 		.map((keyword) => {
-			const core = `(${keywordTermPattern(keyword.name, keyword.fuzzyMatchArabicCharacters)})`;
+			const core = `(${termPattern(keyword.name, keyword.fuzzyMatchArabicCharacters)})`;
 			return keyword.matchingType === "FULL"
 				? wrapFullTermPattern(core, keyword.name)
 				: core;
@@ -386,8 +430,8 @@ function buildReplacementLookup(
 			continue;
 		}
 
-		const key = replacement.from.toLowerCase();
-		if (!lookup.has(key)) {
+		const key = matchKey(replacement.from);
+		if (key && !lookup.has(key)) {
 			lookup.set(key, replacement);
 		}
 	}

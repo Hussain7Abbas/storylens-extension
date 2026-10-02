@@ -45,6 +45,7 @@ import type {
 	VersionRow,
 } from "@/lib/offline/types";
 import { readNovelSnapshot, readUserMutations } from "@/lib/offline/views";
+import { cleanKeywordName } from "@/utils/arabic";
 
 // ---------------------------------------------------------------------------
 // Errors (typed, so forms show localized messages)
@@ -250,6 +251,15 @@ function cleanText(
 		: value === null
 			? null
 			: value.trim() || null;
+}
+
+/** Keyword and alias names, like the API: trimmed and without Arabic diacritics. */
+function cleanName(
+	value: string | null | undefined,
+): string | null | undefined {
+	return value === undefined || value === null
+		? value
+		: cleanKeywordName(value);
 }
 
 function defined(row: Row): Row {
@@ -617,8 +627,8 @@ async function enqueueKeyword(
 		assert(canCreate(ctx.user), () => new PermissionDenied());
 		const { view } = await readViews(ctx, input.novelId);
 		const names = {
-			nameAr: cleanText(input.values.nameAr) ?? null,
-			nameEn: cleanText(input.values.nameEn) ?? null,
+			nameAr: cleanName(input.values.nameAr) ?? null,
+			nameEn: cleanName(input.values.nameEn) ?? null,
 		};
 		validate(checkKeywordNames(names, view?.keywords ?? []));
 		const entityId = newId();
@@ -689,8 +699,8 @@ async function enqueueKeyword(
 	if (!keyword || !novelId) throw new ValidationFailed("NOT_FOUND");
 	assert(canEditKeyword(ctx.user, keyword), () => new PermissionDenied());
 	const changes = defined({
-		nameAr: cleanText(input.changes.nameAr),
-		nameEn: cleanText(input.changes.nameEn),
+		nameAr: cleanName(input.changes.nameAr),
+		nameEn: cleanName(input.changes.nameEn),
 		matchingType: input.changes.matchingType,
 		fuzzyMatchArabicCharacters: input.changes.fuzzyMatchArabicCharacters,
 	}) as Partial<KeywordFields>;
@@ -734,8 +744,8 @@ const ALIAS_FIELDS = [
 
 function aliasValues(values: Partial<AliasValues>): Row {
 	return defined({
-		nameAr: cleanText(values.nameAr),
-		nameEn: cleanText(values.nameEn),
+		nameAr: cleanName(values.nameAr),
+		nameEn: cleanName(values.nameEn),
 		description: cleanText(values.description),
 		matchingType: values.matchingType,
 		fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,

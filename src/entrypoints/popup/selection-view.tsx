@@ -11,9 +11,12 @@ import { History, Link, Tag, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { GetKeywords200DataItem } from "@/api/generated/schemas";
+import { AiPrice } from "@/components/lens/ai-price";
+import { GetLensesLink } from "@/components/lens/get-lenses-link";
 import { ParentKeywordSelect } from "@/components/parent-keyword-select";
+import { availabilityKey } from "@/lib/ai-source/availability";
+import { useAiAvailability } from "@/lib/ai-source/hooks";
 import { useCanMutateKeywords } from "@/lib/auth";
-import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
 import { useCachedNovelsList } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import { nameIn } from "@/utils/translation";
@@ -39,10 +42,11 @@ export function SelectionView() {
 		return () => observer.disconnect();
 	}, []);
 	const canMutate = useCanMutateKeywords();
-	const configured = useAiConfigured();
+	const availability = useAiAvailability("keyword_suggestion");
+	const configured = availability.ok;
 	const { novels } = useCachedNovelsList();
 	const { selectedNovel, setSelectedNovel } = useDetectedNovel(novels, novels);
-	const [ai, setAi] = useState(true);
+	const [ai, setAi] = useState(false);
 	const [kind, setKind] = useState<"keyword" | "alias" | "version">("keyword");
 	const [parent, setParent] = useState<GetKeywords200DataItem>();
 	function choose(action: typeof kind) {
@@ -120,17 +124,23 @@ export function SelectionView() {
 				})}
 			</Group>
 			<Tooltip
-				label={configured ? t("selection.aiHelp") : t("desktop.configureAi")}
+				label={
+					configured ? t("selection.aiHelp") : t(availabilityKey(availability))
+				}
 			>
 				<Switch
-					label={t("selection.ai")}
+					label={
+						<>
+							{t("selection.ai")} <AiPrice feature="keyword_suggestion" />
+						</>
+					}
 					checked={ai}
 					onChange={(event) => setAi(event.currentTarget.checked)}
 				/>
 			</Tooltip>
 			{ai && !configured && (
 				<Text size="xs" c="dimmed">
-					{t("desktop.configureAi")}
+					{t(availabilityKey(availability))} <GetLensesLink />
 				</Text>
 			)}
 			{!canMutate && (

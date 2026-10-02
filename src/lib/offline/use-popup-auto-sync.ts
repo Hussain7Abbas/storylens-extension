@@ -8,6 +8,7 @@ let lastKick = 0;
 
 function kickPopupSync(): void {
 	lastKick = Date.now();
+	void sendMessage("refreshAiBilling").catch(() => {});
 	void sendMessage("syncKick", { reason: "popup-open", pull: "stale" }).catch(
 		(error) => {
 			console.error("[StoryLens] Popup sync request failed", error);

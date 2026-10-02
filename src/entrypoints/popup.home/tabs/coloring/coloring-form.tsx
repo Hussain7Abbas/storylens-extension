@@ -50,6 +50,7 @@ import {
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
+import { stripArabicDiacritics } from "@/utils/arabic";
 import {
 	aliasDisplayName,
 	aliasMatchNames,
@@ -167,7 +168,7 @@ function KeywordForm({
 			name: keyword
 				? nameIn(keyword, language)
 				: frame.mode === "keyword-add"
-					? (frame.initialText ?? "")
+					? stripArabicDiacritics(frame.initialText ?? "")
 					: "",
 			matchingType: keyword?.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
@@ -511,7 +512,7 @@ function AliasForm({
 			name: alias
 				? aliasDisplayName(alias, language)
 				: frame.mode === "alias-add"
-					? (frame.initialText ?? "")
+					? stripArabicDiacritics(frame.initialText ?? "")
 					: "",
 			description: alias?.description ?? suggestion?.description ?? "",
 			matchingType: alias?.matchingType ?? "FULL",

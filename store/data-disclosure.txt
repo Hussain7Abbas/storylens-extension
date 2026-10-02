@@ -1,0 +1,48 @@
+=== CHROME WEB STORE — DATA USAGE / PRIVACY PRACTICES (ENGLISH) ===
+Dashboard draft. Match the submitted build and https://storylens.iscoded.com/en/privacy/ before submission.
+
+Does the extension collect or transmit user data?
+Yes.
+
+Data types
+
+[YES] Website content
+Story Lens reads visible chapter text locally for highlights and replacements. Optional, requested AI actions use the reader's selected source. Cloud sends cleaned page/chapter/nearby text, names, descriptions, custom prompts, novel context/title/slugs or a bounded page outline and URL through the Story Lens API to OpenRouter/model providers; novel research uses Exa web search. Desktop sends relevant content through the paired companion to the reader's own Claude/Codex provider. New clients do not silently fall back between sources. Cloud prefers no-data-collection providers, with fallback when no route matches; providers may retain data under their terms. Story Lens keeps account-linked usage metadata, not the request's prompts/answers/images. Saving generated references or images is a separate shared catalogue or ImgBB upload.
+
+[YES] User activity
+User-created reference entries, aliases, chapter notes, replacements, colors and settings are saved or synced with the Story Lens API. When configured and enabled, Google Analytics receives extension and feature events, a random persistent client ID, a session ID and extension version. Events do not include glossary content or account IDs.
+
+[YES] Web history
+When analytics is configured and enabled, a supported novel page event includes the reading site's hostname and whether a chapter was detected. The extension does not send full page URLs or a full browsing history to Google Analytics. The full current page URL can be sent separately for user-requested AI chapter-selector detection. Disclose this category because a hostname reveals a site the user visited.
+
+[YES] Personally identifiable information
+Registration or profile management may use email, username and optional display name. Guest access uses a generated username. Optional uploaded images and reference contributions are shared as described in the privacy policy.
+
+[YES] Authentication information
+The extension stores a guest or registered session token locally and sends it to the Story Lens API. Email and password are sent when the user registers or signs in on the website. A paired desktop client uses a locally stored pairing token.
+
+[NO] Health information
+[YES] Financial and payment information
+Lens balances and account-linked AI charges/refunds, top-up amounts, quoted prices, statuses and history are stored by the Story Lens service. Payment is arranged directly with the operator outside the app; no card/bank/payment credentials are collected. The website request form stores the supplied WhatsApp/Telegram contact and optional note.
+[NO] Personal communications
+[NO] Location (no precise location is collected by extension code; network recipients may see IP-derived location)
+
+Data-use certifications
+
+Data is transmitted securely: Story Lens API, AI detection and Google Analytics use HTTPS. The optional desktop companion uses loopback HTTP on the same device before forwarding to the chosen AI provider.
+Data is sold to third parties: No.
+Data is used for unrelated advertising, creditworthiness or lending: No.
+Data is transferred to third parties: Yes, for configured usage analytics (Google Analytics), requested AI processing (chosen desktop Claude/Codex provider or OpenRouter/upstream model when Cloud is selected, with Exa for research and Resend for service emails), optional image uploads (ImgBB), and infrastructure needed to provide the service.
+Collection required: Partially. Page processing and a guest session support core reading/sync features; registration, images and AI actions are optional. Analytics is off if not configured and can be turned off in Settings → General; when configured, the preference defaults to on.
+
+Privacy policy URLs
+English: https://storylens.iscoded.com/en/privacy/
+Arabic: https://storylens.iscoded.com/ar/privacy/
+
+Contact email
+hussain@iscoded.com
+
+3.4.0 CLOUD AND BILLING ADDENDUM (owner reviews before submission)
+Website content: Cloud sends cleaned page/chapter/nearby text, names, descriptions, custom prompts, novel context/title/slugs or bounded page outlines through the developer's Story Lens API to OpenRouter/model providers and Exa web search for research. Desktop uses the paired computer and own provider. Cloud requests prefer no-data-collection providers, with fallback if no route matches; providers may retain data under their terms. Story Lens retains account-linked usage metadata, not prompts/answers/images from the request. Saving generated references or images is a separate API/ImgBB upload.
+Contact information and request notes: requests store email and the supplied WhatsApp number or Telegram username/number, optional note, amount, quoted price, status and review data. Resend delivers account/billing emails. Payment is arranged outside Story Lens; no payment credentials are stored. Website sign-in uses an HttpOnly first-party API cookie for up to 30 days.
+User activity: source changes, AI provider choice, opening the lens balance and celebrating trial/admin gifts or purchases are anonymous event parameters; no contact details, prompts or account IDs are included.

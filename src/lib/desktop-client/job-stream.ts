@@ -64,6 +64,10 @@ export type ResultFrame = {
 export async function readResultFrame(
 	response: Response,
 	maxBytes: number,
+	options: {
+		onFrame?: (frame: ResultFrame) => Promise<void>;
+		error?: (frame: ResultFrame) => Error;
+	} = {},
 ): Promise<ResultFrame> {
 	if (!response.body) throw new Error("Desktop client sent no response body.");
 	const reader = response.body.getReader();
@@ -71,40 +75,50 @@ export async function readResultFrame(
 	let buffer = "",
 		received = 0,
 		result: ResultFrame | undefined;
-	while (true) {
-		const next = await reader.read();
-		if (next.done) break;
-		received += next.value.byteLength;
-		if (received > maxBytes)
-			throw new Error("Desktop client response exceeded the size limit.");
-		buffer += decoder.decode(next.value, { stream: true });
-		let newline = buffer.indexOf("\n");
-		while (newline >= 0) {
-			const line = buffer.slice(0, newline);
-			buffer = buffer.slice(newline + 1);
-			if (line) {
-				let frame: ResultFrame;
-				try {
-					frame = JSON.parse(line) as ResultFrame;
-				} catch {
-					throw new Error("Desktop client returned malformed data.");
+	try {
+		while (true) {
+			const next = await reader.read();
+			if (next.done) break;
+			received += next.value.byteLength;
+			if (received > maxBytes)
+				throw new Error("Desktop client response exceeded the size limit.");
+			buffer += decoder.decode(next.value, { stream: true });
+			let newline = buffer.indexOf("\n");
+			while (newline >= 0) {
+				const line = buffer.slice(0, newline);
+				buffer = buffer.slice(newline + 1);
+				if (line) {
+					let frame: ResultFrame;
+					try {
+						frame = JSON.parse(line) as ResultFrame;
+					} catch {
+						throw new Error("Desktop client returned malformed data.");
+					}
+					await options.onFrame?.(frame);
+					if (result)
+						throw new Error("Desktop client returned multiple results.");
+					if (frame.type === "result") result = frame;
+					else if (frame.type === "error")
+						throw options.error
+							? options.error(frame)
+							: frame.error?.code === "BUSY"
+								? new DesktopBusyError(
+										frame.error.message ?? "Desktop client is busy.",
+									)
+								: new Error(frame.error?.message ?? "Desktop client failed.");
+					else if (frame.type !== "started" && frame.type !== "heartbeat")
+						throw new Error("Desktop client returned an unknown event.");
 				}
-				if (result)
-					throw new Error("Desktop client returned multiple results.");
-				if (frame.type === "result") result = frame;
-				else if (frame.type === "error")
-					throw frame.error?.code === "BUSY"
-						? new DesktopBusyError(
-								frame.error.message ?? "Desktop client is busy.",
-							)
-						: new Error(frame.error?.message ?? "Desktop client failed.");
-				else if (frame.type !== "started" && frame.type !== "heartbeat")
-					throw new Error("Desktop client returned an unknown event.");
+				newline = buffer.indexOf("\n");
 			}
-			newline = buffer.indexOf("\n");
 		}
+		if (!result || buffer.trim())
+			throw new Error(
+				"Desktop client connection ended before a result arrived.",
+			);
+		return result;
+	} finally {
+		await reader.cancel().catch(() => {});
+		reader.releaseLock();
 	}
-	if (!result || buffer.trim())
-		throw new Error("Desktop client connection ended before a result arrived.");
-	return result;
 }

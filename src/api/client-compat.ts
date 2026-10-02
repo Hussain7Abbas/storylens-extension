@@ -23,7 +23,7 @@ export function extensionClientVersion(): string | null {
  * into it when one is ready. At most hourly; content scripts and browsers
  * without `requestUpdateCheck` (Firefox) wait for the automatic update.
  */
-async function requestExtensionUpdate(): Promise<void> {
+export async function requestExtensionUpdate(): Promise<void> {
 	const now = Date.now();
 	if (now - lastUpdateCheck < UPDATE_CHECK_INTERVAL_MS) return;
 	lastUpdateCheck = now;

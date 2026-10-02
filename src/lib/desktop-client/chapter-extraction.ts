@@ -1,3 +1,4 @@
+import { nameKey, stripArabicDiacritics } from "@/utils/arabic";
 import { type AiLanguage, languageRule } from "./ai-language";
 import { instructionSection } from "./ai-prompts";
 import {
@@ -96,23 +97,27 @@ export function parseChapterExtraction(
 	}
 	if (!Array.isArray(data.items))
 		throw new Error("The AI answer did not contain a character list.");
-	const seen = new Set(knownNames.map((name) => name.trim().toLowerCase()));
+	const seen = new Set(knownNames.map(nameKey));
 	// Parents may be known names or other names in the answer, written as they appear there.
 	const parentNames = new Map<string, string>();
 	for (const name of knownNames)
-		if (name.trim()) parentNames.set(name.trim().toLowerCase(), name.trim());
+		if (name.trim()) parentNames.set(nameKey(name), name.trim());
 	for (const item of data.items as unknown[])
 		if (item && typeof item === "object") {
 			const name = (item as Record<string, unknown>).name;
 			if (typeof name === "string" && name.trim())
-				parentNames.set(name.trim().toLowerCase(), name.trim());
+				parentNames.set(nameKey(name), stripArabicDiacritics(name.trim()));
 		}
 	const items: ExtractedKeyword[] = [];
 	for (const item of data.items as unknown[]) {
 		if (!item || typeof item !== "object") continue;
 		const entry = item as Record<string, unknown>;
-		const name = typeof entry.name === "string" ? entry.name.trim() : "";
-		const key = name.toLowerCase();
+		// Names are saved without diacritics, so show them that way.
+		const name =
+			typeof entry.name === "string"
+				? stripArabicDiacritics(entry.name.trim()).trim()
+				: "";
+		const key = nameKey(name);
 		if (!name || seen.has(key)) continue;
 		seen.add(key);
 		const suggestedParent = pickParent(entry, key, parentNames);
@@ -136,7 +141,7 @@ function pickParent(
 	const relation = entry.relation;
 	if (relation !== "alias" && relation !== "version") return undefined;
 	const parentKey =
-		typeof entry.parent === "string" ? entry.parent.trim().toLowerCase() : "";
+		typeof entry.parent === "string" ? nameKey(entry.parent) : "";
 	const parent = parentNames.get(parentKey);
 	return parent && parentKey !== ownKey
 		? { name: parent, relation }

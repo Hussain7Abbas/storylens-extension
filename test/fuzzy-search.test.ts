@@ -27,6 +27,10 @@ describe("popup fuzzy search", () => {
 		expect(fuzzyMatches("ab", ["ac"])).toBe(false);
 		expect(fuzzyMatches("voldemort", ["Harry Potter"])).toBe(false);
 	});
+	test("ignores Arabic diacritics on either side", () => {
+		expect(fuzzyMatches("مُحَمَّد", ["محمد"])).toBe(true);
+		expect(fuzzyMatches("محمد", ["مُحَمَّدٌ الفاتح"])).toBe(true);
+	});
 	test("supports Arabic and empty searches", () => {
 		expect(fuzzyMatches("هاري بوتر", ["هاري بوتر"])).toBe(true);
 		expect(fuzzyMatches("هاري بورت", ["هاري بوتر"])).toBe(true);

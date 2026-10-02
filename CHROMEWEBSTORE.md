@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-09-28
+Last updated: 2026-10-02
 
 ## Store listing
 
@@ -44,7 +44,7 @@ Screenshots are direct captures of the production build from the working tree us
 | `storage` | Keep preferences, session, desktop pairing settings, selector cache and sync state. |
 | `alarms` | Schedule synchronization of downloaded reference data and queued edits. |
 | `unlimitedStorage` | Keep downloaded novel reference catalogues without the standard extension storage quota. |
-| `https://storylens-api.iscoded.com/*` | Load novel references and selectors, access account services and synchronize edits. |
+| `https://storylens-api.iscoded.com/*` | Load references/selectors, account and lens billing services, cloud AI requests and sync edits. |
 | `http://127.0.0.1/*` | Connect to the user's authenticated local desktop companion for requested AI actions. |
 | `https://www.google-analytics.com/*` | Send anonymous usage events when analytics is configured and enabled. |
 | HTTP(S) page content scripts | Detect supported reading pages and apply highlights, replacements and the in-page launcher. The account bridge is limited to the configured website origin. |
@@ -59,8 +59,9 @@ Use the [English](store/data-disclosure.txt) or [Arabic](store/data-disclosure.a
 | --- | --- |
 | Account identifiers and authentication | Session stored locally; account services on the Story Lens API. Website handles sign-in. |
 | Reference content | Catalogue data downloaded locally; contributed keywords, notes and replacements synchronize to the shared API. |
-| Website content | User-requested AI actions send relevant page text through the paired companion to the chosen provider. Selector detection can send page information to detection providers. |
+| Website content | Requested Cloud actions send relevant page/chapter text, names, descriptions, prompts and page outlines through the developer API to OpenRouter/providers; novel research uses Exa. Desktop uses the paired companion. Cloud content is not retained in usage records; separately saved references/images are. |
 | User activity and supported-site hostnames | Pseudonymous feature events and detected reading-site hostnames can reach Google Analytics if configured; the user preference controls analytics. Disclose web history because a hostname identifies a visited site. |
+| Billing contacts and transactions | Lens requests store email, WhatsApp/Telegram contact, amounts, quotes and review status; Resend sends account/billing emails. Direct operator payment; no card/bank credentials. |
 | Uploaded images | User-requested images use the service's image upload provider. |
 | Security and network diagnostics | Necessary service operation as described by the privacy policy. |
 
@@ -76,10 +77,12 @@ Publisher identity, contact email, visibility and regions must match the owner a
 
 ## Version history and review notes
 
-The captured build is version 2.0.3. On 2026-09-27, screenshots and a demonstration video were prepared; the extension version was unchanged; local database reads and mutations were fixed to run while offline. Store submission/review status was not checked or changed.
+The original captured build was version 2.0.3. On 2026-09-27, screenshots and a demonstration video were prepared; the extension version was unchanged; local database reads and mutations were fixed to run while offline. Store submission/review status was not checked or changed.
 
 On 2026-09-28, a matching Arabic screenshot and video set was added. No additional extension behavior changed for this localization task.
 
 On 2026-09-28, the English and Arabic listing and privacy drafts were aligned with the extension's configured Google Analytics flow and linked public privacy policies. The extension behavior and version did not change.
 
 For release steps see [the publishing runbook](../../docs/publishing.md). New listings still require the small promotional tile and completion of owner/dashboard fields. The AI companion is a separate installation; supported-page detection depends on available site selectors.
+
+3.4.0 preparation — 2026-10-02: Story Lens Cloud and non-expiring lenses, the free desktop alternative, source selection, balance/menu UI and install sign-in handoff. Bilingual store drafts and privacy mirrors updated; no release or store submission performed. Both language store and website captures were refreshed from the current production build (package version 3.3.1) on 2026-10-02, showing the new navbar and priced image action. Owner review and store form submission remain pending.

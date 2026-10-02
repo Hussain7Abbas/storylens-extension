@@ -63,12 +63,13 @@ test("paired AI is preferred and a desktop error never sends the page to OpenRou
 	};
 	await expect(
 		detectChapterSelectorsWithProviders(input, {
+			source: "desktop",
 			settings: async () => settings,
 			desktop: async () => {
 				desktopCalls++;
 				throw new Error("desktop unavailable");
 			},
-			backend: async () => {
+			cloud: async () => {
 				backendCalls++;
 				throw new Error("must not call backend");
 			},
@@ -78,7 +79,7 @@ test("paired AI is preferred and a desktop error never sends the page to OpenRou
 	expect(backendCalls).toBe(0);
 });
 
-test("unconfigured AI keeps the backend detector available", async () => {
+test("cloud without a desktop pairing uses the selected cloud detector available", async () => {
 	let backendCalls = 0;
 	const result = withXpathDom(() =>
 		validateSelectorSuggestion({ url, html }, suggestion),
@@ -86,6 +87,7 @@ test("unconfigured AI keeps the backend detector available", async () => {
 	const actual = await detectChapterSelectorsWithProviders(
 		{ url, html, language: "en", signal: new AbortController().signal },
 		{
+			source: "cloud",
 			settings: async () => ({
 				port: 43127,
 				token: "",
@@ -95,7 +97,7 @@ test("unconfigured AI keeps the backend detector available", async () => {
 			desktop: async () => {
 				throw new Error("must not call desktop");
 			},
-			backend: async () => {
+			cloud: async () => {
 				backendCalls++;
 				return result;
 			},
@@ -113,6 +115,7 @@ test("configured AI returns its validated selectors without calling the backend"
 	const actual = await detectChapterSelectorsWithProviders(
 		{ url, html, language: "en", signal: new AbortController().signal },
 		{
+			source: "desktop",
 			settings: async () => ({
 				port: 43127,
 				token: "paired",
@@ -120,7 +123,7 @@ test("configured AI returns its validated selectors without calling the backend"
 				effort: "medium",
 			}),
 			desktop: async () => expected,
-			backend: async () => {
+			cloud: async () => {
 				backendCalls++;
 				throw new Error("must not call backend");
 			},
@@ -138,6 +141,7 @@ test("closing the form before routing sends no selector request", async () => {
 		detectChapterSelectorsWithProviders(
 			{ url, html, language: "en", signal: controller.signal },
 			{
+				source: "cloud",
 				settings: async () => {
 					calls++;
 					return { port: 43127, token: "", model: "", effort: "" };
@@ -146,7 +150,7 @@ test("closing the form before routing sends no selector request", async () => {
 					calls++;
 					throw new Error("must not call desktop");
 				},
-				backend: async () => {
+				cloud: async () => {
 					calls++;
 					throw new Error("must not call backend");
 				},

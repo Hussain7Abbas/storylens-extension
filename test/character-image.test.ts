@@ -30,6 +30,13 @@ describe("chapterMentions", () => {
 		expect(excerpts[1]).toContain("LIN left.");
 	});
 
+	test("finds a name the chapter writes with diacritics", () => {
+		const text = `${"ا ".repeat(1000)}قال مُحَمَّدٌ كلمته.`;
+		const excerpts = chapterMentions(text, ["محمد"]);
+		expect(excerpts).toHaveLength(1);
+		expect(excerpts[0]).toEndWith("قال مُحَمَّدٌ كلمته.");
+	});
+
 	test("returns nothing when the chapter does not mention the entity", () => {
 		expect(chapterMentions("An empty road.", ["Lin"])).toEqual([]);
 	});

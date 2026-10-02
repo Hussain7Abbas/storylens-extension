@@ -8,6 +8,8 @@ import type {
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
+import { AiPrice } from "@/components/lens/ai-price";
+import { GetLensesLink } from "@/components/lens/get-lenses-link";
 import { SearchInput } from "@/components/search-input";
 import { useCanMutateKeywords } from "@/lib/auth";
 import {
@@ -21,7 +23,6 @@ import {
 	type KeywordSuggestion,
 	relatedSuggestionDescription,
 } from "@/lib/desktop-client/keyword-suggestion";
-import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
 import { useNovelKeywords } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import { showExistingAtom } from "@/store/show-existing";
@@ -112,8 +113,7 @@ export function ColoringTab({
 	}, [showExisting.search, setShowExisting]);
 
 	const params = new URLSearchParams(window.location.search);
-	const aiConfigured = useAiConfigured();
-	const hasAiContext = params.has("aiContext") && aiConfigured;
+	const hasAiContext = params.has("aiContext");
 	const requested = params.get("create");
 	// A page tooltip's Edit button names the entry whose form to open.
 	const requestedEdit = params.get("edit");
@@ -274,7 +274,8 @@ export function ColoringTab({
 					</Tooltip>
 					{aiSuggestion.status === "loading" && (
 						<Text size="xs" c="dimmed" ta="center" role="status">
-							{t("coloring.aiSuggesting")}
+							{t("coloring.aiSuggesting")}{" "}
+							<AiPrice feature="keyword_suggestion" />
 						</Text>
 					)}
 					{aiSuggestion.status === "ready" && (
@@ -284,7 +285,7 @@ export function ColoringTab({
 					)}
 					{aiSuggestion.status === "error" && (
 						<Text size="xs" c="red" ta="center" role="status">
-							{t("coloring.aiFailed")}: {aiSuggestion.message}
+							{t("coloring.aiFailed")}: {aiSuggestion.message} <GetLensesLink />
 						</Text>
 					)}
 				</>

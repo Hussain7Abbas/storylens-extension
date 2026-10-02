@@ -13,8 +13,17 @@ import {
 	TextSearch,
 } from "lucide";
 import { browser } from "#imports";
+import { aiAvailability, availabilityKey } from "@/lib/ai-source/availability";
+import {
+	AI_SOURCE_KEY,
+	type AiFeature,
+	parseAiSource,
+} from "@/lib/ai-source/source";
 import { trackEvent } from "@/lib/analytics/client";
-import { isAiConfigured } from "@/lib/desktop-client/ai-config";
+import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
+import { AI_PRICING_KEY, type PricingCache } from "@/lib/billing/cache";
+import { handleUnavailableAi } from "@/lib/cloud-ai/top-up";
+import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { startChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import {
 	encodeKeywordContext,
@@ -41,6 +50,7 @@ import {
 	parsePopupState,
 	popupReadyKey,
 } from "@/lib/launcher-frame/messages";
+import { formatLenses, LENS_COIN_MONO } from "@/lib/lens-coin";
 import {
 	NIGHT_LIGHT_DEFAULT_LEVEL,
 	NIGHT_LIGHT_ENABLED_KEY,
@@ -73,6 +83,8 @@ const FINISHED_TASK_DURATION = 8000;
 const LOAD_REVEAL_DURATION = 3000;
 // A popup frame that has not announced itself by then failed to load.
 const POPUP_READY_TIMEOUT = 5000;
+// A form loading out of sight with no AI request started by then opens anyway.
+const BACKGROUND_START_TIMEOUT = 8000;
 // Popup tabs kept at once; each is a full popup document.
 const MAX_POPUP_TABS = 6;
 const FORM_TABS = [
@@ -132,6 +144,16 @@ type PopupTab = {
 	/** The form it was opened on and its text, named on the tab until an AI task does. */
 	form?: FormTab;
 	search: string;
+	/**
+	 * A text pick with AI loads its form out of sight: the tab's card shows a
+	 * spinner under the button, and the tab opens by itself once the AI request
+	 * ends (`finishBackground`). Cleared as soon as the tab is shown.
+	 */
+	background?: {
+		/** Whether its AI request started (a task or a working state arrived). */
+		started: boolean;
+		timer: ReturnType<typeof setTimeout>;
+	};
 };
 
 let launcher: Launcher | undefined;
@@ -276,6 +298,17 @@ function createLauncher(locale: string): Launcher {
 	let currentLocale = locale;
 	let selecting = false;
 	let desktop: DesktopSettings = parseDesktopSettings(undefined);
+	let sourceValue: unknown;
+	let auth = parseStoredAuth(undefined);
+	let pricing: PricingCache | undefined;
+	const availability = (feature: AiFeature) =>
+		aiAvailability({
+			source: parseAiSource(sourceValue, desktop),
+			desktop,
+			user: auth.user,
+			pricing: pricing?.data ?? null,
+			feature,
+		});
 	let nightLight = { enabled: false, level: NIGHT_LIGHT_DEFAULT_LEVEL };
 	// A local click or storage event may arrive before the initial read resolves.
 	let nightLightEnabledChanged = false;
@@ -434,20 +467,40 @@ function createLauncher(locale: string): Launcher {
 		const describe = (
 			element: HTMLButtonElement,
 			label: string,
-			ai = false,
+			feature?: AiFeature,
 		) => {
-			const unavailable = ai && !isAiConfigured(desktop);
+			const value = feature ? availability(feature) : { ok: true as const };
+			const unavailable = !value.ok;
+			const reason = vanillaAiText(currentLocale)(availabilityKey(value));
+			const price =
+				feature && parseAiSource(sourceValue, desktop) === "cloud"
+					? pricing?.data.features.find((row) => row.key === feature)?.lenses
+					: undefined;
+			element.querySelector(".lens-price")?.remove();
+			if (price && price > 0) {
+				const badge = document.createElement("span");
+				badge.className = "lens-price";
+				badge.setAttribute("aria-hidden", "true");
+				badge.append(createElement(LENS_COIN_MONO, { "aria-hidden": "true" }));
+				badge.append(formatLenses(price, currentLocale));
+				element.style.position = "relative";
+				badge.style.cssText =
+					"position:absolute;inset-block-start:-5px;inset-inline-end:-5px;display:flex;align-items:center;gap:2px;background:var(--accent);color:var(--on-accent);border-radius:8px;padding:2px;font:10px system-ui;pointer-events:none";
+				badge.querySelector("svg")?.setAttribute("width", "10");
+				badge.querySelector("svg")?.setAttribute("height", "10");
+				element.append(badge);
+				label += `, ${vanillaAiText(currentLocale)("lens.count", { count: price, formatted: formatLenses(price, currentLocale) })}`;
+			}
 			element.setAttribute("aria-label", label);
 			element.setAttribute("aria-disabled", String(unavailable));
 			// Screen readers get the same reason as the hover tooltip.
-			element.title = unavailable ? text.configureAi : label;
-			if (unavailable)
-				element.setAttribute("aria-description", text.configureAi);
+			element.title = unavailable ? reason : label;
+			if (unavailable) element.setAttribute("aria-description", reason);
 			else element.removeAttribute("aria-description");
 		};
 		describe(action, text.select);
-		describe(summarizeAction, text.summarize, true);
-		describe(extractAction, text.extract, true);
+		describe(summarizeAction, text.summarize, "page_summary");
+		describe(extractAction, text.extract, "chapter_extraction");
 		describe(
 			nightLightAction,
 			nightLight.enabled ? text.nightLightOff : text.nightLightOn,
@@ -649,9 +702,10 @@ function createLauncher(locale: string): Launcher {
 		}, NOTICE_DURATION);
 	};
 	/** Returns whether the paired desktop client has a model to run AI actions. */
-	const desktopReady = () => {
-		if (isAiConfigured(desktop)) return true;
-		showNotice(labels(currentLocale).configureAi);
+	const desktopReady = (feature: AiFeature) => {
+		const value = availability(feature);
+		if (value.ok) return true;
+		showNotice(vanillaAiText(currentLocale)(availabilityKey(value)));
 		return false;
 	};
 	const onActionClick = () => {
@@ -659,18 +713,32 @@ function createLauncher(locale: string): Launcher {
 		selectText();
 	};
 	const onSummarizeClick = () => {
-		if (!desktopReady()) return;
+		if (!desktopReady("page_summary")) {
+			handleUnavailableAi(availability("page_summary"));
+			return;
+		}
 		hideAction();
 		const result = startPageSummary({
 			model: desktop.model,
 			effort: desktop.effort,
 			locale: currentLocale,
+			source: parseAiSource(sourceValue, desktop),
+			lenses: pricing?.data.features.find((row) => row.key === "page_summary")
+				?.lenses,
 		});
 		if (result.started)
-			trackEvent("ai_summary_requested", { effort: desktop.effort });
+			trackEvent("ai_summary_requested", {
+				provider: parseAiSource(sourceValue, desktop),
+				...(parseAiSource(sourceValue, desktop) === "desktop"
+					? { effort: desktop.effort }
+					: {}),
+			});
 	};
 	const onExtractClick = () => {
-		if (!desktopReady()) return;
+		if (!desktopReady("chapter_extraction")) {
+			handleUnavailableAi(availability("chapter_extraction"));
+			return;
+		}
 		hideAction();
 		// The embedded extraction page runs the AI request and tracks it.
 		startChapterExtraction(currentLocale);
@@ -833,6 +901,17 @@ function createLauncher(locale: string): Launcher {
 				current: tab === active,
 				onClick: select,
 			};
+		if (tab.background)
+			return {
+				key: `tab-${tab.id}`,
+				line: tab.search
+					? `${tab.search} - ${text.operations["suggest-keyword"]}`
+					: text.operations["suggest-keyword"],
+				icon: taskIcons.working,
+				state: "working",
+				current: false,
+				onClick: select,
+			};
 		const name = tab.form ? text.forms[tab.form] : text.home;
 		return {
 			key: `tab-${tab.id}`,
@@ -853,7 +932,7 @@ function createLauncher(locale: string): Launcher {
 		const shown = pageAiTasks.shown();
 		const list: Card[] = [];
 		for (const tab of tabs)
-			if (tabs.length > 1 || shown.some(ofTab(tab)))
+			if (tabs.length > 1 || tab.background || shown.some(ofTab(tab)))
 				list.push(tabCard(tab, shown));
 		for (const task of shown) {
 			if (task.source === "popup" && tabs.some((tab) => ofTab(tab)(task)))
@@ -944,8 +1023,13 @@ function createLauncher(locale: string): Launcher {
 		active = tab;
 		for (const other of tabs) other.frame.hidden = other !== tab;
 		tab.outcome = undefined;
+		// Shown before its AI request ended: it must not open again by itself.
+		clearTimeout(tab.background?.timer);
+		tab.background = undefined;
 	};
 	const discardTab = (tab: PopupTab) => {
+		clearTimeout(tab.background?.timer);
+		tab.background = undefined;
 		tab.frame.remove();
 		tabs = tabs.filter((other) => other !== tab);
 		// The tab's requests and results go with its document.
@@ -978,7 +1062,8 @@ function createLauncher(locale: string): Launcher {
 	 */
 	const collectTabs = (closing = false) => {
 		for (const tab of tabs) {
-			if (tabVisible(tab) || tab.request || !tab.ready) continue;
+			if (tabVisible(tab) || tab.request || !tab.ready || tab.background)
+				continue;
 			if (tab === active && !tab.stale) continue;
 			if (tab.state.dirty && !closing) continue;
 			if (pageAiTasks.some(ofTab(tab))) continue;
@@ -1031,6 +1116,19 @@ function createLauncher(locale: string): Launcher {
 		showPanel();
 		if (previous !== tab) collectTabs();
 	};
+	/** The popup query of a requested form. */
+	const formQuery = (
+		search?: string,
+		context?: KeywordContext,
+		extra?: Record<string, string>,
+	) => {
+		const params = new URLSearchParams(extra);
+		if (search) params.set("search", search);
+		// The popup reads this hidden context to request AI keyword suggestions.
+		if (context)
+			params.set(KEYWORD_CONTEXT_PARAM, encodeKeywordContext(context));
+		return params.toString();
+	};
 	/**
 	 * Shows the popup. Parameters name a form to open: the shown tab loads it
 	 * itself unless it holds unsaved work, and then it opens in a new tab.
@@ -1041,12 +1139,7 @@ function createLauncher(locale: string): Launcher {
 		extra?: Record<string, string>,
 	) => {
 		stopPicking();
-		const params = new URLSearchParams(extra);
-		if (search) params.set("search", search);
-		// The popup reads this hidden context to request AI keyword suggestions.
-		if (context)
-			params.set(KEYWORD_CONTEXT_PARAM, encodeKeywordContext(context));
-		const query = params.toString();
+		const query = formQuery(search, context, extra);
 		// A frame that never loaded holds nothing and would never answer.
 		for (const tab of [...tabs])
 			if (!tab.ready && Date.now() - tab.started > POPUP_READY_TIMEOUT)
@@ -1068,6 +1161,62 @@ function createLauncher(locale: string): Launcher {
 			ask(active, query, true);
 		}
 		showPanel();
+	};
+	/**
+	 * An AI-assisted form from a text pick loads in a new tab out of sight, so
+	 * the reader keeps reading while its card under the button shows progress.
+	 * Returns false at the tab limit, where the form opens the usual way.
+	 */
+	const openInBackground = (
+		search: string,
+		context: KeywordContext,
+		extra: Record<string, string>,
+	): boolean => {
+		if (tabs.length >= MAX_POPUP_TABS) return false;
+		close();
+		const tab = createTab(formQuery(search, context, extra));
+		tab.frame.hidden = true;
+		tab.background = {
+			started: false,
+			// A form that never starts its request (it could not, or it failed to load) opens anyway.
+			timer: setTimeout(() => {
+				if (tab.background && !tab.background.started) finishBackground(tab);
+			}, BACKGROUND_START_TIMEOUT),
+		};
+		// With no other tab, the button opens this one, as it is.
+		active ??= tab;
+		updateStatus();
+		return true;
+	};
+	/**
+	 * A background tab's AI request ended: it opens by itself unless the reader
+	 * is using a popup, the chooser or the text picker; then its card stays.
+	 */
+	const finishBackground = (tab: PopupTab) => {
+		if (!tab.background) return;
+		clearTimeout(tab.background.timer);
+		tab.background = undefined;
+		if (!tabs.includes(tab)) return;
+		if (panel.hidden && !selecting && !chooserFrame) openTab(tab);
+		else {
+			tab.outcome ??= "ready";
+			updateStatus();
+		}
+	};
+	/** Follows background tabs' AI tasks: started, then ended (done or failed). */
+	const checkBackgroundTabs = () => {
+		const shown = pageAiTasks.shown();
+		for (const tab of [...tabs]) {
+			if (!tab.background) continue;
+			const own = shown.filter(ofTab(tab));
+			if (own.length) tab.background.started = true;
+			if (
+				tab.background.started &&
+				!tab.state.working &&
+				!own.some((task) => task.state === "working")
+			)
+				finishBackground(tab);
+		}
 	};
 	/** Shows the Keyword/Alias/Version chooser in its own frame, beside the kept tabs. */
 	const openChooser = (text: string) => {
@@ -1143,10 +1292,12 @@ function createLauncher(locale: string): Launcher {
 			tab.state = { dirty: next.dirty, working: next.working };
 			if (finished && !tabVisible(tab))
 				tab.outcome = next.failed ? "failed" : "ready";
+			if (next.working && tab.background) tab.background.started = true;
 			if (!next.dirty) collectTabs();
 		} else return;
 		updateStatus();
 		updateTuck();
+		checkBackgroundTabs();
 	};
 	const onButtonClick = () => {
 		if (suppressClick) {
@@ -1324,6 +1475,9 @@ function createLauncher(locale: string): Launcher {
 					ai: data.ai,
 				});
 				window.removeEventListener("message", receive);
+				// The form waits for its AI answer out of sight, then opens.
+				if (data.ai && context && openInBackground(text, context, extra))
+					return;
 				open(text, data.ai ? context : undefined, extra);
 			};
 			selectionMessageCleanup = () =>
@@ -1373,6 +1527,17 @@ function createLauncher(locale: string): Launcher {
 		typeof browser.storage.onChanged.addListener
 	>[0] = (changes, area) => {
 		if (area !== "local") return;
+		if (AI_SOURCE_KEY in changes) sourceValue = changes[AI_SOURCE_KEY].newValue;
+		if (AUTH_STORAGE_KEY in changes)
+			auth = parseStoredAuth(changes[AUTH_STORAGE_KEY].newValue);
+		if (AI_PRICING_KEY in changes)
+			pricing = changes[AI_PRICING_KEY].newValue as PricingCache | undefined;
+		if (
+			[AI_SOURCE_KEY, AUTH_STORAGE_KEY, AI_PRICING_KEY].some(
+				(key) => key in changes,
+			)
+		)
+			updateActionLabels();
 		if (DESKTOP_SETTINGS_KEY in changes) {
 			desktop = parseDesktopSettings(changes[DESKTOP_SETTINGS_KEY].newValue);
 			updateActionLabels();
@@ -1404,6 +1569,7 @@ function createLauncher(locale: string): Launcher {
 	window.addEventListener("resize", onResize);
 	window.addEventListener("message", onPopupMessage);
 	const unsubscribeTasks = pageAiTasks.subscribe(renderTasks);
+	const unsubscribeBackground = pageAiTasks.subscribe(checkBackgroundTabs);
 	setPosition(position);
 	renderTasks();
 	loadRevealTimer = setTimeout(() => {
@@ -1415,12 +1581,19 @@ function createLauncher(locale: string): Launcher {
 		.get([
 			POSITION_KEY,
 			DESKTOP_SETTINGS_KEY,
+			AI_SOURCE_KEY,
+			AUTH_STORAGE_KEY,
+			AI_PRICING_KEY,
 			NIGHT_LIGHT_ENABLED_KEY,
 			NIGHT_LIGHT_LEVEL_KEY,
 		])
 		.then((stored) => {
 			if (!host.isConnected) return;
 			desktop = parseDesktopSettings(stored[DESKTOP_SETTINGS_KEY]);
+			sourceValue = stored[AI_SOURCE_KEY];
+			auth = parseStoredAuth(stored[AUTH_STORAGE_KEY]);
+			pricing = stored[AI_PRICING_KEY] as PricingCache | undefined;
+			updateActionLabels();
 			nightLight = {
 				enabled: nightLightEnabledChanged
 					? nightLight.enabled
@@ -1463,6 +1636,7 @@ function createLauncher(locale: string): Launcher {
 		dispose: () => {
 			clearTimeout(loadRevealTimer);
 			unsubscribeTasks();
+			unsubscribeBackground();
 			clearTimeout(taskTimer);
 			close();
 			for (const tab of [...tabs]) discardTab(tab);

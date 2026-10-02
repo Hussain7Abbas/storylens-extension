@@ -39,7 +39,11 @@ export type GenerateImageInput = {
 	model: string;
 	effort: string;
 };
-export type GeneratedImage = { mimeType: string; data: string };
+export type GeneratedImage = {
+	mimeType: string;
+	data: string;
+	revisedPrompt?: string;
+};
 export type DesktopSettings = {
 	port: number;
 	token: string;

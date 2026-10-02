@@ -23,10 +23,24 @@ import type {
 	PostAiChapterSelectorsBodyOne,
 	PostAiChapterSelectorsBodyThree,
 	PostAiChapterSelectorsBodyTwo,
+	PostAiImages404,
+	PostAiImages500,
+	PostAiImagesBodyOne,
+	PostAiImagesBodyThree,
+	PostAiImagesBodyTwo,
+	PostAiPrompts404,
+	PostAiPrompts500,
+	PostAiPromptsBodyOne,
+	PostAiPromptsBodyThree,
+	PostAiPromptsBodyTwo,
 } from "../schemas";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
+/**
+ * Deprecated since 2026-10-02; removed after 2027-01-31. Use POST /api/user/ai/prompts (feature selector_detection) instead.
+ * @deprecated
+ */
 export const postAiChapterSelectors = (
 	postAiChapterSelectorsBody:
 		| PostAiChapterSelectorsBodyOne
@@ -110,6 +124,9 @@ export type PostAiChapterSelectorsMutationError = ErrorType<
 	PostAiChapterSelectors404 | PostAiChapterSelectors500
 >;
 
+/**
+ * @deprecated
+ */
 export const usePostAiChapterSelectors = <
 	TError = ErrorType<PostAiChapterSelectors404 | PostAiChapterSelectors500>,
 	TContext = unknown,
@@ -141,6 +158,225 @@ export const usePostAiChapterSelectors = <
 	TContext
 > => {
 	const mutationOptions = getPostAiChapterSelectorsMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Streams NDJSON frames (`started`, `heartbeat`, then `result` with `output` or `error` with `code`, `refunded` and `balance`) when `Accept: application/x-ndjson`; otherwise answers JSON when done.
+ * @summary Run a Story Lens Cloud AI text action
+ */
+export const postAiPrompts = (
+	postAiPromptsBody:
+		| PostAiPromptsBodyOne
+		| PostAiPromptsBodyTwo
+		| PostAiPromptsBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/ai/prompts`,
+			method: "POST",
+			data: postAiPromptsBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAiPromptsMutationOptions = <
+	TError = ErrorType<PostAiPrompts404 | PostAiPrompts500>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAiPrompts>>,
+		TError,
+		{
+			data:
+				| PostAiPromptsBodyOne
+				| PostAiPromptsBodyTwo
+				| PostAiPromptsBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAiPrompts>>,
+	TError,
+	{
+		data: PostAiPromptsBodyOne | PostAiPromptsBodyTwo | PostAiPromptsBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAiPrompts"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAiPrompts>>,
+		{
+			data:
+				| PostAiPromptsBodyOne
+				| PostAiPromptsBodyTwo
+				| PostAiPromptsBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAiPrompts(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAiPromptsMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAiPrompts>>
+>;
+export type PostAiPromptsMutationBody =
+	| PostAiPromptsBodyOne
+	| PostAiPromptsBodyTwo
+	| PostAiPromptsBodyThree;
+export type PostAiPromptsMutationError = ErrorType<
+	PostAiPrompts404 | PostAiPrompts500
+>;
+
+/**
+ * @summary Run a Story Lens Cloud AI text action
+ */
+export const usePostAiPrompts = <
+	TError = ErrorType<PostAiPrompts404 | PostAiPrompts500>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAiPrompts>>,
+			TError,
+			{
+				data:
+					| PostAiPromptsBodyOne
+					| PostAiPromptsBodyTwo
+					| PostAiPromptsBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAiPrompts>>,
+	TError,
+	{
+		data: PostAiPromptsBodyOne | PostAiPromptsBodyTwo | PostAiPromptsBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAiPromptsMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Streams NDJSON frames like `/ai/prompts`; the `result` frame carries `mimeType`, base64 `data` and `revisedPrompt`.
+ * @summary Draw a character image with Story Lens Cloud AI
+ */
+export const postAiImages = (
+	postAiImagesBody:
+		| PostAiImagesBodyOne
+		| PostAiImagesBodyTwo
+		| PostAiImagesBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/ai/images`,
+			method: "POST",
+			data: postAiImagesBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAiImagesMutationOptions = <
+	TError = ErrorType<PostAiImages404 | PostAiImages500>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAiImages>>,
+		TError,
+		{ data: PostAiImagesBodyOne | PostAiImagesBodyTwo | PostAiImagesBodyThree },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAiImages>>,
+	TError,
+	{ data: PostAiImagesBodyOne | PostAiImagesBodyTwo | PostAiImagesBodyThree },
+	TContext
+> => {
+	const mutationKey = ["postAiImages"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAiImages>>,
+		{ data: PostAiImagesBodyOne | PostAiImagesBodyTwo | PostAiImagesBodyThree }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAiImages(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAiImagesMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAiImages>>
+>;
+export type PostAiImagesMutationBody =
+	| PostAiImagesBodyOne
+	| PostAiImagesBodyTwo
+	| PostAiImagesBodyThree;
+export type PostAiImagesMutationError = ErrorType<
+	PostAiImages404 | PostAiImages500
+>;
+
+/**
+ * @summary Draw a character image with Story Lens Cloud AI
+ */
+export const usePostAiImages = <
+	TError = ErrorType<PostAiImages404 | PostAiImages500>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAiImages>>,
+			TError,
+			{
+				data: PostAiImagesBodyOne | PostAiImagesBodyTwo | PostAiImagesBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAiImages>>,
+	TError,
+	{ data: PostAiImagesBodyOne | PostAiImagesBodyTwo | PostAiImagesBodyThree },
+	TContext
+> => {
+	const mutationOptions = getPostAiImagesMutationOptions(options);
 
 	return useMutation(mutationOptions, queryClient);
 };

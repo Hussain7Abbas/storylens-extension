@@ -1,10 +1,10 @@
+import { availabilityKey } from "@/lib/ai-source/availability";
+import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
-import { isAiConfigured } from "@/lib/desktop-client/ai-config";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import { detectChapterSelectorsWithDesktop } from "@/lib/desktop-client/selector-detection-runner";
 import { detectChapterSelectorsWithProviders } from "@/lib/desktop-client/selector-provider";
-import { desktopSettings } from "@/lib/desktop-client/settings";
-import { extensionApiPost } from "@/utils/api-proxy-client";
+import i18n from "@/utils/i18n";
 
 export type NodeSelectorFormValues = {
 	website: string;
@@ -51,30 +51,25 @@ type Detection = Pick<
 export async function detectChapterSelectors(
 	input: DetectionInput,
 ): Promise<Detection> {
-	const settings = await desktopSettings();
+	const ai = await aiState("selector_detection");
 	if (input.signal.aborted) throw new DOMException("Aborted", "AbortError");
-	const paired = isAiConfigured(settings);
+	if (!ai.availability.ok)
+		throw new Error(i18n.t(availabilityKey(ai.availability)));
 	trackEvent("ai_selector_detection_requested", {
-		provider: paired ? "desktop" : "openrouter",
-		...(paired ? { effort: settings.effort } : {}),
+		provider: ai.source,
+		...(ai.source === "desktop" ? { effort: ai.desktop.effort } : {}),
 	});
+	const run = (data: DetectionInput) =>
+		detectChapterSelectorsWithDesktop({
+			...data,
+			settings: ai.desktop,
+			source: ai.source,
+			language: toAiLanguage(data.language),
+		});
 	return detectChapterSelectorsWithProviders(input, {
-		settings: async () => settings,
-		desktop: (data) =>
-			detectChapterSelectorsWithDesktop({
-				...data,
-				language: toAiLanguage(data.language),
-			}),
-		backend: detectChapterSelectorsViaBackend,
+		source: ai.source,
+		settings: async () => ai.desktop,
+		desktop: run,
+		cloud: run,
 	});
-}
-
-async function detectChapterSelectorsViaBackend(input: {
-	url: string;
-	html: string;
-}): Promise<DetectChapterSelectorsResponse> {
-	return extensionApiPost<DetectChapterSelectorsResponse>(
-		"/api/user/ai/chapter-selectors",
-		input,
-	);
 }

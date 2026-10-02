@@ -19,6 +19,7 @@ import { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { PageContent } from "@/components/form-page";
+import { LensCelebration } from "@/components/lens/lens-celebration";
 import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
@@ -109,6 +110,7 @@ function AppContent({ type }: { type: "popup" | "options" }) {
 			<PopupAutoSync enabled={type === "popup"} />
 			<Stack h={height} w={width} gap={0} dir={locale === "ar" ? "rtl" : "ltr"}>
 				<Navbar />
+				<LensCelebration />
 				<OfflineUnavailableBanner />
 				<ScrollArea flex={1} type="auto">
 					<PageContent>

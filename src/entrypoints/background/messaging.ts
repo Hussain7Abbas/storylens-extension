@@ -1,5 +1,8 @@
 import { defineExtensionMessaging } from "@webext-core/messaging";
+import type { AiFeature } from "@/lib/ai-source/source";
 import type { AnalyticsEvent } from "@/lib/analytics/types";
+import type { AiReply } from "@/lib/cloud-ai/errors";
+import type { AiImageInput, AiPromptInput } from "@/lib/cloud-ai/types";
 import type {
 	DesktopCapabilities,
 	ExecutePromptInput,
@@ -16,6 +19,18 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	executeAiPrompt(data: AiPromptInput): AiReply<string>;
+	generateAiImage(data: AiImageInput): AiReply<GeneratedImage>;
+	cancelAiPrompt(requestId: string): void;
+	refreshAiBilling(): void;
+	claimLensNotices(data: { userId: string; ids: string[] }): string[];
+	markLensNoticesSeen(data: { userId: string; ids: string[] }): boolean;
+	openLensPage(data: {
+		need?: number;
+		have?: number;
+		feature?: AiFeature;
+		reason: "insufficient" | "navbar" | "settings" | "guest";
+	}): void;
 	desktopCapabilities(): DesktopCapabilities;
 	executeDesktopPrompt(data: ExecutePromptInput): string;
 	generateDesktopImage(data: GenerateImageInput): GeneratedImage;

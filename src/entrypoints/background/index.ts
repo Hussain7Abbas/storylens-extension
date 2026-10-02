@@ -5,6 +5,19 @@ import { trackAnalyticsEvent } from "@/lib/analytics/background";
 import { setupAuthInterceptor } from "@/lib/auth/auth-service";
 import { AUTH_STORAGE_KEY } from "@/lib/auth/auth-storage";
 import {
+	claimLensNotices,
+	markLensNoticesSeen,
+	refreshAiPricing,
+	refreshLensBalance,
+} from "@/lib/billing/background";
+import {
+	cancelCloudPrompt,
+	cancelCloudTabPrompts,
+	executeCloudPrompt,
+	generateCloudImage,
+} from "@/lib/cloud-ai/background";
+import { serializeAiFailure } from "@/lib/cloud-ai/errors";
+import {
 	cancelPrompt,
 	cancelTabPrompts,
 	executeDesktopPrompt,
@@ -30,6 +43,7 @@ import {
 	removeTabNovel,
 	setTabNovel,
 } from "@/lib/offline/sync/tabs";
+import { websitePageUrl } from "@/lib/website";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector } from "@/types/configs";
 import { handleApiProxyRequest } from "@/utils/api-proxy-handler";
@@ -39,6 +53,7 @@ import {
 	refreshWebsiteSelectorFromApi,
 } from "@/utils/load-website-selectors";
 import { setupApiClient } from "@/utils/setup-api-client";
+import { getStoredLanguage } from "@/utils/stored-language";
 
 /** Owner key for desktop jobs started by an extension page outside a tab (the toolbar popup). */
 const EXTENSION_PAGE_OWNER = -1;
@@ -118,12 +133,83 @@ export default defineBackground(() => {
 	console.log("🔥", "Background script loaded");
 
 	initSyncBackground();
+	browser.runtime.onStartup.addListener(() => {
+		void refreshAiPricing(0);
+	});
+	onMessage("refreshAiBilling", async ({ sender }) => {
+		desktopJobOwner(sender);
+		await Promise.all([refreshAiPricing(), refreshLensBalance()]);
+	});
+	onMessage("claimLensNotices", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return claimLensNotices(data);
+	});
+	onMessage("markLensNoticesSeen", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return markLensNoticesSeen(data);
+	});
+	onMessage("openLensPage", async ({ data, sender }) => {
+		desktopJobOwner(sender);
+		const query = new URLSearchParams({ from: "extension" });
+		if (Number.isSafeInteger(data.need) && (data.need ?? 0) > 0)
+			query.set("need", String(data.need));
+		if (data.feature) query.set("feature", data.feature);
+		const path =
+			data.reason === "guest"
+				? "profile/register/"
+				: `profile/balance/?${query}#request`;
+		await browser.tabs.create({
+			url: websitePageUrl(await getStoredLanguage(), path),
+		});
+		void trackAnalyticsEvent({
+			name: "lens_balance_opened",
+			params: { reason: data.reason },
+		});
+	});
+	onMessage("executeAiPrompt", async ({ data, sender }) => {
+		const owner = desktopJobOwner(sender);
+		try {
+			return {
+				ok: true as const,
+				value: await (data.source === "cloud"
+					? executeCloudPrompt(data, owner)
+					: executeDesktopPrompt(data, owner)),
+			};
+		} catch (error) {
+			return { ok: false as const, failure: serializeAiFailure(error) };
+		}
+	});
+	onMessage("generateAiImage", async ({ data, sender }) => {
+		const owner = desktopJobOwner(sender);
+		try {
+			return {
+				ok: true as const,
+				value: await (data.source === "cloud"
+					? generateCloudImage(data, owner)
+					: generateDesktopImage(data, owner)),
+			};
+		} catch (error) {
+			return { ok: false as const, failure: serializeAiFailure(error) };
+		}
+	});
+	onMessage("cancelAiPrompt", ({ data, sender }) => {
+		const owner = desktopJobOwner(sender);
+		cancelPrompt(data, owner);
+		cancelCloudPrompt(data, owner);
+	});
 	setTabRefresher((tabId, novelSlug) =>
 		sendMessage("refreshContent", { novelSlug }, { tabId }),
 	);
 
 	browser.runtime.onInstalled.addListener((details) => {
+		void refreshAiPricing(0);
 		if (details.reason === "install") {
+			void browser.tabs.create({
+				url: websitePageUrl(
+					browser.i18n.getUILanguage().startsWith("ar") ? "ar" : "en",
+					"profile/?from=install",
+				),
+			});
 			void trackAnalyticsEvent({ name: "extension_install" });
 		} else if (details.reason === "update") {
 			void trackAnalyticsEvent({
@@ -136,6 +222,7 @@ export default defineBackground(() => {
 	browser.tabs.onRemoved.addListener((tabId) => {
 		void removeTabNovel(tabId);
 		cancelTabPrompts(tabId);
+		cancelCloudTabPrompts(tabId);
 	});
 
 	onMessage("desktopCapabilities", () => loadDesktopCapabilities());
@@ -153,6 +240,7 @@ export default defineBackground(() => {
 		// Keep the paired desktop client's crawler on the current account.
 		if (areaName === "local" && changes[AUTH_STORAGE_KEY]) {
 			void shareAccountSession().catch(() => {});
+			void refreshLensBalance();
 		}
 	});
 

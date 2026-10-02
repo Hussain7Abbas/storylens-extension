@@ -4,6 +4,7 @@ import {
 	Group,
 	NumberInput,
 	PasswordInput,
+	SegmentedControl,
 	Select,
 	Stack,
 	Text,
@@ -14,6 +15,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { useAiSnapshot } from "@/lib/ai-source/hooks";
+import { AI_SOURCE_KEY, type AiSource } from "@/lib/ai-source/source";
 import { trackEvent } from "@/lib/analytics/client";
 import {
 	type AiPrompts,
@@ -30,6 +33,7 @@ import type {
 	DesktopSettings,
 } from "@/lib/desktop-client/types";
 import { DESKTOP_SETTINGS_KEY } from "@/lib/desktop-client/types";
+import { CloudPanel } from "./cloud-panel";
 
 /**
  * Editable AI instructions. Each prompt is sent first and marked as taking
@@ -134,6 +138,7 @@ function AiPromptsSection() {
 
 export function AiTab() {
 	const { t } = useTranslation();
+	const { source } = useAiSnapshot();
 	const [settings, setSettings] = useState<DesktopSettings>(() =>
 		parseDesktopSettings(undefined),
 	);
@@ -190,72 +195,99 @@ export function AiTab() {
 	const selected = catalog?.models.find((item) => item.id === settings.model);
 	return (
 		<Stack gap="xs" p="xs">
-			<Text fw={600}>{t("desktop.settings")}</Text>
-			<Text size="xs">{t("desktop.disclosure")}</Text>
-			<NumberInput
-				label={t("desktop.port")}
-				min={1024}
-				max={65535}
-				value={settings.port}
-				onChange={(value) => setSettings({ ...settings, port: Number(value) })}
+			<SegmentedControl
+				fullWidth
+				aria-label={t("cloud.source")}
+				value={source}
+				data={[
+					{ value: "cloud", label: t("cloud.name") },
+					{ value: "desktop", label: t("cloud.desktop") },
+				]}
+				onChange={(value) => {
+					const next = value as AiSource;
+					void browser.storage.local.set({ [AI_SOURCE_KEY]: next });
+					trackEvent("ai_source_changed", { source: next });
+				}}
 			/>
-			<PasswordInput
-				label={t("desktop.token")}
-				autoComplete="off"
-				value={settings.token}
-				onChange={(event) =>
-					setSettings({ ...settings, token: event.currentTarget.value })
-				}
-			/>
-			<Tooltip label={t("desktop.connect")} withArrow openDelay={350}>
-				<Button
-					size="xs"
-					variant="light"
-					loading={busy}
-					onClick={() => {
-						void connect();
-					}}
-				>
-					{t("desktop.connect")}
-				</Button>
-			</Tooltip>
-			{catalog && (
+			<Text size="xs">
+				{t(source === "cloud" ? "cloud.cloudHelp" : "cloud.desktopHelp")}
+			</Text>
+			{source === "cloud" ? (
+				<CloudPanel />
+			) : (
 				<>
-					<Select
-						label={t("desktop.model")}
-						searchable
-						data={catalog.models.map((model) => ({
-							value: model.id,
-							label: `${model.provider}: ${model.label}`,
-						}))}
-						value={settings.model || null}
-						onChange={(value) => {
-							const model = catalog.models.find((item) => item.id === value);
-							if (model)
-								void save({
-									...settings,
-									model: model.id,
-									effort: model.defaultEffort,
-								});
-						}}
+					<Text fw={600}>{t("desktop.settings")}</Text>
+					<Text size="xs">{t("desktop.disclosure")}</Text>
+					<NumberInput
+						label={t("desktop.port")}
+						min={1024}
+						max={65535}
+						value={settings.port}
+						onChange={(value) =>
+							setSettings({ ...settings, port: Number(value) })
+						}
 					/>
-					<Select
-						label={t("desktop.effort")}
-						data={(selected?.efforts ?? []).map((value) => ({
-							value,
-							label: value,
-						}))}
-						value={settings.effort || null}
-						onChange={(value) => {
-							if (value) void save({ ...settings, effort: value });
-						}}
+					<PasswordInput
+						label={t("desktop.token")}
+						autoComplete="off"
+						value={settings.token}
+						onChange={(event) =>
+							setSettings({ ...settings, token: event.currentTarget.value })
+						}
 					/>
+					<Tooltip label={t("desktop.connect")} withArrow openDelay={350}>
+						<Button
+							size="xs"
+							variant="light"
+							loading={busy}
+							onClick={() => {
+								void connect();
+							}}
+						>
+							{t("desktop.connect")}
+						</Button>
+					</Tooltip>
+					{catalog && (
+						<>
+							<Select
+								label={t("desktop.model")}
+								searchable
+								data={catalog.models.map((model) => ({
+									value: model.id,
+									label: `${model.provider}: ${model.label}`,
+								}))}
+								value={settings.model || null}
+								onChange={(value) => {
+									const model = catalog.models.find(
+										(item) => item.id === value,
+									);
+									if (model)
+										void save({
+											...settings,
+											model: model.id,
+											effort: model.defaultEffort,
+										});
+								}}
+							/>
+							<Select
+								label={t("desktop.effort")}
+								data={(selected?.efforts ?? []).map((value) => ({
+									value,
+									label: value,
+								}))}
+								value={settings.effort || null}
+								onChange={(value) => {
+									if (value) void save({ ...settings, effort: value });
+								}}
+							/>
+						</>
+					)}
+					{message && (
+						<Text size="xs" role="status">
+							{message}
+						</Text>
+					)}
 				</>
-			)}
-			{message && (
-				<Text size="xs" role="status">
-					{message}
-				</Text>
 			)}
 			<Divider my="xs" />
 			<AiPromptsSection />

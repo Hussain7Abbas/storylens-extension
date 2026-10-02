@@ -745,15 +745,18 @@ describe("popup inside the launcher frame", () => {
 						data: Record<string, unknown>;
 					};
 					if (type === "reportAiTask") reports.push(data);
-					if (type === "executeDesktopPrompt")
+					if (type === "executeAiPrompt")
 						return {
-							res: data.webSearch
-								? "A fantasy novel."
-								: JSON.stringify({
-										description: "A shepherd.",
-										category: 1,
-										nature: 1,
-									}),
+							res: {
+								ok: true,
+								value: data.webSearch
+									? "A fantasy novel."
+									: JSON.stringify({
+											description: "A shepherd.",
+											category: 1,
+											nature: 1,
+										}),
+							},
 						};
 					return { res: undefined };
 				};
@@ -1175,5 +1178,261 @@ describe("appearance settings", () => {
 		fireEvent.keyDown(fontSize, { key: "ArrowRight" });
 		fireEvent.keyDown(fontSize, { key: "ArrowRight" });
 		expect(store.get(fontSizeAtom)).toBe(23);
+	});
+});
+
+describe("Cloud and lens UI", async () => {
+	const { AiTab } = await import("../../src/entrypoints/popup.settings/ai-tab");
+	const { SelectionView } = await import(
+		"../../src/entrypoints/popup/selection-view"
+	);
+	const { LensBalanceButton } = await import(
+		"../../src/components/navbar/lens-balance-button"
+	);
+	const { LensCelebration } = await import(
+		"../../src/components/lens/lens-celebration"
+	);
+	const { AiPrice } = await import("../../src/components/lens/ai-price");
+	const runtime = fakeBrowser.runtime as { sendMessage: unknown };
+	let original: unknown;
+	let messages: { type: string; data: Record<string, unknown> }[];
+	let savedMatchMedia: typeof window.matchMedia;
+	const pricing = {
+		currency: "USD",
+		available: true,
+		lensPriceUsd: "0.01",
+		lensPriceMicros: 10000,
+		trialLenses: 10,
+		request: { min: 100, max: 50000, pendingMax: 3 },
+		cloudAi: { enabled: true },
+		features: [
+			{
+				key: "character_image",
+				nameEn: "Character image",
+				nameAr: "صورة شخصية",
+				lenses: 3,
+				enabled: true,
+				maxPromptChars: 40000,
+			},
+			{
+				key: "keyword_suggestion",
+				nameEn: "Suggestion",
+				nameAr: "اقتراح",
+				lenses: 1,
+				enabled: true,
+				maxPromptChars: 40000,
+			},
+		],
+	};
+	beforeEach(async () => {
+		messages = [];
+		savedMatchMedia = window.matchMedia;
+		window.matchMedia = ((query: string) => {
+			const media = savedMatchMedia(query);
+			Object.defineProperty(media, "matches", {
+				value: query === "(prefers-reduced-motion: reduce)",
+				configurable: true,
+			});
+			return media;
+		}) as typeof window.matchMedia;
+		original = runtime.sendMessage;
+		runtime.sendMessage = async (message: unknown) => {
+			const item = message as { type: string; data: Record<string, unknown> };
+			messages.push(item);
+			return {
+				res:
+					item.type === "claimLensNotices"
+						? item.data.ids
+						: item.type === "markLensNoticesSeen"
+							? true
+							: undefined,
+			};
+		};
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-source": "cloud",
+			"storylens-ai-pricing": { data: pricing, fetchedAt: Date.now() },
+			"storylens-lens-balance": {
+				userId: env.user.id,
+				balance: 128,
+				updatedAt: Date.now(),
+			},
+		});
+	});
+	afterEach(() => {
+		runtime.sendMessage = original;
+		window.matchMedia = savedMatchMedia;
+	});
+	it("switches source panels and stores the explicit choice", async () => {
+		const view = render(React.createElement(AiTab), { wrapper });
+		await waitFor(() =>
+			expect(view.getByText("cloud.disclosure")).toBeTruthy(),
+		);
+		fireEvent.click(view.getByText("cloud.desktop"));
+		await waitFor(() =>
+			expect(view.getByLabelText("desktop.port")).toBeTruthy(),
+		);
+		expect(
+			(await fakeBrowser.storage.local.get("storylens-ai-source"))[
+				"storylens-ai-source"
+			],
+		).toBe("desktop");
+		expect(
+			messages.some(
+				(message) =>
+					message.type === "trackAnalyticsEvent" &&
+					message.data.name === "ai_source_changed",
+			),
+		).toBe(true);
+	});
+	it("starts Use AI off for both sources and shows the Cloud price only", async () => {
+		const view = render(React.createElement(SelectionView), { wrapper });
+		await waitFor(() => expect(view.getByText("1")).toBeTruthy());
+		expect((view.getByRole("switch") as HTMLInputElement).checked).toBe(false);
+		await fakeBrowser.storage.local.set({ "storylens-ai-source": "desktop" });
+		await waitFor(() => expect(view.queryByText("1") === null).toBe(true));
+		expect((view.getByRole("switch") as HTMLInputElement).checked).toBe(false);
+	});
+	it("shows a positive price live and hides free and desktop prices", async () => {
+		const view = render(
+			React.createElement(AiPrice, { feature: "character_image" }),
+			{ wrapper },
+		);
+		await waitFor(() => expect(view.getByText("3")).toBeTruthy());
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-pricing": {
+				data: {
+					...pricing,
+					features: pricing.features.map((feature) => ({
+						...feature,
+						lenses: 0,
+					})),
+				},
+				fetchedAt: Date.now(),
+			},
+		});
+		await waitFor(() => expect(view.queryByText("3") === null).toBe(true));
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-source": "desktop",
+			"storylens-ai-pricing": { data: pricing, fetchedAt: Date.now() },
+		});
+		await waitFor(() =>
+			expect(view.container.querySelector("svg") === null).toBe(true),
+		);
+	});
+	it("shows account balance for Desktop too and ignores a different account's cache", async () => {
+		await fakeBrowser.storage.local.set({ "storylens-ai-source": "desktop" });
+		const view = render(React.createElement(LensBalanceButton), { wrapper });
+		await waitFor(() => expect(view.getByText("128")).toBeTruthy());
+		fireEvent.click(view.getByRole("button"));
+		await waitFor(() =>
+			expect(
+				messages.find((message) => message.type === "openLensPage")?.data
+					.reason,
+			).toBe("navbar"),
+		);
+		await fakeBrowser.storage.local.set({
+			"storylens-lens-balance": {
+				userId: "another",
+				balance: 500,
+				updatedAt: Date.now(),
+			},
+		});
+		await waitFor(() => expect(view.getByText("—")).toBeTruthy());
+	});
+	it("celebrates a purchase as well as gifts, acknowledges once and uses reduced motion", async () => {
+		const originalMatch = window.matchMedia;
+		window.matchMedia = ((query: string) => {
+			const media = originalMatch(query);
+			Object.defineProperty(media, "matches", {
+				value: query === "(prefers-reduced-motion: reduce)",
+				configurable: true,
+			});
+			return media;
+		}) as typeof window.matchMedia;
+		try {
+			await fakeBrowser.storage.local.set({
+				"storylens-lens-notices": {
+					userId: env.user.id,
+					notices: [
+						{
+							id: "trial",
+							type: "TRIAL_GIFT",
+							lenses: 10,
+							note: null,
+							createdAt: "2026-10-02",
+						},
+						{
+							id: "gift",
+							type: "ADMIN_GIFT",
+							lenses: 50,
+							note: "Enjoy reading",
+							createdAt: "2026-10-02",
+						},
+						{
+							id: "purchase",
+							type: "TOP_UP",
+							lenses: 500,
+							note: null,
+							createdAt: "2026-10-02",
+						},
+					],
+				},
+			});
+			const view = render(React.createElement(LensCelebration), { wrapper });
+			await waitFor(() => expect(view.getByRole("dialog")).toBeTruthy());
+			expect(view.getByText(/Enjoy reading/)).toBeTruthy();
+			await waitFor(() =>
+				expect(
+					messages.filter((message) => message.type === "markLensNoticesSeen"),
+				).toHaveLength(1),
+			);
+			expect(
+				messages.find((message) => message.type === "markLensNoticesSeen")?.data
+					.ids,
+			).toEqual(["trial", "gift", "purchase"]);
+			fireEvent.click(view.getByRole("button", { name: "_.close" }));
+			await waitFor(() =>
+				expect(view.queryByRole("dialog") === null).toBe(true),
+			);
+		} finally {
+			window.matchMedia = originalMatch;
+		}
+	});
+	it("does not reopen an acknowledged dialog after an account switch", async () => {
+		const saved = fakeBrowser.storage.local.peek("storylens-auth");
+		await fakeBrowser.storage.local.set({
+			"storylens-lens-notices": {
+				userId: env.user.id,
+				notices: [
+					{
+						id: "gift",
+						type: "ADMIN_GIFT",
+						lenses: 50,
+						note: null,
+						createdAt: "2026-10-02",
+					},
+				],
+			},
+		});
+		const view = render(React.createElement(LensCelebration), { wrapper });
+		await waitFor(() => expect(!!view.queryByRole("dialog")).toBe(true));
+		await waitFor(() =>
+			expect(
+				messages.filter((message) => message.type === "markLensNoticesSeen")
+					.length,
+			).toBe(1),
+		);
+		await fakeBrowser.storage.local.set({
+			"storylens-auth": JSON.stringify({
+				user: makeUser("other"),
+				token: "other-token",
+			}),
+		});
+		await waitFor(() => expect(!!view.queryByRole("dialog")).toBe(false));
+		await act(async () => {
+			await fakeBrowser.storage.local.set({ "storylens-auth": saved });
+			await new Promise((resolve) => setTimeout(resolve, 20));
+		});
+		expect(!!view.queryByRole("dialog")).toBe(false);
 	});
 });

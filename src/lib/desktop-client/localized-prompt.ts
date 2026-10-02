@@ -1,51 +1,56 @@
 import { sendMessage } from "@/entrypoints/background/messaging";
-import {
-	type AiLanguage,
-	isInLanguage,
-	languageCorrection,
-} from "./ai-language";
+import { runLocalizedPrompt } from "@/lib/ai-source/prompt-runner";
+import type { AiFeature, AiSource } from "@/lib/ai-source/source";
+import { aiState } from "@/lib/ai-source/storage";
+import { unwrapAiReply } from "@/lib/cloud-ai/errors";
+import type { AiLanguage } from "./ai-language";
 import type { DesktopSettings } from "./types";
 
-/**
- * Runs a desktop prompt from an extension page embedded in a tab and parses
- * its answer. When the parsed texts are not in `language`, it asks once more
- * with a correction so AI output always follows the extension language.
- */
 export async function executeLocalizedPrompt<T>(input: {
 	prompt: string;
 	language: AiLanguage;
-	settings: DesktopSettings;
+	feature: Exclude<AiFeature, "character_image">;
+	source?: AiSource;
+	settings?: DesktopSettings;
+	novelId?: string;
 	signal: AbortSignal;
-	/** Lets the provider search the web for this prompt. */
 	webSearch?: boolean;
 	parse: (output: string) => T;
 	texts: (result: T) => string[];
 }): Promise<T> {
-	let prompt = input.prompt;
-	let result: T | undefined;
-	for (let attempt = 0; attempt < 2; attempt++) {
-		if (input.signal.aborted) throw new DOMException("Aborted", "AbortError");
-		const requestId = crypto.randomUUID();
-		const cancel = () => {
-			void sendMessage("cancelDesktopPrompt", requestId).catch(() => {});
-		};
-		input.signal.addEventListener("abort", cancel, { once: true });
-		try {
-			const output = await sendMessage("executeDesktopPrompt", {
-				requestId,
-				prompt,
-				model: input.settings.model,
-				effort: input.settings.effort,
-				responseLanguage: input.language,
-				...(input.webSearch ? { webSearch: true } : {}),
-			});
-			result = input.parse(output);
-		} finally {
-			input.signal.removeEventListener("abort", cancel);
-		}
-		if (isInLanguage(input.texts(result), input.language)) return result;
-		prompt = `${input.prompt}\n\n${languageCorrection(input.language)}`;
-	}
-	// Keep the second answer rather than failing when the model still ignores the language.
-	return result as T;
+	const state = await aiState(input.feature);
+	const source = input.source ?? state.source,
+		settings = input.settings ?? state.desktop;
+	return runLocalizedPrompt({
+		...input,
+		cloud: source === "cloud",
+		execute: async (prompt, actionId, attempt) => {
+			const requestId = crypto.randomUUID();
+			const cancel = () => {
+				void sendMessage("cancelAiPrompt", requestId).catch(() => {});
+			};
+			input.signal.addEventListener("abort", cancel, { once: true });
+			try {
+				if (input.signal.aborted)
+					throw new DOMException("Aborted", "AbortError");
+				return unwrapAiReply(
+					await sendMessage("executeAiPrompt", {
+						source,
+						requestId,
+						actionId,
+						attempt,
+						feature: input.feature,
+						prompt,
+						responseLanguage: input.language,
+						model: settings.model,
+						effort: settings.effort,
+						...(input.novelId ? { novelId: input.novelId } : {}),
+						...(input.webSearch ? { webSearch: true } : {}),
+					}),
+				);
+			} finally {
+				input.signal.removeEventListener("abort", cancel);
+			}
+		},
+	});
 }

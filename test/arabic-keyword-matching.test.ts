@@ -108,7 +108,37 @@ const novel: NovelContentData["novel"] = {
 	updatedAt: NOW,
 };
 
-function highlight(text: string, keywords: NovelContentData["keywords"]) {
+function highlight(
+	text: string,
+	keywords: NovelContentData["keywords"],
+	replacements: NovelContentData["replacements"] = [],
+) {
+	return process(text, keywords, replacements).matches;
+}
+
+function replacement(
+	from: string,
+	to: string,
+): NovelContentData["replacements"][number] {
+	return {
+		id: `replacement-${from}`,
+		from,
+		to,
+		matchingType: "FULL",
+		novelId: "novel-1",
+		keywordId: null,
+		createdById: null,
+		createdAt: NOW,
+		updatedAt: NOW,
+		keyword: null,
+	};
+}
+
+function process(
+	text: string,
+	keywords: NovelContentData["keywords"],
+	replacements: NovelContentData["replacements"] = [],
+) {
 	const root = document.createElement("article");
 	root.textContent = text;
 	document.body.append(root);
@@ -119,17 +149,18 @@ function highlight(text: string, keywords: NovelContentData["keywords"]) {
 			language: "ar",
 			chapterNumber: 5,
 			keywords,
-			replacements: [],
+			replacements,
 			biases: [],
 		},
 		"test",
 	);
-	return [...root.querySelectorAll<HTMLElement>(".storylens-keyword")].map(
-		(node) => ({
-			text: node.textContent,
-			id: node.dataset.keywordId,
-		}),
-	);
+	const matches = [
+		...root.querySelectorAll<HTMLElement>(".storylens-keyword"),
+	].map((node) => ({
+		text: node.textContent,
+		id: node.dataset.keywordId,
+	}));
+	return { matches, text: root.textContent };
 }
 
 afterEach(() => {
@@ -194,5 +225,56 @@ describe("Arabic keyword variant matching", () => {
 				(match) => match.text,
 			),
 		).toEqual(["امل", "امل"]);
+	});
+});
+
+describe("Arabic diacritics (حركات)", () => {
+	const texts = (text: string, keywords: NovelContentData["keywords"]) =>
+		highlight(text, keywords).map((match) => match.text);
+
+	it("matches by letters and keeps the page's diacritics in the highlight", () => {
+		expect(
+			texts("قال مُحَمَّدٌ: محمد ومُحمّد هنا", [keyword({ nameAr: "محمد" })]),
+		).toEqual(["مُحَمَّدٌ", "محمد", "مُحمّد"]);
+	});
+
+	it("matches a name saved with diacritics against plain text", () => {
+		expect(texts("محمد", [keyword({ nameAr: "مُحَمَّد" })])).toEqual(["محمد"]);
+	});
+
+	it("skips diacritics and tatweel inside the word and on its prefixes", () => {
+		const name = [keyword({ nameAr: "ملك" })];
+		expect(texts("مـلـك", name)).toEqual(["مـلـك"]);
+		expect(texts("الْمَلِكُ المَلِك", name)).toEqual(["مَلِكُ", "مَلِك"]);
+		expect(texts("وَمَلِك بِمَلِك", name)).toEqual(["مَلِك", "مَلِك"]);
+	});
+
+	it("keeps the prefix text, adding one tatweel after a connecting letter", () => {
+		const name = [keyword({ nameAr: "ملك" })];
+		expect(process("بِمَلِك", name).text).toBe("بِـمَلِك");
+		document.body.replaceChildren();
+		expect(process("بـملك", name).text).toBe("بـملك");
+		document.body.replaceChildren();
+		expect(process("وَمَلِك", name).text).toBe("وَمَلِك");
+	});
+
+	it("still respects full words and the strict alif option", () => {
+		expect(texts("محمدين مُحَمَّدِين", [keyword({ nameAr: "محمد" })])).toEqual([]);
+		document.body.replaceChildren();
+		expect(
+			texts("أَمَل اَمَل", [
+				keyword({ nameAr: "أمل", fuzzyMatchArabicCharacters: false }),
+			]),
+		).toEqual(["أَمَل"]);
+	});
+
+	it("applies replacements whatever diacritics either side has", () => {
+		expect(process("وَمُحَمَّدٌ قال", [], [replacement("مُحمد", "أحمد")]).text).toBe(
+			"وَأحمد قال",
+		);
+		document.body.replaceChildren();
+		expect(process("الْمَلِك", [], [replacement("ملك", "أمير")]).text).toBe(
+			"الْأمير",
+		);
 	});
 });

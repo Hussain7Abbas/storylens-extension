@@ -1,3 +1,4 @@
+import { lettersPattern, nameKey } from "@/utils/arabic";
 import { instructionSection } from "./ai-prompts";
 import { novelContextSection } from "./novel-context-prompt";
 
@@ -11,19 +12,17 @@ const MENTIONS_CHARS = 8_000;
  * they overlap, so the image brief focuses on how this chapter shows it.
  */
 export function chapterMentions(text: string, names: string[]): string[] {
-	const lower = text.toLowerCase();
 	const ranges: [number, number][] = [];
-	for (const name of new Set(
-		names.map((value) => value.trim().toLowerCase()),
-	)) {
+	// The chapter may write a name with diacritics (حركات) the saved name lacks.
+	for (const name of new Set(names.map(nameKey))) {
 		if (name.length < 2) continue;
-		let index = lower.indexOf(name);
-		while (index >= 0) {
+		for (const match of text.matchAll(
+			new RegExp(lettersPattern(name), "giu"),
+		)) {
 			ranges.push([
-				Math.max(0, index - MENTION_RADIUS),
-				Math.min(text.length, index + name.length + MENTION_RADIUS),
+				Math.max(0, match.index - MENTION_RADIUS),
+				Math.min(text.length, match.index + match[0].length + MENTION_RADIUS),
 			]);
-			index = lower.indexOf(name, index + name.length);
 		}
 	}
 	ranges.sort((a, b) => a[0] - b[0]);

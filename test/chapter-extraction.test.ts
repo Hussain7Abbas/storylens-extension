@@ -78,6 +78,20 @@ describe("parseChapterExtraction", () => {
 		]);
 	});
 
+	test("shows names without diacritics and compares them by letters", () => {
+		const output = `{"items":[
+			{"name":"مُحَمَّد","description":"known","category":1,"nature":1},
+			{"name":"سَيْف","description":"new","category":1,"nature":1},
+			{"name":"سيف","description":"dup","category":1,"nature":1},
+			{"name":"الفارس","description":"title","category":1,"nature":1,"parent":"مُحمّد","relation":"alias"}
+		]}`;
+		const items = parseChapterExtraction(output, categories, natures, ["محمد"]);
+		expect(items.map((item) => [item.name, item.suggestedParent])).toEqual([
+			["سيف", undefined],
+			["الفارس", { name: "محمد", relation: "alias" }],
+		]);
+	});
+
 	test("keeps a suggested parent only when it names a known or listed entity", () => {
 		const output = `{"items":[
 			{"name":"Young Master Lin","description":"Lin's title.","category":1,"nature":1,"parent":" lin ","relation":"alias"},

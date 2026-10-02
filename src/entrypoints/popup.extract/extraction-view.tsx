@@ -16,10 +16,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import type { GetKeywords200DataItem } from "@/api/generated/schemas";
+import { AiPrice } from "@/components/lens/ai-price";
+import { GetLensesLink } from "@/components/lens/get-lenses-link";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { availabilityKey } from "@/lib/ai-source/availability";
+import { useAiAvailability } from "@/lib/ai-source/hooks";
+import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import { useCanMutateKeywords } from "@/lib/auth";
+import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
 	buildChapterExtractionPrompt,
@@ -33,8 +39,7 @@ import {
 import { relatedSuggestionDescription } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
-import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
-import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { aiPrompts } from "@/lib/desktop-client/settings";
 import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
@@ -48,6 +53,7 @@ import {
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import type { Novel } from "@/types/models";
+import { nameKey } from "@/utils/arabic";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import {
 	aliasMatchNames,
@@ -95,14 +101,14 @@ function findParentId(
 	name: string,
 	language: Language,
 ): string | null {
-	const key = name.trim().toLowerCase();
+	const key = nameKey(name);
 	return (
 		keywords.find(
 			(keyword) =>
-				nameIn(keyword, language).trim().toLowerCase() === key ||
+				nameKey(nameIn(keyword, language)) === key ||
 				keyword.aliases.some((alias) =>
 					aliasMatchNames(alias).some(
-						(aliasName) => aliasName.trim().toLowerCase() === key,
+						(aliasName) => nameKey(aliasName) === key,
 					),
 				),
 		)?.id ?? null
@@ -191,7 +197,8 @@ export function ExtractionView() {
 	const [attempt, setAttempt] = useState(0);
 	const inputs = useRef({ categories, natures, keywords, novelId });
 	inputs.current = { categories, natures, keywords, novelId };
-	const aiConfigured = useAiConfigured();
+	const availability = useAiAvailability("chapter_extraction");
+	const aiConfigured = availability.ok;
 	// Listed under the launcher; its rows count as unsaved until each is saved.
 	useAiTask({
 		operation: "extract-characters",
@@ -227,9 +234,10 @@ export function ExtractionView() {
 		setState({ status: "loading" });
 		setRows([]);
 		void (async () => {
-			const settings = await desktopSettings();
-			if (!settings.token || !settings.model || !settings.effort)
-				throw new Error(t("desktop.selectModel"));
+			const ai = await aiState("chapter_extraction");
+			const settings = ai.desktop;
+			if (!ai.availability.ok)
+				throw new Error(t(availabilityKey(ai.availability)));
 			const [tab] = await browser.tabs.query({
 				active: true,
 				currentWindow: true,
@@ -255,15 +263,20 @@ export function ExtractionView() {
 							novelId: currentNovelId,
 							language,
 							settings,
+							source: ai.source,
+							parentFeature: "chapter_extraction",
 							signal: controller.signal,
 						})
 					: "",
 			]);
 			if (controller.signal.aborted) return;
 			trackEvent("ai_chapter_extraction_requested", {
-				effort: settings.effort,
+				provider: ai.source,
+				...(ai.source === "desktop" ? { effort: settings.effort } : {}),
 			});
 			const items = await executeLocalizedPrompt({
+				feature: "chapter_extraction",
+				source: ai.source,
 				prompt: buildChapterExtractionPrompt({
 					text,
 					...lookup,
@@ -299,11 +312,11 @@ export function ExtractionView() {
 				})),
 			);
 			setState({ status: "ready" });
-		})().catch((error: unknown) => {
+		})().catch(async (error: unknown) => {
 			if (controller.signal.aborted) return;
 			setState({
 				status: "error",
-				message: error instanceof Error ? error.message : t("extract.failed"),
+				message: await aiErrorMessage(error, "chapter_extraction", t),
 			});
 		});
 		return () => controller.abort();
@@ -389,8 +402,7 @@ export function ExtractionView() {
 							: item.suggestedParent &&
 									!item.parentId &&
 									!item.parentTouched &&
-									item.suggestedParent.name.trim().toLowerCase() ===
-										row.name.trim().toLowerCase()
+									nameKey(item.suggestedParent.name) === nameKey(row.name)
 								? { ...item, parentId: entityId }
 								: item,
 					),
@@ -463,7 +475,7 @@ export function ExtractionView() {
 			)}
 			{!aiConfigured && (
 				<Alert color="orange" variant="light" py="xs">
-					<Text size="sm">{t("desktop.configureAi")}</Text>
+					<Text size="sm">{t(availabilityKey(availability))}</Text>
 				</Alert>
 			)}
 			{(state.status === "waiting" || state.status === "loading") &&
@@ -471,17 +483,19 @@ export function ExtractionView() {
 				novelId && (
 					<Group gap="xs" role="status">
 						<Loader size="xs" />
-						<Text size="sm">{t("extract.loading")}</Text>
+						<Text size="sm">
+							{t("extract.loading")} <AiPrice feature="chapter_extraction" />
+						</Text>
 					</Group>
 				)}
 			{state.status === "error" && (
 				<Alert color="red" py="xs">
 					<Group justify="space-between" gap="xs">
 						<Text size="sm">
-							{t("extract.failed")}: {state.message}
+							{t("extract.failed")}: {state.message} <GetLensesLink />
 						</Text>
 						<Tooltip
-							label={t("desktop.configureAi")}
+							label={t(availabilityKey(availability))}
 							disabled={aiConfigured}
 							withArrow
 						>
@@ -494,7 +508,7 @@ export function ExtractionView() {
 									else setAttempt((value) => value + 1);
 								}}
 							>
-								{t("extract.retry")}
+								{t("extract.retry")} <AiPrice feature="chapter_extraction" />
 							</Button>
 						</Tooltip>
 					</Group>

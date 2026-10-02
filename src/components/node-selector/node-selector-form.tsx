@@ -24,7 +24,10 @@ import type {
 	PutWebsiteSelectorsByWebsiteBodyOne,
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
-import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { AiPrice } from "@/components/lens/ai-price";
+import { availabilityKey } from "@/lib/ai-source/availability";
+import { useAiAvailability, useAiSnapshot } from "@/lib/ai-source/hooks";
+import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { detectChapterSelectors } from "@/utils/detect-chapter-selectors";
@@ -122,7 +125,9 @@ function NodeSelectorFormContent({
 }: NodeSelectorFormProps) {
 	const { t, i18n } = useTranslation();
 	const navigate = useNavigate();
-	const aiConfigured = useAiConfigured();
+	const availability = useAiAvailability("selector_detection");
+	const aiConfigured = availability.ok;
+	const { source } = useAiSnapshot();
 	const [isDetecting, setIsDetecting] = useState(false);
 	const [detectFailed, setDetectFailed] = useState(false);
 	const [pageContext, setPageContext] = useState<PageContext | null>(null);
@@ -288,10 +293,7 @@ function NodeSelectorFormContent({
 			if (controller.signal.aborted) return;
 			console.error("[StoryLens] Auto-detect selectors failed", error);
 			setDetectFailed(true);
-			const message =
-				error instanceof Error && error.message
-					? error.message
-					: t("nodeSelector.detectFailed");
+			const message = await aiErrorMessage(error, "selector_detection", t);
 			toast.error(message);
 		} finally {
 			if (detectionController.current === controller)
@@ -343,19 +345,32 @@ function NodeSelectorFormContent({
 				{...form.getInputProps("website")}
 				disabled={isEdit}
 			/>
-			<Tooltip label={t("nodeSelector.autoDetect")} withArrow openDelay={350}>
+			<Tooltip
+				label={
+					aiConfigured
+						? t("nodeSelector.autoDetect")
+						: t(availabilityKey(availability))
+				}
+				withArrow
+				openDelay={350}
+			>
 				<Button
 					variant="light"
 					leftSection={<IconSparkles size={16} />}
-					onClick={handleAutoDetect}
+					data-disabled={!aiConfigured || undefined}
+					onClick={(event) => {
+						if (!aiConfigured) event.preventDefault();
+						else void handleAutoDetect();
+					}}
 					loading={isDetecting}
 				>
-					{t("nodeSelector.autoDetect")}
+					{t("nodeSelector.autoDetect")}{" "}
+					<AiPrice feature="selector_detection" />
 				</Button>
 			</Tooltip>
 			<Text size="xs" c="dimmed">
 				{t(
-					aiConfigured
+					source === "desktop"
 						? "nodeSelector.detectProviderDesktop"
 						: "nodeSelector.detectProviderBackend",
 				)}

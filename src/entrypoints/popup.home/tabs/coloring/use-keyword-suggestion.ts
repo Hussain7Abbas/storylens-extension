@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { availabilityKey } from "@/lib/ai-source/availability";
+import { useAiSnapshot } from "@/lib/ai-source/hooks";
+import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
 	buildKeywordSuggestionPrompt,
@@ -11,8 +15,7 @@ import {
 } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
-import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
-import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import { aiPrompts } from "@/lib/desktop-client/settings";
 import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import {
@@ -52,24 +55,19 @@ export function useKeywordSuggestion(
 	});
 	const finished = useRef(false);
 	const language = toAiLanguage(i18n.language);
-	const aiConfigured = useAiConfigured();
+	const { loaded } = useAiSnapshot();
 
 	useEffect(() => {
-		if (
-			!request ||
-			!enabled ||
-			!aiConfigured ||
-			!lookupsReady ||
-			finished.current
-		)
+		if (!request || !loaded || !enabled || !lookupsReady || finished.current)
 			return;
 		const controller = new AbortController();
 		setState({ status: "loading" });
 		void (async () => {
-			const settings = await desktopSettings();
+			const ai = await aiState("keyword_suggestion");
+			const settings = ai.desktop;
 			if (controller.signal.aborted) return;
-			if (!settings.token || !settings.model || !settings.effort)
-				throw new Error(t("desktop.selectModel"));
+			if (!ai.availability.ok)
+				throw new Error(t(availabilityKey(ai.availability)));
 			const options = {
 				categories: lookups.current.categories ?? [],
 				natures: lookups.current.natures ?? [],
@@ -81,15 +79,20 @@ export function useKeywordSuggestion(
 							novelId,
 							language,
 							settings,
+							source: ai.source,
+							parentFeature: "keyword_suggestion",
 							signal: controller.signal,
 						})
 					: "",
 			]);
 			if (controller.signal.aborted) return;
 			trackEvent("ai_keyword_suggestion_requested", {
-				effort: settings.effort,
+				provider: ai.source,
+				...(ai.source === "desktop" ? { effort: settings.effort } : {}),
 			});
 			const suggestion = await executeLocalizedPrompt({
+				feature: "keyword_suggestion",
+				source: ai.source,
 				prompt: buildKeywordSuggestionPrompt({
 					...request,
 					...options,
@@ -107,17 +110,16 @@ export function useKeywordSuggestion(
 			if (controller.signal.aborted) return;
 			finished.current = true;
 			setState({ status: "ready", suggestion });
-		})().catch((error: unknown) => {
+		})().catch(async (error: unknown) => {
 			if (controller.signal.aborted) return;
 			finished.current = true;
 			setState({
 				status: "error",
-				message:
-					error instanceof Error ? error.message : t("coloring.aiFailed"),
+				message: await aiErrorMessage(error, "keyword_suggestion", t),
 			});
 		});
 		return () => controller.abort();
-	}, [request, enabled, aiConfigured, lookupsReady, language, novelId, t]);
+	}, [request, enabled, loaded, lookupsReady, language, novelId, t]);
 	// The launcher keeps the popup and shows progress while the suggestion is written.
 	useLauncherWork({
 		working: state.status === "loading",

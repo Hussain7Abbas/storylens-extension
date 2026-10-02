@@ -3,16 +3,26 @@ import { ImagePlus as IconImagePlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
+import { AiPrice } from "@/components/lens/ai-price";
+import { GetLensesLink } from "@/components/lens/get-lenses-link";
+import { useLensLabel } from "@/components/lens/lens-price";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { availabilityKey } from "@/lib/ai-source/availability";
+import { useAiAvailability, useAiSnapshot } from "@/lib/ai-source/hooks";
+import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { unwrapAiReply } from "@/lib/cloud-ai/errors";
+import { aiErrorMessage, handleUnavailableAi } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
 	buildCharacterImagePrompt,
 	chapterMentions,
 } from "@/lib/desktop-client/character-image";
-import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
-import { aiPrompts, desktopSettings } from "@/lib/desktop-client/settings";
-import { useAiConfigured } from "@/lib/desktop-client/use-ai-configured";
+import {
+	ensureNovelContext,
+	loadNovel,
+} from "@/lib/desktop-client/novel-context";
+import { aiPrompts } from "@/lib/desktop-client/settings";
 import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 
@@ -48,7 +58,7 @@ function base64File(data: string, mimeType: string, name: string): File {
 }
 
 /**
- * Generates a character image with the desktop client (Codex) from the
+ * Generates a character image with the selected AI source from the
  * chapter mentions, the entity details and the novel context. The image is
  * handed to the form as a file, which uploads it to image storage on save.
  */
@@ -70,7 +80,34 @@ export function GenerateImageButton({
 	onBusyChange?: (busy: boolean) => void;
 }) {
 	const { t, i18n } = useTranslation();
-	const aiConfigured = useAiConfigured();
+	const availability = useAiAvailability("character_image");
+	const { source, pricing } = useAiSnapshot();
+	const label = useLensLabel();
+	const [needsContext, setNeedsContext] = useState(false);
+	useEffect(() => {
+		let active = true;
+		void loadNovel(novelId, i18n.language.startsWith("ar") ? "ar" : "en")
+			.then((novel) => {
+				if (active) setNeedsContext(!!novel && !novel.context?.trim());
+			})
+			.catch(() => {});
+		return () => {
+			active = false;
+		};
+	}, [novelId, i18n.language]);
+	const imagePrice =
+		source === "cloud"
+			? (pricing?.features.find((row) => row.key === "character_image")
+					?.lenses ?? 0)
+			: 0;
+	const researchPrice =
+		source === "cloud" && needsContext
+			? (pricing?.features.find(
+					(row) => row.key === "novel_context" && row.enabled,
+				)?.lenses ?? 0)
+			: 0;
+	const aiConfigured = availability.ok;
+	const [revisedPrompt, setRevisedPrompt] = useState<string>();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const controller = useRef<AbortController | null>(null);
@@ -88,9 +125,7 @@ export function GenerateImageButton({
 		() => () => {
 			controller.current?.abort();
 			if (requestId.current)
-				void sendMessage("cancelDesktopPrompt", requestId.current).catch(
-					() => {},
-				);
+				void sendMessage("cancelAiPrompt", requestId.current).catch(() => {});
 		},
 		[],
 	);
@@ -108,11 +143,13 @@ export function GenerateImageButton({
 		const abort = new AbortController();
 		controller.current = abort;
 		setError(null);
+		setRevisedPrompt(undefined);
 		setBusyState(true);
 		try {
-			const settings = await desktopSettings();
-			if (!settings.token || !settings.model || !settings.effort)
-				throw new Error(t("desktop.selectModel"));
+			const ai = await aiState("character_image");
+			const settings = ai.desktop;
+			if (!ai.availability.ok)
+				throw new Error(t(availabilityKey(ai.availability)));
 			const language = toAiLanguage(i18n.language);
 			const [prompts, chapterText, novelContext] = await Promise.all([
 				aiPrompts(),
@@ -121,6 +158,8 @@ export function GenerateImageButton({
 					novelId,
 					language,
 					settings,
+					source: ai.source,
+					parentFeature: "character_image",
 					signal: abort.signal,
 				}),
 			]);
@@ -135,28 +174,30 @@ export function GenerateImageButton({
 				novelContext,
 			});
 			trackEvent("ai_image_generation_requested", {
-				effort: settings.effort,
+				provider: ai.source,
+				...(ai.source === "desktop" ? { effort: settings.effort } : {}),
 				has_novel_context: !!novelContext,
 			});
 			const id = crypto.randomUUID();
 			requestId.current = id;
-			const image = await sendMessage("generateDesktopImage", {
-				requestId: id,
-				prompt,
-				model: settings.model,
-				effort: settings.effort,
-			});
+			const image = unwrapAiReply(
+				await sendMessage("generateAiImage", {
+					source: ai.source,
+					actionId: crypto.randomUUID(),
+					requestId: id,
+					prompt,
+					model: settings.model,
+					effort: settings.effort,
+				}),
+			);
 			requestId.current = null;
 			if (abort.signal.aborted) return;
+			setRevisedPrompt(image.revisedPrompt);
 			onGenerated(base64File(image.data, image.mimeType, name));
 		} catch (cause) {
 			requestId.current = null;
 			if (abort.signal.aborted) return;
-			setError(
-				cause instanceof Error
-					? cause.message
-					: t("coloring.imageGenerateFailed"),
-			);
+			setError(await aiErrorMessage(cause, "character_image", t));
 		} finally {
 			if (!abort.signal.aborted) setBusyState(false);
 		}
@@ -167,8 +208,8 @@ export function GenerateImageButton({
 			<Tooltip
 				label={
 					aiConfigured
-						? t("coloring.generateImageHint")
-						: t("desktop.configureAi")
+						? `${t("coloring.generateImageHint")}${imagePrice > 0 ? ` · ${label(imagePrice)}` : ""}${researchPrice > 0 ? ` · ${t("cloud.researchCost", { lenses: label(researchPrice) })}` : ""}`
+						: t(availabilityKey(availability))
 				}
 				withArrow
 				openDelay={350}
@@ -183,12 +224,14 @@ export function GenerateImageButton({
 					loading={busy}
 					data-disabled={!aiConfigured || undefined}
 					onClick={(event) => {
-						if (!aiConfigured) event.preventDefault();
-						else void generate();
+						if (!aiConfigured) {
+							event.preventDefault();
+							handleUnavailableAi(availability);
+						} else void generate();
 					}}
 					style={{ alignSelf: "flex-start" }}
 				>
-					{t("coloring.generateImage")}
+					{t("coloring.generateImage")} <AiPrice feature="character_image" />
 				</Button>
 			</Tooltip>
 			{busy && (
@@ -196,9 +239,15 @@ export function GenerateImageButton({
 					{t("coloring.generatingImage")}
 				</Text>
 			)}
+			{revisedPrompt && (
+				<details>
+					<summary>{t("cloud.whatDrawn")}</summary>
+					<Text size="xs">{revisedPrompt}</Text>
+				</details>
+			)}
 			{error && (
 				<Alert color="red" py="xs">
-					{t("coloring.imageGenerateFailed")}: {error}
+					{t("coloring.imageGenerateFailed")}: {error} <GetLensesLink />
 				</Alert>
 			)}
 		</>

@@ -1107,3 +1107,133 @@ describe("popup tabs", () => {
 		);
 	});
 });
+
+describe("AI form from a text pick", () => {
+	const rows = () => [
+		...element("#tasks").querySelectorAll<HTMLElement>(".task"),
+	];
+	const texts = () => rows().map((row) => row.textContent);
+	let run = 0;
+	beforeEach(() => {
+		run += 1;
+	});
+	/** Picks `text` and asks for its keyword form with AI, as the chooser does. */
+	async function requestAiForm(text: string): Promise<HTMLIFrameElement> {
+		const node = document.createElement("p");
+		node.textContent = `Before ${text} after.`;
+		document.body.append(node);
+		const word = document.createElement("span");
+		word.textContent = text;
+		node.replaceChildren("Before ", word, " after.");
+		const chooser = await pick(word);
+		post(chooser, {
+			type: "storylens-selection-create",
+			kind: "keyword",
+			novelId: "novel-1",
+			ai: true,
+		});
+		expect(chooser.isConnected).toBe(false);
+		const frame = popupFrames().at(-1);
+		if (!frame) throw new Error("the form's tab is missing");
+		frameWindow(frame);
+		return frame;
+	}
+	const task = (
+		frame: string,
+		state: "working" | "done" | "failed",
+		subject = "Rand",
+	) =>
+		pageAiTasks.apply({
+			id: `${run}-${frame}`,
+			state,
+			operation: "suggest-keyword",
+			subject,
+			source: "popup",
+			frame: `${run}-${frame}`,
+		});
+	const ready = (frame: HTMLIFrameElement, name: string) =>
+		post(frame, { type: POPUP_READY_MESSAGE, key: `${run}-${name}` });
+
+	it("loads the form out of sight with a spinner card, then opens it with the answer", async () => {
+		const frame = await requestAiForm("Rand");
+		expect(panel().hidden).toBe(true);
+		expect(frame.hidden).toBe(true);
+		expect(frame.src).toContain("create=keyword");
+		expect(frame.src).toContain("aiContext=");
+		expect(texts()).toEqual(["Rand - Generating keyword"]);
+		expect(rows()[0]?.dataset.state).toBe("working");
+
+		ready(frame, "bg");
+		report(frame, { dirty: true, working: true });
+		task("bg", "working");
+		expect(panel().hidden).toBe(true);
+		expect(element("#tasks").hidden).toBe(false);
+
+		task("bg", "done");
+		report(frame, { dirty: true, working: false });
+		expect(panel().hidden).toBe(false);
+		expect(shownFrame()).toBe(frame);
+		expect(button().getAttribute("aria-expanded")).toBe("true");
+	});
+
+	it("also opens the form when the AI request fails, for a manual entry", async () => {
+		const frame = await requestAiForm("Rand");
+		ready(frame, "bg");
+		task("bg", "working");
+		expect(panel().hidden).toBe(true);
+		task("bg", "failed");
+		expect(shownFrame()).toBe(frame);
+		expect(panel().hidden).toBe(false);
+	});
+
+	it("keeps its card instead while the reader uses another popup", async () => {
+		const first = openPopup();
+		clickPage();
+		const frame = await requestAiForm("Rand");
+		expect(popupFrames()).toEqual([first, frame]);
+		ready(frame, "bg");
+		task("bg", "working");
+		report(frame, { dirty: true, working: true });
+
+		button().click();
+		expect(shownFrame()).toBe(first);
+		task("bg", "done");
+		report(frame, { dirty: true, working: false });
+		expect(shownFrame()).toBe(first);
+
+		clickPage();
+		expect(panel().hidden).toBe(true);
+		expect(status().dataset.state).toBe("ready");
+		expect(texts()).toContain("Rand - Generating keyword (done)");
+		// Closing the reader's popup does not throw the finished form at them.
+		expect(frame.hidden).toBe(true);
+	});
+
+	it("does not open again by itself once the reader opened it early", async () => {
+		const frame = await requestAiForm("Rand");
+		ready(frame, "bg");
+		task("bg", "working");
+		report(frame, { dirty: true, working: true });
+		rows()[0]?.click();
+		expect(shownFrame()).toBe(frame);
+		clickPage();
+
+		task("bg", "done");
+		report(frame, { dirty: true, working: false });
+		expect(panel().hidden).toBe(true);
+	});
+
+	it("is never asked to go while it waits for its answer", async () => {
+		const frame = await requestAiForm("Rand");
+		ready(frame, "bg");
+		clickPage();
+		report(frame, { dirty: false, working: false });
+		expect(requests(frame)).toEqual([]);
+		expect(frame.isConnected).toBe(true);
+	});
+
+	it("opens the form the usual way when AI is off", async () => {
+		await requestForm("Rand");
+		expect(panel().hidden).toBe(false);
+	});
+});

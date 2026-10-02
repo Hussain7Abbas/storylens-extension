@@ -1,6 +1,8 @@
+import { stripArabicDiacritics } from "@/utils/arabic";
+
+/** Search ignores case, spacing and Arabic diacritics (حركات). */
 function normalize(value: string): string {
-	return value
-		.normalize("NFKC")
+	return stripArabicDiacritics(value.normalize("NFKC"))
 		.toLocaleLowerCase()
 		.trim()
 		.replace(/\s+/g, " ");

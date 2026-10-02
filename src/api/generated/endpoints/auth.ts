@@ -78,6 +78,32 @@ import type {
 	PostAuthRegisterVerifyBodyOne,
 	PostAuthRegisterVerifyBodyThree,
 	PostAuthRegisterVerifyBodyTwo,
+	PostAuthWebAdopt200,
+	PostAuthWebAdopt404,
+	PostAuthWebAdopt500,
+	PostAuthWebExtensionSession200,
+	PostAuthWebExtensionSession404,
+	PostAuthWebExtensionSession500,
+	PostAuthWebExtensionSessionBodyOne,
+	PostAuthWebExtensionSessionBodyThree,
+	PostAuthWebExtensionSessionBodyTwo,
+	PostAuthWebLogin200,
+	PostAuthWebLogin404,
+	PostAuthWebLogin500,
+	PostAuthWebLoginBodyOne,
+	PostAuthWebLoginBodyThree,
+	PostAuthWebLoginBodyTwo,
+	PostAuthWebLogout404,
+	PostAuthWebLogout500,
+	PostAuthWebOauthSession200,
+	PostAuthWebOauthSession404,
+	PostAuthWebOauthSession500,
+	PostAuthWebRegisterVerify200,
+	PostAuthWebRegisterVerify404,
+	PostAuthWebRegisterVerify500,
+	PostAuthWebRegisterVerifyBodyOne,
+	PostAuthWebRegisterVerifyBodyThree,
+	PostAuthWebRegisterVerifyBodyTwo,
 	PutAuthMe404,
 	PutAuthMe500,
 	PutAuthMeBodyOne,
@@ -1768,3 +1794,610 @@ export function useGetAuthCheckUsernameByUsername<
 
 	return query;
 }
+
+export const postAuthWebLogin = (
+	postAuthWebLoginBody:
+		| PostAuthWebLoginBodyOne
+		| PostAuthWebLoginBodyTwo
+		| PostAuthWebLoginBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthWebLogin200>(
+		{
+			url: `http://localhost:3031/api/user/auth/web/login`,
+			method: "POST",
+			data: postAuthWebLoginBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthWebLoginMutationOptions = <
+	TError = ErrorType<PostAuthWebLogin404 | PostAuthWebLogin500>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthWebLogin>>,
+		TError,
+		{
+			data:
+				| PostAuthWebLoginBodyOne
+				| PostAuthWebLoginBodyTwo
+				| PostAuthWebLoginBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthWebLogin>>,
+	TError,
+	{
+		data:
+			| PostAuthWebLoginBodyOne
+			| PostAuthWebLoginBodyTwo
+			| PostAuthWebLoginBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthWebLogin"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthWebLogin>>,
+		{
+			data:
+				| PostAuthWebLoginBodyOne
+				| PostAuthWebLoginBodyTwo
+				| PostAuthWebLoginBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthWebLogin(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthWebLoginMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthWebLogin>>
+>;
+export type PostAuthWebLoginMutationBody =
+	| PostAuthWebLoginBodyOne
+	| PostAuthWebLoginBodyTwo
+	| PostAuthWebLoginBodyThree;
+export type PostAuthWebLoginMutationError = ErrorType<
+	PostAuthWebLogin404 | PostAuthWebLogin500
+>;
+
+export const usePostAuthWebLogin = <
+	TError = ErrorType<PostAuthWebLogin404 | PostAuthWebLogin500>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthWebLogin>>,
+			TError,
+			{
+				data:
+					| PostAuthWebLoginBodyOne
+					| PostAuthWebLoginBodyTwo
+					| PostAuthWebLoginBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthWebLogin>>,
+	TError,
+	{
+		data:
+			| PostAuthWebLoginBodyOne
+			| PostAuthWebLoginBodyTwo
+			| PostAuthWebLoginBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthWebLoginMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthWebRegisterVerify = (
+	postAuthWebRegisterVerifyBody:
+		| PostAuthWebRegisterVerifyBodyOne
+		| PostAuthWebRegisterVerifyBodyTwo
+		| PostAuthWebRegisterVerifyBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthWebRegisterVerify200>(
+		{
+			url: `http://localhost:3031/api/user/auth/web/register/verify`,
+			method: "POST",
+			data: postAuthWebRegisterVerifyBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthWebRegisterVerifyMutationOptions = <
+	TError = ErrorType<
+		PostAuthWebRegisterVerify404 | PostAuthWebRegisterVerify500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthWebRegisterVerify>>,
+		TError,
+		{
+			data:
+				| PostAuthWebRegisterVerifyBodyOne
+				| PostAuthWebRegisterVerifyBodyTwo
+				| PostAuthWebRegisterVerifyBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthWebRegisterVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthWebRegisterVerifyBodyOne
+			| PostAuthWebRegisterVerifyBodyTwo
+			| PostAuthWebRegisterVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthWebRegisterVerify"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthWebRegisterVerify>>,
+		{
+			data:
+				| PostAuthWebRegisterVerifyBodyOne
+				| PostAuthWebRegisterVerifyBodyTwo
+				| PostAuthWebRegisterVerifyBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthWebRegisterVerify(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthWebRegisterVerifyMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthWebRegisterVerify>>
+>;
+export type PostAuthWebRegisterVerifyMutationBody =
+	| PostAuthWebRegisterVerifyBodyOne
+	| PostAuthWebRegisterVerifyBodyTwo
+	| PostAuthWebRegisterVerifyBodyThree;
+export type PostAuthWebRegisterVerifyMutationError = ErrorType<
+	PostAuthWebRegisterVerify404 | PostAuthWebRegisterVerify500
+>;
+
+export const usePostAuthWebRegisterVerify = <
+	TError = ErrorType<
+		PostAuthWebRegisterVerify404 | PostAuthWebRegisterVerify500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthWebRegisterVerify>>,
+			TError,
+			{
+				data:
+					| PostAuthWebRegisterVerifyBodyOne
+					| PostAuthWebRegisterVerifyBodyTwo
+					| PostAuthWebRegisterVerifyBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthWebRegisterVerify>>,
+	TError,
+	{
+		data:
+			| PostAuthWebRegisterVerifyBodyOne
+			| PostAuthWebRegisterVerifyBodyTwo
+			| PostAuthWebRegisterVerifyBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions = getPostAuthWebRegisterVerifyMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthWebOauthSession = (
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthWebOauthSession200>(
+		{
+			url: `http://localhost:3031/api/user/auth/web/oauth/session`,
+			method: "POST",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthWebOauthSessionMutationOptions = <
+	TError = ErrorType<PostAuthWebOauthSession404 | PostAuthWebOauthSession500>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthWebOauthSession>>,
+		TError,
+		void,
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthWebOauthSession>>,
+	TError,
+	void,
+	TContext
+> => {
+	const mutationKey = ["postAuthWebOauthSession"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthWebOauthSession>>,
+		void
+	> = () => {
+		return postAuthWebOauthSession(requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthWebOauthSessionMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthWebOauthSession>>
+>;
+
+export type PostAuthWebOauthSessionMutationError = ErrorType<
+	PostAuthWebOauthSession404 | PostAuthWebOauthSession500
+>;
+
+export const usePostAuthWebOauthSession = <
+	TError = ErrorType<PostAuthWebOauthSession404 | PostAuthWebOauthSession500>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthWebOauthSession>>,
+			TError,
+			void,
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthWebOauthSession>>,
+	TError,
+	void,
+	TContext
+> => {
+	const mutationOptions = getPostAuthWebOauthSessionMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthWebLogout = (
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/auth/web/logout`,
+			method: "POST",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthWebLogoutMutationOptions = <
+	TError = ErrorType<PostAuthWebLogout404 | PostAuthWebLogout500>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthWebLogout>>,
+		TError,
+		void,
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthWebLogout>>,
+	TError,
+	void,
+	TContext
+> => {
+	const mutationKey = ["postAuthWebLogout"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthWebLogout>>,
+		void
+	> = () => {
+		return postAuthWebLogout(requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthWebLogoutMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthWebLogout>>
+>;
+
+export type PostAuthWebLogoutMutationError = ErrorType<
+	PostAuthWebLogout404 | PostAuthWebLogout500
+>;
+
+export const usePostAuthWebLogout = <
+	TError = ErrorType<PostAuthWebLogout404 | PostAuthWebLogout500>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthWebLogout>>,
+			TError,
+			void,
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthWebLogout>>,
+	TError,
+	void,
+	TContext
+> => {
+	const mutationOptions = getPostAuthWebLogoutMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthWebExtensionSession = (
+	postAuthWebExtensionSessionBody:
+		| PostAuthWebExtensionSessionBodyOne
+		| PostAuthWebExtensionSessionBodyTwo
+		| PostAuthWebExtensionSessionBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthWebExtensionSession200>(
+		{
+			url: `http://localhost:3031/api/user/auth/web/extension-session`,
+			method: "POST",
+			data: postAuthWebExtensionSessionBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthWebExtensionSessionMutationOptions = <
+	TError = ErrorType<
+		PostAuthWebExtensionSession404 | PostAuthWebExtensionSession500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthWebExtensionSession>>,
+		TError,
+		{
+			data:
+				| PostAuthWebExtensionSessionBodyOne
+				| PostAuthWebExtensionSessionBodyTwo
+				| PostAuthWebExtensionSessionBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthWebExtensionSession>>,
+	TError,
+	{
+		data:
+			| PostAuthWebExtensionSessionBodyOne
+			| PostAuthWebExtensionSessionBodyTwo
+			| PostAuthWebExtensionSessionBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["postAuthWebExtensionSession"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthWebExtensionSession>>,
+		{
+			data:
+				| PostAuthWebExtensionSessionBodyOne
+				| PostAuthWebExtensionSessionBodyTwo
+				| PostAuthWebExtensionSessionBodyThree;
+		}
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return postAuthWebExtensionSession(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthWebExtensionSessionMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthWebExtensionSession>>
+>;
+export type PostAuthWebExtensionSessionMutationBody =
+	| PostAuthWebExtensionSessionBodyOne
+	| PostAuthWebExtensionSessionBodyTwo
+	| PostAuthWebExtensionSessionBodyThree;
+export type PostAuthWebExtensionSessionMutationError = ErrorType<
+	PostAuthWebExtensionSession404 | PostAuthWebExtensionSession500
+>;
+
+export const usePostAuthWebExtensionSession = <
+	TError = ErrorType<
+		PostAuthWebExtensionSession404 | PostAuthWebExtensionSession500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthWebExtensionSession>>,
+			TError,
+			{
+				data:
+					| PostAuthWebExtensionSessionBodyOne
+					| PostAuthWebExtensionSessionBodyTwo
+					| PostAuthWebExtensionSessionBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthWebExtensionSession>>,
+	TError,
+	{
+		data:
+			| PostAuthWebExtensionSessionBodyOne
+			| PostAuthWebExtensionSessionBodyTwo
+			| PostAuthWebExtensionSessionBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPostAuthWebExtensionSessionMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+export const postAuthWebAdopt = (
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostAuthWebAdopt200>(
+		{
+			url: `http://localhost:3031/api/user/auth/web/adopt`,
+			method: "POST",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostAuthWebAdoptMutationOptions = <
+	TError = ErrorType<PostAuthWebAdopt404 | PostAuthWebAdopt500>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof postAuthWebAdopt>>,
+		TError,
+		void,
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof postAuthWebAdopt>>,
+	TError,
+	void,
+	TContext
+> => {
+	const mutationKey = ["postAuthWebAdopt"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof postAuthWebAdopt>>,
+		void
+	> = () => {
+		return postAuthWebAdopt(requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PostAuthWebAdoptMutationResult = NonNullable<
+	Awaited<ReturnType<typeof postAuthWebAdopt>>
+>;
+
+export type PostAuthWebAdoptMutationError = ErrorType<
+	PostAuthWebAdopt404 | PostAuthWebAdopt500
+>;
+
+export const usePostAuthWebAdopt = <
+	TError = ErrorType<PostAuthWebAdopt404 | PostAuthWebAdopt500>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof postAuthWebAdopt>>,
+			TError,
+			void,
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postAuthWebAdopt>>,
+	TError,
+	void,
+	TContext
+> => {
+	const mutationOptions = getPostAuthWebAdoptMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
