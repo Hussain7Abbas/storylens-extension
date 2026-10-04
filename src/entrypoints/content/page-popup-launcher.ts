@@ -50,7 +50,11 @@ import {
 	parsePopupState,
 	popupReadyKey,
 } from "@/lib/launcher-frame/messages";
-import { formatLenses, LENS_COIN_MONO } from "@/lib/lens-coin";
+import {
+	createLensCoin,
+	formatLenses,
+	LENS_COIN_MOTION_CSS,
+} from "@/lib/lens-coin";
 import {
 	NIGHT_LIGHT_DEFAULT_LEVEL,
 	NIGHT_LIGHT_ENABLED_KEY,
@@ -357,6 +361,7 @@ function createLauncher(locale: string): Launcher {
 	style.textContent = `
 		:host{all:initial}
 		${contentThemeCss}
+		${LENS_COIN_MOTION_CSS}
 		button{font:600 14px system-ui,sans-serif;cursor:pointer}
 		#launcher{position:relative;display:grid;place-items:center;width:100%;height:100%;padding:2px;border:1px solid var(--border);border-radius:50%;background:var(--surface);box-shadow:0 3px 14px rgb(32 33 50 / .35);touch-action:none;user-select:none;box-sizing:border-box;transition:transform 180ms ease}
 		#status{position:absolute;top:0;inset-inline-end:0;width:14px;height:14px;border:2px solid var(--surface);border-radius:50%;box-sizing:border-box;pointer-events:none}
@@ -481,13 +486,11 @@ function createLauncher(locale: string): Launcher {
 				const badge = document.createElement("span");
 				badge.className = "lens-price";
 				badge.setAttribute("aria-hidden", "true");
-				badge.append(createElement(LENS_COIN_MONO, { "aria-hidden": "true" }));
+				badge.append(createLensCoin(10));
 				badge.append(formatLenses(price, currentLocale));
 				element.style.position = "relative";
 				badge.style.cssText =
 					"position:absolute;inset-block-start:-5px;inset-inline-end:-5px;display:flex;align-items:center;gap:2px;background:var(--accent);color:var(--on-accent);border-radius:8px;padding:2px;font:10px system-ui;pointer-events:none";
-				badge.querySelector("svg")?.setAttribute("width", "10");
-				badge.querySelector("svg")?.setAttribute("height", "10");
 				element.append(badge);
 				label += `, ${vanillaAiText(currentLocale)("lens.count", { count: price, formatted: formatLenses(price, currentLocale) })}`;
 			}

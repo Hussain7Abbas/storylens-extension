@@ -1,11 +1,14 @@
-import { createElement } from "lucide";
 import { browser } from "#imports";
 import type { AiSource } from "@/lib/ai-source/source";
 import { aiState } from "@/lib/ai-source/storage";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { pageAiTasks } from "@/lib/launcher-frame/ai-tasks";
-import { formatLenses, LENS_COIN_MONO } from "@/lib/lens-coin";
+import {
+	createLensCoin,
+	formatLenses,
+	LENS_COIN_MOTION_CSS,
+} from "@/lib/lens-coin";
 import { contentThemeCss } from "@/styles/palette";
 import { executeLocalizedPrompt } from "./localized-prompt";
 import { cleanSummaryBody, summaryBodyText } from "./summary-text";
@@ -57,6 +60,7 @@ function panel(
 	const style = document.createElement("style");
 	style.textContent =
 		contentThemeCss +
+		LENS_COIN_MOTION_CSS +
 		":host{all:initial;display:block}section{box-sizing:border-box;border:1px solid var(--border);border-inline-start:3px solid var(--accent);border-radius:12px;background:var(--surface);color:var(--ink);font:16px/1.7 system-ui,sans-serif;max-width:960px;margin:12px auto;padding:16px 20px;box-shadow:0 8px 24px rgb(32 33 50 / .12)}header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between}h2{font:600 1.3em/1.2 system-ui,sans-serif;margin:0}section[dir=rtl] h2{font-family:system-ui,sans-serif}button{background:var(--accent);border:1px solid var(--accent);border-radius:.65rem;color:var(--on-accent);font:500 .85em system-ui,sans-serif;min-height:44px;padding:5px 12px;cursor:pointer}button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}p{margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}.actions{display:flex;gap:8px}.hint{font-size:.78em;color:var(--muted)}";
 	const section = document.createElement("section");
 	section.setAttribute("dir", locale === "ar" ? "rtl" : "ltr");
@@ -82,10 +86,8 @@ function panel(
 			(row) => row.key === "page_summary",
 		)?.lenses;
 		if (state.source === "cloud" && price && price > 0) {
-			const coin = document.createElement("span");
-			coin.append(createElement(LENS_COIN_MONO, { "aria-hidden": "true" }));
-			coin.style.cssText =
-				"display:inline-flex;width:14px;height:14px;margin-inline:4px;vertical-align:middle";
+			const coin = createLensCoin(14);
+			coin.style.marginInline = "4px";
 			retryButton.append(coin, formatLenses(price, locale));
 			retryButton.setAttribute(
 				"aria-label",
