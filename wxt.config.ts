@@ -1,6 +1,7 @@
 import { defineConfig } from "wxt";
 
 const defaultDevApiUrl = "http://localhost:7001";
+const defaultDevServerPort = 3050;
 const productionApiUrl = "https://storylens-api.iscoded.com";
 const isProductionBuild = process.env.NODE_ENV === "production";
 const apiUrl = isProductionBuild
@@ -25,6 +26,7 @@ const productionHostPermissions = [
 // See https://wxt.dev/api/config.html
 export default defineConfig({
 	imports: false,
+	dev: { server: { port: defaultDevServerPort } },
 	modules: [
 		"@wxt-dev/module-react",
 		"@wxt-dev/auto-icons",
@@ -39,7 +41,8 @@ export default defineConfig({
 				return;
 			}
 
-			const devServerPort = wxt.config.dev?.server?.port ?? 3000;
+			const devServerPort =
+				wxt.config.dev?.server?.port ?? defaultDevServerPort;
 			const devServerOrigin = `http://localhost:${devServerPort}`;
 			const csp = manifest.content_security_policy;
 

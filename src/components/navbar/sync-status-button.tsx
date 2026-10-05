@@ -180,7 +180,7 @@ export function SyncStatusButton({ t }: { t: TFunction }) {
 					{indicator.action === "signIn" && (
 						<Anchor
 							size="xs"
-							href={websitePageUrl(locale, "login/")}
+							href={websitePageUrl(locale, "profile/login/?reauth=1")}
 							target="_blank"
 							rel="noopener noreferrer"
 						>

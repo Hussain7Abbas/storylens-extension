@@ -520,7 +520,7 @@ function IssueCard({
 								size="compact-xs"
 								variant="light"
 								component="a"
-								href={websitePageUrl(locale, "login/")}
+								href={websitePageUrl(locale, "profile/login/")}
 								target="_blank"
 								rel="noopener noreferrer"
 								onClick={() =>

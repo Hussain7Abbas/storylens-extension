@@ -21,6 +21,10 @@ The backend defaults to port 3000, while the extension's development API URL
 example uses port 7001. Configure `WXT_API_URL` or the backend `PORT` so they
 match. See the umbrella [development guide](../../docs/development.md).
 
+WXT's extension development server uses port 3050, leaving port 3000 for
+the website when running all apps with `make dev`. This is separate from
+the backend API URL and the website account-bridge URL.
+
 Google Analytics 4 is optional: set `WXT_GA_MEASUREMENT_ID` and
 `WXT_GA_API_SECRET` (a Measurement Protocol API secret for the GA4 data stream)
 before building to enable anonymous usage events. Users can opt out in General
