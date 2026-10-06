@@ -7,11 +7,13 @@ import { trackEvent } from "@/lib/analytics/client";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
+	boundTranslationCandidates,
 	buildKeywordSuggestionPrompt,
 	decodeKeywordContext,
 	KEYWORD_CONTEXT_PARAM,
 	type KeywordSuggestion,
 	parseKeywordSuggestion,
+	type TranslationCandidates,
 } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
@@ -21,7 +23,11 @@ import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import {
 	useOfflineKeywordCategories,
 	useOfflineKeywordNatures,
+	useTranslationAliases,
+	useTranslationKeywords,
 } from "@/lib/offline/hooks";
+import { useLanguage } from "@/store/locale";
+import { nameFields } from "@/utils/translation";
 
 export type KeywordSuggestionState =
 	| { status: "idle" }
@@ -43,13 +49,68 @@ export function useKeywordSuggestion(
 		const params = new URLSearchParams(window.location.search);
 		const name = params.get("search")?.trim();
 		const context = decodeKeywordContext(params.get(KEYWORD_CONTEXT_PARAM));
-		return name && context ? { name, context } : undefined;
+		// The chooser says which form it is opening and, for a child, its keyword.
+		const kind = params.get("create");
+		const parentId = params.get("parentId") ?? undefined;
+		return name && context ? { name, context, kind, parentId } : undefined;
 	}, []);
 	const { data: categories } = useOfflineKeywordCategories();
 	const { data: natures } = useOfflineKeywordNatures();
-	const lookups = useRef({ categories, natures });
-	lookups.current = { categories, natures };
-	const lookupsReady = !!categories && !!natures;
+	// Entries that could hold the picked text's name in the other language, so the
+	// answer can propose a translation link for the form it opens.
+	const uiLanguage = useLanguage();
+	const target = useMemo(
+		() => nameFields(uiLanguage, request?.name.trim() ?? ""),
+		[uiLanguage, request],
+	);
+	const { keywords: keywordTranslations, isLoading: keywordsLoading } =
+		useTranslationKeywords(
+			request?.kind === "keyword" ? novelId : undefined,
+			target,
+		);
+	const { aliases: aliasTranslations, isLoading: aliasesLoading } =
+		useTranslationAliases(
+			request?.kind === "alias" ? novelId : undefined,
+			request?.parentId,
+			target,
+		);
+	const translations: TranslationCandidates | undefined = useMemo(() => {
+		if (request?.kind === "keyword" && keywordTranslations.length) {
+			return {
+				kind: "keyword",
+				options: boundTranslationCandidates(
+					keywordTranslations.map((keyword) => ({
+						id: keyword.id,
+						nameAr: keyword.nameAr,
+						nameEn: keyword.nameEn,
+						description:
+							[...keyword.versions].sort(
+								(left, right) =>
+									Number(left.startingChapter) - Number(right.startingChapter),
+							)[0]?.description ?? null,
+					})),
+				),
+			};
+		}
+		if (request?.kind === "alias" && aliasTranslations.length) {
+			return {
+				kind: "alias",
+				options: boundTranslationCandidates(
+					aliasTranslations.map((alias) => ({
+						id: alias.id,
+						nameAr: alias.nameAr,
+						nameEn: alias.nameEn,
+						description: alias.description,
+					})),
+				),
+			};
+		}
+		return undefined;
+	}, [request, keywordTranslations, aliasTranslations]);
+	const lookups = useRef({ categories, natures, translations });
+	lookups.current = { categories, natures, translations };
+	const lookupsReady =
+		!!categories && !!natures && !keywordsLoading && !aliasesLoading;
 	const [state, setState] = useState<KeywordSuggestionState>({
 		status: "idle",
 	});
@@ -71,6 +132,7 @@ export function useKeywordSuggestion(
 			const options = {
 				categories: lookups.current.categories ?? [],
 				natures: lookups.current.natures ?? [],
+				translations: lookups.current.translations,
 			};
 			const [prompts, novelContext] = await Promise.all([
 				aiPrompts(),
@@ -94,7 +156,8 @@ export function useKeywordSuggestion(
 				feature: "keyword_suggestion",
 				source: ai.source,
 				prompt: buildKeywordSuggestionPrompt({
-					...request,
+					name: request.name,
+					context: request.context,
 					...options,
 					language,
 					instructions: prompts.keywordPrompt,
@@ -104,7 +167,12 @@ export function useKeywordSuggestion(
 				settings,
 				signal: controller.signal,
 				parse: (output) =>
-					parseKeywordSuggestion(output, options.categories, options.natures),
+					parseKeywordSuggestion(
+						output,
+						options.categories,
+						options.natures,
+						options.translations,
+					),
 				texts: (result) => [result.description],
 			});
 			if (controller.signal.aborted) return;

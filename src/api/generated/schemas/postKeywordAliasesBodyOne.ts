@@ -32,4 +32,5 @@ export type PostKeywordAliasesBodyOne = {
 	/** @nullable */
 	imageId?: PostKeywordAliasesBodyOneImageId;
 	overrideStyle?: boolean;
+	translationAliasId?: string;
 };

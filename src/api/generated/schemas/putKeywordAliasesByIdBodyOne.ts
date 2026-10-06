@@ -31,4 +31,5 @@ export type PutKeywordAliasesByIdBodyOne = {
 	/** @nullable */
 	imageId?: PutKeywordAliasesByIdBodyOneImageId;
 	overrideStyle?: boolean;
+	translationAliasId?: string;
 };

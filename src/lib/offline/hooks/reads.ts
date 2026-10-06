@@ -10,6 +10,7 @@ import { isOfflineUnavailable, offlineDb } from "@/lib/offline/db";
 import { getMeta } from "@/lib/offline/meta";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import { projectNovel } from "@/lib/offline/projection";
+import { canTranslate } from "@/lib/offline/rules/validation";
 import { splitKeywords } from "@/lib/offline/snapshot";
 import {
 	fetchLookups,
@@ -17,6 +18,7 @@ import {
 	fetchNovels,
 } from "@/lib/offline/sync/pull";
 import type {
+	AliasRow,
 	AssembledKeyword,
 	CatalogNovel,
 	CategoryRow,
@@ -213,6 +215,57 @@ export function useNovelKeywords(novelId: string | undefined): {
 		[query.data, language],
 	);
 	return { keywords, isLoading: query.isLoading || ensured.waitingForPull };
+}
+
+/** The row a translation link would merge into: its ID and the names it is saved with. */
+export type TranslationTarget = {
+	id?: string;
+	nameAr?: string | null;
+	nameEn?: string | null;
+};
+
+/**
+ * Translation-link candidates for a keyword form: the novel's keywords that name
+ * a language `target` does not and clash with none of its names, which are the
+ * ones a link may merge in. Readers write one language, so the local snapshot's
+ * other-language keywords never show in ordinary lists.
+ */
+export function useTranslationKeywords(
+	novelId: string | undefined,
+	target: TranslationTarget,
+): { keywords: AssembledKeyword[]; isLoading: boolean } {
+	const query = useNovelView(novelId);
+	const { id, nameAr, nameEn } = target;
+	const keywords = useMemo(
+		() =>
+			(query.data?.keywords ?? []).filter(
+				(keyword) =>
+					keyword.id !== id && canTranslate({ nameAr, nameEn }, keyword),
+			),
+		[query.data, id, nameAr, nameEn],
+	);
+	return { keywords, isLoading: query.isLoading };
+}
+
+/**
+ * Translation-link candidates for an alias form: the parent keyword's other
+ * aliases that name a language `target` does not. An alias never moves between
+ * keywords, so only siblings are offered (`mergeTranslationAlias`).
+ */
+export function useTranslationAliases(
+	novelId: string | undefined,
+	keywordId: string | undefined,
+	target: TranslationTarget,
+): { aliases: AliasRow[]; isLoading: boolean } {
+	const query = useNovelView(novelId);
+	const { id, nameAr, nameEn } = target;
+	const aliases = useMemo(() => {
+		const parent = query.data?.keywords.find((item) => item.id === keywordId);
+		return (parent?.aliases ?? []).filter(
+			(alias) => alias.id !== id && canTranslate({ nameAr, nameEn }, alias),
+		);
+	}, [query.data, keywordId, id, nameAr, nameEn]);
+	return { aliases, isLoading: query.isLoading };
 }
 
 export function useOfflineKeywordAliases(

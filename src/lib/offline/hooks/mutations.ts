@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
+	type AliasTranslationLink,
 	type AliasValues,
 	type EnqueueInput,
 	type EnqueueResult,
@@ -13,6 +14,7 @@ import {
 	type LookupValues,
 	type QueuedImage,
 	type ReplacementValues,
+	type TranslationLink,
 	type Update,
 	type VersionFields,
 	type VersionValues,
@@ -21,12 +23,14 @@ import { refreshContentScript } from "@/utils/refresh-content-script";
 import { OFFLINE_QUERY_KEY } from "./reads";
 
 export type {
+	AliasTranslationLink,
 	AliasValues,
 	KeywordFields,
 	KeywordValues,
 	LookupValues,
 	QueuedImage,
 	ReplacementValues,
+	TranslationLink,
 	Update,
 	VersionFields,
 	VersionValues,
@@ -68,16 +72,21 @@ type WithImage<T> = T & { image?: QueuedImage };
 
 export function useOfflineKeywordMutations(novelId: string) {
 	const createMutation = useEnqueue(
-		({ image, ...values }: WithImage<KeywordValues>) => ({
+		({
+			image,
+			translationKeywordId,
+			...values
+		}: WithImage<KeywordValues> & TranslationLink) => ({
 			entity: "keyword",
 			op: "create",
 			novelId,
 			values,
 			image,
+			translationKeywordId,
 		}),
 	);
 	const updateMutation = useEnqueue(
-		(input: { id: string } & Update<KeywordFields>) => ({
+		(input: { id: string } & Update<KeywordFields> & TranslationLink) => ({
 			entity: "keyword",
 			op: "update",
 			...input,
@@ -100,17 +109,24 @@ export function useOfflineKeywordAliasMutations(_novelId?: string) {
 		({
 			keywordId,
 			image,
+			translationAliasId,
 			...values
-		}: WithImage<AliasValues> & { keywordId: string }) => ({
+		}: WithImage<AliasValues> & {
+			keywordId: string;
+		} & AliasTranslationLink) => ({
 			entity: "keywordAlias",
 			op: "create",
 			keywordId,
 			values,
 			image,
+			translationAliasId,
 		}),
 	);
 	const updateMutation = useEnqueue(
-		(input: { id: string; image?: QueuedImage } & Update<AliasValues>) => ({
+		(
+			input: { id: string; image?: QueuedImage } & Update<AliasValues> &
+				AliasTranslationLink,
+		) => ({
 			entity: "keywordAlias",
 			op: "update",
 			...input,

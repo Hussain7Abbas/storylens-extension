@@ -18,4 +18,5 @@ export type PutKeywordsByIdBodyThree = {
 	nameEn?: PutKeywordsByIdBodyThreeNameEn;
 	matchingType?: PutKeywordsByIdBodyThreeMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	translationKeywordId?: string;
 };

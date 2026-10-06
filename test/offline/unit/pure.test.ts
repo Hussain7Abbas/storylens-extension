@@ -334,6 +334,88 @@ describe("server rule mirrors", () => {
 		);
 		expect(validation.checkVersionDelete("v10", versions)).toBeNull();
 	});
+	it("checks translation links", () => {
+		const base = (id: string) => ({ id, startingChapter: 0 }) as never;
+		const source = {
+			id: "k2",
+			nameEn: "Leo",
+			nameAr: null,
+			versions: [base("v1")],
+		} as never;
+		expect(
+			validation.checkKeywordTranslation("k1", { nameAr: "ليو" }, source),
+		).toBeNull();
+		expect(
+			validation.checkKeywordTranslation("k2", { nameAr: "ليو" }, source),
+		).toBe("TRANSLATION_SELF");
+		expect(
+			validation.checkKeywordTranslation(
+				"k1",
+				{ nameAr: "ليو", nameEn: "Leon" },
+				source,
+			),
+		).toBe("TRANSLATION_SAME_LANGUAGE");
+		// The same name in both languages is one entity, so the link stands.
+		expect(
+			validation.checkKeywordTranslation(
+				"k1",
+				{ nameAr: "ليو", nameEn: "Leo" },
+				source,
+			),
+		).toBeNull();
+		expect(
+			validation.checkKeywordTranslation("k1", { nameAr: "ليو" }, {
+				...(source as object),
+				versions: [base("v1"), base("v2")],
+			} as never),
+		).toBe("TRANSLATION_HAS_VERSIONS");
+		const alias = { id: "a2", keywordId: "k1", nameEn: "Leo", nameAr: null };
+		expect(
+			validation.checkAliasTranslation(
+				{ id: "a1", keywordId: "k1", nameAr: "ليو" },
+				alias as never,
+			),
+		).toBeNull();
+		expect(
+			validation.checkAliasTranslation(
+				{ id: "a1", keywordId: "k9", nameAr: "ليو" },
+				alias as never,
+			),
+		).toBe("TRANSLATION_OTHER_KEYWORD");
+		expect(
+			validation.checkAliasTranslation(
+				{ id: "a2", keywordId: "k1", nameAr: "ليو" },
+				alias as never,
+			),
+		).toBe("TRANSLATION_SELF");
+	});
+	it("offers only rows that add a name without clashing", () => {
+		const arabic = { nameAr: "ليو", nameEn: null };
+		expect(validation.canTranslate(arabic, { nameEn: "Leo" })).toBe(true);
+		// Nothing to add: it names no language the row lacks.
+		expect(validation.canTranslate(arabic, { nameAr: "ليو" })).toBe(false);
+		expect(validation.canTranslate(arabic, { nameAr: "أمل" })).toBe(false);
+		// A row named in both languages fits when its Arabic name is the same one.
+		expect(
+			validation.canTranslate(arabic, { nameAr: "ليو", nameEn: "Leo" }),
+		).toBe(true);
+		expect(
+			validation.canTranslate(arabic, { nameAr: "أمل", nameEn: "Leo" }),
+		).toBe(false);
+		// A row named in both languages already takes no translation.
+		expect(
+			validation.canTranslate(
+				{ nameAr: "ليو", nameEn: "Leo" },
+				{
+					nameEn: "Leon",
+				},
+			),
+		).toBe(false);
+		// An unnamed row (a form before its name is typed) takes any.
+		expect(validation.canTranslate({ nameAr: " " }, { nameEn: "Leo" })).toBe(
+			true,
+		);
+	});
 	it("refuses deleting a lookup in use by a version or an alias", () => {
 		expect(
 			validation.checkLookupDelete("keywordCategory", "c", {

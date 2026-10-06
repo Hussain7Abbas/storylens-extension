@@ -21,7 +21,7 @@ import {
 	Drama as IconMasksTheater,
 	Trash2 as IconTrash,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
 	GetKeywords200DataItem,
@@ -30,6 +30,10 @@ import type {
 } from "@/api/generated/schemas";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
+import {
+	TranslationLinkSelect,
+	type TranslationOption,
+} from "@/components/translation-link-select";
 import { UnsentDependants } from "@/components/unsent-dependants";
 import { trackEvent } from "@/lib/analytics/client";
 import { useIsModerator } from "@/lib/auth";
@@ -47,16 +51,21 @@ import {
 	useOfflineKeywordMutations,
 	useOfflineKeywordNatures,
 	useOfflineKeywordVersionMutations,
+	useTranslationAliases,
+	useTranslationKeywords,
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
 import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { stripArabicDiacritics } from "@/utils/arabic";
+import { loadFormValues } from "@/utils/form-baseline";
 import {
 	aliasDisplayName,
 	aliasMatchNames,
 	displayNameIn,
+	type Language,
 	nameFields,
 	nameIn,
+	nameKey,
 } from "@/utils/translation";
 
 type StackFrame =
@@ -105,6 +114,51 @@ function categoryLabel(
 	return category ? category.nameEn || category.nameAr || undefined : undefined;
 }
 
+/** The language a translation link's candidates are named in. */
+function otherLanguage(language: Language): Language {
+	return language === "ar" ? "en" : "ar";
+}
+
+/** The style an absorbed row hands over: a translation link overwrites these fields. */
+type TranslationStyle = {
+	description: string;
+	categoryId: string | null;
+	natureId: string | null;
+	imageId: string | null;
+	imageUrl: string | null;
+};
+
+type Styled = {
+	description?: string | null;
+	categoryId?: string | null;
+	natureId?: string | null;
+	imageId?: unknown;
+	image?: { url?: string | null } | null;
+};
+
+function translationStyle(row: Styled | undefined): TranslationStyle {
+	return {
+		description: row?.description ?? "",
+		categoryId: row?.categoryId ?? null,
+		natureId: row?.natureId ?? null,
+		imageId: (row?.imageId as string | null | undefined) ?? null,
+		imageUrl: row?.image?.url ?? null,
+	};
+}
+
+/** A keyword's style lives on its base version (the lowest starting chapter). */
+function keywordTranslationStyle(
+	keyword: GetKeywords200DataItem | undefined,
+): TranslationStyle {
+	const base = keyword?.versions.length
+		? [...keyword.versions].sort(
+				(left, right) =>
+					Number(left.startingChapter) - Number(right.startingChapter),
+			)[0]
+		: undefined;
+	return translationStyle(base);
+}
+
 // ─── KEYWORD form ────────────────────────────────────────────────────────────
 
 type KeywordFormValues = {
@@ -137,6 +191,15 @@ function KeywordForm({
 	const keyword = "keyword" in frame ? frame.keyword : undefined;
 	const suggestion =
 		frame.mode === "keyword-add" ? frame.suggestion : undefined;
+	// A keyword the AI matched in the other language starts the form linked.
+	const suggestedTranslation =
+		suggestion?.translation?.kind === "keyword"
+			? suggestion.translation.id
+			: undefined;
+	const [translationId, setTranslationId] = useState<string | null>(
+		suggestedTranslation ?? null,
+	);
+	const [linkedImageUrl, setLinkedImageUrl] = useState<string | null>(null);
 
 	const baseVersion = keyword?.versions.length
 		? [...keyword.versions].sort(
@@ -153,7 +216,6 @@ function KeywordForm({
 		useOfflineKeywordCategories();
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
-
 	useEffect(() => {
 		if (!imageFile) {
 			setImagePreviewUrl(null);
@@ -185,7 +247,54 @@ function KeywordForm({
 		},
 	});
 
+	// Candidates depend on the names this keyword will be saved with: the reader
+	// edits only their own language, the other one stays as it is stored.
+	const { keywords: translations, isLoading: translationsLoading } =
+		useTranslationKeywords(selectedNovelId, {
+			id: keyword?.id,
+			...nameFields(language, form.values.name.trim()),
+			[nameKey(otherLanguage(language))]:
+				keyword?.[nameKey(otherLanguage(language))] ?? null,
+		});
+	const translationOptions: TranslationOption[] = translations.map((item) => ({
+		id: item.id,
+		name: nameIn(item, otherLanguage(language)),
+	}));
+
 	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
+
+	const { setFieldValue, isDirty, resetDirty } = form;
+	/**
+	 * A translation link overwrites the style fields with the linked keyword's,
+	 * because the merge keeps only one of the two rows. `baseline` is for a link
+	 * the AI proposed: its values load without counting as unsaved changes.
+	 */
+	const applyTranslationStyle = useCallback(
+		(style: TranslationStyle, baseline: boolean) => {
+			const write = () => {
+				setFieldValue("description", style.description);
+				setFieldValue("categoryId", style.categoryId ?? "");
+				setFieldValue("natureId", style.natureId ?? "");
+				setFieldValue("imageId", style.imageId ?? undefined);
+				setImageFile(null);
+				setLinkedImageUrl(style.imageUrl);
+			};
+			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
+			else write();
+		},
+		[setFieldValue, isDirty, resetDirty],
+	);
+
+	// The candidates load from the local view, so an AI-proposed link applies late.
+	const appliedTranslation = useRef<string | null>(null);
+	useEffect(() => {
+		const source = translations.find(
+			(item) => item.id === suggestedTranslation,
+		);
+		if (!source || appliedTranslation.current === source.id) return;
+		appliedTranslation.current = source.id;
+		applyTranslationStyle(keywordTranslationStyle(source), true);
+	}, [suggestedTranslation, translations, applyTranslationStyle]);
 
 	const isPending =
 		isGeneratingImage ||
@@ -213,6 +322,8 @@ function KeywordForm({
 					description: values.description || null,
 					imageId: values.imageId ?? null,
 					image,
+					// The linked keyword is merged in and gives this one its other name.
+					translationKeywordId: translationId ?? undefined,
 				});
 			} else if (keyword) {
 				const { keyword: keywordChanges, baseVersion: versionChanges } =
@@ -230,11 +341,13 @@ function KeywordForm({
 						{ ...values, imageId: values.imageId ?? null },
 						language,
 					);
-				if (keywordChanges) {
+				if (keywordChanges || translationId) {
 					await updateMutation.mutateAsync({
 						id: keyword.id,
-						...keywordChanges,
+						changes: keywordChanges?.changes ?? {},
+						seen: keywordChanges?.seen,
 						seenUpdatedAt: String(keyword.updatedAt),
+						translationKeywordId: translationId ?? undefined,
 					});
 				}
 				if (baseVersion && (versionChanges || image)) {
@@ -258,6 +371,12 @@ function KeywordForm({
 					enabled: values.fuzzyMatchArabicCharacters,
 				});
 			}
+			if (translationId) {
+				trackEvent("keyword_translation_linked", {
+					kind: "keyword",
+					source: translationId === suggestedTranslation ? "ai" : "manual",
+				});
+			}
 			form.reset();
 			setImageFile(null);
 			onClose();
@@ -266,7 +385,8 @@ function KeywordForm({
 		}
 	};
 
-	const displayedImageUrl = imagePreviewUrl ?? baseVersion?.image?.url ?? null;
+	const displayedImageUrl =
+		imagePreviewUrl ?? linkedImageUrl ?? baseVersion?.image?.url ?? null;
 
 	return (
 		<Stack gap="xs" p="xs">
@@ -296,6 +416,22 @@ function KeywordForm({
 							})}
 						/>
 					)}
+					<TranslationLinkSelect
+						options={translationOptions}
+						value={translationId}
+						onChange={(option) => {
+							setTranslationId(option?.id ?? null);
+							if (option) {
+								applyTranslationStyle(
+									keywordTranslationStyle(
+										translations.find((item) => item.id === option.id),
+									),
+									false,
+								);
+							}
+						}}
+						isLoading={translationsLoading}
+					/>
 					<Select
 						label={t("coloring.category")}
 						placeholder={t("coloring.selectCategory")}
@@ -488,6 +624,15 @@ function AliasForm({
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const alias = "keyword" in frame ? frame.keyword : undefined;
 	const suggestion = frame.mode === "alias-add" ? frame.suggestion : undefined;
+	// An alias the AI matched among the keyword's other-language aliases.
+	const suggestedTranslation =
+		suggestion?.translation?.kind === "alias"
+			? suggestion.translation.id
+			: undefined;
+	const [translationId, setTranslationId] = useState<string | null>(
+		suggestedTranslation ?? null,
+	);
+	const [linkedImageUrl, setLinkedImageUrl] = useState<string | null>(null);
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordAliasMutations(selectedNovelId);
 
@@ -505,8 +650,8 @@ function AliasForm({
 		useOfflineKeywordCategories();
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
-
-	const displayedImageUrl = imagePreviewUrl ?? alias?.image?.url ?? null;
+	const displayedImageUrl =
+		imagePreviewUrl ?? linkedImageUrl ?? alias?.image?.url ?? null;
 
 	const form = useForm<AliasFormValues>({
 		initialValues: {
@@ -528,7 +673,49 @@ function AliasForm({
 		},
 	});
 
+	// Candidates depend on the names this alias will be saved with.
+	const { aliases: translations, isLoading: translationsLoading } =
+		useTranslationAliases(selectedNovelId, frame.parentKeyword.id, {
+			id: alias?.id,
+			...nameFields(language, form.values.name.trim()),
+			[nameKey(otherLanguage(language))]:
+				alias?.[nameKey(otherLanguage(language))] ?? null,
+		});
+	const translationOptions: TranslationOption[] = translations.map((item) => ({
+		id: item.id,
+		name: nameIn(item, otherLanguage(language)),
+	}));
+
 	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
+
+	const { setFieldValue, isDirty, resetDirty } = form;
+	/** A translation link overwrites the style fields with the linked alias's. */
+	const applyTranslationStyle = useCallback(
+		(style: TranslationStyle, baseline: boolean) => {
+			const write = () => {
+				setFieldValue("description", style.description);
+				setFieldValue("categoryId", style.categoryId);
+				setFieldValue("natureId", style.natureId);
+				setFieldValue("imageId", style.imageId ?? undefined);
+				setImageFile(null);
+				setLinkedImageUrl(style.imageUrl);
+			};
+			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
+			else write();
+		},
+		[setFieldValue, isDirty, resetDirty],
+	);
+
+	// The siblings load from the local view, so an AI-proposed link applies late.
+	const appliedTranslation = useRef<string | null>(null);
+	useEffect(() => {
+		const source = translations.find(
+			(item) => item.id === suggestedTranslation,
+		);
+		if (!source || appliedTranslation.current === source.id) return;
+		appliedTranslation.current = source.id;
+		applyTranslationStyle(translationStyle(source), true);
+	}, [suggestedTranslation, translations, applyTranslationStyle]);
 
 	const isPending =
 		isGeneratingImage ||
@@ -555,6 +742,8 @@ function AliasForm({
 					imageId: values.imageId ?? null,
 					overrideStyle: values.overrideStyle,
 					image,
+					// The linked sibling is merged in and gives this alias its other name.
+					translationAliasId: translationId ?? undefined,
 				});
 			} else if (alias) {
 				const initial = {
@@ -572,13 +761,14 @@ function AliasForm({
 					{ ...values, imageId: values.imageId ?? null },
 					language,
 				);
-				if (changes || image) {
+				if (changes || image || translationId) {
 					await updateMutation.mutateAsync({
 						id: alias.id,
 						changes: changes?.changes ?? {},
 						seen: changes?.seen,
 						seenUpdatedAt: String(alias.updatedAt),
 						image,
+						translationAliasId: translationId ?? undefined,
 					});
 				}
 			}
@@ -591,6 +781,12 @@ function AliasForm({
 				trackEvent("keyword_arabic_match_saved", {
 					kind: "alias",
 					enabled: values.fuzzyMatchArabicCharacters,
+				});
+			}
+			if (translationId) {
+				trackEvent("keyword_translation_linked", {
+					kind: "alias",
+					source: translationId === suggestedTranslation ? "ai" : "manual",
 				});
 			}
 			form.reset();
@@ -650,6 +846,22 @@ function AliasForm({
 					<TextInput
 						label={t("coloring.description")}
 						{...form.getInputProps("description")}
+					/>
+					<TranslationLinkSelect
+						options={translationOptions}
+						value={translationId}
+						onChange={(option) => {
+							setTranslationId(option?.id ?? null);
+							if (option) {
+								applyTranslationStyle(
+									translationStyle(
+										translations.find((item) => item.id === option.id),
+									),
+									false,
+								);
+							}
+						}}
+						isLoading={translationsLoading}
 					/>
 					<Select
 						label={t("coloring.category")}

@@ -15,6 +15,9 @@ import {
  */
 
 type Row = Record<string, unknown> & { id: string };
+
+/** Names a translation link hands to the saved row. */
+type TranslatedNames = { nameAr?: unknown; nameEn?: unknown };
 type User = {
 	id: string;
 	username: string;
@@ -209,6 +212,45 @@ export class FakeApi {
 			createdById,
 		});
 		return keyword;
+	}
+
+	seedAlias(keywordId: string, values: Partial<Row> = {}): Row {
+		const now = this.now();
+		const alias: Row = {
+			id: crypto.randomUUID(),
+			nameAr: null,
+			nameEn: null,
+			description: null,
+			matchingType: "FULL",
+			fuzzyMatchArabicCharacters: true,
+			overrideStyle: false,
+			categoryId: null,
+			natureId: null,
+			imageId: null,
+			keywordId,
+			createdById: null,
+			createdAt: now,
+			updatedAt: now,
+			...values,
+		};
+		this.aliases.set(alias.id, alias);
+		this.record("keywordAlias", alias.id, this.novelOf("keywordAlias", alias));
+		return alias;
+	}
+
+	seedVersion(keywordId: string, values: Partial<Row> = {}): Row {
+		return this.insertVersion({
+			id: crypto.randomUUID(),
+			keywordId,
+			description: null,
+			categoryId: null,
+			natureId: null,
+			imageId: null,
+			startingChapter: 0,
+			endingChapter: null,
+			createdById: null,
+			...values,
+		});
 	}
 
 	/** Another device or a moderator changes a row. */
@@ -543,6 +585,152 @@ export class FakeApi {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	// Translation links (backend `src/lib/keywords/merge.ts`)
+	// -------------------------------------------------------------------------
+
+	/** The source's names for the languages `target` has no name in yet. */
+	private translatedNames(
+		target: TranslatedNames,
+		source: Row,
+	): TranslatedNames {
+		const names: TranslatedNames = {};
+		for (const field of ["nameAr", "nameEn"] as const) {
+			if (!source[field]) continue;
+			if (!target[field]) names[field] = source[field];
+			else if (target[field] !== source[field])
+				fail(
+					409,
+					"TRANSLATION_SAME_LANGUAGE",
+					"Both items are already named in the same language",
+				);
+		}
+		return names;
+	}
+
+	/** Merges the keyword holding the other language's name into `target`. */
+	private mergeTranslationKeyword(
+		target: { id?: string; novelId: unknown; nameAr: unknown; nameEn: unknown },
+		sourceId: unknown,
+		user: User,
+	): TranslatedNames {
+		if (sourceId === undefined) return {};
+		this.requireUuid(sourceId);
+		if (sourceId === target.id)
+			fail(
+				409,
+				"TRANSLATION_SELF",
+				"An item cannot be the translation of itself",
+			);
+		const source = this.keywords.get(sourceId as string);
+		// A translation that no longer exists is ignored, so a replay succeeds.
+		if (!source) return {};
+		if (source.novelId !== target.novelId)
+			fail(
+				409,
+				"TRANSLATION_OTHER_NOVEL",
+				"Both keywords must belong to the same novel",
+			);
+		const versions = [...this.versions.values()].filter(
+			(version) => version.keywordId === source.id,
+		);
+		if (versions.length > 1)
+			fail(
+				409,
+				"TRANSLATION_HAS_VERSIONS",
+				"A keyword with later versions cannot be linked without losing its version history",
+			);
+		this.assertOwns(user, source.createdById);
+		const names = this.translatedNames(target, source);
+		const siblings = () =>
+			[...this.aliases.values()].filter(
+				(alias) => alias.keywordId === target.id,
+			);
+		for (const alias of [...this.aliases.values()].filter(
+			(row) => row.keywordId === source.id,
+		)) {
+			const taken = siblings();
+			const free = (field: "nameAr" | "nameEn") =>
+				alias[field] && !taken.some((other) => other[field] === alias[field])
+					? alias[field]
+					: null;
+			const existing = taken.find((other) =>
+				(["nameAr", "nameEn"] as const).some(
+					(field) => alias[field] && other[field] === alias[field],
+				),
+			);
+			const compatible =
+				existing &&
+				(["nameAr", "nameEn"] as const).every(
+					(field) =>
+						!alias[field] ||
+						!existing[field] ||
+						alias[field] === existing[field],
+				);
+			if (existing && compatible) {
+				existing.nameAr = existing.nameAr ?? free("nameAr");
+				existing.nameEn = existing.nameEn ?? free("nameEn");
+				this.record(
+					"keywordAlias",
+					existing.id,
+					this.novelOf("keywordAlias", existing),
+				);
+				continue;
+			}
+			const moved = { nameAr: free("nameAr"), nameEn: free("nameEn") };
+			if (!moved.nameAr && !moved.nameEn) continue;
+			Object.assign(alias, moved, { keywordId: target.id });
+			this.record(
+				"keywordAlias",
+				alias.id,
+				this.novelOf("keywordAlias", alias),
+			);
+		}
+		for (const row of this.replacements.values())
+			if (row.keywordId === source.id) row.keywordId = target.id as string;
+		this.deleteKeyword(source.id as string);
+		return names;
+	}
+
+	/** Merges the sibling alias holding the other language's name into `target`. */
+	private mergeTranslationAlias(
+		target: {
+			id?: string;
+			keywordId: unknown;
+			nameAr: unknown;
+			nameEn: unknown;
+		},
+		sourceId: unknown,
+		user: User,
+	): TranslatedNames {
+		if (sourceId === undefined) return {};
+		this.requireUuid(sourceId);
+		if (sourceId === target.id)
+			fail(
+				409,
+				"TRANSLATION_SELF",
+				"An item cannot be the translation of itself",
+			);
+		const source = this.aliases.get(sourceId as string);
+		if (!source) return {};
+		if (source.keywordId !== target.keywordId)
+			fail(
+				409,
+				"TRANSLATION_OTHER_KEYWORD",
+				"Both aliases must belong to the same keyword",
+			);
+		const parent = this.keywords.get(source.keywordId as string);
+		this.assertOwns(user, source.createdById, parent?.createdById);
+		const names = this.translatedNames(target, source);
+		this.aliases.delete(source.id as string);
+		this.record(
+			"keywordAlias",
+			source.id as string,
+			this.novelOf("keywordAlias", source),
+		);
+		return names;
+	}
+
 	private route(
 		method: string,
 		path: string,
@@ -695,6 +883,20 @@ export class FakeApi {
 				endingChapter: null,
 				createdById: user.id,
 			});
+			const linked = this.mergeTranslationKeyword(
+				keyword as {
+					id: string;
+					novelId: unknown;
+					nameAr: unknown;
+					nameEn: unknown;
+				},
+				body.translationKeywordId,
+				user,
+			);
+			if (Object.keys(linked).length) {
+				Object.assign(keyword, linked);
+				this.record("keyword", keyword.id, keyword.novelId as string);
+			}
 			return this.keywordShape(keyword);
 		}
 		this.requireUuid(id);
@@ -724,9 +926,15 @@ export class FakeApi {
 					"KEYWORD_NAME_TAKEN",
 					"Keyword name already exists for this novel",
 				);
+			const linked = this.mergeTranslationKeyword(
+				{ id: keyword.id as string, novelId: keyword.novelId, ...names },
+				body.translationKeywordId,
+				user,
+			);
 			const next = {
 				...keyword,
 				...names,
+				...linked,
 				...(body.matchingType ? { matchingType: body.matchingType } : {}),
 				...(body.fuzzyMatchArabicCharacters === undefined
 					? {}
@@ -812,6 +1020,17 @@ export class FakeApi {
 				createdAt: now,
 				updatedAt: now,
 			};
+			const linked = this.mergeTranslationAlias(
+				alias as {
+					id: string;
+					keywordId: unknown;
+					nameAr: unknown;
+					nameEn: unknown;
+				},
+				body.translationAliasId,
+				user,
+			);
+			Object.assign(alias, linked);
 			this.aliases.set(alias.id, alias);
 			this.record(
 				"keywordAlias",
@@ -845,13 +1064,25 @@ export class FakeApi {
 					"ALIAS_NAME_TAKEN",
 					"Alias name already exists for this keyword",
 				);
+			const sent = Object.fromEntries(
+				fields
+					.filter((field) => body[field] !== undefined)
+					.map((field) => [field, body[field]]),
+			);
+			const linked = this.mergeTranslationAlias(
+				{
+					id: alias.id as string,
+					keywordId: alias.keywordId,
+					nameAr: sent.nameAr ?? alias.nameAr,
+					nameEn: sent.nameEn ?? alias.nameEn,
+				},
+				body.translationAliasId,
+				user,
+			);
 			const next = {
 				...alias,
-				...Object.fromEntries(
-					fields
-						.filter((field) => body[field] !== undefined)
-						.map((field) => [field, body[field]]),
-				),
+				...sent,
+				...linked,
 				updatedAt: this.now(),
 			};
 			this.assertName(next);

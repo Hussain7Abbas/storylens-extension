@@ -25,7 +25,9 @@ import { projectLookups, projectNovel } from "@/lib/offline/projection";
 import { sameValue } from "@/lib/offline/rules/merge";
 import {
 	checkAliasNames,
+	checkAliasTranslation,
 	checkKeywordNames,
+	checkKeywordTranslation,
 	checkLookupDelete,
 	checkLookupNames,
 	checkReplacement,
@@ -96,6 +98,20 @@ export type KeywordValues = {
 	description?: string | null;
 	imageId?: string | null;
 };
+
+/**
+ * Translation link: the keyword or alias that holds the saved row's name in the
+ * other language. The server merges it into the saved row and deletes it, so it
+ * is an action rather than a stored field: it never enters a change set or a
+ * form's `seen` values, and a replay whose target is already merged succeeds.
+ */
+export type TranslationLink = {
+	translationKeywordId?: string;
+};
+
+export type AliasTranslationLink = {
+	translationAliasId?: string;
+};
 export type KeywordFields = Pick<
 	KeywordValues,
 	"nameAr" | "nameEn" | "matchingType" | "fuzzyMatchArabicCharacters"
@@ -150,28 +166,30 @@ export type Update<T> = {
 export type QueuedImage = { blob: Blob; name: string; type: string };
 
 export type EnqueueInput =
-	| {
+	| ({
 			entity: "keyword";
 			op: "create";
 			novelId: string;
 			values: KeywordValues;
 			image?: QueuedImage;
-	  }
-	| ({ entity: "keyword"; op: "update"; id: string } & Update<KeywordFields>)
+	  } & TranslationLink)
+	| ({ entity: "keyword"; op: "update"; id: string } & Update<KeywordFields> &
+			TranslationLink)
 	| { entity: "keyword"; op: "delete"; id: string }
-	| {
+	| ({
 			entity: "keywordAlias";
 			op: "create";
 			keywordId: string;
 			values: AliasValues;
 			image?: QueuedImage;
-	  }
+	  } & AliasTranslationLink)
 	| ({
 			entity: "keywordAlias";
 			op: "update";
 			id: string;
 			image?: QueuedImage;
-	  } & Update<AliasValues>)
+	  } & Update<AliasValues> &
+			AliasTranslationLink)
 	| { entity: "keywordAlias"; op: "delete"; id: string }
 	| {
 			entity: "keywordVersion";
@@ -518,6 +536,24 @@ async function queueImage(
 	return fileId;
 }
 
+const TRANSLATION_FIELDS = [
+	"translationKeywordId",
+	"translationAliasId",
+] as const;
+
+/** Whether two unsent changes of one row ask to merge different translations. */
+function differentTranslations(tail: Mutation, next: Mutation): boolean {
+	return TRANSLATION_FIELDS.some((field) => {
+		const before = tail.patch[field];
+		const after = next.patch[field];
+		return (
+			typeof before === "string" &&
+			typeof after === "string" &&
+			before !== after
+		);
+	});
+}
+
 /**
  * Folds a change into the entity's newest mutation when that one is still
  * unsent (`pending`), following the coalescing table; otherwise appends it
@@ -530,6 +566,10 @@ async function coalesceOrAppend(
 	const tail = tailOf(ctx.mutations, next.entityId);
 	if (!tail || tail.status !== "pending" || tail.seq === undefined)
 		return append(ctx, next);
+	// Two different translation links must both reach the server, so folding them
+	// would drop a merge; the later change goes behind the tail and is rebased
+	// onto the row the first one leaves.
+	if (differentTranslations(tail, next)) return append(ctx, next);
 	const { db } = ctx;
 
 	if (tail.op === "create" && next.op === "update") {
@@ -619,6 +659,57 @@ function validate(code: ValidationCode | null): void {
 	if (code) throw new ValidationFailed(code);
 }
 
+/**
+ * Checks a translation link against the novel's view and reports it as the
+ * absorbed row, so the patch carries it and `dependsOn` waits for its create.
+ * A linked row missing from the view is still sent: the server ignores a
+ * translation that no longer exists (`mergeTranslationKeyword`).
+ */
+function linkedKeyword(
+	ctx: Context,
+	view: NovelView | undefined,
+	targetId: string | undefined,
+	names: { nameAr?: string | null; nameEn?: string | null },
+	translationKeywordId: string | undefined,
+): void {
+	if (!translationKeywordId) return;
+	if (translationKeywordId === targetId)
+		throw new ValidationFailed("TRANSLATION_SELF");
+	const source = view?.keywords.find(
+		(item) => item.id === translationKeywordId,
+	);
+	if (!source) return;
+	validate(checkKeywordTranslation(targetId, names, source));
+	// Absorbing it deletes it, so the reader needs the same right as a delete.
+	assert(canDeleteKeyword(ctx.user, source), () => new PermissionDenied());
+}
+
+function linkedAlias(
+	ctx: Context,
+	view: NovelView | undefined,
+	target: {
+		id?: string;
+		keywordId: string;
+		nameAr?: string | null;
+		nameEn?: string | null;
+	},
+	parent: AssembledKeyword | undefined,
+	translationAliasId: string | undefined,
+): void {
+	if (!translationAliasId) return;
+	if (translationAliasId === target.id)
+		throw new ValidationFailed("TRANSLATION_SELF");
+	const source = view?.keywords
+		.flatMap((keyword) => keyword.aliases)
+		.find((item) => item.id === translationAliasId);
+	if (!source) return;
+	validate(checkAliasTranslation(target, source));
+	assert(
+		canDeleteAlias(ctx.user, source, parent),
+		() => new PermissionDenied(),
+	);
+}
+
 async function enqueueKeyword(
 	ctx: Context,
 	input: Extract<EnqueueInput, { entity: "keyword" }>,
@@ -631,6 +722,7 @@ async function enqueueKeyword(
 			nameEn: cleanName(input.values.nameEn) ?? null,
 		};
 		validate(checkKeywordNames(names, view?.keywords ?? []));
+		linkedKeyword(ctx, view, undefined, names, input.translationKeywordId);
 		const entityId = newId();
 		const versionId = newId();
 		const fileId = await queueImage(ctx, input.image);
@@ -645,6 +737,7 @@ async function enqueueKeyword(
 			description: cleanText(input.values.description) ?? null,
 			imageId: fileId ?? input.values.imageId ?? null,
 			versionId,
+			translationKeywordId: input.translationKeywordId,
 		});
 		const mutationId = await append(
 			ctx,
@@ -658,6 +751,7 @@ async function enqueueKeyword(
 					input.values.categoryId,
 					input.values.natureId,
 					patch.imageId as string,
+					input.translationKeywordId,
 				]),
 			}),
 		);
@@ -705,6 +799,16 @@ async function enqueueKeyword(
 		fuzzyMatchArabicCharacters: input.changes.fuzzyMatchArabicCharacters,
 	}) as Partial<KeywordFields>;
 	const { patch, base } = diffChanges(changes, input.seen, keyword);
+	linkedKeyword(
+		ctx,
+		view,
+		input.id,
+		{ ...keyword, ...patch } as KeywordFields,
+		input.translationKeywordId,
+	);
+	// The link is an action, not a field: it stays out of `base` and is always sent.
+	if (input.translationKeywordId)
+		patch.translationKeywordId = input.translationKeywordId;
 	if (!Object.keys(patch).length)
 		return { entityId: input.id, mutationId: null };
 	validate(
@@ -724,6 +828,9 @@ async function enqueueKeyword(
 			patch,
 			base,
 			baseUpdatedAt: input.seenUpdatedAt ?? String(keyword.updatedAt),
+			dependsOn: unconfirmedDependencies(ctx.mutations, [
+				input.translationKeywordId,
+			]),
 		}),
 	);
 	await bumpChangeCounter(ctx.db, [novelId]);
@@ -768,6 +875,13 @@ async function enqueueAlias(
 		assert(canCreate(ctx.user), () => new PermissionDenied());
 		const values = aliasValues(input.values);
 		validate(checkAliasNames(values, keyword.aliases));
+		linkedAlias(
+			ctx,
+			view,
+			{ keywordId: input.keywordId, ...values },
+			keyword,
+			input.translationAliasId,
+		);
 		const fileId = await queueImage(ctx, input.image);
 		const entityId = newId();
 		const patch = {
@@ -783,6 +897,9 @@ async function enqueueAlias(
 			imageId: null,
 			...values,
 			...(fileId ? { imageId: fileId } : {}),
+			...(input.translationAliasId
+				? { translationAliasId: input.translationAliasId }
+				: {}),
 		};
 		const mutationId = await append(
 			ctx,
@@ -798,6 +915,7 @@ async function enqueueAlias(
 					patch.categoryId as string | null,
 					patch.natureId as string | null,
 					patch.imageId as string | null,
+					input.translationAliasId,
 				]),
 			}),
 		);
@@ -845,6 +963,21 @@ async function enqueueAlias(
 		input.seen as Row | undefined,
 		found.alias,
 	);
+	linkedAlias(
+		ctx,
+		view,
+		{ ...found.alias, ...patch } as {
+			id: string;
+			keywordId: string;
+			nameAr?: string | null;
+			nameEn?: string | null;
+		},
+		found.keyword,
+		input.translationAliasId,
+	);
+	// The link is an action, not a field: it stays out of `base` and is always sent.
+	if (input.translationAliasId)
+		patch.translationAliasId = input.translationAliasId;
 	if (!Object.keys(patch).length)
 		return { entityId: input.id, mutationId: null };
 	validate(
@@ -869,6 +1002,7 @@ async function enqueueAlias(
 				patch.categoryId as string,
 				patch.natureId as string,
 				patch.imageId as string,
+				input.translationAliasId,
 			]),
 		}),
 	);

@@ -181,6 +181,19 @@ async function adoptUploadedFile(
 	}
 }
 
+/** The row a mutation's translation link asked the server to merge into it. */
+function absorbedTranslation(mutation: Mutation): string | undefined {
+	const field =
+		mutation.entity === "keyword"
+			? "translationKeywordId"
+			: mutation.entity === "keywordAlias"
+				? "translationAliasId"
+				: undefined;
+	if (!field) return undefined;
+	const value = mutation.patch[field];
+	return typeof value === "string" ? value : undefined;
+}
+
 function errorOf(outcome: Outcome, now: number): Mutation["lastError"] {
 	const message =
 		"message" in outcome && outcome.message ? outcome.message : outcome.type;
@@ -255,6 +268,15 @@ export async function applyOutcome(
 					else if (mutation.entity === "file")
 						await adoptUploadedFile(db, mutation, outcome.data);
 					else await storeRow(db, mutation, outcome.data);
+					// A translation link merged another row into this one: the server
+					// deleted it. Drop it after the answer, which already carries the
+					// aliases that moved, and pull the novel for its replacements.
+					const absorbed = absorbedTranslation(mutation);
+					if (absorbed) {
+						await removeRows(db, mutation.entity, [absorbed]);
+						if (mutation.entity === "keyword" && mutation.novelId)
+							await markPullDue(mutation.novelId, db);
+					}
 					await db.mutations.delete(seq);
 					if (mutation.op !== "delete")
 						await rebaseLater(db, mutation, outcome.data);

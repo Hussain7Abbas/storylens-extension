@@ -27,7 +27,12 @@ export type ValidationCode =
 	| "CATEGORY_IN_USE"
 	| "NATURE_IN_USE"
 	| "PARENT_NOT_FOUND"
-	| "NOT_FOUND";
+	| "NOT_FOUND"
+	| "TRANSLATION_SELF"
+	| "TRANSLATION_OTHER_NOVEL"
+	| "TRANSLATION_OTHER_KEYWORD"
+	| "TRANSLATION_SAME_LANGUAGE"
+	| "TRANSLATION_HAS_VERSIONS";
 
 export type Names = { nameAr?: string | null; nameEn?: string | null };
 
@@ -184,4 +189,65 @@ export function checkLookupDelete(
 		usage.aliases.some((alias) => alias[field] === lookupId);
 	if (!used) return null;
 	return kind === "keywordCategory" ? "CATEGORY_IN_USE" : "NATURE_IN_USE";
+}
+
+// ---------------------------------------------------------------------------
+// Translation links
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether `source` can be `target`'s translation: it names a language `target`
+ * does not, and no language names them differently. The forms offer only these,
+ * and the backend refuses the rest (`missingNames`).
+ */
+export function canTranslate(target: Names, source: Names): boolean {
+	let gives = false;
+	for (const field of ["nameAr", "nameEn"] as const) {
+		const name = clean(source[field]);
+		if (!name) continue;
+		const own = clean(target[field]);
+		if (!own) gives = true;
+		else if (own !== name) return false;
+	}
+	return gives;
+}
+
+/** The names `source` would give `target`, refusing a second name in one language. */
+function translatedNames(target: Names, source: Names): ValidationCode | null {
+	for (const field of ["nameAr", "nameEn"] as const) {
+		const name = clean(source[field]);
+		if (!name) continue;
+		const own = clean(target[field]);
+		if (own && own !== name) return "TRANSLATION_SAME_LANGUAGE";
+	}
+	return null;
+}
+
+/**
+ * Backend `mergeTranslationKeyword`: the absorbed keyword belongs to the same
+ * novel (the novel's view holds only those), is not the saved keyword itself,
+ * and has no version history to lose. A keyword that is not in the view is left
+ * to the server, which ignores a translation that no longer exists.
+ */
+export function checkKeywordTranslation(
+	targetId: string | undefined,
+	names: Names,
+	source: AssembledKeyword,
+): ValidationCode | null {
+	if (targetId && source.id === targetId) return "TRANSLATION_SELF";
+	if (source.versions.length > 1) return "TRANSLATION_HAS_VERSIONS";
+	return translatedNames(names, source);
+}
+
+/**
+ * Backend `mergeTranslationAlias`: the absorbed alias belongs to the same
+ * keyword, so no alias moves between keywords, and is not the saved alias.
+ */
+export function checkAliasTranslation(
+	target: { id?: string; keywordId: string } & Names,
+	source: AliasRow,
+): ValidationCode | null {
+	if (target.id && source.id === target.id) return "TRANSLATION_SELF";
+	if (source.keywordId !== target.keywordId) return "TRANSLATION_OTHER_KEYWORD";
+	return translatedNames(target, source);
 }

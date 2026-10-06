@@ -28,4 +28,5 @@ export type PostKeywordsBodyTwo = {
 	natureId: string;
 	/** @nullable */
 	imageId?: PostKeywordsBodyTwoImageId;
+	translationKeywordId?: string;
 };

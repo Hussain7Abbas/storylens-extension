@@ -28,4 +28,5 @@ export type PostKeywordsBodyThree = {
 	natureId: string;
 	/** @nullable */
 	imageId?: PostKeywordsBodyThreeImageId;
+	translationKeywordId?: string;
 };

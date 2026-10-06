@@ -228,6 +228,107 @@ function rewriteChain(work: Working, saved: ReplacementRow): void {
 	}
 }
 
+const NAME_FIELDS = ["nameAr", "nameEn"] as const;
+
+/**
+ * Mirror of the server's `absorb` for a translation link: the target keyword
+ * takes the names it lacks, the absorbed keyword's aliases move onto it (an
+ * alias that shares a name with one of the target's fills its missing
+ * translation instead), its replacements follow, and it goes with its versions.
+ */
+function absorbKeyword(
+	work: Working,
+	targetId: string,
+	sourceId: string,
+): void {
+	const source = work.keywords.get(sourceId);
+	const target = work.keywords.get(targetId);
+	if (!source || !target || source.id === target.id) return;
+	work.keywords.set(targetId, {
+		...target,
+		nameAr: target.nameAr ?? source.nameAr,
+		nameEn: target.nameEn ?? source.nameEn,
+	});
+	for (const alias of [...work.aliases.values()].filter(
+		(row) => row.keywordId === sourceId,
+	)) {
+		const siblings = [...work.aliases.values()].filter(
+			(row) => row.keywordId === targetId,
+		);
+		const taken = {
+			nameAr: new Set(
+				siblings.flatMap((row) => (row.nameAr ? [row.nameAr] : [])),
+			),
+			nameEn: new Set(
+				siblings.flatMap((row) => (row.nameEn ? [row.nameEn] : [])),
+			),
+		};
+		const free = (field: (typeof NAME_FIELDS)[number]) =>
+			alias[field] && !taken[field].has(alias[field] as string)
+				? alias[field]
+				: null;
+		const existing = siblings.find((other) =>
+			NAME_FIELDS.some(
+				(field) => alias[field] && other[field] === alias[field],
+			),
+		);
+		const compatible =
+			existing &&
+			NAME_FIELDS.every(
+				(field) =>
+					!alias[field] || !existing[field] || alias[field] === existing[field],
+			);
+		if (existing && compatible) {
+			work.aliases.set(existing.id, {
+				...existing,
+				nameAr: existing.nameAr ?? free("nameAr"),
+				nameEn: existing.nameEn ?? free("nameEn"),
+			});
+			work.aliases.delete(alias.id);
+			continue;
+		}
+		const names = { nameAr: free("nameAr"), nameEn: free("nameEn") };
+		// An alias whose every name the target already uses goes with its keyword.
+		if (!names.nameAr && !names.nameEn) {
+			work.aliases.delete(alias.id);
+			continue;
+		}
+		work.aliases.set(alias.id, { ...alias, ...names, keywordId: targetId });
+	}
+	for (const [id, version] of work.versions)
+		if (version.keywordId === sourceId) work.versions.delete(id);
+	for (const [id, replacement] of work.replacements) {
+		if (replacement.keywordId === sourceId) {
+			work.replacements.set(id, {
+				...replacement,
+				keywordId: targetId,
+				keyword: work.keywords.get(targetId) ?? replacement.keyword,
+			});
+		}
+	}
+	work.keywords.delete(sourceId);
+}
+
+/** Mirror of `mergeTranslationAlias`: the target takes the sibling's missing names. */
+function absorbAlias(work: Working, targetId: string, sourceId: string): void {
+	const source = work.aliases.get(sourceId);
+	const target = work.aliases.get(targetId);
+	if (!source || !target || source.id === target.id) return;
+	if (source.keywordId !== target.keywordId) return;
+	work.aliases.set(targetId, {
+		...target,
+		nameAr: target.nameAr ?? source.nameAr,
+		nameEn: target.nameEn ?? source.nameEn,
+	});
+	work.aliases.delete(sourceId);
+}
+
+/** The translation link a patch carries, when it names a row to absorb. */
+function linkOf(patch: Row, field: string): string | undefined {
+	const value = patch[field];
+	return typeof value === "string" ? value : undefined;
+}
+
 function applyKeyword(
 	work: Working,
 	mutation: Mutation,
@@ -244,6 +345,8 @@ function applyKeyword(
 			...existing,
 			...pick(mutation.patch, KEYWORD_FIELDS),
 		});
+		const linked = linkOf(mutation.patch, "translationKeywordId");
+		if (linked) absorbKeyword(work, mutation.entityId, linked);
 		return true;
 	}
 	const createdAt = iso(mutation.createdAt);
@@ -284,6 +387,8 @@ function applyKeyword(
 		} as VersionRow);
 		markState(work.states, versionId, stateOf(mutation));
 	}
+	const linked = linkOf(mutation.patch, "translationKeywordId");
+	if (linked) absorbKeyword(work, mutation.entityId, linked);
 	return true;
 }
 
@@ -294,12 +399,14 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		return true;
 	}
 	const changes = pick(mutation.patch, ALIAS_FIELDS);
+	const linked = linkOf(mutation.patch, "translationAliasId");
 	if (mutation.op === "update") {
 		if (!existing) return false;
 		work.aliases.set(
 			mutation.entityId,
 			withImage({ ...existing, ...changes }, changes),
 		);
+		if (linked) absorbAlias(work, mutation.entityId, linked);
 		return true;
 	}
 	const keywordId =
@@ -334,6 +441,7 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 			changes,
 		),
 	);
+	if (linked) absorbAlias(work, mutation.entityId, linked);
 	return true;
 }
 
