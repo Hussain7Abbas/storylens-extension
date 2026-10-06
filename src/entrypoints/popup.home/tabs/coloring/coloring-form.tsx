@@ -54,6 +54,7 @@ import { stripArabicDiacritics } from "@/utils/arabic";
 import {
 	aliasDisplayName,
 	aliasMatchNames,
+	displayNameIn,
 	nameFields,
 	nameIn,
 } from "@/utils/translation";
@@ -301,7 +302,7 @@ function KeywordForm({
 						allowDeselect={false}
 						data={categoriesData?.map((cat: KeywordCategory) => ({
 							value: cat.id,
-							label: cat.nameEn || cat.nameAr || "",
+							label: displayNameIn(cat, language),
 						}))}
 						{...form.getInputProps("categoryId")}
 						required
@@ -319,7 +320,7 @@ function KeywordForm({
 						allowDeselect={false}
 						data={naturesData?.map((n: KeywordNature) => ({
 							value: n.id,
-							label: n.nameEn || n.nameAr || "",
+							label: displayNameIn(n, language),
 						}))}
 						{...form.getInputProps("natureId")}
 						required
@@ -656,7 +657,7 @@ function AliasForm({
 						clearable
 						data={categoriesData?.map((cat: KeywordCategory) => ({
 							value: cat.id,
-							label: cat.nameEn || cat.nameAr || "",
+							label: displayNameIn(cat, language),
 						}))}
 						{...form.getInputProps("categoryId")}
 						leftSection={
@@ -673,7 +674,7 @@ function AliasForm({
 						clearable
 						data={naturesData?.map((n: KeywordNature) => ({
 							value: n.id,
-							label: n.nameEn || n.nameAr || "",
+							label: displayNameIn(n, language),
 						}))}
 						{...form.getInputProps("natureId")}
 						leftSection={
@@ -1037,7 +1038,7 @@ function VersionForm({
 						allowDeselect={!isBaseVersion}
 						data={categoriesData?.map((cat: KeywordCategory) => ({
 							value: cat.id,
-							label: cat.nameEn || cat.nameAr || "",
+							label: displayNameIn(cat, language),
 						}))}
 						{...form.getInputProps("categoryId")}
 						required={isBaseVersion}
@@ -1056,7 +1057,7 @@ function VersionForm({
 						allowDeselect={!isBaseVersion}
 						data={naturesData?.map((n: KeywordNature) => ({
 							value: n.id,
-							label: n.nameEn || n.nameAr || "",
+							label: displayNameIn(n, language),
 						}))}
 						{...form.getInputProps("natureId")}
 						required={isBaseVersion}

@@ -63,10 +63,15 @@ export function aliasMatchNames(alias: Named): string[] {
 	];
 }
 
+/** A name for display: the UI language's, or the other one when only that is set. */
+export function displayNameIn(item: Named, language: Language): string {
+	return nameIn(item, language) || item.nameAr || item.nameEn || "";
+}
+
 /**
  * An alias's name for display: the UI language's, or its other name when it has
  * only that one (aliases are highlighted by both names, so they stay listed).
  */
 export function aliasDisplayName(alias: Named, language: Language): string {
-	return nameIn(alias, language) || alias.nameAr || alias.nameEn || "";
+	return displayNameIn(alias, language);
 }

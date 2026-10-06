@@ -45,9 +45,9 @@ export function Navbar() {
 							onClick={() => back()}
 						>
 							{dir === "rtl" ? (
-								<ChevronRight strokeWidth={1.75} />
-							) : (
 								<ChevronLeft strokeWidth={1.75} />
+							) : (
+								<ChevronRight strokeWidth={1.75} />
 							)}
 						</ActionIcon>
 					</Tooltip>

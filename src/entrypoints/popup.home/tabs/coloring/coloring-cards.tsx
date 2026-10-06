@@ -38,6 +38,7 @@ import { fuzzyMatches } from "@/utils/fuzzy-search";
 import {
 	aliasDisplayName,
 	aliasMatchNames,
+	displayNameIn,
 	type Language,
 	nameIn,
 } from "@/utils/translation";
@@ -111,6 +112,7 @@ function CategoryNatureRow({
 	inheritedCategory: EnrichedCategory | null | undefined;
 	inheritedNature: EnrichedNature | null | undefined;
 }) {
+	const language = useLanguage();
 	const displayCategory = ownCategory ?? inheritedCategory ?? null;
 	const isCatInherited = !ownCategory && !!inheritedCategory;
 	const displayNature = ownNature ?? inheritedNature ?? null;
@@ -129,7 +131,7 @@ function CategoryNatureRow({
 					}}
 					c={isCatInherited ? "dimmed" : undefined}
 				>
-					{displayCategory.nameEn || displayCategory.nameAr}
+					{displayNameIn(displayCategory, language)}
 				</Text>
 			)}
 			{displayNature && (
@@ -141,7 +143,7 @@ function CategoryNatureRow({
 					}}
 					c={isNatInherited ? "dimmed" : undefined}
 				>
-					{displayNature.nameEn || displayNature.nameAr}
+					{displayNameIn(displayNature, language)}
 				</Text>
 			)}
 		</Group>
@@ -439,12 +441,12 @@ export function ColoringCards({
 										/>
 										{baseCategory && (
 											<Text size="xs" style={{ color: baseCategory.color }}>
-												{baseCategory.nameEn || baseCategory.nameAr}
+												{displayNameIn(baseCategory, language)}
 											</Text>
 										)}
 										{baseNature && (
 											<Text size="xs" style={{ color: baseNature.color }}>
-												{baseNature.nameEn || baseNature.nameAr}
+												{displayNameIn(baseNature, language)}
 											</Text>
 										)}
 										{!readOnly && onAddAlias && (

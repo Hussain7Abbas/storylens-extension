@@ -57,6 +57,7 @@ import { nameKey } from "@/utils/arabic";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import {
 	aliasMatchNames,
+	displayNameIn,
 	type Language,
 	nameFields,
 	nameIn,
@@ -86,13 +87,6 @@ type ExtractionState =
 function postToPanel(message: ExtractionPanelMessage): void {
 	// The panel checks that the message comes from this frame; it carries no page data.
 	window.parent.postMessage(message, "*");
-}
-
-function lookupLabel(item: {
-	nameEn?: string | null;
-	nameAr?: string | null;
-}): string {
-	return item.nameEn || item.nameAr || "";
 }
 
 /** Keyword whose name or alias matches the AI's suggested parent name. */
@@ -441,11 +435,11 @@ export function ExtractionView() {
 
 	const categoryOptions = (categories ?? []).map((item) => ({
 		value: item.id,
-		label: lookupLabel(item),
+		label: displayNameIn(item, language),
 	}));
 	const natureOptions = (natures ?? []).map((item) => ({
 		value: item.id,
-		label: lookupLabel(item),
+		label: displayNameIn(item, language),
 	}));
 
 	return (
