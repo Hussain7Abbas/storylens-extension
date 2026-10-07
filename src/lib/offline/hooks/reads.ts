@@ -10,7 +10,6 @@ import { isOfflineUnavailable, offlineDb } from "@/lib/offline/db";
 import { getMeta } from "@/lib/offline/meta";
 import { isOnline, subscribeOnlineStatus } from "@/lib/offline/online-status";
 import { projectNovel } from "@/lib/offline/projection";
-import { canTranslate } from "@/lib/offline/rules/validation";
 import { splitKeywords } from "@/lib/offline/snapshot";
 import {
 	fetchLookups,
@@ -35,7 +34,7 @@ import {
 } from "@/lib/offline/views";
 import { localeAtom, useLanguage } from "@/store/locale";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
-import { type Language, namedIn, nameIn } from "@/utils/translation";
+import { hasNameIn, type Language, namedIn, nameIn } from "@/utils/translation";
 
 /** Every local read is under this key, so one invalidation refreshes them all. */
 export const OFFLINE_QUERY_KEY = "offline";
@@ -217,54 +216,79 @@ export function useNovelKeywords(novelId: string | undefined): {
 	return { keywords, isLoading: query.isLoading || ensured.waitingForPull };
 }
 
-/** The row a translation link would merge into: its ID and the names it is saved with. */
-export type TranslationTarget = {
-	id?: string;
-	nameAr?: string | null;
-	nameEn?: string | null;
+/** Which rows a form's **Link** may offer: see `useTranslationKeywords`. */
+export type TranslationCandidates = {
+	/** The language tab's own: a candidate must be named in it. */
+	language: Language;
+	/** The reader's language: a candidate must not be named in it. */
+	without: Language;
+	/** The row being saved. */
+	exceptId?: string;
+	/** The surviving row's stored name in `language`, which a link must not replace. */
+	targetName?: string | null;
 };
 
+function offersTranslation<
+	T extends { id: string; nameAr?: string | null; nameEn?: string | null },
+>(
+	rows: T[],
+	{ language, without, exceptId, targetName }: TranslationCandidates,
+): T[] {
+	return rows.filter(
+		(row) =>
+			row.id !== exceptId &&
+			hasNameIn(row, language) &&
+			!hasNameIn(row, without) &&
+			(!targetName?.trim() || nameIn(row, language) === targetName.trim()),
+	);
+}
+
 /**
- * Translation-link candidates for a keyword form: the novel's keywords that name
- * a language `target` does not and clash with none of its names, which are the
- * ones a link may merge in. Readers write one language, so the local snapshot's
- * other-language keywords never show in ordinary lists.
+ * **Link** candidates for a keyword form's other-language tab: the novel's
+ * keywords named in that tab's language and not in the reader's, so merging one
+ * in can only add the name this keyword lacks. Ordinary lists filter by the
+ * reader's language, so these rows do not show there.
  */
 export function useTranslationKeywords(
 	novelId: string | undefined,
-	target: TranslationTarget,
+	candidates: TranslationCandidates,
 ): { keywords: AssembledKeyword[]; isLoading: boolean } {
 	const query = useNovelView(novelId);
-	const { id, nameAr, nameEn } = target;
+	const { language, without, exceptId, targetName } = candidates;
 	const keywords = useMemo(
 		() =>
-			(query.data?.keywords ?? []).filter(
-				(keyword) =>
-					keyword.id !== id && canTranslate({ nameAr, nameEn }, keyword),
-			),
-		[query.data, id, nameAr, nameEn],
+			offersTranslation(query.data?.keywords ?? [], {
+				language,
+				without,
+				exceptId,
+				targetName,
+			}),
+		[query.data, language, without, exceptId, targetName],
 	);
 	return { keywords, isLoading: query.isLoading };
 }
 
 /**
- * Translation-link candidates for an alias form: the parent keyword's other
- * aliases that name a language `target` does not. An alias never moves between
+ * **Link** candidates for an alias form's other-language tab: the parent
+ * keyword's other aliases, by the same rule. An alias never moves between
  * keywords, so only siblings are offered (`mergeTranslationAlias`).
  */
 export function useTranslationAliases(
 	novelId: string | undefined,
 	keywordId: string | undefined,
-	target: TranslationTarget,
+	candidates: TranslationCandidates,
 ): { aliases: AliasRow[]; isLoading: boolean } {
 	const query = useNovelView(novelId);
-	const { id, nameAr, nameEn } = target;
+	const { language, without, exceptId, targetName } = candidates;
 	const aliases = useMemo(() => {
 		const parent = query.data?.keywords.find((item) => item.id === keywordId);
-		return (parent?.aliases ?? []).filter(
-			(alias) => alias.id !== id && canTranslate({ nameAr, nameEn }, alias),
-		);
-	}, [query.data, keywordId, id, nameAr, nameEn]);
+		return offersTranslation(parent?.aliases ?? [], {
+			language,
+			without,
+			exceptId,
+			targetName,
+		});
+	}, [query.data, keywordId, language, without, exceptId, targetName]);
 	return { aliases, isLoading: query.isLoading };
 }
 

@@ -195,23 +195,6 @@ export function checkLookupDelete(
 // Translation links
 // ---------------------------------------------------------------------------
 
-/**
- * Whether `source` can be `target`'s translation: it names a language `target`
- * does not, and no language names them differently. The forms offer only these,
- * and the backend refuses the rest (`missingNames`).
- */
-export function canTranslate(target: Names, source: Names): boolean {
-	let gives = false;
-	for (const field of ["nameAr", "nameEn"] as const) {
-		const name = clean(source[field]);
-		if (!name) continue;
-		const own = clean(target[field]);
-		if (!own) gives = true;
-		else if (own !== name) return false;
-	}
-	return gives;
-}
-
 /** The names `source` would give `target`, refusing a second name in one language. */
 function translatedNames(target: Names, source: Names): ValidationCode | null {
 	for (const field of ["nameAr", "nameEn"] as const) {

@@ -27,7 +27,6 @@ import {
 	useTranslationKeywords,
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
-import { nameFields } from "@/utils/translation";
 
 export type KeywordSuggestionState =
 	| { status: "idle" }
@@ -56,23 +55,26 @@ export function useKeywordSuggestion(
 	}, []);
 	const { data: categories } = useOfflineKeywordCategories();
 	const { data: natures } = useOfflineKeywordNatures();
-	// Entries that could hold the picked text's name in the other language, so the
-	// answer can propose a translation link for the form it opens.
+	// Entries the form's other-language tab could link, so the answer can propose
+	// one: named in that language and not in the reader's (same rule as the form).
 	const uiLanguage = useLanguage();
-	const target = useMemo(
-		() => nameFields(uiLanguage, request?.name.trim() ?? ""),
-		[uiLanguage, request],
+	const candidates = useMemo(
+		() => ({
+			language: uiLanguage === "ar" ? ("en" as const) : ("ar" as const),
+			without: uiLanguage,
+		}),
+		[uiLanguage],
 	);
 	const { keywords: keywordTranslations, isLoading: keywordsLoading } =
 		useTranslationKeywords(
 			request?.kind === "keyword" ? novelId : undefined,
-			target,
+			candidates,
 		);
 	const { aliases: aliasTranslations, isLoading: aliasesLoading } =
 		useTranslationAliases(
 			request?.kind === "alias" ? novelId : undefined,
 			request?.parentId,
-			target,
+			candidates,
 		);
 	const translations: TranslationCandidates | undefined = useMemo(() => {
 		if (request?.kind === "keyword" && keywordTranslations.length) {

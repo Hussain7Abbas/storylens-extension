@@ -24,6 +24,9 @@ Object.assign(globalThis, {
 	chrome: { runtime: { id: fakeBrowser.runtime.id } },
 });
 
+// The DOM tests need a logo URL, not WXT's binary asset loader.
+mock.module("@/assets/icon.png", () => ({ default: "/icons/128.png" }));
+
 // Count QueryClient constructions; the subclass behaves exactly like the original.
 const reactQuery = await import("@tanstack/react-query");
 let queryClientsCreated = 0;
@@ -984,6 +987,323 @@ describe("popup inside the launcher frame", () => {
 			await act(async () => {});
 			expect(reports).toEqual([]);
 		});
+	});
+});
+
+describe("language tabs in a character form", () => {
+	/** Opens the keyword form the text picker would open, without AI. */
+	async function openKeywordForm(
+		search: string,
+		kind: "keyword" | "alias" = "keyword",
+		parentId?: string,
+		editId?: string,
+	) {
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		window.history.replaceState(
+			null,
+			"",
+			`?${new URLSearchParams({
+				...(editId ? { edit: kind, id: editId } : { create: kind }),
+				search,
+				...(parentId ? { parentId } : {}),
+			})}`,
+		);
+		const view = render(
+			React.createElement(
+				PageContent,
+				null,
+				React.createElement(ColoringTab, {
+					selectedNovelId: env.novel.id,
+					currentChapter: 0,
+				}),
+			),
+			{ wrapper },
+		);
+		await waitFor(() =>
+			expect(view.getByRole("button", { name: "_.save" })).toBeTruthy(),
+		);
+		return view;
+	}
+
+	const nameInput = (view: ReturnType<typeof render>) =>
+		view.getByLabelText("coloring.name", {
+			selector: "input",
+		}) as HTMLInputElement;
+
+	/** Picks the category and nature, which the form requires. */
+	const chooseStyles = async (view: ReturnType<typeof render>) => {
+		fireEvent.click(
+			view.getByLabelText(/^coloring.category/, { selector: "input" }),
+		);
+		fireEvent.click(
+			await view.findByRole("option", { name: "Hero", hidden: true }),
+		);
+		fireEvent.click(
+			view.getByLabelText(/^coloring.nature/, { selector: "input" }),
+		);
+		fireEvent.click(
+			await view.findByRole("option", { name: "Human", hidden: true }),
+		);
+	};
+
+	for (const kind of ["keyword", "alias"] as const) {
+		it(`keeps ${kind} image generation running when its language tab changes`, async () => {
+			const previousUrl = window.location.href;
+			const runtime = fakeBrowser.runtime as { sendMessage: unknown };
+			const original = runtime.sendMessage;
+			const parent = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Parent",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			await fakeBrowser.storage.local.set({
+				"storylens-desktop-client": {
+					token: "paired",
+					model: "test-model",
+					effort: "low",
+				},
+			});
+			let finishImage: (value: unknown) => void = () => {};
+			const imageReply = new Promise<unknown>((resolve) => {
+				finishImage = resolve;
+			});
+			const requests: { type: string; data?: { prompt?: string } }[] = [];
+			runtime.sendMessage = async (message: unknown) => {
+				const item = message as { type: string; data?: { prompt?: string } };
+				requests.push(item);
+				if (item.type === "generateAiImage") return imageReply;
+				if (item.type === "executeAiPrompt")
+					return { res: { ok: true, value: "A fantasy novel." } };
+				return { res: undefined };
+			};
+			const view = await openKeywordForm("", kind, parent.id);
+			try {
+				fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+				fireEvent.change(nameInput(view), { target: { value: "ليو" } });
+				const generate = view.getByRole("button", {
+					name: /coloring.generateImage$/,
+				});
+				await waitFor(() =>
+					expect(generate.hasAttribute("data-disabled")).toBe(false),
+				);
+				fireEvent.click(generate);
+				await waitFor(() =>
+					expect(requests.some((item) => item.type === "generateAiImage")).toBe(
+						true,
+					),
+				);
+				expect(
+					requests.find((item) => item.type === "generateAiImage")?.data
+						?.prompt,
+				).toContain("Entity: ليو");
+				fireEvent.click(view.getByRole("tab", { name: "coloring.english" }));
+				expect(view.getByText("coloring.generatingImage")).toBeTruthy();
+				expect(requests.some((item) => item.type === "cancelAiPrompt")).toBe(
+					false,
+				);
+				finishImage({
+					res: { ok: true, value: { data: "AA==", mimeType: "image/png" } },
+				});
+				await waitFor(() =>
+					expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
+				);
+				await waitFor(() =>
+					expect(
+						(view.getByRole("button", { name: "_.save" }) as HTMLButtonElement)
+							.disabled,
+					).toBe(false),
+				);
+				fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+				expect(nameInput(view).value).toBe("ليو");
+				expect(view.getByAltText("coloring.imagePreview")).toBeTruthy();
+			} finally {
+				finishImage({ res: undefined });
+				view.unmount();
+				runtime.sendMessage = original;
+				window.history.replaceState(null, "", previousUrl);
+			}
+		});
+
+		it(`offers no conflicting link for a bilingual ${kind}`, async () => {
+			const parent = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Parent",
+					nameAr: kind === "keyword" ? "الأصل" : null,
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			let targetId = parent.id;
+			if (kind === "keyword") {
+				env.api.seedKeyword(
+					env.novel.id,
+					{
+						nameAr: "ليو",
+						nameEn: null,
+						categoryId: env.category.id,
+						natureId: env.nature.id,
+					},
+					env.user.id,
+				);
+			} else {
+				const target = env.api.seedAlias(parent.id, {
+					nameEn: "Leo",
+					nameAr: "ليو",
+					createdById: env.user.id,
+				});
+				targetId = target.id;
+				env.api.seedAlias(parent.id, {
+					nameAr: "الفانوس",
+					nameEn: null,
+					createdById: env.user.id,
+				});
+			}
+			const previousUrl = window.location.href;
+			const view = await openKeywordForm("", kind, parent.id, targetId);
+			try {
+				fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+				fireEvent.click(
+					view.getByLabelText("coloring.link", { selector: "input" }),
+				);
+				await waitFor(() =>
+					expect(view.getByText("coloring.noLinks")).toBeTruthy(),
+				);
+				expect(
+					view.queryByRole("option", {
+						name: kind === "keyword" ? "ليو" : "الفانوس",
+						hidden: true,
+					}),
+				).toBeNull();
+			} finally {
+				view.unmount();
+				window.history.replaceState(null, "", previousUrl);
+			}
+		});
+	}
+
+	it("saves one name per tab and offers Link only in the other language's tab", async () => {
+		// Named in Arabic only: the kind of row the English reader's Link offers.
+		const arabic = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameAr: "ليو",
+				nameEn: null,
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		const view = await openKeywordForm("Leo");
+		const previousUrl = window.location.href;
+		try {
+			// The reader's own tab opens first, with the picked text and no Link.
+			expect(nameInput(view).value).toBe("Leo");
+			expect(
+				view.queryByLabelText("coloring.link", { selector: "input" }),
+			).toBeNull();
+
+			fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+			await waitFor(() => expect(nameInput(view).value).toBe(""));
+			const link = view.getByLabelText("coloring.link", { selector: "input" });
+
+			fireEvent.click(link);
+			fireEvent.click(
+				await view.findByRole("option", { name: "ليو", hidden: true }),
+			);
+
+			// The link fills that tab's name, which then belongs to the linked keyword.
+			await waitFor(() => expect(nameInput(view).value).toBe("ليو"));
+			expect(nameInput(view).disabled).toBe(true);
+
+			await chooseStyles(view);
+			const form = view.getByRole("button", { name: "_.save" }).closest("form");
+			if (!form) throw new Error("the keyword form is missing");
+			fireEvent.submit(form);
+
+			await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+			const [mutation] = await env.db.mutations.toArray();
+			// The linked keyword still holds that name until the merge moves it, so the
+			// form sends the link rather than the name it is showing.
+			expect(mutation?.patch).toMatchObject({
+				nameEn: "Leo",
+				nameAr: null,
+				translationKeywordId: arabic.id,
+			});
+		} finally {
+			view.unmount();
+			window.history.replaceState(null, "", previousUrl);
+		}
+	});
+
+	it("asks for a name a link cannot provide", async () => {
+		const arabic = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameAr: "ليو",
+				nameEn: null,
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		expect(arabic.id).toBeTruthy();
+		const view = await openKeywordForm("Leo");
+		const previousUrl = window.location.href;
+		try {
+			// Clearing the reader's own name leaves the link as the only one, which the
+			// API never receives, so the form asks for one instead of failing on save.
+			fireEvent.change(nameInput(view), { target: { value: "" } });
+			fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+			fireEvent.click(
+				view.getByLabelText("coloring.link", { selector: "input" }),
+			);
+			fireEvent.click(
+				await view.findByRole("option", { name: "ليو", hidden: true }),
+			);
+			await chooseStyles(view);
+			const form = view.getByRole("button", { name: "_.save" }).closest("form");
+			if (!form) throw new Error("the keyword form is missing");
+			fireEvent.submit(form);
+
+			await waitFor(() =>
+				expect(view.queryAllByText("home.nameRequired").length).toBeGreaterThan(
+					0,
+				),
+			);
+			expect(await env.db.mutations.count()).toBe(0);
+		} finally {
+			view.unmount();
+			window.history.replaceState(null, "", previousUrl);
+		}
+	});
+
+	it("saves both tabs' names typed by hand, without a link", async () => {
+		const view = await openKeywordForm("Leo");
+		const previousUrl = window.location.href;
+		try {
+			fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+			await waitFor(() => expect(nameInput(view).value).toBe(""));
+			fireEvent.change(nameInput(view), { target: { value: "ليو" } });
+			await chooseStyles(view);
+			const form = view.getByRole("button", { name: "_.save" }).closest("form");
+			if (!form) throw new Error("the keyword form is missing");
+			fireEvent.submit(form);
+
+			await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+			const [mutation] = await env.db.mutations.toArray();
+			expect(mutation?.patch).toMatchObject({ nameEn: "Leo", nameAr: "ليو" });
+			expect(mutation?.patch.translationKeywordId).toBeUndefined();
+		} finally {
+			view.unmount();
+			window.history.replaceState(null, "", previousUrl);
+		}
 	});
 });
 

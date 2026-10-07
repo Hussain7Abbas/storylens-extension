@@ -11,6 +11,7 @@ import {
 	Select,
 	Stack,
 	Switch,
+	Tabs,
 	Text,
 	TextInput,
 	Tooltip,
@@ -18,10 +19,12 @@ import {
 import { useForm } from "@mantine/form";
 import {
 	Tags as IconCategory,
+	Link2 as IconLink,
 	Drama as IconMasksTheater,
 	Trash2 as IconTrash,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type {
 	GetKeywords200DataItem,
@@ -59,11 +62,10 @@ import type { KeywordCategory, KeywordNature } from "@/types/models";
 import { stripArabicDiacritics } from "@/utils/arabic";
 import { loadFormValues } from "@/utils/form-baseline";
 import {
-	aliasDisplayName,
 	aliasMatchNames,
 	displayNameIn,
+	LANGUAGES,
 	type Language,
-	nameFields,
 	nameIn,
 	nameKey,
 } from "@/utils/translation";
@@ -114,13 +116,14 @@ function categoryLabel(
 	return category ? category.nameEn || category.nameAr || undefined : undefined;
 }
 
-/** The language a translation link's candidates are named in. */
+/** The tab beside the reader's own language: the one that carries **Link**. */
 function otherLanguage(language: Language): Language {
 	return language === "ar" ? "en" : "ar";
 }
 
-/** The style an absorbed row hands over: a translation link overwrites these fields. */
-type TranslationStyle = {
+/** Everything a linked row hands over: its own name and the shared style. */
+type Translation = {
+	name: string;
 	description: string;
 	categoryId: string | null;
 	natureId: string | null;
@@ -136,33 +139,101 @@ type Styled = {
 	image?: { url?: string | null } | null;
 };
 
-function translationStyle(row: Styled | undefined): TranslationStyle {
+function translationOf(
+	named: { nameAr?: string | null; nameEn?: string | null },
+	styled: Styled | undefined,
+	language: Language,
+): Translation {
 	return {
-		description: row?.description ?? "",
-		categoryId: row?.categoryId ?? null,
-		natureId: row?.natureId ?? null,
-		imageId: (row?.imageId as string | null | undefined) ?? null,
-		imageUrl: row?.image?.url ?? null,
+		name: nameIn(named, language),
+		description: styled?.description ?? "",
+		categoryId: styled?.categoryId ?? null,
+		natureId: styled?.natureId ?? null,
+		imageId: (styled?.imageId as string | null | undefined) ?? null,
+		imageUrl: styled?.image?.url ?? null,
 	};
 }
 
 /** A keyword's style lives on its base version (the lowest starting chapter). */
-function keywordTranslationStyle(
-	keyword: GetKeywords200DataItem | undefined,
-): TranslationStyle {
-	const base = keyword?.versions.length
+function keywordTranslation(
+	keyword: GetKeywords200DataItem,
+	language: Language,
+): Translation {
+	const base = keyword.versions.length
 		? [...keyword.versions].sort(
 				(left, right) =>
 					Number(left.startingChapter) - Number(right.startingChapter),
 			)[0]
 		: undefined;
-	return translationStyle(base);
+	return translationOf(keyword, base, language);
+}
+
+function aliasTranslation(
+	alias: GetKeywords200DataItemAliasesItem,
+	language: Language,
+): Translation {
+	return translationOf(alias, alias, language);
+}
+
+/**
+ * The language tabs of a keyword or alias form. Both tabs hold the same fields,
+ * each with its own language's name; the reader's own language opens first, and
+ * the other one also offers **Link**, and its label shows a link icon while one
+ * is chosen.
+ */
+function LanguageTabs({
+	language,
+	tab,
+	onTab,
+	linked,
+	fields,
+}: {
+	/** The reader's language: the tab that opens first. */
+	language: Language;
+	tab: Language;
+	onTab: (tab: Language) => void;
+	linked: boolean;
+	fields: (tab: Language) => ReactNode;
+}) {
+	const { t } = useTranslation();
+	const panelId = useId();
+	return (
+		<Tabs value={tab} onChange={(value) => onTab(value === "en" ? "en" : "ar")}>
+			<Tabs.List grow>
+				{LANGUAGES.map((item) => (
+					<Tabs.Tab
+						key={item}
+						value={item}
+						aria-controls={panelId}
+						aria-label={t(
+							item === "ar" ? "coloring.arabic" : "coloring.english",
+						)}
+						rightSection={
+							item !== language && linked ? (
+								<IconLink size={12} aria-hidden />
+							) : undefined
+						}
+					>
+						<Text span size="sm" fw={600}>
+							{item.toUpperCase()}
+						</Text>
+					</Tabs.Tab>
+				))}
+			</Tabs.List>
+			{/* Reuse one panel so shared controls keep running work across tab switches. */}
+			<Tabs.Panel id={panelId} value={tab} pt="xs">
+				<Stack gap="xs">{fields(tab)}</Stack>
+			</Tabs.Panel>
+		</Tabs>
+	);
 }
 
 // ─── KEYWORD form ────────────────────────────────────────────────────────────
 
 type KeywordFormValues = {
-	name: string;
+	/** One name per language tab; at least one is required, as the API asks. */
+	nameAr: string;
+	nameEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string;
@@ -200,6 +271,9 @@ function KeywordForm({
 		suggestedTranslation ?? null,
 	);
 	const [linkedImageUrl, setLinkedImageUrl] = useState<string | null>(null);
+	// The reader's own language opens first; the other tab carries Link.
+	const other = otherLanguage(language);
+	const [tab, setTab] = useState<Language>(language);
 
 	const baseVersion = keyword?.versions.length
 		? [...keyword.versions].sort(
@@ -226,13 +300,28 @@ function KeywordForm({
 		return () => URL.revokeObjectURL(url);
 	}, [imageFile]);
 
+	// A picked word seeds the reader's own language; the other tab starts empty.
+	const pickedName =
+		frame.mode === "keyword-add"
+			? stripArabicDiacritics(frame.initialText ?? "")
+			: "";
+	const storedName = (item: Language) =>
+		keyword ? nameIn(keyword, item) : item === language ? pickedName : "";
+	/** The other tab's saved name, restored when a link is cleared. */
+	const storedOther = keyword ? nameIn(keyword, other) : "";
+	/**
+	 * The API needs a name before the merge runs, and a link sends the stored name
+	 * rather than the one it shows, so one of the two saved names must be there.
+	 */
+	const missingName = (values: KeywordFormValues) =>
+		values[nameKey(language)].trim() ||
+		(translationId ? storedOther : values[nameKey(other)]).trim()
+			? null
+			: t("home.nameRequired");
 	const form = useForm<KeywordFormValues>({
 		initialValues: {
-			name: keyword
-				? nameIn(keyword, language)
-				: frame.mode === "keyword-add"
-					? stripArabicDiacritics(frame.initialText ?? "")
-					: "",
+			nameAr: storedName("ar"),
+			nameEn: storedName("en"),
 			matchingType: keyword?.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
 			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
@@ -241,48 +330,52 @@ function KeywordForm({
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
 		},
 		validate: {
-			name: (v) => (!v ? t("home.nameRequired") : null),
+			nameAr: (_value, values) => missingName(values),
+			nameEn: (_value, values) => missingName(values),
 			categoryId: (v) => (!v ? t("home.categoryRequired") : null),
 			natureId: (v) => (!v ? t("home.natureRequired") : null),
 		},
 	});
 
-	// Candidates depend on the names this keyword will be saved with: the reader
-	// edits only their own language, the other one stays as it is stored.
+	// Link offers the novel's keywords named in the other tab's language and not
+	// in the reader's: those are the ones this keyword can take a name from.
 	const { keywords: translations, isLoading: translationsLoading } =
 		useTranslationKeywords(selectedNovelId, {
-			id: keyword?.id,
-			...nameFields(language, form.values.name.trim()),
-			[nameKey(otherLanguage(language))]:
-				keyword?.[nameKey(otherLanguage(language))] ?? null,
+			language: other,
+			without: language,
+			exceptId: keyword?.id,
+			targetName: storedOther,
 		});
 	const translationOptions: TranslationOption[] = translations.map((item) => ({
 		id: item.id,
-		name: nameIn(item, otherLanguage(language)),
+		name: nameIn(item, other),
 	}));
 
 	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
 	const { setFieldValue, isDirty, resetDirty } = form;
 	/**
-	 * A translation link overwrites the style fields with the linked keyword's,
-	 * because the merge keeps only one of the two rows. `baseline` is for a link
-	 * the AI proposed: its values load without counting as unsaved changes.
+	 * A link fills the other language's name and overwrites the shared style with
+	 * the linked keyword's, because the merge keeps only one of the two rows.
+	 * `baseline` is for a link the AI proposed: its values load without counting
+	 * as unsaved changes. Clearing the link restores only the stored name.
 	 */
-	const applyTranslationStyle = useCallback(
-		(style: TranslationStyle, baseline: boolean) => {
+	const applyTranslation = useCallback(
+		(translation: Translation | null, baseline: boolean) => {
 			const write = () => {
-				setFieldValue("description", style.description);
-				setFieldValue("categoryId", style.categoryId ?? "");
-				setFieldValue("natureId", style.natureId ?? "");
-				setFieldValue("imageId", style.imageId ?? undefined);
+				setFieldValue(nameKey(other), translation?.name ?? storedOther);
+				if (!translation) return;
+				setFieldValue("description", translation.description);
+				setFieldValue("categoryId", translation.categoryId ?? "");
+				setFieldValue("natureId", translation.natureId ?? "");
+				setFieldValue("imageId", translation.imageId ?? undefined);
 				setImageFile(null);
-				setLinkedImageUrl(style.imageUrl);
+				setLinkedImageUrl(translation.imageUrl);
 			};
 			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
 			else write();
 		},
-		[setFieldValue, isDirty, resetDirty],
+		[setFieldValue, isDirty, resetDirty, other, storedOther],
 	);
 
 	// The candidates load from the local view, so an AI-proposed link applies late.
@@ -293,8 +386,8 @@ function KeywordForm({
 		);
 		if (!source || appliedTranslation.current === source.id) return;
 		appliedTranslation.current = source.id;
-		applyTranslationStyle(keywordTranslationStyle(source), true);
-	}, [suggestedTranslation, translations, applyTranslationStyle]);
+		applyTranslation(keywordTranslation(source, other), true);
+	}, [suggestedTranslation, translations, applyTranslation, other]);
 
 	const isPending =
 		isGeneratingImage ||
@@ -303,8 +396,14 @@ function KeywordForm({
 		updateVersionMutation.isPending ||
 		deleteMutation.isPending;
 
-	const handleSubmit = async (values: KeywordFormValues) => {
+	const handleSubmit = async (formValues: KeywordFormValues) => {
 		setUploadError(null);
+		// A link moves the other language's name over, so the form leaves that name
+		// as it is stored: sending it would clash with the row the merge absorbs,
+		// which still holds it (`assertKeywordNamesFree`).
+		const values: KeywordFormValues = translationId
+			? { ...formValues, [nameKey(other)]: storedOther }
+			: formValues;
 		// A picked or generated image is queued on the device and uploads with the change (U6).
 		const image = imageFile
 			? { blob: imageFile, name: imageFile.name, type: imageFile.type }
@@ -313,8 +412,9 @@ function KeywordForm({
 		try {
 			if (frame.mode === "keyword-add") {
 				await createMutation.mutateAsync({
-					// The name is saved in the UI language; the other language is left untouched.
-					...nameFields(language, values.name),
+					// Each tab saves its own language's name; an empty tab saves nothing.
+					nameAr: values.nameAr.trim() || null,
+					nameEn: values.nameEn.trim() || null,
 					matchingType: values.matchingType,
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					categoryId: values.categoryId,
@@ -329,7 +429,8 @@ function KeywordForm({
 				const { keyword: keywordChanges, baseVersion: versionChanges } =
 					keywordFormChanges(
 						{
-							name: nameIn(keyword, language),
+							nameAr: keyword.nameAr ?? "",
+							nameEn: keyword.nameEn ?? "",
 							matchingType: keyword.matchingType,
 							fuzzyMatchArabicCharacters:
 								keyword.fuzzyMatchArabicCharacters ?? true,
@@ -339,7 +440,6 @@ function KeywordForm({
 							imageId: baseVersion?.imageId ?? null,
 						},
 						{ ...values, imageId: values.imageId ?? null },
-						language,
 					);
 				if (keywordChanges || translationId) {
 					await updateMutation.mutateAsync({
@@ -361,7 +461,7 @@ function KeywordForm({
 				}
 			}
 			if (
-				/\p{Script=Arabic}/u.test(values.name) &&
+				/\p{Script=Arabic}/u.test(values.nameAr + values.nameEn) &&
 				(frame.mode === "keyword-add" ||
 					(keyword?.fuzzyMatchArabicCharacters ?? true) !==
 						values.fuzzyMatchArabicCharacters)
@@ -392,115 +492,140 @@ function KeywordForm({
 		<Stack gap="xs" p="xs">
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<Stack gap="xs">
-					<TextInput
-						label={t("coloring.name")}
-						{...form.getInputProps("name")}
-						required
+					<LanguageTabs
+						language={language}
+						tab={tab}
+						onTab={setTab}
+						linked={!!translationId}
+						fields={(item) => (
+							<>
+								{item !== language && (
+									<TranslationLinkSelect
+										options={translationOptions}
+										value={translationId}
+										onChange={(option) => {
+											setTranslationId(option?.id ?? null);
+											const source = translations.find(
+												(row) => row.id === option?.id,
+											);
+											applyTranslation(
+												source ? keywordTranslation(source, other) : null,
+												false,
+											);
+										}}
+										isLoading={translationsLoading}
+									/>
+								)}
+								<TextInput
+									label={t("coloring.name")}
+									dir={item === "ar" ? "rtl" : "ltr"}
+									lang={item}
+									description={
+										item !== language && translationId
+											? t("coloring.linkedName")
+											: undefined
+									}
+									disabled={item !== language && !!translationId}
+									{...form.getInputProps(nameKey(item))}
+								/>
+								<Switch
+									label={t("coloring.fullWordMatch")}
+									checked={form.values.matchingType === "FULL"}
+									onChange={(e) =>
+										form.setFieldValue(
+											"matchingType",
+											e.currentTarget.checked ? "FULL" : "PARTIAL",
+										)
+									}
+								/>
+								{/\p{Script=Arabic}/u.test(
+									form.values.nameAr + form.values.nameEn,
+								) && (
+									<Switch
+										label={t("coloring.fuzzyMatchArabicCharacters")}
+										description={t(
+											"coloring.fuzzyMatchArabicCharactersDescription",
+										)}
+										{...form.getInputProps("fuzzyMatchArabicCharacters", {
+											type: "checkbox",
+										})}
+									/>
+								)}
+								<Select
+									label={t("coloring.category")}
+									placeholder={t("coloring.selectCategory")}
+									allowDeselect={false}
+									data={categoriesData?.map((cat: KeywordCategory) => ({
+										value: cat.id,
+										label: displayNameIn(cat, language),
+									}))}
+									{...form.getInputProps("categoryId")}
+									required
+									leftSection={
+										categoriesLoading ? (
+											<Loader size="xs" />
+										) : (
+											<IconCategory size={16} />
+										)
+									}
+								/>
+								<Select
+									label={t("coloring.nature")}
+									placeholder={t("coloring.selectNature")}
+									allowDeselect={false}
+									data={naturesData?.map((n: KeywordNature) => ({
+										value: n.id,
+										label: displayNameIn(n, language),
+									}))}
+									{...form.getInputProps("natureId")}
+									required
+									leftSection={
+										naturesLoading ? (
+											<Loader size="xs" />
+										) : (
+											<IconMasksTheater size={16} />
+										)
+									}
+								/>
+								<TextInput
+									label={t("coloring.description")}
+									{...form.getInputProps("description")}
+								/>
+								<FileInput
+									label={t("coloring.image")}
+									accept="image/*"
+									value={imageFile}
+									onChange={setImageFile}
+									placeholder={t("coloring.imageOptional")}
+									clearable
+								/>
+								<GenerateImageButton
+									novelId={selectedNovelId}
+									name={nameIn(form.values, item)}
+									otherNames={keyword?.aliases.flatMap(aliasMatchNames) ?? []}
+									description={form.values.description}
+									category={categoryLabel(
+										categoriesData,
+										form.values.categoryId,
+									)}
+									onGenerated={setImageFile}
+									onBusyChange={setIsGeneratingImage}
+								/>
+								{displayedImageUrl && (
+									<Image
+										src={displayedImageUrl}
+										alt={t("coloring.imagePreview")}
+										radius="md"
+										fit="contain"
+										maw="16rem"
+										mah="16rem"
+										w="auto"
+										style={{ alignSelf: "flex-start" }}
+									/>
+								)}
+							</>
+						)}
 					/>
-					<Switch
-						label={t("coloring.fullWordMatch")}
-						checked={form.values.matchingType === "FULL"}
-						onChange={(e) =>
-							form.setFieldValue(
-								"matchingType",
-								e.currentTarget.checked ? "FULL" : "PARTIAL",
-							)
-						}
-					/>
-					{/\p{Script=Arabic}/u.test(form.values.name) && (
-						<Switch
-							label={t("coloring.fuzzyMatchArabicCharacters")}
-							description={t("coloring.fuzzyMatchArabicCharactersDescription")}
-							{...form.getInputProps("fuzzyMatchArabicCharacters", {
-								type: "checkbox",
-							})}
-						/>
-					)}
-					<TranslationLinkSelect
-						options={translationOptions}
-						value={translationId}
-						onChange={(option) => {
-							setTranslationId(option?.id ?? null);
-							if (option) {
-								applyTranslationStyle(
-									keywordTranslationStyle(
-										translations.find((item) => item.id === option.id),
-									),
-									false,
-								);
-							}
-						}}
-						isLoading={translationsLoading}
-					/>
-					<Select
-						label={t("coloring.category")}
-						placeholder={t("coloring.selectCategory")}
-						allowDeselect={false}
-						data={categoriesData?.map((cat: KeywordCategory) => ({
-							value: cat.id,
-							label: displayNameIn(cat, language),
-						}))}
-						{...form.getInputProps("categoryId")}
-						required
-						leftSection={
-							categoriesLoading ? (
-								<Loader size="xs" />
-							) : (
-								<IconCategory size={16} />
-							)
-						}
-					/>
-					<Select
-						label={t("coloring.nature")}
-						placeholder={t("coloring.selectNature")}
-						allowDeselect={false}
-						data={naturesData?.map((n: KeywordNature) => ({
-							value: n.id,
-							label: displayNameIn(n, language),
-						}))}
-						{...form.getInputProps("natureId")}
-						required
-						leftSection={
-							naturesLoading ? (
-								<Loader size="xs" />
-							) : (
-								<IconMasksTheater size={16} />
-							)
-						}
-					/>
-					<TextInput
-						label={t("coloring.description")}
-						{...form.getInputProps("description")}
-					/>
-					<FileInput
-						label={t("coloring.image")}
-						accept="image/*"
-						value={imageFile}
-						onChange={setImageFile}
-						placeholder={t("coloring.imageOptional")}
-						clearable
-					/>
-					<GenerateImageButton
-						novelId={selectedNovelId}
-						name={form.values.name}
-						otherNames={keyword?.aliases.flatMap(aliasMatchNames) ?? []}
-						description={form.values.description}
-						category={categoryLabel(categoriesData, form.values.categoryId)}
-						onGenerated={setImageFile}
-						onBusyChange={setIsGeneratingImage}
-					/>
-					{displayedImageUrl && (
-						<Image
-							src={displayedImageUrl}
-							alt={t("coloring.imagePreview")}
-							radius="md"
-							fit="contain"
-							maw="16rem"
-							mah="16rem"
-							w="auto"
-							style={{ alignSelf: "flex-start" }}
-						/>
-					)}
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">
@@ -596,7 +721,8 @@ function KeywordForm({
 // ─── ALIAS form ──────────────────────────────────────────────────────────────
 
 type AliasFormValues = {
-	name: string;
+	nameAr: string;
+	nameEn: string;
 	description: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
@@ -633,6 +759,8 @@ function AliasForm({
 		suggestedTranslation ?? null,
 	);
 	const [linkedImageUrl, setLinkedImageUrl] = useState<string | null>(null);
+	const other = otherLanguage(language);
+	const [tab, setTab] = useState<Language>(language);
 	const { createMutation, updateMutation, deleteMutation } =
 		useOfflineKeywordAliasMutations(selectedNovelId);
 
@@ -653,13 +781,24 @@ function AliasForm({
 	const displayedImageUrl =
 		imagePreviewUrl ?? linkedImageUrl ?? alias?.image?.url ?? null;
 
+	const pickedName =
+		frame.mode === "alias-add"
+			? stripArabicDiacritics(frame.initialText ?? "")
+			: "";
+	const storedName = (item: Language) =>
+		alias ? nameIn(alias, item) : item === language ? pickedName : "";
+	/** The other tab's saved name, restored when a link is cleared. */
+	const storedOther = alias ? nameIn(alias, other) : "";
+	/** As in the keyword form: at least one of the two saved names is required. */
+	const missingName = (values: AliasFormValues) =>
+		values[nameKey(language)].trim() ||
+		(translationId ? storedOther : values[nameKey(other)]).trim()
+			? null
+			: t("home.nameRequired");
 	const form = useForm<AliasFormValues>({
 		initialValues: {
-			name: alias
-				? aliasDisplayName(alias, language)
-				: frame.mode === "alias-add"
-					? stripArabicDiacritics(frame.initialText ?? "")
-					: "",
+			nameAr: storedName("ar"),
+			nameEn: storedName("en"),
 			description: alias?.description ?? suggestion?.description ?? "",
 			matchingType: alias?.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
@@ -669,41 +808,44 @@ function AliasForm({
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
 		validate: {
-			name: (v) => (!v ? t("home.nameRequired") : null),
+			nameAr: (_value, values) => missingName(values),
+			nameEn: (_value, values) => missingName(values),
 		},
 	});
 
-	// Candidates depend on the names this alias will be saved with.
+	// Link offers this keyword's other aliases named in the other tab's language.
 	const { aliases: translations, isLoading: translationsLoading } =
 		useTranslationAliases(selectedNovelId, frame.parentKeyword.id, {
-			id: alias?.id,
-			...nameFields(language, form.values.name.trim()),
-			[nameKey(otherLanguage(language))]:
-				alias?.[nameKey(otherLanguage(language))] ?? null,
+			language: other,
+			without: language,
+			exceptId: alias?.id,
+			targetName: storedOther,
 		});
 	const translationOptions: TranslationOption[] = translations.map((item) => ({
 		id: item.id,
-		name: nameIn(item, otherLanguage(language)),
+		name: nameIn(item, other),
 	}));
 
 	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
 	const { setFieldValue, isDirty, resetDirty } = form;
-	/** A translation link overwrites the style fields with the linked alias's. */
-	const applyTranslationStyle = useCallback(
-		(style: TranslationStyle, baseline: boolean) => {
+	/** As in the keyword form: a link fills the other name and the shared style. */
+	const applyTranslation = useCallback(
+		(translation: Translation | null, baseline: boolean) => {
 			const write = () => {
-				setFieldValue("description", style.description);
-				setFieldValue("categoryId", style.categoryId);
-				setFieldValue("natureId", style.natureId);
-				setFieldValue("imageId", style.imageId ?? undefined);
+				setFieldValue(nameKey(other), translation?.name ?? storedOther);
+				if (!translation) return;
+				setFieldValue("description", translation.description);
+				setFieldValue("categoryId", translation.categoryId);
+				setFieldValue("natureId", translation.natureId);
+				setFieldValue("imageId", translation.imageId ?? undefined);
 				setImageFile(null);
-				setLinkedImageUrl(style.imageUrl);
+				setLinkedImageUrl(translation.imageUrl);
 			};
 			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
 			else write();
 		},
-		[setFieldValue, isDirty, resetDirty],
+		[setFieldValue, isDirty, resetDirty, other, storedOther],
 	);
 
 	// The siblings load from the local view, so an AI-proposed link applies late.
@@ -714,8 +856,8 @@ function AliasForm({
 		);
 		if (!source || appliedTranslation.current === source.id) return;
 		appliedTranslation.current = source.id;
-		applyTranslationStyle(translationStyle(source), true);
-	}, [suggestedTranslation, translations, applyTranslationStyle]);
+		applyTranslation(aliasTranslation(source, other), true);
+	}, [suggestedTranslation, translations, applyTranslation, other]);
 
 	const isPending =
 		isGeneratingImage ||
@@ -723,8 +865,12 @@ function AliasForm({
 		updateMutation.isPending ||
 		deleteMutation.isPending;
 
-	const handleSubmit = async (values: AliasFormValues) => {
+	const handleSubmit = async (formValues: AliasFormValues) => {
 		setUploadError(null);
+		// As in the keyword form: a link brings that language's name itself.
+		const values: AliasFormValues = translationId
+			? { ...formValues, [nameKey(other)]: storedOther }
+			: formValues;
 		const image = imageFile
 			? { blob: imageFile, name: imageFile.name, type: imageFile.type }
 			: undefined;
@@ -732,8 +878,9 @@ function AliasForm({
 			if (frame.mode === "alias-add") {
 				await createMutation.mutateAsync({
 					keywordId: frame.parentKeyword.id,
-					// Named in the UI language, like keywords.
-					...nameFields(language, values.name),
+					// One name per language tab, like keywords.
+					nameAr: values.nameAr.trim() || null,
+					nameEn: values.nameEn.trim() || null,
 					description: values.description || null,
 					matchingType: values.matchingType,
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
@@ -747,7 +894,8 @@ function AliasForm({
 				});
 			} else if (alias) {
 				const initial = {
-					name: aliasDisplayName(alias, language),
+					nameAr: alias.nameAr ?? "",
+					nameEn: alias.nameEn ?? "",
 					description: alias.description ?? null,
 					matchingType: alias.matchingType,
 					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
@@ -756,11 +904,10 @@ function AliasForm({
 					imageId: alias.imageId ?? null,
 					overrideStyle: alias.overrideStyle,
 				};
-				const changes = aliasFormChanges(
-					initial,
-					{ ...values, imageId: values.imageId ?? null },
-					language,
-				);
+				const changes = aliasFormChanges(initial, {
+					...values,
+					imageId: values.imageId ?? null,
+				});
 				if (changes || image || translationId) {
 					await updateMutation.mutateAsync({
 						id: alias.id,
@@ -773,7 +920,7 @@ function AliasForm({
 				}
 			}
 			if (
-				/\p{Script=Arabic}/u.test(values.name) &&
+				/\p{Script=Arabic}/u.test(values.nameAr + values.nameEn) &&
 				(frame.mode === "alias-add" ||
 					(alias?.fuzzyMatchArabicCharacters ?? true) !==
 						values.fuzzyMatchArabicCharacters)
@@ -819,121 +966,146 @@ function AliasForm({
 			</Alert>
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<Stack gap="xs">
-					<TextInput
-						label={t("coloring.name")}
-						{...form.getInputProps("name")}
-						required
+					<LanguageTabs
+						language={language}
+						tab={tab}
+						onTab={setTab}
+						linked={!!translationId}
+						fields={(item) => (
+							<>
+								{item !== language && (
+									<TranslationLinkSelect
+										options={translationOptions}
+										value={translationId}
+										onChange={(option) => {
+											setTranslationId(option?.id ?? null);
+											const source = translations.find(
+												(row) => row.id === option?.id,
+											);
+											applyTranslation(
+												source ? aliasTranslation(source, other) : null,
+												false,
+											);
+										}}
+										isLoading={translationsLoading}
+									/>
+								)}
+								<TextInput
+									label={t("coloring.name")}
+									dir={item === "ar" ? "rtl" : "ltr"}
+									lang={item}
+									description={
+										item !== language && translationId
+											? t("coloring.linkedName")
+											: undefined
+									}
+									disabled={item !== language && !!translationId}
+									{...form.getInputProps(nameKey(item))}
+								/>
+								<Switch
+									label={t("coloring.fullWordMatch")}
+									checked={form.values.matchingType === "FULL"}
+									onChange={(e) =>
+										form.setFieldValue(
+											"matchingType",
+											e.currentTarget.checked ? "FULL" : "PARTIAL",
+										)
+									}
+								/>
+								{/\p{Script=Arabic}/u.test(
+									form.values.nameAr + form.values.nameEn,
+								) && (
+									<Switch
+										label={t("coloring.fuzzyMatchArabicCharacters")}
+										description={t(
+											"coloring.fuzzyMatchArabicCharactersDescription",
+										)}
+										{...form.getInputProps("fuzzyMatchArabicCharacters", {
+											type: "checkbox",
+										})}
+									/>
+								)}
+								<TextInput
+									label={t("coloring.description")}
+									{...form.getInputProps("description")}
+								/>
+								<Select
+									label={t("coloring.category")}
+									placeholder={t("coloring.selectCategory")}
+									clearable
+									data={categoriesData?.map((cat: KeywordCategory) => ({
+										value: cat.id,
+										label: displayNameIn(cat, language),
+									}))}
+									{...form.getInputProps("categoryId")}
+									leftSection={
+										categoriesLoading ? (
+											<Loader size="xs" />
+										) : (
+											<IconCategory size={16} />
+										)
+									}
+								/>
+								<Select
+									label={t("coloring.nature")}
+									placeholder={t("coloring.selectNature")}
+									clearable
+									data={naturesData?.map((n: KeywordNature) => ({
+										value: n.id,
+										label: displayNameIn(n, language),
+									}))}
+									{...form.getInputProps("natureId")}
+									leftSection={
+										naturesLoading ? (
+											<Loader size="xs" />
+										) : (
+											<IconMasksTheater size={16} />
+										)
+									}
+								/>
+								<FileInput
+									label={t("coloring.image")}
+									accept="image/*"
+									value={imageFile}
+									onChange={setImageFile}
+									placeholder={t("coloring.imageOptional")}
+									clearable
+								/>
+								<GenerateImageButton
+									novelId={selectedNovelId}
+									name={nameIn(form.values, item)}
+									otherNames={[nameIn(frame.parentKeyword, language)]}
+									description={form.values.description}
+									category={categoryLabel(
+										categoriesData,
+										form.values.categoryId,
+									)}
+									onGenerated={setImageFile}
+									onBusyChange={setIsGeneratingImage}
+								/>
+								{displayedImageUrl && (
+									<Image
+										src={displayedImageUrl}
+										alt={t("coloring.imagePreview")}
+										radius="md"
+										fit="contain"
+										maw="16rem"
+										mah="16rem"
+										w="auto"
+										style={{ alignSelf: "flex-start" }}
+									/>
+								)}
+								<Switch
+									label={t("coloring.overrideStyle")}
+									checked={form.values.overrideStyle}
+									onChange={(e) =>
+										form.setFieldValue("overrideStyle", e.currentTarget.checked)
+									}
+								/>
+							</>
+						)}
 					/>
-					<Switch
-						label={t("coloring.fullWordMatch")}
-						checked={form.values.matchingType === "FULL"}
-						onChange={(e) =>
-							form.setFieldValue(
-								"matchingType",
-								e.currentTarget.checked ? "FULL" : "PARTIAL",
-							)
-						}
-					/>
-					{/\p{Script=Arabic}/u.test(form.values.name) && (
-						<Switch
-							label={t("coloring.fuzzyMatchArabicCharacters")}
-							description={t("coloring.fuzzyMatchArabicCharactersDescription")}
-							{...form.getInputProps("fuzzyMatchArabicCharacters", {
-								type: "checkbox",
-							})}
-						/>
-					)}
-					<TextInput
-						label={t("coloring.description")}
-						{...form.getInputProps("description")}
-					/>
-					<TranslationLinkSelect
-						options={translationOptions}
-						value={translationId}
-						onChange={(option) => {
-							setTranslationId(option?.id ?? null);
-							if (option) {
-								applyTranslationStyle(
-									translationStyle(
-										translations.find((item) => item.id === option.id),
-									),
-									false,
-								);
-							}
-						}}
-						isLoading={translationsLoading}
-					/>
-					<Select
-						label={t("coloring.category")}
-						placeholder={t("coloring.selectCategory")}
-						clearable
-						data={categoriesData?.map((cat: KeywordCategory) => ({
-							value: cat.id,
-							label: displayNameIn(cat, language),
-						}))}
-						{...form.getInputProps("categoryId")}
-						leftSection={
-							categoriesLoading ? (
-								<Loader size="xs" />
-							) : (
-								<IconCategory size={16} />
-							)
-						}
-					/>
-					<Select
-						label={t("coloring.nature")}
-						placeholder={t("coloring.selectNature")}
-						clearable
-						data={naturesData?.map((n: KeywordNature) => ({
-							value: n.id,
-							label: displayNameIn(n, language),
-						}))}
-						{...form.getInputProps("natureId")}
-						leftSection={
-							naturesLoading ? (
-								<Loader size="xs" />
-							) : (
-								<IconMasksTheater size={16} />
-							)
-						}
-					/>
-					<FileInput
-						label={t("coloring.image")}
-						accept="image/*"
-						value={imageFile}
-						onChange={setImageFile}
-						placeholder={t("coloring.imageOptional")}
-						clearable
-					/>
-					<GenerateImageButton
-						novelId={selectedNovelId}
-						name={form.values.name}
-						otherNames={[nameIn(frame.parentKeyword, language)]}
-						description={form.values.description}
-						category={categoryLabel(categoriesData, form.values.categoryId)}
-						onGenerated={setImageFile}
-						onBusyChange={setIsGeneratingImage}
-					/>
-					{displayedImageUrl && (
-						<Image
-							src={displayedImageUrl}
-							alt={t("coloring.imagePreview")}
-							radius="md"
-							fit="contain"
-							maw="16rem"
-							mah="16rem"
-							w="auto"
-							style={{ alignSelf: "flex-start" }}
-						/>
-					)}
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
-					<Switch
-						label={t("coloring.overrideStyle")}
-						checked={form.values.overrideStyle}
-						onChange={(e) =>
-							form.setFieldValue("overrideStyle", e.currentTarget.checked)
-						}
-					/>
 					{createMutation.isError && (
 						<Alert color="red">
 							{t("coloring.createFailed")}:{" "}

@@ -389,33 +389,6 @@ describe("server rule mirrors", () => {
 			),
 		).toBe("TRANSLATION_SELF");
 	});
-	it("offers only rows that add a name without clashing", () => {
-		const arabic = { nameAr: "ليو", nameEn: null };
-		expect(validation.canTranslate(arabic, { nameEn: "Leo" })).toBe(true);
-		// Nothing to add: it names no language the row lacks.
-		expect(validation.canTranslate(arabic, { nameAr: "ليو" })).toBe(false);
-		expect(validation.canTranslate(arabic, { nameAr: "أمل" })).toBe(false);
-		// A row named in both languages fits when its Arabic name is the same one.
-		expect(
-			validation.canTranslate(arabic, { nameAr: "ليو", nameEn: "Leo" }),
-		).toBe(true);
-		expect(
-			validation.canTranslate(arabic, { nameAr: "أمل", nameEn: "Leo" }),
-		).toBe(false);
-		// A row named in both languages already takes no translation.
-		expect(
-			validation.canTranslate(
-				{ nameAr: "ليو", nameEn: "Leo" },
-				{
-					nameEn: "Leon",
-				},
-			),
-		).toBe(false);
-		// An unnamed row (a form before its name is typed) takes any.
-		expect(validation.canTranslate({ nameAr: " " }, { nameEn: "Leo" })).toBe(
-			true,
-		);
-	});
 	it("refuses deleting a lookup in use by a version or an alias", () => {
 		expect(
 			validation.checkLookupDelete("keywordCategory", "c", {
@@ -491,7 +464,8 @@ describe("permission rules (D12)", () => {
 
 describe("form changes", () => {
 	const keyword = {
-		name: "Mira",
+		nameAr: "",
+		nameEn: "Mira",
 		matchingType: "FULL" as const,
 		fuzzyMatchArabicCharacters: true,
 		categoryId: "c",
@@ -500,32 +474,33 @@ describe("form changes", () => {
 		imageId: null,
 	};
 	it("writes only the side that changed", () => {
-		expect(forms.keywordFormChanges(keyword, keyword, "en")).toEqual({
+		expect(forms.keywordFormChanges(keyword, keyword)).toEqual({
 			keyword: undefined,
 			baseVersion: undefined,
 		});
 		expect(
-			forms.keywordFormChanges(keyword, { ...keyword, name: "Mira2" }, "en"),
+			forms.keywordFormChanges(keyword, { ...keyword, nameEn: "Mira2" }),
 		).toEqual({
 			keyword: { changes: { nameEn: "Mira2" }, seen: { nameEn: "Mira" } },
 			baseVersion: undefined,
 		});
+		// The other language's tab adds that name; an empty tab stays empty.
 		expect(
-			forms.keywordFormChanges(
-				keyword,
-				{ ...keyword, description: "new" },
-				"ar",
-			).baseVersion,
+			forms.keywordFormChanges(keyword, { ...keyword, nameAr: "ميرا" }).keyword,
+		).toEqual({ changes: { nameAr: "ميرا" }, seen: { nameAr: null } });
+		expect(
+			forms.keywordFormChanges(keyword, { ...keyword, description: "new" })
+				.baseVersion,
 		).toEqual({ changes: { description: "new" }, seen: { description: "d" } });
 		expect(
-			forms.keywordFormChanges(keyword, { ...keyword, description: "" }, "en")
+			forms.keywordFormChanges(keyword, { ...keyword, description: "" })
 				.baseVersion?.changes,
 		).toEqual({ description: null });
-		const both = forms.keywordFormChanges(
-			keyword,
-			{ ...keyword, name: "X", categoryId: "c2" },
-			"en",
-		);
+		const both = forms.keywordFormChanges(keyword, {
+			...keyword,
+			nameEn: "X",
+			categoryId: "c2",
+		});
 		expect([both.keyword?.changes, both.baseVersion?.changes]).toEqual([
 			{ nameEn: "X" },
 			{ categoryId: "c2" },
@@ -533,7 +508,8 @@ describe("form changes", () => {
 	});
 	it("diffs the other forms", () => {
 		const alias = {
-			name: "ميرا",
+			nameAr: "ميرا",
+			nameEn: "",
 			matchingType: "FULL" as const,
 			fuzzyMatchArabicCharacters: true,
 			overrideStyle: false,
@@ -542,7 +518,7 @@ describe("form changes", () => {
 			description: null,
 		};
 		expect(
-			forms.aliasFormChanges(alias, { ...alias, name: "ميرا٢" }, "ar"),
+			forms.aliasFormChanges(alias, { ...alias, nameAr: "ميرا٢" }),
 		).toEqual({ changes: { nameAr: "ميرا٢" }, seen: { nameAr: "ميرا" } });
 		expect(
 			forms.versionFormChanges(

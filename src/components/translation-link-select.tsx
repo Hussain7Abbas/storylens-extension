@@ -8,10 +8,11 @@ import { fuzzyMatches } from "@/utils/fuzzy-search";
 export type TranslationOption = { id: string; name: string };
 
 /**
- * Optional picker of the keyword or alias that holds this one's name in the
- * other language, with a debounced fuzzy search over the novel's local view.
- * Saving with one chosen merges the two rows into the one being saved: it takes
- * the other language's name and everything that hung off the merged row.
+ * The **Link** field of a form's other-language tab: an optional picker of the
+ * keyword or alias already named in that language, with a debounced fuzzy search
+ * over the novel's local view. Saving with one chosen merges the two rows into
+ * the one being saved, which takes that language's name and everything that hung
+ * off the merged row.
  */
 export function TranslationLinkSelect({
 	options,
@@ -31,9 +32,9 @@ export function TranslationLinkSelect({
 	const [term] = useDebouncedValue(search, 250);
 	return (
 		<Select
-			label={t("coloring.translationLink")}
-			description={t("coloring.translationLinkDescription")}
-			placeholder={t("coloring.searchTranslation")}
+			label={t("coloring.link")}
+			description={t("coloring.linkDescription")}
+			placeholder={t("coloring.searchLink")}
 			searchable
 			clearable
 			comboboxProps={{ withinPortal: false }}
@@ -50,7 +51,7 @@ export function TranslationLinkSelect({
 				isLoading ? <Loader size="xs" /> : <IconLanguages size={16} />
 			}
 			nothingFoundMessage={
-				isLoading ? t("selection.loading") : t("coloring.noTranslations")
+				isLoading ? t("selection.loading") : t("coloring.noLinks")
 			}
 			disabled={disabled}
 		/>

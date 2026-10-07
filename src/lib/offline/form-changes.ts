@@ -1,5 +1,4 @@
 import { sameValue } from "@/lib/offline/rules/merge";
-import { type Language, nameKey } from "@/utils/translation";
 
 type Row = Record<string, unknown>;
 
@@ -32,7 +31,9 @@ function diff<T extends Row>(
 }
 
 export type KeywordFormFields = {
-	name: string;
+	/** One name per language tab; an empty tab clears that language (`null`). */
+	nameAr: string;
+	nameEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string;
@@ -41,26 +42,32 @@ export type KeywordFormFields = {
 	imageId?: string | null;
 };
 
+/** The names a form's two language tabs save; an empty tab is `null`. */
+function names(fields: { nameAr: string; nameEn: string }): Row {
+	return {
+		nameAr: fields.nameAr.trim() || null,
+		nameEn: fields.nameEn.trim() || null,
+	};
+}
+
 /**
- * The keyword form edits the keyword (name in the UI language, matching) and
- * its base version (description, category, nature, image). Each side gets a
- * change only when one of its fields changed (W4).
+ * The keyword form edits the keyword (both languages' names, matching) and its
+ * base version (description, category, nature, image). Each side gets a change
+ * only when one of its fields changed (W4).
  */
 export function keywordFormChanges(
 	initial: KeywordFormFields,
 	values: KeywordFormFields,
-	language: Language,
 ): { keyword?: FormChanges; baseVersion?: FormChanges } {
-	const name = nameKey(language);
 	return {
 		keyword: diff(
 			{
-				[name]: initial.name.trim(),
+				...names(initial),
 				matchingType: initial.matchingType,
 				fuzzyMatchArabicCharacters: initial.fuzzyMatchArabicCharacters,
 			},
 			{
-				[name]: values.name.trim(),
+				...names(values),
 				matchingType: values.matchingType,
 				fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 			},
@@ -84,7 +91,8 @@ export function keywordFormChanges(
 }
 
 export type AliasFormFields = {
-	name: string;
+	nameAr: string;
+	nameEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;
@@ -94,15 +102,13 @@ export type AliasFormFields = {
 	imageId?: string | null;
 };
 
-/** Alias forms edit the UI language's name (`nameAr`/`nameEn`), like keyword forms. */
+/** Alias forms edit both languages' names (`nameAr`/`nameEn`), like keyword forms. */
 export function aliasFormChanges(
 	initial: AliasFormFields,
 	values: AliasFormFields,
-	language: Language,
 ): FormChanges | undefined {
-	const name = nameKey(language);
 	const shape = (fields: AliasFormFields) => ({
-		[name]: fields.name.trim() || null,
+		...names(fields),
 		matchingType: fields.matchingType,
 		fuzzyMatchArabicCharacters: fields.fuzzyMatchArabicCharacters,
 		overrideStyle: fields.overrideStyle,
