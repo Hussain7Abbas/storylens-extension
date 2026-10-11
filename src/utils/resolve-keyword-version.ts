@@ -59,6 +59,31 @@ function pickField<T>(
 	return baseVal ?? null;
 }
 
+/** Whether a row carries an image that can already be shown. */
+function hasImage(
+	row:
+		| GetKeywords200DataItemVersionsItem
+		| GetKeywords200DataItemAliasesItem
+		| null
+		| undefined,
+): boolean {
+	return !!row?.image?.url;
+}
+
+/**
+ * The newest version carrying an image, so a keyword whose active and base
+ * versions have none still shows one (the latest image wins). `exclude` skips
+ * versions already tried earlier in the chain.
+ */
+export function latestVersionWithImage(
+	versions: GetKeywords200DataItemVersionsItem[],
+	exclude: (string | undefined)[] = [],
+): GetKeywords200DataItemVersionsItem | undefined {
+	return [...versions]
+		.sort((a, b) => Number(b.startingChapter) - Number(a.startingChapter))
+		.find((version) => hasImage(version) && !exclude.includes(version.id));
+}
+
 export type ResolvedStyle = {
 	category: EnrichedCategory;
 	nature: EnrichedNature;
@@ -75,6 +100,7 @@ export function resolveStyle(
 	active: GetKeywords200DataItemVersionsItem | undefined,
 	base: GetKeywords200DataItemVersionsItem | undefined,
 	alias?: GetKeywords200DataItemAliasesItem | null,
+	versions: GetKeywords200DataItemVersionsItem[] = [],
 ): ResolvedStyle | null {
 	const override = alias?.overrideStyle ?? false;
 
@@ -100,15 +126,20 @@ export function resolveStyle(
 		override,
 	);
 
-	// An alias shows its own image; without one it falls back to its keyword's.
-	const ownImage = alias?.image?.url ? alias : undefined;
+	// An alias shows its own image; without one it falls back to its keyword's
+	// (the active version, then the latest version that has one, then the base).
+	const source =
+		(hasImage(alias) ? alias : undefined) ??
+		(hasImage(active) ? active : undefined) ??
+		latestVersionWithImage(versions, [active?.id]) ??
+		(hasImage(base) ? base : undefined);
 
 	return {
 		category,
 		nature,
 		description,
-		imageId: ownImage?.imageId ?? active?.imageId ?? base?.imageId ?? null,
-		image: ownImage?.image ?? active?.image ?? base?.image ?? null,
+		imageId: source?.imageId ?? null,
+		image: source?.image ?? null,
 	};
 }
 
@@ -130,7 +161,7 @@ export function enrichKeywords(
 		const base = sorted[0];
 		const active = pickVersion(kw.versions, currentChapter);
 
-		const kwStyle = resolveStyle(active, base);
+		const kwStyle = resolveStyle(active, base, null, kw.versions);
 		if (!kwStyle) continue;
 
 		enriched.push({
@@ -153,7 +184,7 @@ export function enrichKeywords(
 		});
 
 		for (const alias of kw.aliases) {
-			const aliasStyle = resolveStyle(active, base, alias);
+			const aliasStyle = resolveStyle(active, base, alias, kw.versions);
 			if (!aliasStyle) continue;
 
 			// One entry per name, so an alias's translation is highlighted too.
@@ -262,6 +293,80 @@ function resolveFieldInfo<T>(
 	return { value: baseVal ?? null, source: "keyword", overrides: [] };
 }
 
+/**
+ * Resolves the image shown for a keyword or alias, with the provenance of the
+ * ones it replaced. Unlike style fields, an alias's own image always wins (no
+ * override needed); without one it falls back to its keyword: the active
+ * version, then the latest other version that has an image, then the base
+ * version. The last two keep a character in sight whose image was uploaded on
+ * a version the reader is not reading.
+ */
+function resolveImageInfo(
+	keyword: GetKeywords200DataItem,
+	alias: GetKeywords200DataItemAliasesItem | null,
+	active: GetKeywords200DataItemVersionsItem | undefined,
+	base: GetKeywords200DataItemVersionsItem | undefined,
+	activeIsBase: boolean,
+): FieldInfo<RawImage> {
+	type Entry = { source: InfoSource; value: RawImage };
+	const chain: Entry[] = [];
+
+	// The alias is always listed, so its empty image is visible as provenance.
+	if (alias)
+		chain.push({
+			source: "alias",
+			value: (hasImage(alias) ? alias.image : null) as RawImage,
+		});
+	// The version in effect for this chapter comes first; it is the keyword's
+	// own image when that version is the base one.
+	const activeImage = (hasImage(active) ? active?.image : null) as RawImage;
+	const activeIsKeyword = activeIsBase && activeImage != null;
+	if (activeImage != null)
+		chain.push({
+			source: activeIsBase ? "keyword" : "version",
+			value: activeImage,
+		});
+	const latest = latestVersionWithImage(keyword.versions, [
+		active?.id,
+		base?.id,
+	]);
+	if (latest)
+		chain.push({ source: "version", value: latest.image as RawImage });
+	if (!activeIsKeyword)
+		chain.push({
+			source: "keyword",
+			value: (hasImage(base) ? base?.image : null) as RawImage,
+		});
+
+	const chosen = chain.findIndex((entry) => entry.value != null);
+	if (chosen === -1) return { value: null, source: "keyword", overrides: [] };
+	return {
+		value: chain[chosen].value,
+		source: chain[chosen].source,
+		overrides: chain
+			.filter((_, index) => index !== chosen)
+			.map((entry) => ({
+				source: entry.source as "alias" | "keyword" | "version",
+				value: entry.value,
+			})),
+	};
+}
+
+/**
+ * The keyword's own resolved image (active version, then the latest version
+ * that has one, then the base version). Alias and version rows inherit it when
+ * they carry no image of their own, so no row is left blank.
+ */
+export function resolveKeywordImage(
+	keyword: GetKeywords200DataItem,
+	currentChapter: number,
+): RawImage {
+	const base = pickBaseVersion(keyword.versions);
+	const active = pickVersion(keyword.versions, currentChapter);
+	const activeIsBase = !active || !base || active.id === base.id;
+	return resolveImageInfo(keyword, null, active, base, activeIsBase).value;
+}
+
 export function resolveKeywordInfo(
 	keyword: GetKeywords200DataItem,
 	alias: GetKeywords200DataItemAliasesItem | null,
@@ -306,15 +411,7 @@ export function resolveKeywordInfo(
 		activeIsBase,
 	);
 
-	// Unlike style fields, an alias's own image always wins (no override needed);
-	// an alias without one falls back to its keyword's image.
-	const image = resolveFieldInfo<RawImage>(
-		active?.image as RawImage | null | undefined,
-		base?.image as RawImage | null | undefined,
-		alias?.image?.url ? alias.image : null,
-		true,
-		activeIsBase,
-	);
+	const image = resolveImageInfo(keyword, alias, active, base, activeIsBase);
 
 	return { name, category, nature, description, image };
 }

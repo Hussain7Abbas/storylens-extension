@@ -167,3 +167,64 @@ describe("tooltip Edit through the launcher", () => {
 		expect(hover().querySelector(".storylens-edit-btn")).not.toBeNull();
 	});
 });
+
+describe("tooltip Generate image through the launcher", () => {
+	/** Clicks the action the way a reader does: the press reaches the page first. */
+	const clickGenerate = () => {
+		const button = document.querySelector<HTMLButtonElement>(
+			'[data-hover-action="generate-image"]',
+		);
+		if (!button) throw new Error("no Generate image action");
+		button.dispatchEvent(
+			new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
+		);
+		button.click();
+	};
+	/** Restarts the launcher so it reads the AI settings just written. */
+	const restart = async () => {
+		setPagePopupLauncher(false, "en");
+		setPagePopupLauncher(true, "en");
+		await new Promise((resolve) => setTimeout(resolve, 5));
+	};
+
+	afterEach(() => {
+		fakeBrowser.storage.local.reset();
+	});
+
+	it("opens the form with the image request, once AI can run it", async () => {
+		await fakeBrowser.storage.local.set({
+			"storylens-desktop-client": {
+				port: 43127,
+				token: "token",
+				model: "codex",
+				effort: "medium",
+			},
+		});
+		await restart();
+
+		hover();
+		clickGenerate();
+
+		expect(popupParams()).toEqual({
+			edit: "keyword",
+			id: "keyword-1",
+			parentId: "keyword-1",
+			novelId: "novel-1",
+			generate: "image",
+		});
+		expect(document.querySelector('[role="tooltip"]')).toBeNull();
+	});
+
+	it("explains an unavailable source instead of opening a form", async () => {
+		// No desktop pairing and no signed-in Cloud account: nothing can draw it.
+		await restart();
+
+		hover();
+		clickGenerate();
+
+		expect(popupParams()).toBeUndefined();
+		expect(
+			shadow().querySelector<HTMLElement>('[role="status"]')?.textContent,
+		).toBe("Sign in to use Story Lens Cloud.");
+	});
+});

@@ -6,7 +6,7 @@ const registeredHere = !GlobalRegistrator.isRegistered;
 if (registeredHere)
 	GlobalRegistrator.register({ url: "https://novels.example.invalid/ch/5" });
 
-import { afterAll, afterEach, describe, expect, it } from "bun:test";
+import { afterAll, afterEach, describe, expect, it, spyOn } from "bun:test";
 import type { EnrichedKeyword, RawKeyword } from "../../src/types/content-data";
 import type { TooltipEditTarget } from "../../src/utils/keyword-tooltip";
 import { makeUser } from "../helpers/engine";
@@ -20,6 +20,7 @@ import {
 
 const {
 	destroyKeywordTooltipPortal,
+	initKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
 	setTooltipActions,
 	setTooltipFontSize,
@@ -148,9 +149,11 @@ describe("tooltip image", () => {
 			versions: [baseVersion({ image: keywordImage })],
 		});
 		const tooltip = hover(raw, "alias-own");
-		const buttons = tooltip.querySelectorAll<HTMLButtonElement>(
-			".storylens-image-btn",
-		);
+		// The Info panel: the Aliases tab beside it has its own thumbnails.
+		const info = tooltip.querySelector<HTMLElement>(".storylens-tab-panel");
+		const buttons =
+			info?.querySelectorAll<HTMLButtonElement>(".storylens-image-btn") ??
+			([] as unknown as NodeListOf<HTMLButtonElement>);
 		// The alias's image, then the keyword's image it replaced.
 		expect(buttons.length).toBe(2);
 
@@ -175,6 +178,282 @@ describe("tooltip image", () => {
 		destroyKeywordTooltipPortal();
 
 		expect(document.querySelector("dialog.storylens-image-modal")).toBeNull();
+	});
+});
+
+describe("tooltip list thumbnails", () => {
+	const versionImage = image("version-image");
+
+	/** The rows of the tab whose button carries `label`. */
+	function rowsOf(tooltip: HTMLElement, label: string): HTMLElement[] {
+		const buttons = [
+			...tooltip.querySelectorAll<HTMLButtonElement>(".storylens-tab-btn"),
+		];
+		const index = buttons.findIndex((button) => button.textContent === label);
+		if (index === -1) throw new Error(`no ${label} tab`);
+		const panels = [
+			...tooltip.querySelectorAll<HTMLElement>(".storylens-tab-panel"),
+		];
+		return [
+			...panels[index].querySelectorAll<HTMLElement>(".storylens-panel-item"),
+		];
+	}
+
+	function thumbOf(row: HTMLElement) {
+		const button = row.querySelector<HTMLElement>(
+			".storylens-panel-item-thumb-btn",
+		);
+		return {
+			src: row.querySelector<HTMLImageElement>(".storylens-panel-item-thumb")
+				?.src,
+			inherited: button?.classList.contains("storylens-inherited") ?? false,
+		};
+	}
+
+	it("shows each alias's image, falling back to the keyword's dimmed", () => {
+		const raw = keyword({
+			aliases: [
+				alias({ id: "alias-own", nameEn: "Own", image: aliasImage }),
+				alias({ id: "alias-bare", nameEn: "Bare" }),
+			],
+			versions: [baseVersion({ image: keywordImage })],
+		});
+
+		const rows = rowsOf(hover(raw), "Aliases");
+
+		expect(thumbOf(rows[0])).toEqual({
+			src: aliasImage.url,
+			inherited: false,
+		});
+		expect(thumbOf(rows[1])).toEqual({
+			src: keywordImage.url,
+			inherited: true,
+		});
+	});
+
+	it("shows each version's image, falling back to the keyword's dimmed", () => {
+		const raw = keyword({
+			versions: [
+				baseVersion({ image: keywordImage, endingChapter: 9 }),
+				version({ id: "version-2", startingChapter: 10 }),
+				version({ id: "version-3", startingChapter: 20, image: versionImage }),
+			],
+		});
+
+		const rows = rowsOf(hover(raw), "Versions");
+
+		expect(thumbOf(rows[0])).toEqual({
+			src: keywordImage.url,
+			inherited: false,
+		});
+		// Chapter 5 is read, so the base version's image is the fallback.
+		expect(thumbOf(rows[1])).toEqual({
+			src: keywordImage.url,
+			inherited: true,
+		});
+		expect(thumbOf(rows[2])).toEqual({
+			src: versionImage.url,
+			inherited: false,
+		});
+	});
+
+	it("opens a row thumbnail at full size", () => {
+		const raw = keyword({
+			aliases: [alias({ id: "alias-own", nameEn: "Own", image: aliasImage })],
+			versions: [baseVersion({ image: keywordImage })],
+		});
+
+		rowsOf(hover(raw), "Aliases")[0]
+			.querySelector<HTMLButtonElement>(".storylens-panel-item-thumb-btn")
+			?.click();
+
+		expect(
+			document
+				.querySelector<HTMLDialogElement>("dialog.storylens-image-modal")
+				?.querySelector("img")?.src,
+		).toBe(aliasImage.url);
+	});
+
+	it("leaves rows without any image blank", () => {
+		const raw = keyword({ aliases: [alias({ id: "alias-1" })] });
+
+		expect(
+			rowsOf(hover(raw), "Aliases")[0].querySelector(
+				".storylens-panel-item-thumb",
+			),
+		).toBeNull();
+	});
+});
+
+describe("tooltip generate image action", () => {
+	const raw = keyword({ createdById: owner.id });
+	const bar = () =>
+		document.querySelector<HTMLElement>(".storylens-keyword-hover-actions");
+	const button = () =>
+		bar()?.querySelector<HTMLButtonElement>(
+			'[data-hover-action="generate-image"]',
+		);
+
+	it("offers the action beside the tooltip, not inside it", () => {
+		const requests: TooltipEditTarget[] = [];
+		setTooltipActions({ onGenerateImage: (target) => requests.push(target) });
+		setTooltipUser(owner);
+
+		const tooltip = hover(raw);
+		expect(
+			tooltip.querySelector(".storylens-keyword-hover-actions"),
+		).toBeNull();
+		expect(button()?.textContent).toBe("Generate image with AI");
+
+		button()?.click();
+
+		// The form opens in the launcher popup, so the tooltip and its bar go.
+		expect(document.querySelector('[role="tooltip"]')).toBeNull();
+		expect(bar()).toBeNull();
+		expect(requests).toEqual([
+			{
+				kind: "keyword",
+				id: "keyword-1",
+				keywordId: "keyword-1",
+				novelId: "novel-1",
+			},
+		]);
+	});
+
+	it("labels the action in the tooltip's language", () => {
+		setTooltipActions({ onGenerateImage: () => {} });
+		setTooltipUser(owner);
+		setTooltipLocale("ar");
+
+		hover(raw);
+		expect(button()?.textContent).toBe("توليد صورة بالذكاء الاصطناعي");
+	});
+
+	it("appears only with the launcher and for a keyword the reader may change", () => {
+		setTooltipUser(owner);
+		hover(raw);
+		expect(bar()).toBeNull();
+
+		setTooltipActions({ onGenerateImage: () => {} });
+		setTooltipUser(makeUser("reader"));
+		hover(raw);
+		expect(bar()).toBeNull();
+
+		setTooltipUser(makeUser("moderator", { moderator: true }));
+		hover(raw);
+		expect(bar()).not.toBeNull();
+	});
+
+	it("keeps the tooltip open while the pointer moves onto the action", async () => {
+		setTooltipActions({ onGenerateImage: () => {} });
+		setTooltipUser(owner);
+		hover(raw);
+		// The highlighted word this test hovered, which the helper appended.
+		const anchor = document.body.querySelector("span") as HTMLElement;
+		const actions = bar() as HTMLElement;
+
+		anchor.dispatchEvent(
+			new MouseEvent("mouseleave", { relatedTarget: actions }),
+		);
+		// Past the hide delay, so a missed hover group would have closed it.
+		await new Promise((resolve) => setTimeout(resolve, 200));
+
+		expect(document.querySelector('[role="tooltip"]')).not.toBeNull();
+		expect(bar()).not.toBeNull();
+
+		// Leaving for the page does close both.
+		anchor.dispatchEvent(new MouseEvent("mouseleave"));
+		await new Promise((resolve) => setTimeout(resolve, 200));
+		expect(document.querySelector('[role="tooltip"]')).toBeNull();
+		expect(bar()).toBeNull();
+	});
+});
+
+describe("tooltip viewport placement", () => {
+	const raw = keyword({ createdById: owner.id });
+
+	function measuredTooltip(
+		y: number,
+		viewportHeight: number,
+		withAction = true,
+	) {
+		const previousHeight = window.innerHeight;
+		window.innerHeight = viewportHeight;
+		const bounds = spyOn(
+			HTMLElement.prototype,
+			"getBoundingClientRect",
+		).mockImplementation(function (this: HTMLElement) {
+			if (this.getAttribute("role") === "tooltip") {
+				const limit = Number.parseFloat(this.style.maxHeight);
+				return new DOMRect(0, 0, 330, Math.min(442, limit || 442));
+			}
+			if (this.classList.contains("storylens-keyword-hover-actions"))
+				return new DOMRect(0, 0, 290, 52);
+			return new DOMRect(500, y, 47, 28);
+		});
+		setTooltipUser(owner);
+		setTooltipActions(withAction ? { onGenerateImage: () => {} } : null);
+		initKeywordTooltipPortal();
+		const tooltip = hover(raw);
+		return {
+			tooltip,
+			actions: document.querySelector<HTMLElement>(
+				".storylens-keyword-hover-actions",
+			),
+			restore: () => {
+				bounds.mockRestore();
+				window.innerHeight = previousHeight;
+			},
+		};
+	}
+
+	for (const { y, height } of [
+		{ y: 8, height: 500 },
+		{ y: 400, height: 800 },
+		{ y: 765, height: 800 },
+	]) {
+		it(`keeps both boxes clear of the word at y=${y} in a ${height}px viewport`, () => {
+			const view = measuredTooltip(y, height);
+			try {
+				const top = Number.parseFloat(view.tooltip.style.top);
+				const bottom = top + view.tooltip.getBoundingClientRect().height;
+				const actionsTop = Number.parseFloat(view.actions?.style.top ?? "");
+				const actionsBottom = actionsTop + 52;
+				expect(top).toBeGreaterThanOrEqual(8);
+				expect(bottom).toBeLessThanOrEqual(height - 8);
+				expect(actionsTop).toBeGreaterThanOrEqual(8);
+				expect(actionsBottom).toBeLessThanOrEqual(height - 8);
+				expect(bottom <= y - 8 || top >= y + 28 + 8).toBe(true);
+				expect(actionsBottom <= y - 8 || actionsTop >= y + 28 + 8).toBe(true);
+				expect(bottom + 8 <= actionsTop || actionsBottom + 8 <= top).toBe(true);
+			} finally {
+				view.restore();
+			}
+		});
+	}
+
+	it("constrains tall tooltips even when no action is offered", () => {
+		const view = measuredTooltip(200, 500, false);
+		try {
+			expect(view.actions).toBeNull();
+			expect(view.tooltip.style.top).toBe("236px");
+			expect(view.tooltip.style.maxHeight).toBe("256px");
+		} finally {
+			view.restore();
+		}
+	});
+
+	it("releases the height constraint when the viewport grows", () => {
+		const view = measuredTooltip(8, 500);
+		try {
+			expect(view.tooltip.getBoundingClientRect().height).toBeLessThan(442);
+			window.innerHeight = 900;
+			window.dispatchEvent(new Event("resize"));
+			expect(view.tooltip.getBoundingClientRect().height).toBe(442);
+			expect(view.actions?.style.top).toBe("494px");
+		} finally {
+			view.restore();
+		}
 	});
 });
 

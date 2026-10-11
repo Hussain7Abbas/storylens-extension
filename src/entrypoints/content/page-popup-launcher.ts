@@ -114,7 +114,12 @@ type Position = { x: number; y: number };
 type Launcher = {
 	host: HTMLElement;
 	setLocale: (locale: string) => void;
-	edit: (target: TooltipEditTarget) => void;
+	/**
+	 * Opens the entry's form. With `generateImage` the form starts an AI image
+	 * at once; the call then returns false when the selected source cannot run
+	 * it, and the launcher explains why instead of opening the form.
+	 */
+	edit: (target: TooltipEditTarget, generateImage?: boolean) => boolean;
 	navigated: () => void;
 	dispose: () => void;
 };
@@ -1624,13 +1629,21 @@ function createLauncher(locale: string): Launcher {
 				if (frame) frame.title = labels(nextLocale).open;
 		},
 		// The popup opens the form of the entry named by these parameters.
-		edit: (target) =>
+		edit: (target, generateImage) => {
+			if (generateImage && !desktopReady("character_image")) {
+				handleUnavailableAi(availability("character_image"));
+				return false;
+			}
 			open(undefined, undefined, {
 				edit: target.kind,
 				id: target.id,
 				parentId: target.keywordId,
 				novelId: target.novelId,
-			}),
+				// The form starts its AI image request as soon as it opens.
+				...(generateImage ? { generate: "image" } : {}),
+			});
+			return true;
+		},
 		// An in-site navigation: a popup without unsaved work is removed, so the next one detects the new page.
 		navigated: () => {
 			for (const tab of tabs) tab.stale = true;
@@ -1669,6 +1682,16 @@ function openPagePopupEditor(target: TooltipEditTarget): void {
 	trackEvent("tooltip_edit_requested", { kind: target.kind });
 }
 
+/**
+ * Opens the form of the hovered entry with its AI image already being drawn.
+ * The reader reviews the result and saves it, as in any character form.
+ */
+function generatePagePopupImage(target: TooltipEditTarget): void {
+	if (!launcher?.host.isConnected) return;
+	if (!launcher.edit(target, true)) return;
+	trackEvent("tooltip_generate_image_requested", { kind: target.kind });
+}
+
 function trackTooltipImage(): void {
 	trackEvent("tooltip_image_opened");
 }
@@ -1687,6 +1710,7 @@ export function setPagePopupLauncher(visible: boolean, locale: string): void {
 	setTooltipActions({
 		onEdit: openPagePopupEditor,
 		onImageOpen: trackTooltipImage,
+		onGenerateImage: generatePagePopupImage,
 	});
 }
 

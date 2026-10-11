@@ -95,7 +95,17 @@
 
 /* Keyword info in tooltip; in em so the box keeps its proportions at every font size */
 .storylens-keyword-info {
-	max-width: 18em;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	max-width: min(18em, calc(100vw - 16px));
+}
+
+.storylens-tooltip-content {
+	min-height: 0;
+	min-width: 0;
+	overflow: auto;
+	overflow-wrap: anywhere;
 }
 
 .storylens-keyword-info strong {
@@ -174,6 +184,32 @@
 	padding: 2px 6px;
 	border-radius: 2rem;
 	background-color: var(--sl-tooltip-wash);
+}
+
+/* Hover actions: their own box on the word's other side from the tooltip */
+.storylens-keyword-hover-actions {
+	position: fixed;
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	pointer-events: auto;
+	width: fit-content;
+	box-sizing: border-box;
+	max-width: calc(100vw - 16px);
+	padding: 4px 6px;
+	border: 1px solid var(--sl-tooltip-border);
+	border-radius: 2rem;
+	background-color: var(--sl-tooltip-surface);
+	color: var(--sl-tooltip-ink);
+	box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+	font-size: var(--storylens-font-size, 24px) !important;
+	font-family: var(--storylens-font-face, inherit) !important;
+	z-index: 2147483647;
+}
+
+.storylens-keyword-hover-actions .storylens-generate-image-btn {
+	font-size: 0.6em;
+	white-space: normal;
 }
 
 /* Edit buttons: open the entry's form in the launcher popup */
@@ -372,6 +408,32 @@ dialog.storylens-image-modal::backdrop {
 	flex-wrap: wrap;
 }
 
+/* Alias and version rows: thumbnail beside the row's details */
+.storylens-panel-item--with-thumb {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.storylens-panel-item-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.storylens-panel-item-thumb-btn {
+	flex-shrink: 0;
+	margin: 0;
+	border-radius: 4px;
+}
+
+.storylens-panel-item-thumb {
+	display: block;
+	width: 2.5em;
+	height: 2.5em;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
 .storylens-panel-item-meta {
 	display: flex;
 	gap: 6px;
@@ -430,6 +492,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 .storylens-tab-btn:focus-visible,
 .storylens-show-more-btn:focus-visible,
 .storylens-edit-btn:focus-visible,
+.storylens-generate-image-btn:focus-visible,
 .storylens-image-btn:focus-visible,
 .storylens-image-modal-close:focus-visible {
 	outline: 3px solid var(--sl-tooltip-accent);

@@ -76,7 +76,12 @@ type StackFrame =
 			initialText?: string;
 			suggestion?: KeywordSuggestion;
 	  }
-	| { mode: "keyword-edit"; keyword: GetKeywords200DataItem }
+	| {
+			mode: "keyword-edit";
+			keyword: GetKeywords200DataItem;
+			/** Opened from the page to draw an image: the form starts the request itself. */
+			generateImage?: boolean;
+	  }
 	| {
 			mode: "alias-add";
 			initialText?: string;
@@ -87,6 +92,7 @@ type StackFrame =
 			mode: "alias-edit";
 			keyword: GetKeywords200DataItemAliasesItem;
 			parentKeyword: GetKeywords200DataItem;
+			generateImage?: boolean;
 	  }
 	| {
 			mode: "version-add";
@@ -98,6 +104,7 @@ type StackFrame =
 			mode: "version-edit";
 			keyword: GetKeywords200DataItemVersionsItem;
 			parentKeyword: GetKeywords200DataItem;
+			generateImage?: boolean;
 	  };
 
 interface ColoringFormProps {
@@ -610,6 +617,9 @@ function KeywordForm({
 									)}
 									onGenerated={setImageFile}
 									onBusyChange={setIsGeneratingImage}
+									autoStart={
+										frame.mode !== "keyword-add" && frame.generateImage === true
+									}
 								/>
 								{displayedImageUrl && (
 									<Image
@@ -1082,6 +1092,9 @@ function AliasForm({
 									)}
 									onGenerated={setImageFile}
 									onBusyChange={setIsGeneratingImage}
+									autoStart={
+										frame.mode !== "alias-add" && frame.generateImage === true
+									}
 								/>
 								{displayedImageUrl && (
 									<Image
@@ -1473,6 +1486,9 @@ function VersionForm({
 						category={categoryLabel(categoriesData, form.values.categoryId)}
 						onGenerated={setImageFile}
 						onBusyChange={setIsGeneratingImage}
+						autoStart={
+							frame.mode !== "version-add" && frame.generateImage === true
+						}
 					/>
 					{displayedImageUrl && (
 						<Image

@@ -175,6 +175,59 @@ describe("per-row gating (phase 1 tests 2 and 3)", () => {
 	});
 });
 
+describe("list thumbnails", () => {
+	it("shows a version's image on rows that have none of their own", async () => {
+		const image = {
+			id: "image-1",
+			url: "https://images.example.invalid/later.png",
+			type: "Image",
+			provider_image_id: "image-1",
+			delete_url: "https://images.example.invalid/delete/later",
+			userId: null,
+			createdAt: "2026-01-01T00:00:00.000Z",
+			updatedAt: "2026-01-01T00:00:00.000Z",
+		};
+		const mine = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameEn: "Mira",
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		env.api.seedAlias(mine.id, { nameEn: "The Sword" });
+		// Only a later version carries an image; the rows being read have none.
+		env.api.files.set(image.id, image);
+		env.api.seedVersion(mine.id, { startingChapter: 10, imageId: image.id });
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+
+		const view = render(
+			React.createElement(ColoringCards, {
+				selectedNovelId: env.novel.id,
+				currentChapter: 0,
+				search: "",
+				onEditKeyword: () => {},
+				onEditAlias: () => {},
+			}),
+			{ wrapper },
+		);
+		await waitFor(() => expect(view.getByText("Mira")).toBeTruthy());
+
+		const images = [
+			...view.container.querySelectorAll<HTMLImageElement>("img"),
+		].filter((element) => element.src === image.url);
+		// The keyword, its alias and both versions all show the one image.
+		expect(images).toHaveLength(4);
+		// The version that owns it is the only row showing it undimmed.
+		expect(
+			images.filter((element) => element.style.opacity === "1"),
+		).toHaveLength(1);
+		view.unmount();
+	});
+});
+
 describe("edit request from a page tooltip", () => {
 	/** Renders the Coloring tab with the popup's current URL. */
 	async function show() {
@@ -307,6 +360,53 @@ describe("edit request from a page tooltip", () => {
 		const again = await show();
 		expect(store.get(formPageAtom)).toBeNull();
 		again.unmount();
+		window.history.replaceState(null, "", previous);
+	});
+
+	it("drops the image request from the URL so a remount does not repeat it", async () => {
+		const mine = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameEn: "Mine",
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		const previous = window.location.href;
+		window.history.replaceState(
+			null,
+			"",
+			`?${new URLSearchParams({
+				edit: "keyword",
+				id: mine.id,
+				parentId: mine.id,
+				generate: "image",
+				novelId: env.novel.id,
+			})}`,
+		);
+		const view = render(
+			React.createElement(
+				PageContent,
+				null,
+				React.createElement(ColoringTab, {
+					selectedNovelId: env.novel.id,
+					currentChapter: 0,
+				}),
+			),
+			{ wrapper },
+		);
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 150));
+		});
+
+		expect(store.get(formPageAtom)).not.toBeNull();
+		expect(new URLSearchParams(window.location.search).has("generate")).toBe(
+			false,
+		);
+		view.unmount();
 		window.history.replaceState(null, "", previous);
 	});
 
@@ -997,6 +1097,7 @@ describe("language tabs in a character form", () => {
 		kind: "keyword" | "alias" = "keyword",
 		parentId?: string,
 		editId?: string,
+		generateImage = false,
 	) {
 		await pullLookups({ db: env.db, token: "token-reader-1" });
 		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
@@ -1007,6 +1108,7 @@ describe("language tabs in a character form", () => {
 				...(editId ? { edit: kind, id: editId } : { create: kind }),
 				search,
 				...(parentId ? { parentId } : {}),
+				...(generateImage ? { generate: "image" } : {}),
 			})}`,
 		);
 		const view = render(
@@ -1046,6 +1148,74 @@ describe("language tabs in a character form", () => {
 			await view.findByRole("option", { name: "Human", hidden: true }),
 		);
 	};
+
+	it("starts a hover image request once when the source becomes ready", async () => {
+		const previousUrl = window.location.href;
+		const runtime = fakeBrowser.runtime as { sendMessage: unknown };
+		const original = runtime.sendMessage;
+		const parent = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameEn: "Mira",
+				nameAr: "ميرا",
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		let finishImage: (value: unknown) => void = () => {};
+		const imageReply = new Promise<unknown>((resolve) => {
+			finishImage = resolve;
+		});
+		const imageRequests: { prompt?: string }[] = [];
+		runtime.sendMessage = async (message: unknown) => {
+			const item = message as { type: string; data?: { prompt?: string } };
+			if (item.type === "generateAiImage") {
+				imageRequests.push(item.data ?? {});
+				return imageReply;
+			}
+			if (item.type === "executeAiPrompt")
+				return { res: { ok: true, value: "A fantasy novel." } };
+			return { res: undefined };
+		};
+		let view: ReturnType<typeof render> | undefined;
+		try {
+			view = await openKeywordForm("", "keyword", parent.id, parent.id, true);
+			const generate = view.getByRole("button", {
+				name: /coloring.generateImage$/,
+			});
+			await waitFor(() =>
+				expect(generate.hasAttribute("data-disabled")).toBe(true),
+			);
+			expect(imageRequests).toHaveLength(0);
+			expect(new URLSearchParams(window.location.search).has("generate")).toBe(
+				false,
+			);
+			await fakeBrowser.storage.local.set({
+				"storylens-desktop-client": {
+					token: "paired",
+					model: "test-model",
+					effort: "low",
+				},
+			});
+			await waitFor(() => expect(imageRequests).toHaveLength(1));
+			expect(imageRequests[0].prompt).toContain("Entity: Mira");
+			fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+			finishImage({
+				res: { ok: true, value: { data: "AA==", mimeType: "image/png" } },
+			});
+			await waitFor(() =>
+				expect(view?.getByAltText("coloring.imagePreview")).toBeTruthy(),
+			);
+			fireEvent.click(view.getByRole("tab", { name: "coloring.english" }));
+			expect(imageRequests).toHaveLength(1);
+		} finally {
+			finishImage({ res: undefined });
+			view?.unmount();
+			runtime.sendMessage = original;
+			window.history.replaceState(null, "", previousUrl);
+		}
+	});
 
 	for (const kind of ["keyword", "alias"] as const) {
 		it(`keeps ${kind} image generation running when its language tab changes`, async () => {

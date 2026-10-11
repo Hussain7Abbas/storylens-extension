@@ -96,6 +96,56 @@ describe("tooltip image of an alias", () => {
 		);
 	});
 
+	test("falls back to a version's image when the read versions have none", () => {
+		const bare = alias({ id: "alias-1" });
+		const raw = keyword({
+			aliases: [bare],
+			versions: [
+				baseVersion({ endingChapter: 9 }),
+				version({ id: "version-2", startingChapter: 10, image: versionImage }),
+			],
+		});
+
+		// Reading chapter 3: the active (base) version has no image, so the
+		// alias still shows one instead of nothing.
+		const info = resolveKeywordInfo(raw, bare, 3, "en");
+		expect(info.image.value?.url).toBe(versionImage.url);
+		expect(info.image.source).toBe("version");
+	});
+
+	test("prefers the latest version's image among the fallbacks", () => {
+		const older = image("older-image");
+		const raw = keyword({
+			versions: [
+				baseVersion({ endingChapter: 4 }),
+				version({ id: "version-2", startingChapter: 5, image: older }),
+				version({ id: "version-3", startingChapter: 40, image: versionImage }),
+			],
+		});
+
+		// Chapter 2 reads the base version, which has no image of its own.
+		const info = resolveKeywordInfo(raw, null, 2, "en");
+		expect(info.image.value?.url).toBe(versionImage.url);
+		expect(info.image.source).toBe("version");
+	});
+
+	test("the version being read still wins over a later version's image", () => {
+		const raw = keyword({
+			versions: [
+				baseVersion({ image: keywordImage, endingChapter: 9 }),
+				version({ id: "version-2", startingChapter: 10, image: versionImage }),
+			],
+		});
+
+		expect(resolveKeywordInfo(raw, null, 3, "en").image.value?.url).toBe(
+			keywordImage.url,
+		);
+		expect(resolveKeywordInfo(raw, null, 3, "en").image.source).toBe("keyword");
+		expect(resolveKeywordInfo(raw, null, 12, "en").image.value?.url).toBe(
+			versionImage.url,
+		);
+	});
+
 	test("shows nothing when neither the alias nor the keyword has an image", () => {
 		const bare = alias({ id: "alias-1" });
 		const raw = keyword({ aliases: [bare] });
@@ -143,5 +193,24 @@ describe("enriched alias entries", () => {
 		expect(byId("alias-own")?.imageId).toBe(aliasImage.id);
 		expect(byId("alias-bare")?.image?.url).toBe(keywordImage.url);
 		expect(byId("keyword-1")?.image?.url).toBe(keywordImage.url);
+	});
+
+	test("fall back to the latest version's image when no read version has one", () => {
+		const bare = alias({ id: "alias-bare", nameEn: "Bare" });
+		const raw = keyword({
+			aliases: [bare],
+			versions: [
+				baseVersion({ endingChapter: 9 }),
+				version({ id: "version-2", startingChapter: 10, image: versionImage }),
+			],
+		});
+
+		const enriched = enrichKeywords([raw], 3, "en");
+
+		for (const id of ["keyword-1", "alias-bare"]) {
+			const item = enriched.find((entry) => entry.id === id);
+			expect(item?.image?.url).toBe(versionImage.url);
+			expect(item?.imageId).toBe(versionImage.id);
+		}
 	});
 });

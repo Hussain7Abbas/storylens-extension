@@ -70,6 +70,7 @@ export function GenerateImageButton({
 	category,
 	onGenerated,
 	onBusyChange,
+	autoStart = false,
 }: {
 	novelId: string;
 	name: string;
@@ -78,6 +79,11 @@ export function GenerateImageButton({
 	category?: string;
 	onGenerated: (file: File) => void;
 	onBusyChange?: (busy: boolean) => void;
+	/**
+	 * Draws one image as soon as the form has a name and the source is ready,
+	 * for a form opened from the page's **Generate image with AI** action.
+	 */
+	autoStart?: boolean;
 }) {
 	const { t, i18n } = useTranslation();
 	const availability = useAiAvailability("character_image");
@@ -202,6 +208,16 @@ export function GenerateImageButton({
 			if (!abort.signal.aborted) setBusyState(false);
 		}
 	};
+
+	// A form opened to draw an image starts once, after its values loaded.
+	const started = useRef(false);
+	const latestGenerate = useRef(generate);
+	latestGenerate.current = generate;
+	useEffect(() => {
+		if (started.current || !autoStart || !aiConfigured || !name.trim()) return;
+		started.current = true;
+		void latestGenerate.current();
+	}, [autoStart, aiConfigured, name]);
 
 	return (
 		<>

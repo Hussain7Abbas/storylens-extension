@@ -4,6 +4,7 @@ import {
 	Box,
 	Center,
 	Group,
+	Image,
 	Loader,
 	Stack,
 	type StackProps,
@@ -35,6 +36,10 @@ import type { EntitySyncState } from "@/lib/offline/types";
 import { useLanguage } from "@/store/locale";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
+import {
+	type RawImage,
+	resolveKeywordImage,
+} from "@/utils/resolve-keyword-version";
 import {
 	aliasDisplayName,
 	aliasMatchNames,
@@ -101,6 +106,39 @@ interface ColoringCardsProps extends StackProps {
 	readOnly?: boolean;
 }
 
+/**
+ * A row's image: its own, else the one it inherits through the keyword's
+ * fallback chain (the active version, the latest version that has one, then the
+ * base version), dimmed like the other inherited values. Keeps every row
+ * showing the character instead of leaving gaps.
+ */
+function RowThumb({
+	own,
+	fallback,
+	alt,
+	size,
+}: {
+	own: RawImage;
+	fallback: RawImage;
+	alt: string;
+	size: number;
+}) {
+	const inherited = !own?.url;
+	const url = own?.url ?? fallback?.url ?? null;
+	if (!url) return null;
+	return (
+		<Image
+			src={url}
+			alt={alt}
+			w={size}
+			h={size}
+			radius="sm"
+			fit="cover"
+			style={{ flexShrink: 0, opacity: inherited ? 0.45 : 1 }}
+		/>
+	);
+}
+
 function CategoryNatureRow({
 	ownCategory,
 	ownNature,
@@ -153,6 +191,7 @@ function CategoryNatureRow({
 function VersionCard({
 	version,
 	baseVersion,
+	fallbackImage,
 	currentChapter,
 	onClick,
 	readOnly,
@@ -162,6 +201,8 @@ function VersionCard({
 	syncState?: EntitySyncState;
 	version: GetKeywords200DataItemVersionsItem;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
+	/** The keyword's resolved image, shown when this version has none. */
+	fallbackImage: RawImage;
 	currentChapter: number;
 	onClick?: () => void;
 	readOnly: boolean;
@@ -198,7 +239,13 @@ function VersionCard({
 	return (
 		<EditGate locked={locked}>
 			<ListItemCard onClick={readOnly ? undefined : onClick}>
-				<Group wrap="nowrap" align="center" gap={4}>
+				<Group wrap="nowrap" align="center" gap={6}>
+					<RowThumb
+						own={version.image as RawImage}
+						fallback={fallbackImage}
+						alt={label}
+						size={28}
+					/>
 					<Text
 						size="xs"
 						fw={600}
@@ -211,16 +258,14 @@ function VersionCard({
 						{label}
 					</Text>
 					<SyncBadge state={syncState} />
-					{hasOwnImage && (
+					{hasOwnImage && !version.image && (
 						<Badge
 							size="xs"
 							variant="dot"
 							color="gray"
 							style={{ flexShrink: 0 }}
 						>
-							{version?.imageId && !version?.image
-								? t("offline.waitingToUpload")
-								: t("coloring.hasImage")}
+							{t("offline.waitingToUpload")}
 						</Badge>
 					)}
 				</Group>
@@ -248,6 +293,7 @@ function VersionCard({
 function AliasCard({
 	alias,
 	baseVersion,
+	fallbackImage,
 	onClick,
 	readOnly,
 	syncState,
@@ -255,6 +301,8 @@ function AliasCard({
 }: {
 	alias: GetKeywords200DataItemAliasesItem;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
+	/** The keyword's resolved image, shown when this alias has none. */
+	fallbackImage: RawImage;
 	onClick?: () => void;
 	readOnly: boolean;
 	syncState: EntitySyncState | undefined;
@@ -284,16 +332,20 @@ function AliasCard({
 	return (
 		<EditGate locked={locked}>
 			<ListItemCard onClick={readOnly ? undefined : onClick}>
-				<Group wrap="nowrap" align="flex-start" gap={4}>
+				<Group wrap="nowrap" align="flex-start" gap={6}>
+					<RowThumb
+						own={alias.image as RawImage}
+						fallback={fallbackImage}
+						alt={aliasDisplayName(alias, language)}
+						size={28}
+					/>
 					<Text fw={500} size="xs" style={{ flex: 1 }}>
 						{aliasDisplayName(alias, language)}
 					</Text>
 					<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
-						{hasOwnImage && (
+						{hasOwnImage && !alias.image && (
 							<Badge size="xs" variant="dot" color="gray">
-								{alias?.imageId && !alias?.image
-									? t("offline.waitingToUpload")
-									: t("coloring.hasImage")}
+								{t("offline.waitingToUpload")}
 							</Badge>
 						)}
 						<SyncBadge state={syncState} />
@@ -409,6 +461,8 @@ export function ColoringCards({
 				const hasBaseImage = Boolean(
 					baseVersion?.imageId ?? baseVersion?.image?.url,
 				);
+				// What rows without an image of their own show.
+				const keywordImage = resolveKeywordImage(parent, chapter);
 
 				return (
 					<Stack key={parent.id} gap={2}>
@@ -422,15 +476,19 @@ export function ColoringCards({
 								}
 							>
 								<Group wrap="nowrap" align="flex-start" gap="xs">
+									<RowThumb
+										own={baseVersion?.image as RawImage}
+										fallback={keywordImage}
+										alt={nameIn(parent, language)}
+										size={36}
+									/>
 									<Text fw={500} style={{ flex: 1 }}>
 										{nameIn(parent, language)}
 									</Text>
 									<Group gap="xs" wrap="nowrap">
-										{hasBaseImage && (
+										{hasBaseImage && !baseVersion?.image && (
 											<Badge size="xs" variant="dot" color="gray">
-												{baseVersion?.imageId && !baseVersion?.image
-													? t("offline.waitingToUpload")
-													: t("coloring.hasImage")}
+												{t("offline.waitingToUpload")}
 											</Badge>
 										)}
 										<SyncBadge
@@ -511,6 +569,7 @@ export function ColoringCards({
 													key={version.id}
 													version={version}
 													baseVersion={baseVersion}
+													fallbackImage={keywordImage}
 													currentChapter={chapter}
 													readOnly={
 														readOnly || !canEditVersion(user, version, parent)
@@ -543,6 +602,7 @@ export function ColoringCards({
 														key={alias.id}
 														alias={alias}
 														baseVersion={baseVersion}
+														fallbackImage={keywordImage}
 														readOnly={readOnly || aliasLocked}
 														locked={aliasLocked}
 														syncState={

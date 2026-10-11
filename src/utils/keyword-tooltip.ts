@@ -1,4 +1,4 @@
-import { createElement, Pencil } from "lucide";
+import { createElement, ImagePlus, Pencil } from "lucide";
 import type { AuthUser } from "@/lib/auth/auth-store";
 import {
 	canEditAlias,
@@ -17,6 +17,8 @@ import { closeImageModal, openImageModal } from "@/utils/image-modal";
 import {
 	type FieldInfo,
 	pickBaseVersion,
+	type RawImage,
+	resolveKeywordImage,
 	resolveKeywordInfo,
 } from "@/utils/resolve-keyword-version";
 import { aliasDisplayName, type Language, nameIn } from "@/utils/translation";
@@ -38,6 +40,8 @@ const anchorDataMap = new WeakMap<HTMLElement, AnchorData>();
 let portalInitialized = false;
 let activeAnchor: HTMLElement | null = null;
 let activeTooltip: HTMLElement | null = null;
+/** The hover action bar shown on the keyword's other side, beside the tooltip. */
+let activeActions: HTMLElement | null = null;
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 let scrollListenerAttached = false;
 
@@ -52,6 +56,7 @@ const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
 		showMore: "↗",
 		noImage: "—",
 		edit: "Edit",
+		generateImage: "Generate image with AI",
 		viewImage: "View full image",
 		close: "Close",
 	},
@@ -65,6 +70,7 @@ const TOOLTIP_STRINGS: Record<string, Record<string, string>> = {
 		showMore: "↗",
 		noImage: "—",
 		edit: "تعديل",
+		generateImage: "توليد صورة بالذكاء الاصطناعي",
 		viewImage: "عرض الصورة كاملة",
 		close: "إغلاق",
 	},
@@ -97,6 +103,11 @@ type TooltipActions = {
 	/** Opens the entry's form; Edit buttons appear only while this is set. */
 	onEdit?: (target: TooltipEditTarget) => void;
 	onImageOpen?: () => void;
+	/**
+	 * Opens the entry's form with its AI image request already running; the
+	 * hover action under the word appears only while this is set.
+	 */
+	onGenerateImage?: (target: TooltipEditTarget) => void;
 };
 
 let actions: TooltipActions | null = null;
@@ -116,12 +127,18 @@ let cachedFontSize: number | null = null;
 
 export function setTooltipFontFace(fontFace: string | null): void {
 	cachedFontFace = fontFace;
-	if (activeTooltip) applyAppearanceToRoot(getTooltipRoot());
+	if (activeTooltip) {
+		applyAppearanceToRoot(getTooltipRoot());
+		handleReposition();
+	}
 }
 
 export function setTooltipFontSize(fontSize: number | null): void {
 	cachedFontSize = fontSize === null ? null : parseFontSize(fontSize);
-	if (activeTooltip) applyAppearanceToRoot(getTooltipRoot());
+	if (activeTooltip) {
+		applyAppearanceToRoot(getTooltipRoot());
+		handleReposition();
+	}
 }
 
 function applyAppearanceToRoot(root: HTMLElement): void {
@@ -203,6 +220,27 @@ function buildImageButton(image: HTMLImageElement): HTMLButtonElement {
 		actions?.onImageOpen?.();
 	});
 	return btn;
+}
+
+/**
+ * A small image for a row in the Aliases or Versions list. `inherited` dims an
+ * image the row does not own but shows through the keyword's fallback chain.
+ */
+function buildRowThumb(
+	image: RawImage,
+	label: string,
+	inherited: boolean,
+): HTMLElement | null {
+	if (!image?.url) return null;
+	const thumb = document.createElement("img");
+	thumb.className = "storylens-panel-item-thumb";
+	thumb.src = image.url;
+	thumb.alt = label;
+	thumb.loading = "lazy";
+	const button = buildImageButton(thumb);
+	button.classList.add("storylens-panel-item-thumb-btn");
+	if (inherited) button.classList.add("storylens-inherited");
+	return button;
 }
 
 // Build a "show more" toggle with expandable provenance rows.
@@ -436,13 +474,22 @@ function buildInfoPanel(
 	return panel;
 }
 
-function buildAliasesPanel(raw: RawKeyword, language: Language): HTMLElement {
+function buildAliasesPanel(
+	raw: RawKeyword,
+	language: Language,
+	currentChapter: number,
+): HTMLElement {
 	const panel = document.createElement("div");
 	const base = pickBaseVersion(raw.versions);
+	// What an alias without its own image shows, so no row stays blank.
+	const fallbackImage = resolveKeywordImage(raw, currentChapter);
 
 	for (const alias of raw.aliases) {
 		const item = document.createElement("div");
 		item.className = "storylens-panel-item";
+		// The row's details sit beside its thumbnail.
+		const body = document.createElement("div");
+		body.className = "storylens-panel-item-body";
 
 		// Name row with optional override badge
 		const nameRow = document.createElement("div");
@@ -472,7 +519,7 @@ function buildAliasesPanel(raw: RawKeyword, language: Language): HTMLElement {
 			canEditAlias(currentUser, alias, raw),
 		);
 		if (editBtn) nameRow.append(editBtn);
-		item.append(nameRow);
+		body.append(nameRow);
 
 		// Category / Nature
 		const ownCat = alias.category as EnrichedCategory | null;
@@ -507,7 +554,7 @@ function buildAliasesPanel(raw: RawKeyword, language: Language): HTMLElement {
 				if (!ownNat) natEl.className = "storylens-inherited";
 				metaRow.append(natEl);
 			}
-			item.append(metaRow);
+			body.append(metaRow);
 		}
 
 		// Description
@@ -520,25 +567,45 @@ function buildAliasesPanel(raw: RawKeyword, language: Language): HTMLElement {
 				"storylens-panel-item-desc" +
 				(isInherited ? " storylens-inherited" : "");
 			descEl.textContent = displayDesc;
-			item.append(descEl);
+			body.append(descEl);
 		}
 
+		// The alias's own image, else the keyword's, so every row shows one.
+		const ownImage = alias.image?.url ? alias.image : null;
+		const thumb = buildRowThumb(
+			ownImage ?? fallbackImage,
+			aliasDisplayName(alias, language),
+			!ownImage,
+		);
+		if (thumb) {
+			item.classList.add("storylens-panel-item--with-thumb");
+			item.append(thumb);
+		}
+		item.append(body);
 		panel.append(item);
 	}
 
 	return panel;
 }
 
-function buildVersionsPanel(raw: RawKeyword): HTMLElement {
+function buildVersionsPanel(
+	raw: RawKeyword,
+	currentChapter: number,
+): HTMLElement {
 	const panel = document.createElement("div");
 	const sortedVersions = [...raw.versions].sort(
 		(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
 	);
 	const base = sortedVersions[0];
+	// What a version without its own image shows, so no row stays blank.
+	const fallbackImage = resolveKeywordImage(raw, currentChapter);
 
 	for (const version of sortedVersions) {
 		const item = document.createElement("div");
 		item.className = "storylens-panel-item";
+		// The row's details sit beside its thumbnail.
+		const body = document.createElement("div");
+		body.className = "storylens-panel-item-body";
 		const isBase = version.id === base?.id;
 
 		// Chapter range label
@@ -569,7 +636,7 @@ function buildVersionsPanel(raw: RawKeyword): HTMLElement {
 			canEditVersion(currentUser, version, raw),
 		);
 		if (editBtn) labelEl.append(editBtn);
-		item.append(labelEl);
+		body.append(labelEl);
 
 		// Category / Nature (own + inherited from base if not base)
 		const ownCat = version.category as EnrichedCategory | null;
@@ -610,7 +677,7 @@ function buildVersionsPanel(raw: RawKeyword): HTMLElement {
 				if (!ownNat) natEl.className = "storylens-inherited";
 				metaRow.append(natEl);
 			}
-			item.append(metaRow);
+			body.append(metaRow);
 		}
 
 		// Description (own + inherited from base)
@@ -625,9 +692,17 @@ function buildVersionsPanel(raw: RawKeyword): HTMLElement {
 				"storylens-panel-item-desc" +
 				(isInherited ? " storylens-inherited" : "");
 			descEl.textContent = displayDesc;
-			item.append(descEl);
+			body.append(descEl);
 		}
 
+		// The version's own image, else the keyword's, so every row shows one.
+		const ownImage = version.image?.url ? version.image : null;
+		const thumb = buildRowThumb(ownImage ?? fallbackImage, label, !ownImage);
+		if (thumb) {
+			item.classList.add("storylens-panel-item--with-thumb");
+			item.append(thumb);
+		}
+		item.append(body);
 		panel.append(item);
 	}
 
@@ -687,6 +762,10 @@ function buildKeywordTooltipContent(
 	tooltip.className =
 		"storylens-tooltip-text storylens-keyword-info storylens-tooltip-text--floating";
 	tooltip.setAttribute("role", "tooltip");
+	// Scroll the content independently so the tooltip's arrow stays visible.
+	const content = document.createElement("div");
+	content.className = "storylens-tooltip-content";
+	tooltip.append(content);
 
 	const tabs: TabDef[] = [
 		{
@@ -698,49 +777,147 @@ function buildKeywordTooltipContent(
 	if (data.raw.aliases.length > 0) {
 		tabs.push({
 			label: tt("aliases"),
-			content: buildAliasesPanel(data.raw, data.language),
+			content: buildAliasesPanel(data.raw, data.language, data.currentChapter),
 		});
 	}
 
 	if (data.raw.versions.length > 1) {
 		tabs.push({
 			label: tt("versions"),
-			content: buildVersionsPanel(data.raw),
+			content: buildVersionsPanel(data.raw, data.currentChapter),
 		});
 	}
 
 	if (tabs.length === 1) {
 		// No tabs needed — just show the info panel directly
-		tooltip.append(tabs[0].content);
+		content.append(tabs[0].content);
 	} else {
-		tooltip.append(buildTabSystem(tabs, onLayoutChange));
+		content.append(buildTabSystem(tabs, onLayoutChange));
 	}
 
 	return tooltip;
 }
 
+/** Centers a floating box on the word, kept inside the viewport. */
+function centerOnAnchor(anchorRect: DOMRect, box: HTMLElement): number {
+	const width = box.getBoundingClientRect().width;
+	const left = anchorRect.left + anchorRect.width / 2 - width / 2;
+	return Math.max(
+		TOOLTIP_GAP_PX,
+		Math.min(left, window.innerWidth - width - TOOLTIP_GAP_PX),
+	);
+}
+
+/**
+ * Places the tooltip above the word and the hover actions below it. Near the
+ * top of the viewport the tooltip flips below the word. Reserve room for the
+ * actions on the other side or stacked beyond the tooltip, and scroll tall
+ * content inside the available space rather than covering the word.
+ */
 function positionTooltip(anchor: HTMLElement, tooltip: HTMLElement): void {
 	const anchorRect = anchor.getBoundingClientRect();
+	const content = tooltip.firstElementChild;
+	const scrollTop = content?.scrollTop ?? 0;
+	// Measure unconstrained content again after tab, image, font or viewport changes.
+	tooltip.style.maxHeight = "none";
 	const tooltipRect = tooltip.getBoundingClientRect();
 	const viewportPadding = TOOLTIP_GAP_PX;
-
-	let placement: "above" | "below" = "above";
-	let top = anchorRect.top - tooltipRect.height - TOOLTIP_GAP_PX;
-
-	if (top < viewportPadding) {
-		placement = "below";
-		top = anchorRect.bottom + TOOLTIP_GAP_PX;
-	}
-
-	let left = anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2;
-	left = Math.max(
-		viewportPadding,
-		Math.min(left, window.innerWidth - tooltipRect.width - viewportPadding),
+	const aboveEnd = Math.min(
+		anchorRect.top - TOOLTIP_GAP_PX,
+		window.innerHeight - viewportPadding,
 	);
+	const belowStart = Math.max(
+		anchorRect.bottom + TOOLTIP_GAP_PX,
+		viewportPadding,
+	);
+	const above = Math.max(0, aboveEnd - viewportPadding);
+	const below = Math.max(0, window.innerHeight - viewportPadding - belowStart);
+	const actionsHeight = activeActions?.getBoundingClientRect().height ?? 0;
+	const reserve = activeActions ? actionsHeight + TOOLTIP_GAP_PX : 0;
+	const aboveCapacity = Math.max(
+		0,
+		above - (activeActions && actionsHeight > below ? reserve : 0),
+	);
+	const belowCapacity = Math.max(
+		0,
+		below - (activeActions && actionsHeight > above ? reserve : 0),
+	);
+	const placement =
+		tooltipRect.height <= aboveCapacity
+			? "above"
+			: tooltipRect.height <= belowCapacity
+				? "below"
+				: aboveCapacity >= belowCapacity
+					? "above"
+					: "below";
+	const stacked =
+		!!activeActions &&
+		(placement === "above"
+			? actionsHeight > below
+			: tooltipRect.height + reserve <= below || actionsHeight > above);
+	const capacity =
+		(placement === "above" ? above : below) - (stacked ? reserve : 0);
+	tooltip.style.maxHeight = `${Math.max(0, capacity)}px`;
+	const height = tooltip.getBoundingClientRect().height;
+	if (content) content.scrollTop = scrollTop;
+	const top = placement === "above" ? aboveEnd - height : belowStart;
 
 	tooltip.style.top = `${top}px`;
-	tooltip.style.left = `${left}px`;
+	tooltip.style.left = `${centerOnAnchor(anchorRect, tooltip)}px`;
 	tooltip.dataset.placement = placement;
+
+	if (!activeActions) return;
+	const actionsTop =
+		placement === "above"
+			? stacked
+				? top - reserve
+				: belowStart
+			: stacked
+				? top + height + TOOLTIP_GAP_PX
+				: aboveEnd - actionsHeight;
+	activeActions.style.top = `${actionsTop}px`;
+	activeActions.style.left = `${centerOnAnchor(anchorRect, activeActions)}px`;
+}
+
+/**
+ * The hover actions beside the tooltip: an AI image for the hovered character,
+ * shown only while the launcher can open its form and the reader may change it.
+ */
+function buildHoverActions(data: AnchorData): HTMLElement | null {
+	if (!actions?.onGenerateImage || !canEditKeyword(currentUser, data.raw))
+		return null;
+
+	const bar = document.createElement("div");
+	bar.className = "storylens-keyword-hover-actions";
+
+	const btn = document.createElement("button");
+	btn.type = "button";
+	btn.className = "storylens-edit-btn storylens-generate-image-btn";
+	btn.dataset.hoverAction = "generate-image";
+	btn.title = tt("generateImage");
+	btn.append(
+		createElement(ImagePlus, {
+			width: 12,
+			height: 12,
+			"aria-hidden": "true",
+			"stroke-width": 1.75,
+		}),
+		document.createTextNode(tt("generateImage")),
+	);
+	btn.addEventListener("click", (event) => {
+		event.stopPropagation();
+		const target: TooltipEditTarget = {
+			kind: "keyword",
+			id: data.raw.id,
+			keywordId: data.raw.id,
+			novelId: data.raw.novelId,
+		};
+		hideActiveTooltip();
+		actions?.onGenerateImage?.(target);
+	});
+
+	bar.append(btn);
+	return bar;
 }
 
 function clearHideTimeout(): void {
@@ -754,6 +931,8 @@ function hideActiveTooltip(): void {
 	clearHideTimeout();
 	activeTooltip?.remove();
 	activeTooltip = null;
+	activeActions?.remove();
+	activeActions = null;
 	activeAnchor = null;
 }
 
@@ -789,12 +968,30 @@ function showTooltip(anchor: HTMLElement): void {
 	tooltip.addEventListener("mouseenter", clearHideTimeout);
 	tooltip.addEventListener("mouseleave", scheduleHideTooltip);
 
-	getTooltipRoot().append(tooltip);
+	const root = getTooltipRoot();
+	root.append(tooltip);
 	activeTooltip = tooltip;
+
+	// The actions are their own box, so the word stays uncovered between them.
+	const hoverActions = buildHoverActions(data);
+	if (hoverActions) {
+		hoverActions.addEventListener("mouseenter", clearHideTimeout);
+		hoverActions.addEventListener("mouseleave", scheduleHideTooltip);
+		root.append(hoverActions);
+		activeActions = hoverActions;
+	}
+
 	positionTooltip(anchor, tooltip);
 }
 
-function handleReposition(): void {
+function handleReposition(event?: Event): void {
+	// Scrolling the constrained content must not remeasure and reset its scroll.
+	if (
+		event?.type === "scroll" &&
+		event.target instanceof Node &&
+		activeTooltip?.contains(event.target)
+	)
+		return;
 	if (activeAnchor && activeTooltip) {
 		positionTooltip(activeAnchor, activeTooltip);
 	}
@@ -836,7 +1033,10 @@ export function registerKeywordTooltipAnchor(
 
 	anchor.addEventListener("mouseleave", (event) => {
 		const related = event.relatedTarget;
-		if (related instanceof Node && activeTooltip?.contains(related)) {
+		if (
+			related instanceof Node &&
+			(activeTooltip?.contains(related) || activeActions?.contains(related))
+		) {
 			return;
 		}
 

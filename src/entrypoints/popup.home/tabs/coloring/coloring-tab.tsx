@@ -37,7 +37,12 @@ type StackFrame =
 			initialText?: string;
 			suggestion?: KeywordSuggestion;
 	  }
-	| { mode: "keyword-edit"; keyword: GetKeywords200DataItem }
+	| {
+			mode: "keyword-edit";
+			keyword: GetKeywords200DataItem;
+			/** Opened from the page to draw an image: the form starts the request itself. */
+			generateImage?: boolean;
+	  }
 	| {
 			mode: "alias-add";
 			initialText?: string;
@@ -48,6 +53,7 @@ type StackFrame =
 			mode: "alias-edit";
 			keyword: GetKeywords200DataItemAliasesItem;
 			parentKeyword: GetKeywords200DataItem;
+			generateImage?: boolean;
 	  }
 	| {
 			mode: "version-add";
@@ -59,6 +65,7 @@ type StackFrame =
 			mode: "version-edit";
 			keyword: GetKeywords200DataItemVersionsItem;
 			parentKeyword: GetKeywords200DataItem;
+			generateImage?: boolean;
 	  };
 
 /**
@@ -195,15 +202,22 @@ export function ColoringTab({
 		const id = search.get("id");
 		const parent = keywords.find((item) => item.id === search.get("parentId"));
 		if (!parent) return;
+		// A page hover action asks the form to draw an image as it opens.
+		const generateImage = search.get("generate") === "image";
 		// Same per-row rules as the cards: a row the reader may not change stays closed.
 		let frame: StackFrame | undefined;
 		if (requestedEdit === "keyword") {
 			if (canEditKeyword(user, parent))
-				frame = { mode: "keyword-edit", keyword: parent };
+				frame = { mode: "keyword-edit", keyword: parent, generateImage };
 		} else if (requestedEdit === "alias") {
 			const alias = parent.aliases.find((item) => item.id === id);
 			if (alias && canEditAlias(user, alias, parent))
-				frame = { mode: "alias-edit", keyword: alias, parentKeyword: parent };
+				frame = {
+					mode: "alias-edit",
+					keyword: alias,
+					parentKeyword: parent,
+					generateImage,
+				};
 		} else if (requestedEdit === "version") {
 			const version = parent.versions.find((item) => item.id === id);
 			if (version && canEditVersion(user, version, parent))
@@ -211,11 +225,12 @@ export function ColoringTab({
 					mode: "version-edit",
 					keyword: version,
 					parentKeyword: parent,
+					generateImage,
 				};
 		}
 		if (!frame) return;
 		opened.current = true;
-		consumeRequest("edit", "id", "parentId");
+		consumeRequest("edit", "id", "parentId", "generate");
 		setStack([frame]);
 	}, [selectedNovelId, requestedEdit, isLoading, keywords, user]);
 	const currentFrame = stack[stack.length - 1];

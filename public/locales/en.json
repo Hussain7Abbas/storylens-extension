@@ -79,7 +79,6 @@
 		"generateImage": "Generate image",
 		"generateImageHint": "Draw this entry with Codex from the current chapter, its description, and the novel context. The image uploads when you save.",
 		"generatingImage": "Generating image… this can take a minute or two.",
-		"hasImage": "Has image",
 		"image": "Image",
 		"imageGenerateFailed": "Image generation failed",
 		"imageNeedsName": "Enter a name first.",
