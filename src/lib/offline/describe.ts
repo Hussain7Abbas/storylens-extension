@@ -6,6 +6,8 @@ type Row = Record<string, unknown>;
 /** Values a mutation knows about its entity: its patch over the last known server row. */
 export function knownValues(mutation: Mutation, snapshotRow?: Row): Row {
 	return {
+		...mutation.context?.row,
+		...mutation.base,
 		...(snapshotRow ?? {}),
 		...(mutation.conflict?.server ?? {}),
 		...mutation.patch,

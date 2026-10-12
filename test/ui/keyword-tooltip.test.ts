@@ -56,10 +56,14 @@ function hover(raw: RawKeyword, aliasId?: string): HTMLElement {
 	return tooltip;
 }
 
-function editKinds(tooltip: HTMLElement): (string | undefined)[] {
-	return [...tooltip.querySelectorAll<HTMLElement>(".storylens-edit-btn")].map(
-		(button) => button.dataset.editKind,
-	);
+function editKinds(_tooltip: HTMLElement): (string | undefined)[] {
+	return [...document.querySelectorAll<HTMLElement>("[data-edit-kind]")]
+		.sort(
+			(a, b) =>
+				Number(b.dataset.editKind === "keyword") -
+				Number(a.dataset.editKind === "keyword"),
+		)
+		.map((button) => button.dataset.editKind);
 }
 
 afterEach(() => {
@@ -425,7 +429,13 @@ describe("tooltip viewport placement", () => {
 				expect(actionsBottom).toBeLessThanOrEqual(height - 8);
 				expect(bottom <= y - 8 || top >= y + 28 + 8).toBe(true);
 				expect(actionsBottom <= y - 8 || actionsTop >= y + 28 + 8).toBe(true);
-				expect(bottom + 8 <= actionsTop || actionsBottom + 8 <= top).toBe(true);
+				if (view.tooltip.dataset.placement === "above") {
+					expect(actionsTop).toBe(bottom + 8);
+					expect(actionsBottom).toBeLessThanOrEqual(y - 8);
+				} else {
+					expect(top).toBe(actionsBottom + 8);
+					expect(actionsTop).toBeGreaterThanOrEqual(y + 28 + 8);
+				}
 			} finally {
 				view.restore();
 			}
@@ -450,7 +460,7 @@ describe("tooltip viewport placement", () => {
 			window.innerHeight = 900;
 			window.dispatchEvent(new Event("resize"));
 			expect(view.tooltip.getBoundingClientRect().height).toBe(442);
-			expect(view.actions?.style.top).toBe("494px");
+			expect(view.actions?.style.top).toBe("44px");
 		} finally {
 			view.restore();
 		}
@@ -458,6 +468,18 @@ describe("tooltip viewport placement", () => {
 });
 
 describe("tooltip edit buttons", () => {
+	it("floats Edit below the tooltip, above Generate image", () => {
+		setTooltipUser(owner);
+		setTooltipActions({ onEdit: () => {}, onGenerateImage: () => {} });
+		const tooltip = hover(keyword({ createdById: owner.id }));
+		const bar = document.querySelector(".storylens-keyword-hover-actions");
+		expect(tooltip.querySelector('[data-edit-kind="keyword"]')).toBeNull();
+		expect(
+			[...(bar?.querySelectorAll("button") ?? [])].map(
+				(button) => button.textContent,
+			),
+		).toEqual(["Edit", "Generate image with AI"]);
+	});
 	const raw = keyword({
 		createdById: owner.id,
 		aliases: [alias({ id: "alias-1", createdById: owner.id })],
@@ -480,7 +502,8 @@ describe("tooltip edit buttons", () => {
 		]);
 
 		for (const kind of ["keyword", "alias"]) {
-			hover(raw)
+			hover(raw);
+			document
 				.querySelector<HTMLButtonElement>(`[data-edit-kind="${kind}"]`)
 				?.click();
 			// Opening the form closes the tooltip.
@@ -517,7 +540,8 @@ describe("tooltip edit buttons", () => {
 		setTooltipUser(owner);
 		setTooltipLocale("ar");
 
-		expect(hover(raw).querySelector(".storylens-edit-btn")?.textContent).toBe(
+		hover(raw);
+		expect(document.querySelector(".storylens-edit-btn")?.textContent).toBe(
 			"تعديل",
 		);
 	});
@@ -557,5 +581,98 @@ describe("tooltip edit buttons", () => {
 
 		setTooltipUser(makeUser("moderator", { moderator: true }));
 		expect(editKinds(hover(mixed))).toEqual(["keyword", "alias", "alias"]);
+	});
+});
+
+describe("tooltip contextual details", () => {
+	it("shows the alias's own data even without a style override, and base details only in Original", () => {
+		const raw = keyword({
+			nameEn: "Mira",
+			versions: [
+				baseVersion({ description: "Original history" }),
+				version({
+					id: "v2",
+					startingChapter: 3,
+					description: "Current version history",
+				}),
+			],
+			aliases: [
+				alias({
+					id: "alias-own",
+					nameEn: "The Scholar",
+					description: "Alias history",
+					overrideStyle: false,
+				}),
+			],
+		});
+		const tooltip = hover(raw, "alias-own");
+		const info = tooltip.querySelector('[role="tabpanel"]');
+		expect(info?.textContent).toContain("Alias history");
+		expect(info?.textContent).not.toContain("Original history");
+		expect(info?.textContent).not.toContain("Current version history");
+		const original = tooltip.querySelector(
+			'[role="tabpanel"][aria-label="Original"]',
+		);
+		expect(original?.textContent).toContain("Original history");
+		expect(original?.textContent).toContain("Mira");
+	});
+	it("shows active version details with a separate original tab", () => {
+		const tooltip = hover(
+			keyword({
+				versions: [
+					baseVersion({ description: "Original history", endingChapter: 2 }),
+					version({
+						id: "v2",
+						startingChapter: 3,
+						description: "Current version history",
+					}),
+				],
+			}),
+		);
+		expect(tooltip.querySelector('[role="tabpanel"]')?.textContent).toContain(
+			"Current version history",
+		);
+		expect(
+			tooltip.querySelector('[role="tabpanel"]')?.textContent,
+		).not.toContain("Original history");
+		expect(
+			tooltip.querySelector('[aria-label="Original"]')?.textContent,
+		).toContain("Original history");
+	});
+	it("has no Original tab for the base keyword, and exposes keyboard tabs outside the scrolling content", () => {
+		const tooltip = hover(keyword({ aliases: [alias({ id: "alias" })] }));
+		expect(tooltip.querySelector('[aria-label="Original"]')).toBeNull();
+		const tabs = tooltip.querySelector('[role="tablist"]');
+		expect(tabs?.parentElement).toBe(tooltip);
+		const first = tabs?.querySelector<HTMLButtonElement>('[role="tab"]');
+		first?.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+		);
+		expect(
+			tooltip.querySelector('[role="tab"][aria-selected="true"]')?.textContent,
+		).toBe("Aliases");
+	});
+	it("offers creation actions on another reader's keyword and gates them for guests", () => {
+		const requests: string[] = [];
+		setTooltipUser(makeUser("reader"));
+		setTooltipActions({
+			onCreate: (kind) => requests.push(kind),
+			onPick: (kind) => requests.push(`pick-${kind}`),
+		});
+		hover(keyword({ nameEn: "Mira", createdById: owner.id }));
+		const bar = document.querySelector(".storylens-keyword-hover-actions");
+		expect(bar?.querySelector('[data-edit-kind="keyword"]')).toBeNull();
+		expect(
+			bar?.querySelector('[data-hover-action="add-alias"]'),
+		).not.toBeNull();
+		document
+			.querySelector<HTMLButtonElement>('[data-hover-action="pick-alias"]')
+			?.click();
+		expect(requests).toEqual(["pick-alias"]);
+		setTooltipUser(makeUser("guest", { guest: true }));
+		hover(keyword());
+		expect(
+			document.querySelector(".storylens-keyword-hover-actions"),
+		).toBeNull();
 	});
 });

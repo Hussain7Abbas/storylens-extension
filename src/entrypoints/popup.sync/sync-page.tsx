@@ -30,6 +30,7 @@ import {
 	describeEntity,
 	type IssueKind,
 	issueKind,
+	knownValues,
 } from "@/lib/offline/describe";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
@@ -37,6 +38,7 @@ import {
 	useOfflineKeywordCategories,
 	useOfflineKeywordNatures,
 	useOutbox,
+	useSyncStatus,
 } from "@/lib/offline/hooks";
 import {
 	applyResolution,
@@ -45,7 +47,9 @@ import {
 	type Resolution,
 } from "@/lib/offline/outbox";
 import { tableOf } from "@/lib/offline/snapshot";
+import { syncIndicator } from "@/lib/offline/sync/indicator";
 import type { Mutation } from "@/lib/offline/types";
+import { useManualSync } from "@/lib/offline/use-manual-sync";
 import { websitePageUrl } from "@/lib/website";
 import { localeAtom, useLanguage } from "@/store/locale";
 import { showExistingAtom } from "@/store/show-existing";
@@ -71,12 +75,22 @@ function useSnapshotRows(mutations: Mutation[]) {
 		queryKey: [
 			"offline",
 			"sync-page-rows",
-			mutations.map((mutation) => mutation.entityId).join(","),
+			mutations
+				.map((mutation) => [mutation.id, mutation.updatedAt, mutation.status])
+				.join(","),
 		],
 		queryFn: async () => {
 			const db = offlineDb();
 			const rows = new Map<string, Record<string, unknown>>();
 			for (const mutation of mutations) {
+				if (mutation.parentId) {
+					const parent = await db.keywords.get(mutation.parentId);
+					if (parent)
+						rows.set(
+							mutation.parentId,
+							parent as unknown as Record<string, unknown>,
+						);
+				}
 				const table = tableOf(mutation.entity);
 				if (!table) continue;
 				const row = await (
@@ -260,6 +274,7 @@ function IssueCard({
 	name,
 	novel,
 	all,
+	keyword,
 	t,
 	language,
 	lookups,
@@ -270,6 +285,7 @@ function IssueCard({
 	name: string;
 	novel: string;
 	all: Mutation[];
+	keyword: string;
 	t: TFunction;
 	language: Language;
 	lookups: Lookups;
@@ -284,7 +300,9 @@ function IssueCard({
 	const [choices, setChoices] = useState<Record<string, "mine" | "theirs">>({});
 	const editField = editableField(mutation, language);
 	const [editing, setEditing] = useState(false);
-	const [draft, setDraft] = useState(String(mutation.patch[editField] ?? ""));
+	const [draft, setDraft] = useState(
+		String(knownValues(mutation)[editField] ?? ""),
+	);
 	const dependants = useMemo(
 		() =>
 			mutation.op === "create" ? dependantsOf(all, mutation.entityId) : [],
@@ -299,8 +317,10 @@ function IssueCard({
 			kick();
 			await queryClient.invalidateQueries({ queryKey: ["offline"] });
 			onResolved();
+			return true;
 		} catch (error) {
 			toast.error(offlineErrorMessage(error, t));
+			return false;
 		} finally {
 			setBusy(false);
 		}
@@ -331,7 +351,7 @@ function IssueCard({
 		>
 			<Stack gap={6}>
 				<Group justify="space-between" wrap="nowrap" gap="xs">
-					<Text size="sm" fw={600} dir="auto" lineClamp={1}>
+					<Text size="sm" fw={600} dir="auto">
 						{name || t(`sync.entity.${mutation.entity}`)}
 					</Text>
 					<Badge
@@ -344,9 +364,25 @@ function IssueCard({
 				</Group>
 				<Text size="xs" c="dimmed">
 					{t(`sync.entity.${mutation.entity}`)}
-					{novel ? ` · ${novel}` : ""}
 				</Text>
+				{novel && (
+					<Text size="xs" dir="auto">
+						{t("sync.novelLabel", { name: novel })}
+					</Text>
+				)}
+				{keyword && (
+					<Text size="xs" dir="auto">
+						{t("sync.keywordLabel", { name: keyword })}
+					</Text>
+				)}
+				<Text size="xs">{t(`sync.operation.${mutation.op}`)}</Text>
 				<Text size="xs">{explanation}</Text>
+				{mutation.lastError?.message &&
+					mutation.lastError.message !== explanation && (
+						<Text size="xs" c="dimmed" dir="auto">
+							{mutation.lastError.message}
+						</Text>
+					)}
 
 				{kind === "stale" && (
 					<StaleTable
@@ -374,6 +410,11 @@ function IssueCard({
 						<Button
 							size="xs"
 							loading={busy}
+							disabled={
+								!draft.trim() ||
+								(CHAPTER_FIELDS.has(editField) &&
+									(!Number.isInteger(Number(draft)) || Number(draft) < 0))
+							}
 							onClick={() =>
 								void resolve("edit", {
 									kind: "edit",
@@ -382,7 +423,9 @@ function IssueCard({
 											? Number(draft)
 											: draft.trim(),
 									},
-								}).then(() => setEditing(false))
+								}).then((applied) => {
+									if (applied) setEditing(false);
+								})
 							}
 						>
 							{t("_.save")}
@@ -453,7 +496,7 @@ function IssueCard({
 								</Button>
 							</>
 						)}
-						{kind === "deleted" && (
+						{kind === "deleted" && mutation.op !== "delete" && (
 							<Button
 								size="compact-xs"
 								variant="light"
@@ -478,7 +521,20 @@ function IssueCard({
 							</Button>
 						)}
 						{(kind === "duplicate" || kind === "rule") &&
-							mutation.op !== "delete" && (
+							mutation.op !== "delete" &&
+							mutation.entity !== "file" && (
+								<Button
+									size="compact-xs"
+									variant="light"
+									disabled={busy}
+									onClick={() => setEditing(true)}
+								>
+									{t("_.edit")}
+								</Button>
+							)}
+						{kind !== "stale" &&
+							kind !== "deleted" &&
+							kind !== "other-account" && (
 								<Button
 									size="compact-xs"
 									variant="light"
@@ -490,19 +546,26 @@ function IssueCard({
 									{t("sync.retry")}
 								</Button>
 							)}
-						{kind === "duplicate" && mutation.entity === "keyword" && (
+						{mutation.novelId && mutation.entity !== "file" && (
 							<Button
 								size="compact-xs"
 								variant="subtle"
 								onClick={() => {
+									trackEvent("sync_issue_opened", {
+										entity: mutation.entity,
+										kind,
+										operation: mutation.op,
+									});
 									setShowExisting({
 										novelId: mutation.novelId ?? undefined,
-										search: name,
+										search:
+											keyword ||
+											(mutation.entity === "keyword" ? name : undefined),
 									});
 									goHome();
 								}}
 							>
-								{t("sync.showExisting")}
+								{t("sync.openKeyword")}
 							</Button>
 						)}
 						{kind === "parent-missing" && name && (
@@ -553,7 +616,10 @@ export function SyncPage() {
 	const { t } = useTranslation();
 	const language = useLanguage();
 	const userId = useAtomValue(currentUserAtom)?.id;
-	const { mutations } = useOutbox();
+	const { mutations, isLoading } = useOutbox();
+	const status = useSyncStatus();
+	const indicator = status ? syncIndicator(status) : undefined;
+	const { syncing, syncNow } = useManualSync(t);
 	const { novels } = useCachedNovelsList();
 	const rows = useSnapshotRows(mutations).data ?? new Map();
 	const lookups = {
@@ -572,29 +638,57 @@ export function SyncPage() {
 	};
 	const novelName = (novelId: string | null) => {
 		const novel = novels.find((item) => item.id === novelId);
-		return novel ? nameIn(novel, language) : "";
+		return novel
+			? nameIn(novel, language) || novel.nameEn || novel.nameAr || novel.id
+			: "";
 	};
 	const issues = mutations.filter(
 		(mutation) =>
-			mutation.entity !== "file" &&
 			issueKind(mutation, userId) &&
 			issueKind(mutation, userId) !== "other-account",
 	);
 	const otherAccount = mutations.filter(
-		(mutation) => mutation.userId !== userId && mutation.entity !== "file",
+		(mutation) => mutation.userId !== userId,
 	);
 	const waiting = mutations.filter(
 		(mutation) => mutation.userId === userId && !issueKind(mutation, userId),
 	);
 	const card = (mutation: Mutation, index: number) => {
 		const kind = issueKind(mutation, userId) ?? "rule";
+		const parent = mutation.parentId ? rows.get(mutation.parentId) : undefined;
+		const queuedParent = mutations.find(
+			(item) =>
+				item.entity === "keyword" &&
+				item.entityId === mutation.parentId &&
+				item.userId === mutation.userId,
+		);
+		const parentValues = queuedParent
+			? knownValues(queuedParent, parent)
+			: (parent ?? mutation.context?.keyword);
+		const keyword = parentValues
+			? String(
+					parentValues[nameKey(language)] ||
+						parentValues[nameKey(language === "ar" ? "en" : "ar")] ||
+						"",
+				)
+			: "";
 		return (
 			<IssueCard
 				key={mutation.id}
 				mutation={mutation}
 				kind={kind}
 				name={describeEntity(mutation, language, rows.get(mutation.entityId))}
-				novel={novelName(mutation.novelId)}
+				novel={
+					novelName(mutation.novelId) ||
+					String(
+						mutation.context?.novel?.[nameKey(language)] ||
+							mutation.context?.novel?.nameEn ||
+							mutation.context?.novel?.nameAr ||
+							mutation.novelId ||
+							"",
+					)
+				}
+				keyword={keyword || mutation.parentId || ""}
 				all={mutations}
 				t={t}
 				language={language}
@@ -607,12 +701,64 @@ export function SyncPage() {
 	return (
 		<Container p="md" ref={container}>
 			<Stack gap="sm">
-				<Title order={4}>{t("sync.title")}</Title>
-				{!issues.length && !otherAccount.length && !waiting.length && (
-					<Text size="sm" c="dimmed">
-						{t("sync.allSynced")}
+				<Group justify="space-between">
+					<Title order={4}>{t("sync.title")}</Title>
+					<Button
+						size="xs"
+						loading={syncing}
+						disabled={!indicator?.canSyncNow}
+						onClick={() => void syncNow()}
+					>
+						{t("offline.syncNow")}
+					</Button>
+				</Group>
+				{indicator && indicator.icon !== "synced" && (
+					<Text size="sm" role="status">
+						{t(indicator.message, { count: indicator.count })}
 					</Text>
 				)}
+				{indicator?.action === "signIn" && (
+					<Button
+						component="a"
+						href={websitePageUrl(language, "profile/login/?reauth=1")}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{t("sync.signInAgain")}
+					</Button>
+				)}
+				{status?.lastRunError && (
+					<Alert color="red" title={t("offline.syncFailed")}>
+						<Text size="xs">{status.lastRunError.message}</Text>
+					</Alert>
+				)}
+				{status?.pullIssues?.map((issue) => (
+					<Alert
+						key={issue.unit}
+						color="orange"
+						title={
+							issue.unit.startsWith("novel:")
+								? novelName(issue.unit.slice(6)) || issue.unit.slice(6)
+								: t(`sync.unit.${issue.unit}`)
+						}
+					>
+						<Stack gap={4}>
+							<Text size="xs">{t("sync.refreshFailureHint")}</Text>
+							<Text size="xs" dir="auto">
+								{issue.message}
+							</Text>
+						</Stack>
+					</Alert>
+				))}
+				{!isLoading &&
+					indicator?.icon === "synced" &&
+					!issues.length &&
+					!otherAccount.length &&
+					!waiting.length && (
+						<Text size="sm" c="dimmed">
+							{t("sync.allSynced")}
+						</Text>
+					)}
 				{issues.length > 0 && (
 					<Stack
 						gap="xs"

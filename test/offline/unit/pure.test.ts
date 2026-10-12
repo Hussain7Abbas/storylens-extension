@@ -578,6 +578,7 @@ describe("status and badge", () => {
 		});
 		expect(syncIndicator(status({ attention: 1 }))).toMatchObject({
 			icon: "attention",
+			message: "sync.status.attention",
 			count: 1,
 		});
 		expect(syncIndicator(status({ runner: "authRequired" }))).toMatchObject({
@@ -591,6 +592,19 @@ describe("status and badge", () => {
 		);
 		expect(syncIndicator(status({ unavailable: true })).message).toBe(
 			"sync.status.unavailable",
+		);
+	});
+	it("never reports synced with refresh failures or another account's edits", () => {
+		const failed = status({
+			pullIssues: [{ unit: "catalogue", message: "Failed" }],
+		});
+		expect(syncIndicator(failed)).toMatchObject({
+			icon: "attention",
+			message: "sync.status.refreshFailed",
+		});
+		expect(badgeFor(failed)).toEqual({ text: "!", color: "#e03131" });
+		expect(syncIndicator(status({ otherAccount: 1 })).message).toBe(
+			"sync.status.attention",
 		);
 	});
 	it("colours the badge", () => {

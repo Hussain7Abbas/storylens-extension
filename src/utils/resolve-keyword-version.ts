@@ -21,7 +21,7 @@ function toDateString(value: unknown): string {
 	return String(value);
 }
 
-function pickVersion(
+export function pickActiveVersion(
 	versions: GetKeywords200DataItemVersionsItem[],
 	currentChapter: number,
 ): GetKeywords200DataItemVersionsItem | undefined {
@@ -159,7 +159,7 @@ export function enrichKeywords(
 			(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
 		);
 		const base = sorted[0];
-		const active = pickVersion(kw.versions, currentChapter);
+		const active = pickActiveVersion(kw.versions, currentChapter);
 
 		const kwStyle = resolveStyle(active, base, null, kw.versions);
 		if (!kwStyle) continue;
@@ -362,7 +362,7 @@ export function resolveKeywordImage(
 	currentChapter: number,
 ): RawImage {
 	const base = pickBaseVersion(keyword.versions);
-	const active = pickVersion(keyword.versions, currentChapter);
+	const active = pickActiveVersion(keyword.versions, currentChapter);
 	const activeIsBase = !active || !base || active.id === base.id;
 	return resolveImageInfo(keyword, null, active, base, activeIsBase).value;
 }
@@ -375,7 +375,7 @@ export function resolveKeywordInfo(
 ): ResolvedInfo {
 	const keywordName = nameIn(keyword, language);
 	const base = pickBaseVersion(keyword.versions);
-	const active = pickVersion(keyword.versions, currentChapter);
+	const active = pickActiveVersion(keyword.versions, currentChapter);
 	const activeIsBase = !active || !base || active.id === base.id;
 	const override = alias?.overrideStyle ?? false;
 
@@ -414,4 +414,34 @@ export function resolveKeywordInfo(
 	const image = resolveImageInfo(keyword, alias, active, base, activeIsBase);
 
 	return { name, category, nature, description, image };
+}
+
+/** Tooltip details describe the hovered row, independently of highlight style overrides. */
+export function resolveTooltipInfo(
+	keyword: GetKeywords200DataItem,
+	alias: GetKeywords200DataItemAliasesItem | null,
+	currentChapter: number,
+	language: Language,
+): ResolvedInfo {
+	const info = resolveKeywordInfo(keyword, alias, currentChapter, language);
+	const base = pickBaseVersion(keyword.versions);
+	const active = pickActiveVersion(keyword.versions, currentChapter);
+	const row = alias ?? active;
+	const source: InfoSource = alias
+		? "alias"
+		: active?.id !== base?.id
+			? "version"
+			: "keyword";
+	const own = <T>(value: T | null | undefined): FieldInfo<T> => ({
+		value: value ?? null,
+		source,
+		overrides: [],
+	});
+	return {
+		...info,
+		name: { ...info.name, overrides: [] },
+		description: own(row?.description),
+		category: own(row?.category as EnrichedCategory | null | undefined),
+		nature: own(row?.nature as EnrichedNature | null | undefined),
+	};
 }

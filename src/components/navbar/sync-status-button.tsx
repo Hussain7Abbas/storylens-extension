@@ -9,7 +9,6 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import { useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import {
@@ -20,13 +19,12 @@ import {
 	RefreshCw as IconRefresh,
 } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { browser } from "#imports";
-import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
 import { trackEvent } from "@/lib/analytics/client";
 import { useSyncStatus } from "@/lib/offline/hooks";
 import { syncIndicator } from "@/lib/offline/sync/indicator";
+import { useManualSync } from "@/lib/offline/use-manual-sync";
 import { websitePageUrl } from "@/lib/website";
 import { localeAtom } from "@/store/locale";
 
@@ -55,10 +53,9 @@ function formatTime(
 export function SyncStatusButton({ t }: { t: TFunction }) {
 	const status = useSyncStatus();
 	const locale = useAtomValue(localeAtom);
-	const queryClient = useQueryClient();
 	const { push } = useRoutes();
 	const [opened, setOpened] = useState(false);
-	const [syncing, setSyncing] = useState(false);
+	const { syncing, syncNow } = useManualSync(t);
 	if (!status) return null;
 	const indicator = syncIndicator(status);
 	const Icon = ICONS[indicator.icon];
@@ -68,45 +65,6 @@ export function SyncStatusButton({ t }: { t: TFunction }) {
 			: indicator.icon === "pending"
 				? "orange"
 				: "var(--mantine-color-dimmed)";
-
-	const handleSyncNow = async () => {
-		setSyncing(true);
-		trackEvent("sync_manual_requested");
-		try {
-			const { summary, status: after } = await sendMessage("syncNow");
-			await queryClient.invalidateQueries({ queryKey: ["offline"] });
-			if (after.attention) {
-				toast.error(
-					t("sync.summaryAttention", {
-						sent: summary?.sent ?? 0,
-						count: after.attention,
-					}),
-					{ duration: 8000 },
-				);
-			} else if (after.pending) {
-				toast(
-					t("sync.summaryIncomplete", {
-						sent: summary?.sent ?? 0,
-						count: after.pending,
-					}),
-				);
-			} else if (!summary?.ran || summary.state !== "idle") {
-				toast(t(syncIndicator(after).message));
-			} else if (summary?.failedPulls) {
-				toast.error(t("sync.summaryPullFailed"));
-			} else {
-				toast.success(
-					(summary?.sent ?? 0) > 0
-						? t("sync.summaryDone", { sent: summary?.sent })
-						: t("sync.summaryUpToDate"),
-				);
-			}
-		} catch {
-			toast.error(t("offline.syncFailed"));
-		} finally {
-			setSyncing(false);
-		}
-	};
 
 	return (
 		<Popover
@@ -197,28 +155,25 @@ export function SyncStatusButton({ t }: { t: TFunction }) {
 							{t("sync.updateRequired")}
 						</Anchor>
 					)}
-					{(status.attention > 0 || status.otherAccount > 0) && (
-						<Anchor
-							size="xs"
-							component="button"
-							type="button"
-							c="red"
-							onClick={() => {
-								setOpened(false);
-								push("sync");
-							}}
-						>
-							{t("sync.needsAttention", {
-								count: status.attention + status.otherAccount,
-							})}
-						</Anchor>
-					)}
+					<Anchor
+						size="xs"
+						component="button"
+						type="button"
+						c="red"
+						onClick={() => {
+							setOpened(false);
+							trackEvent("sync_details_opened");
+							push("sync");
+						}}
+					>
+						{t("sync.reviewDetails")}
+					</Anchor>
 					<Button
 						size="xs"
 						leftSection={<IconRefresh size={14} />}
 						loading={syncing}
 						disabled={!indicator.canSyncNow}
-						onClick={() => void handleSyncNow()}
+						onClick={() => void syncNow()}
 					>
 						{t("offline.syncNow")}
 					</Button>

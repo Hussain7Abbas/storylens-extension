@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-02
+Last updated: 2026-10-12
 
 ## Store listing
 
@@ -86,3 +86,7 @@ On 2026-09-28, the English and Arabic listing and privacy drafts were aligned wi
 For release steps see [the publishing runbook](../../docs/publishing.md). New listings still require the small promotional tile and completion of owner/dashboard fields. The AI companion is a separate installation; supported-page detection depends on available site selectors.
 
 3.4.0 preparation — 2026-10-02: Story Lens Cloud and non-expiring lenses, the free desktop alternative, source selection, balance/menu UI and install sign-in handoff. Bilingual store drafts and privacy mirrors updated; no release or store submission performed. Both language store and website captures were refreshed from the current production build (package version 3.3.1) on 2026-10-02, showing the new navbar and priced image action. Owner review and store form submission remain pending.
+
+2026-10-12 maintenance — Sync issues show the novel, parent keyword, chapter range, requested operation and recovery actions. Refresh failures remain visible until recovered; deleting a refused version clears or supersedes its queued change. The keyword Edit button floats below its tooltip, above Generate image. Package version and store submission status are unchanged.
+
+2026-10-12 tooltip actions — Attached action boxes and tabs flip together to the edge nearest the hovered word. Added parent-scoped alias/version creation, page-picked alias names, direct page-picked replacements with offline saving and immediate refresh, and contextual Info / Original tabs. Package version and store submission status are unchanged.

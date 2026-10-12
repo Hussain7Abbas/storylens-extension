@@ -27,6 +27,7 @@ import {
 } from "@/lib/desktop-client/background";
 import { parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
+import { queuePageReplacement } from "@/lib/offline/page-replacement";
 import {
 	downloadNovel,
 	initSyncBackground,
@@ -272,6 +273,26 @@ export default defineBackground(() => {
 
 	onMessage("apiRequest", ({ data }) => {
 		return handleApiProxyRequest(data);
+	});
+
+	onMessage("createPageReplacement", async ({ data, sender }) => {
+		const tabId = sender.tab?.id;
+		if (tabId === undefined) return { error: "offline.errors.invalid" };
+		const result = await queuePageReplacement(data, sender);
+		if (!("ok" in result)) return result;
+		void kickSync("enqueue");
+		let refreshed = false;
+		try {
+			await sendMessage(
+				"refreshContent",
+				{ novelSlug: result.novelSlug },
+				{ tabId: tabId, frameId: 0 },
+			);
+			refreshed = true;
+		} catch {
+			/* The saved replacement survives a page closing or navigating. */
+		}
+		return { ok: true as const, refreshed };
 	});
 
 	onMessage("getNovelContentData", ({ data }) => contentDataFor(data));

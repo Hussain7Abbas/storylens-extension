@@ -122,6 +122,12 @@ export type Mutation = {
 	base?: Record<string, unknown>;
 	/** Update: the row's server `updatedAt` when the edit started. */
 	baseUpdatedAt?: string;
+	/** Local labels for sync issues, including rows later removed by a pull. */
+	context?: {
+		row: Record<string, unknown>;
+		keyword?: Record<string, unknown>;
+		novel?: Record<string, unknown>;
+	};
 	/** Permissions at edit time; the projection mirrors what the server will allow. */
 	actor: { moderator: boolean };
 	createdAt: number;

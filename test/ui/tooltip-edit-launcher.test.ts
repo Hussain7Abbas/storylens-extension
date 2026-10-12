@@ -80,9 +80,9 @@ function hover(data: RawKeyword = raw): HTMLElement {
 
 /** Clicks an Edit button the way a reader does: the press reaches the page first. */
 function clickEdit(tooltip: HTMLElement, kind: string, index = 0): void {
-	const button = tooltip.querySelectorAll<HTMLButtonElement>(
-		`[data-edit-kind="${kind}"]`,
-	)[index];
+	const button = (
+		kind === "keyword" ? document : tooltip
+	).querySelectorAll<HTMLButtonElement>(`[data-edit-kind="${kind}"]`)[index];
 	if (!button) throw new Error(`no Edit button for ${kind}`);
 	button.dispatchEvent(
 		new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
@@ -158,13 +158,16 @@ describe("tooltip Edit through the launcher", () => {
 	});
 
 	it("offers Edit only while the launcher is shown", () => {
-		expect(hover().querySelector(".storylens-edit-btn")).not.toBeNull();
+		hover();
+		expect(document.querySelector(".storylens-edit-btn")).not.toBeNull();
 
 		setPagePopupLauncher(false, "en");
-		expect(hover().querySelector(".storylens-edit-btn")).toBeNull();
+		hover();
+		expect(document.querySelector(".storylens-edit-btn")).toBeNull();
 
 		setPagePopupLauncher(true, "en");
-		expect(hover().querySelector(".storylens-edit-btn")).not.toBeNull();
+		hover();
+		expect(document.querySelector(".storylens-edit-btn")).not.toBeNull();
 	});
 });
 
@@ -226,5 +229,120 @@ describe("tooltip Generate image through the launcher", () => {
 		expect(
 			shadow().querySelector<HTMLElement>('[role="status"]')?.textContent,
 		).toBe("Sign in to use Story Lens Cloud.");
+	});
+});
+
+describe("tooltip create and page pick actions", () => {
+	const press = (action: string) => {
+		hover();
+		const button = document.querySelector<HTMLButtonElement>(
+			`[data-hover-action="${action}"]`,
+		);
+		if (!button) throw new Error("Missing tooltip action");
+		const click = new MouseEvent("click", { bubbles: true });
+		Object.defineProperty(click, "isTrusted", { value: true });
+		button.dispatchEvent(click);
+	};
+	const pickText = async (text: string, trusted = true) => {
+		const word = document.createElement("p");
+		word.textContent = text;
+		document.body.append(word);
+		const down = new PointerEvent("pointerdown", { bubbles: true, button: 0 });
+		Object.defineProperty(down, "isTrusted", { value: trusted });
+		word.dispatchEvent(down);
+		const range = document.createRange();
+		range.selectNodeContents(word);
+		window.getSelection()?.addRange(range);
+		const up = new PointerEvent("pointerup", { bubbles: true, button: 0 });
+		Object.defineProperty(up, "isTrusted", { value: trusted });
+		word.dispatchEvent(up);
+		await new Promise((resolve) => setTimeout(resolve, 10));
+	};
+	for (const kind of ["alias", "version"]) {
+		it(`opens Add ${kind} with the hovered keyword as its parent`, () => {
+			press(`add-${kind}`);
+			expect(popupParams()).toEqual({
+				create: kind,
+				parentId: "keyword-1",
+				novelId: "novel-1",
+			});
+		});
+	}
+	it("fills the alias name from a page selection and releases the picker", async () => {
+		press("pick-alias");
+		expect(
+			document.getElementById("storylens-selection-unlock"),
+		).not.toBeNull();
+		await pickText("The Scholar");
+		expect(popupParams()).toEqual({
+			create: "alias",
+			parentId: "keyword-1",
+			novelId: "novel-1",
+			search: "The Scholar",
+		});
+		expect(document.getElementById("storylens-selection-unlock")).toBeNull();
+	});
+	it("saves a picked replacement without opening a form", async () => {
+		const runtime = fakeBrowser.runtime as unknown as {
+			sendMessage: (message: unknown) => Promise<unknown>;
+		};
+		const previous = runtime.sendMessage;
+		const picked: unknown[] = [];
+		runtime.sendMessage = async (message) => {
+			const value = message as { type?: string; data?: unknown };
+			if (value.type === "createPageReplacement") {
+				picked.push(value.data);
+				return { res: { ok: true, refreshed: true } };
+			}
+			return { res: undefined };
+		};
+		try {
+			press("pick-replacement");
+			await pickText("The Scholar");
+			expect(picked).toEqual([
+				{ keywordId: "keyword-1", novelId: "novel-1", from: "The Scholar" },
+			]);
+			expect(popupParams()).toBeUndefined();
+			expect(document.getElementById("storylens-selection-unlock")).toBeNull();
+			expect(shadow().querySelector('[role="status"]')?.textContent).toBe(
+				"Replacement saved. The page is refreshing.",
+			);
+		} finally {
+			runtime.sendMessage = previous;
+		}
+	});
+	it("ignores replacement picks synthesized by the novel page", async () => {
+		hover();
+		document
+			.querySelector<HTMLButtonElement>(
+				'[data-hover-action="pick-replacement"]',
+			)
+			?.click();
+		expect(document.getElementById("storylens-selection-unlock")).toBeNull();
+		press("pick-replacement");
+		await pickText("Synthetic source", false);
+		expect(
+			document.getElementById("storylens-selection-unlock"),
+		).not.toBeNull();
+		expect(popupParams()).toBeUndefined();
+	});
+	it("Escape cancels the picker without opening or saving anything", async () => {
+		press("pick-alias");
+		document.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+		);
+		await pickText("Cancelled");
+		expect(popupParams()).toBeUndefined();
+		expect(document.getElementById("storylens-selection-unlock")).toBeNull();
+	});
+	it("navigation cancels a pending pick", async () => {
+		const { pagePopupLauncherNavigated } = await import(
+			"../../src/entrypoints/content/page-popup-launcher"
+		);
+		press("pick-replacement");
+		pagePopupLauncherNavigated();
+		await pickText("Cancelled");
+		expect(popupParams()).toBeUndefined();
+		expect(document.getElementById("storylens-selection-unlock")).toBeNull();
 	});
 });

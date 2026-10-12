@@ -1926,3 +1926,92 @@ describe("Cloud and lens UI", async () => {
 		expect(!!view.queryByRole("dialog")).toBe(false);
 	});
 });
+
+describe("sync issue recovery details", () => {
+	it("shows the novel and parent of a chapter version, and lets the reader edit it", async () => {
+		const { SyncPage } = await import(
+			"../../src/entrypoints/popup.sync/sync-page"
+		);
+		const { createInstance } = await import("i18next");
+		const { I18nextProvider } = await import("react-i18next");
+		const { default: en } = await import("../../public/locales/en.json");
+		const i18n = createInstance();
+		await i18n.init({
+			lng: "en",
+			resources: { en: { translation: en } },
+			interpolation: { escapeValue: false },
+		});
+		const { BrowserRouter } = await import("react-router");
+		const { getSyncStatus } = await import("../../src/lib/offline/sync/status");
+		const keyword = env.api.seedKeyword(
+			env.novel.id,
+			{ nameEn: "Mira", categoryId: env.category.id, natureId: env.nature.id },
+			env.user.id,
+		);
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		const created = await enqueue(
+			{
+				entity: "keywordVersion",
+				op: "create",
+				keywordId: keyword.id,
+				values: { currentChapter: 543 },
+			},
+			{ db: env.db },
+		);
+		await env.db.mutations
+			.where("id")
+			.equals(created.mutationId ?? "")
+			.modify({
+				status: "rejected",
+				conflict: { kind: "rule" },
+				lastError: {
+					message: "Chapter must follow the last version",
+					at: Date.now(),
+				},
+			});
+		const runtime = fakeBrowser.runtime as unknown as {
+			sendMessage: (message: unknown) => Promise<unknown>;
+		};
+		const previous = runtime.sendMessage;
+		runtime.sendMessage = async () => ({ res: await getSyncStatus(env.db) });
+		try {
+			const view = render(
+				React.createElement(
+					I18nextProvider,
+					{ i18n },
+					React.createElement(
+						BrowserRouter,
+						null,
+						React.createElement(SyncPage),
+					),
+				),
+				{ wrapper },
+			);
+			await waitFor(() =>
+				expect(view.getByText("Keyword: Mira")).toBeDefined(),
+			);
+			expect(view.getByText("Novel: Novel")).toBeDefined();
+			expect(view.getByText("ch.543+")).toBeDefined();
+			expect(view.queryByText(en.sync.allSynced)).toBeNull();
+			fireEvent.click(view.getByRole("button", { name: "Edit" }));
+			const chapter = view.getByRole("textbox");
+			fireEvent.change(chapter, { target: { value: "544" } });
+			fireEvent.click(view.getByRole("button", { name: "Save" }));
+			await waitFor(async () =>
+				expect(
+					(await env.db.mutations.toArray())[0]?.patch.currentChapter,
+				).toBe(544),
+			);
+			await waitFor(() =>
+				expect(view.queryByRole("button", { name: "Save" })).toBeNull(),
+			);
+			await act(async () => {
+				await new Promise((resolve) => setTimeout(resolve, 30));
+			});
+			view.unmount();
+		} finally {
+			runtime.sendMessage = previous;
+		}
+	});
+});

@@ -18,6 +18,9 @@ export type SyncMetaValues = {
 	protocol: { version: number | null; checkedAt: number };
 	runner: { state: RunnerState; at: number; transientFailures?: number };
 	lastPushAt: number;
+	/** Failed refreshes remain visible until that unit succeeds. */
+	pullErrors: Record<string, { message: string; at: number }>;
+	lastRunError: { message: string; at: number } | null;
 	lastPullAt: number;
 	catalogPulledAt: number;
 	lookupsPulledAt: number;
@@ -139,6 +142,7 @@ export async function markRemovedOnServer(
 ): Promise<void> {
 	await patchNovelSync(db, novelId, {
 		removedOnServer: true,
+		lastPullError: undefined,
 		pullDue: undefined,
 		refreshRequestedAt: undefined,
 	});

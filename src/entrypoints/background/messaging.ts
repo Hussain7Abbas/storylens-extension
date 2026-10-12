@@ -10,6 +10,10 @@ import type {
 	GenerateImageInput,
 } from "@/lib/desktop-client/types";
 import type { AiTaskReport, AiTaskUpdate } from "@/lib/launcher-frame/ai-tasks";
+import type {
+	PageReplacementInput,
+	PageReplacementReply,
+} from "@/lib/offline/page-replacement";
 import type { PullMode } from "@/lib/offline/sync/pull";
 import type { SyncReason, SyncRunSummary } from "@/lib/offline/sync/runner";
 import type { SyncStatus } from "@/lib/offline/sync/status";
@@ -19,6 +23,7 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	createPageReplacement(data: PageReplacementInput): PageReplacementReply;
 	executeAiPrompt(data: AiPromptInput): AiReply<string>;
 	generateAiImage(data: AiImageInput): AiReply<GeneratedImage>;
 	cancelAiPrompt(requestId: string): void;

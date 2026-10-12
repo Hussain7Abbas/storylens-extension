@@ -510,7 +510,9 @@
 			"sending": "جارٍ المزامنة…",
 			"synced": "متزامن",
 			"unavailable": "التخزين دون اتصال غير متاح",
-			"upgradeRequired": "يلزم التحديث للمزامنة"
+			"upgradeRequired": "يلزم التحديث للمزامنة",
+			"attention": "{{count}} تغييرات تحتاج إلى انتباهك",
+			"refreshFailed": "تعذّر تحديث بعض البيانات"
 		},
 		"summaryAttention": "أُرسل {{sent}} من التغييرات؛ {{count}} تحتاج إلى انتباهك",
 		"summaryDone": "تمت المزامنة: أُرسل {{sent}} من التغييرات وتم التحقق من التحديثات",
@@ -527,7 +529,21 @@
 		"waiting": "بالانتظار",
 		"waitingTitle": "بانتظار المزامنة",
 		"yes": "نعم",
-		"yours": "قيمتك"
+		"yours": "قيمتك",
+		"keywordLabel": "الكلمة: {{name}}",
+		"novelLabel": "الرواية: {{name}}",
+		"openKeyword": "فتح الرواية / الكلمة",
+		"operation": {
+			"create": "التغيير: إنشاء",
+			"delete": "التغيير: حذف",
+			"update": "التغيير: تعديل"
+		},
+		"refreshFailureHint": "تغييراتك المحفوظة آمنة. تعذّر تحديث بعض البيانات. اضغط «مزامنة الآن» للمحاولة مجددًا.",
+		"reviewDetails": "عرض تفاصيل المزامنة",
+		"unit": {
+			"catalogue": "قائمة الروايات",
+			"lookups": "الفئات والطبائع"
+		}
 	},
 	"tabs": {
 		"ai": "AI",
@@ -537,5 +553,13 @@
 		"general": "عام",
 		"nature": "الطبيعة",
 		"replacing": "استبدال"
+	},
+	"tooltip": {
+		"pickAliasHint": "انقر على كلمة أو اسحب لتحديد الاسم البديل. اضغط Escape للإلغاء.",
+		"pickReplacementHint": "حدد النص الذي سيُستبدل باسم الكلمة. اضغط Escape للإلغاء.",
+		"replacementFailed": "تعذّر حفظ الاستبدال. حدد النص مجددًا للمحاولة.",
+		"replacementSaved": "تم حفظ الاستبدال. يجري تحديث الصفحة.",
+		"replacementSavedRefresh": "تم حفظ الاستبدال. أعد تحميل الصفحة لتطبيقه.",
+		"savingReplacement": "جارٍ حفظ الاستبدال…"
 	}
 }

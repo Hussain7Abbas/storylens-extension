@@ -23,6 +23,9 @@ export type SyncStatus = {
 	otherAccount: number;
 	/** Some change failed to reach Story Lens many times (retries continue). */
 	troubled: boolean;
+	/** Refresh failures are separate from unsent changes. */
+	pullIssues?: { unit: string; message: string; at?: number }[];
+	lastRunError?: { message: string; at: number } | null;
 	lastPushAt?: number;
 	lastPullAt?: number;
 	/** IndexedDB could not be opened: online-only mode. */
@@ -82,21 +85,46 @@ export async function getSyncStatus(
 			unavailable: true,
 		};
 	}
-	const [{ user }, mutations, runner, lastPushAt, lastPullAt] =
-		await Promise.all([
-			getStoredAuth(),
-			db.mutations.toArray(),
-			getMeta("runner", db),
-			getMeta("lastPushAt", db),
-			getMeta("lastPullAt", db),
-		]);
-	return deriveStatus(mutations, {
-		userId: user?.id,
-		runner: !online ? "offline" : (runner?.state ?? "idle"),
-		online,
+	const [
+		{ user },
+		mutations,
+		runner,
 		lastPushAt,
 		lastPullAt,
-	});
+		pullErrors,
+		novelSync,
+		lastRunError,
+	] = await Promise.all([
+		getStoredAuth(),
+		db.mutations.toArray(),
+		getMeta("runner", db),
+		getMeta("lastPushAt", db),
+		getMeta("lastPullAt", db),
+		getMeta("pullErrors", db),
+		db.novelSync.toArray(),
+		getMeta("lastRunError", db),
+	]);
+	const errors = { ...pullErrors };
+	for (const sync of novelSync) {
+		if (sync.removedOnServer || !sync.lastPullError)
+			delete errors[`novel:${sync.novelId}`];
+		else if (sync.lastPullError && !errors[`novel:${sync.novelId}`])
+			errors[`novel:${sync.novelId}`] = { message: sync.lastPullError, at: 0 };
+	}
+	return {
+		...deriveStatus(mutations, {
+			userId: user?.id,
+			runner: !online ? "offline" : (runner?.state ?? "idle"),
+			online,
+			lastPushAt,
+			lastPullAt,
+		}),
+		pullIssues: Object.entries(errors).map(([unit, error]) => ({
+			unit,
+			...error,
+		})),
+		lastRunError,
+	};
 }
 
 export type Badge = { text: string; color: string };
@@ -108,7 +136,13 @@ export type Badge = { text: string; color: string };
 export function badgeFor(status: SyncStatus): Badge {
 	const count = status.pending + status.sending + status.attention;
 	const text = count > 99 ? "99+" : count > 0 ? String(count) : "";
-	if (status.attention > 0) return { text, color: "#e03131" };
+	if (
+		status.attention > 0 ||
+		status.otherAccount ||
+		status.pullIssues?.length ||
+		status.lastRunError
+	)
+		return { text: text || "!", color: "#e03131" };
 	if (count > 0) return { text, color: "#f76707" };
 	if (!status.online) return { text: "!", color: "#868e96" };
 	return { text: "", color: "#868e96" };

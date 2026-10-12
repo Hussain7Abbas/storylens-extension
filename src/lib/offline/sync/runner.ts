@@ -149,6 +149,7 @@ async function runOnce(
 			return summary;
 		}
 		await setRunner(db, "running", now());
+		await setMeta("lastRunError", null, db);
 
 		const protocol = await checkProtocol(db, {
 			token,
@@ -245,12 +246,23 @@ async function runOnce(
 			summary.pulledUnits = pulls.pulledUnits;
 			summary.failedPulls = pulls.failedUnits;
 			for (const novelId of pulls.changedNovels) touched.add(novelId);
-			summary.state = "idle";
+			summary.state = pulls.pause ?? "idle";
 		}
 		if (touched.size) await options.onNovelsChanged?.([...touched]);
 		await setRunner(db, summary.state, now());
 		await scheduleRetry(db, user.id, now());
 		return summary;
+	} catch (error) {
+		await setMeta(
+			"lastRunError",
+			{
+				message: error instanceof Error ? error.message : String(error),
+				at: now(),
+			},
+			db,
+		);
+		await setRunner(db, "idle", now());
+		throw error;
 	} finally {
 		clearTimeout(timer);
 		summary.durationMs = now() - started;

@@ -35,6 +35,7 @@ import {
 	checkVersionDelete,
 	type ValidationCode,
 } from "@/lib/offline/rules/validation";
+import { tableOf } from "@/lib/offline/snapshot";
 import type {
 	AliasRow,
 	AssembledKeyword,
@@ -504,6 +505,41 @@ function newMutation(
 }
 
 async function append(ctx: Context, mutation: Mutation): Promise<string> {
+	const labels = (row: Record<string, unknown> | undefined) =>
+		Object.fromEntries(
+			Object.entries(row ?? {}).filter(([field]) =>
+				[
+					"nameEn",
+					"nameAr",
+					"startingChapter",
+					"endingChapter",
+					"from",
+					"to",
+				].includes(field),
+			),
+		);
+	const table = tableOf(mutation.entity);
+	const row = table
+		? await (
+				ctx.db[table] as {
+					get(id: string): Promise<Record<string, unknown> | undefined>;
+				}
+			).get(mutation.entityId)
+		: undefined;
+	const parent = mutation.parentId
+		? await ctx.db.keywords.get(mutation.parentId)
+		: undefined;
+	const parentCreate = ctx.mutations.find(
+		(item) => item.entityId === mutation.parentId && item.op === "create",
+	);
+	const novel = mutation.novelId
+		? await ctx.db.novels.get(mutation.novelId)
+		: undefined;
+	mutation.context = {
+		row: labels(row),
+		keyword: labels(parent ?? parentCreate?.patch),
+		novel: labels(novel),
+	};
 	await ctx.db.mutations.add(mutation);
 	ctx.mutations.push({ ...mutation });
 	return mutation.id;
@@ -563,6 +599,41 @@ async function coalesceOrAppend(
 	ctx: Context,
 	next: Mutation,
 ): Promise<string | null> {
+	// A refused edit must not block a later, explicitly requested delete.
+	if (next.op === "delete") {
+		const unconfirmed = ctx.mutations.find(
+			(item) =>
+				item.entityId === next.entityId &&
+				item.op === "create" &&
+				item.status !== "inflight",
+		);
+		if (
+			unconfirmed &&
+			!ctx.mutations.some(
+				(item) => item.entityId === next.entityId && item.status === "inflight",
+			)
+		) {
+			const removed = [
+				...ctx.mutations.filter((item) => item.entityId === next.entityId),
+				...dependantsOf(ctx.mutations, next.entityId),
+			];
+			await removeMutations(ctx.db, removed);
+			ctx.mutations = ctx.mutations.filter((item) => !removed.includes(item));
+			for (const item of removed)
+				await dropOrphanFile(ctx.db, item.patch.imageId, ctx.mutations);
+			return null;
+		}
+		const superseded = ctx.mutations.filter(
+			(item) =>
+				item.entityId === next.entityId &&
+				item.op === "update" &&
+				(item.status === "conflict" || item.status === "rejected"),
+		);
+		await removeMutations(ctx.db, superseded);
+		ctx.mutations = ctx.mutations.filter((item) => !superseded.includes(item));
+		for (const item of superseded)
+			await dropOrphanFile(ctx.db, item.patch.imageId, ctx.mutations);
+	}
 	const tail = tailOf(ctx.mutations, next.entityId);
 	if (!tail || tail.status !== "pending" || tail.seq === undefined)
 		return append(ctx, next);

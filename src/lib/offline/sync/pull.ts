@@ -329,6 +329,7 @@ export type PullSummary = {
 	pulledUnits: number;
 	failedUnits: number;
 	changedNovels: string[];
+	pause?: "authRequired" | "upgradeRequired";
 };
 
 /**
@@ -359,17 +360,25 @@ export async function pullDueUnits(
 	if (mode === "none") return summary;
 	const now = ctx.now ?? Date.now();
 	const all = mode === "all";
+	const errors = { ...((await getMeta("pullErrors", ctx.db)) ?? {}) };
 	const run = async (
+		key: string,
 		unit: () => Promise<unknown>,
 		onError?: (message: string) => Promise<void>,
 	) => {
-		if (Date.now() > deadline || ctx.signal?.aborted) return;
+		if (Date.now() > deadline || ctx.signal?.aborted || summary.pause) return;
 		try {
 			await unit();
+			delete errors[key];
+			await setMeta("pullErrors", errors, ctx.db);
 			summary.pulledUnits += 1;
 		} catch (error) {
 			summary.failedUnits += 1;
+			if (statusOf(error) === 401) summary.pause = "authRequired";
+			if (statusOf(error) === 426) summary.pause = "upgradeRequired";
 			const message = error instanceof Error ? error.message : String(error);
+			errors[key] = { message, at: Date.now() };
+			await setMeta("pullErrors", errors, ctx.db);
 			console.warn("[StoryLens] Pull failed", message);
 			await onError?.(message);
 		}
@@ -378,26 +387,29 @@ export async function pullDueUnits(
 	const catalogPulledAt = (await getMeta("catalogPulledAt", ctx.db)) ?? 0;
 	if (
 		forceCatalogue ||
+		!!errors.catalogue ||
 		((all || reason === "popup-open" || !catalogPulledAt) &&
 			now - catalogPulledAt > (all ? 0 : CATALOGUE_STALE_MS))
 	) {
-		await run(() => refreshCatalogue(ctx));
+		await run("catalogue", () => refreshCatalogue(ctx));
 	}
 	const lookupsPulledAt = (await getMeta("lookupsPulledAt", ctx.db)) ?? 0;
-	if (all || now - lookupsPulledAt > LOOKUPS_STALE_MS)
-		await run(() => refreshLookups(ctx));
+	if (all || errors.lookups || now - lookupsPulledAt > LOOKUPS_STALE_MS)
+		await run("lookups", () => refreshLookups(ctx));
 
 	const pinned = await listPinned(ctx.db);
 	const requested = await ctx.db.novelSync
 		.filter(
 			(sync: NovelSync) =>
-				!sync.pinned && (!!sync.pullDue || !!sync.refreshRequestedAt),
+				!sync.pinned &&
+				(!!sync.pullDue || !!sync.refreshRequestedAt || !!sync.lastPullError),
 		)
 		.toArray();
 	for (const sync of [...pinned, ...requested]) {
 		if (sync.removedOnServer) continue;
 		const stale = now - (sync.lastPulledAt ?? 0) > NOVEL_STALE_MS;
 		const due =
+			!!sync.lastPullError ||
 			!!sync.pullDue ||
 			!!sync.refreshRequestedAt ||
 			(sync.pinned ? all || stale : stale);
@@ -409,6 +421,7 @@ export async function pullDueUnits(
 			continue;
 		}
 		await run(
+			`novel:${sync.novelId}`,
 			async () => {
 				await refreshNovel(sync.novelId, ctx);
 				summary.changedNovels.push(sync.novelId);

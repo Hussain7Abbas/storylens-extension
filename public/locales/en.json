@@ -506,7 +506,9 @@
 			"sending": "Syncing…",
 			"synced": "Synced",
 			"unavailable": "Offline storage unavailable",
-			"upgradeRequired": "Update required to sync"
+			"upgradeRequired": "Update required to sync",
+			"attention": "{{count}} changes need attention",
+			"refreshFailed": "Some data could not be refreshed"
 		},
 		"summaryAttention": "Sent {{sent}} changes; {{count}} need your attention",
 		"summaryDone": "Synced: sent {{sent}} changes and checked for updates",
@@ -523,7 +525,21 @@
 		"waiting": "Waiting",
 		"waitingTitle": "Waiting to sync",
 		"yes": "Yes",
-		"yours": "Yours"
+		"yours": "Yours",
+		"keywordLabel": "Keyword: {{name}}",
+		"novelLabel": "Novel: {{name}}",
+		"openKeyword": "Open novel / keyword",
+		"operation": {
+			"create": "Change: create",
+			"delete": "Change: delete",
+			"update": "Change: edit"
+		},
+		"refreshFailureHint": "Your saved changes are kept. Some data could not be refreshed. Press Sync now to try again.",
+		"reviewDetails": "View sync details",
+		"unit": {
+			"catalogue": "Novel list",
+			"lookups": "Categories and natures"
+		}
 	},
 	"tabs": {
 		"ai": "AI",
@@ -533,5 +549,13 @@
 		"general": "General",
 		"nature": "Nature",
 		"replacing": "Replacing"
+	},
+	"tooltip": {
+		"pickAliasHint": "Click a word or drag to select the alias name. Press Escape to cancel.",
+		"pickReplacementHint": "Select the text to replace with the keyword name. Press Escape to cancel.",
+		"replacementFailed": "Could not save the replacement. Pick the text again to retry.",
+		"replacementSaved": "Replacement saved. The page is refreshing.",
+		"replacementSavedRefresh": "Replacement saved. Reload the page to apply it.",
+		"savingReplacement": "Saving replacement…"
 	}
 }

@@ -7,6 +7,8 @@ export type SyncIndicator = {
 	/** i18n key of the popover's state line. */
 	message:
 		| "sync.status.synced"
+		| "sync.status.attention"
+		| "sync.status.refreshFailed"
 		| "sync.status.pending"
 		| "sync.status.sending"
 		| "sync.status.offline"
@@ -23,7 +25,10 @@ export type SyncIndicator = {
 export function syncIndicator(status: SyncStatus): SyncIndicator {
 	const unsent = status.pending + status.sending;
 	const base = {
-		count: status.attention || unsent,
+		count:
+			status.attention + status.otherAccount ||
+			status.pullIssues?.length ||
+			unsent,
 		troubled: status.troubled,
 		canSyncNow: status.online,
 	};
@@ -57,12 +62,14 @@ export function syncIndicator(status: SyncStatus): SyncIndicator {
 			message: "sync.status.offline",
 			canSyncNow: false,
 		};
-	if (status.attention)
+	if (status.attention || status.otherAccount)
 		return {
 			...base,
 			icon: "attention",
-			message: unsent ? "sync.status.pending" : "sync.status.synced",
+			message: "sync.status.attention",
 		};
+	if (status.pullIssues?.length || status.lastRunError)
+		return { ...base, icon: "attention", message: "sync.status.refreshFailed" };
 	if (status.sending || status.runner === "running")
 		return { ...base, icon: "sending", message: "sync.status.sending" };
 	if (unsent)

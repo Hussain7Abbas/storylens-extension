@@ -13,6 +13,7 @@ import {
 	TextSearch,
 } from "lucide";
 import { browser } from "#imports";
+import { sendMessage } from "@/entrypoints/background/messaging";
 import { aiAvailability, availabilityKey } from "@/lib/ai-source/availability";
 import {
 	AI_SOURCE_KEY,
@@ -65,6 +66,8 @@ import {
 import { contentThemeCss, palette } from "@/styles/palette";
 import {
 	setTooltipActions,
+	setTooltipPicking,
+	type TooltipCreateTarget,
 	type TooltipEditTarget,
 } from "@/utils/keyword-tooltip";
 import { textAround } from "@/utils/page-text";
@@ -120,6 +123,8 @@ type Launcher = {
 	 * it, and the launcher explains why instead of opening the form.
 	 */
 	edit: (target: TooltipEditTarget, generateImage?: boolean) => boolean;
+	create: (kind: "alias" | "version", target: TooltipCreateTarget) => void;
+	pick: (kind: "alias" | "replacement", target: TooltipCreateTarget) => void;
 	navigated: () => void;
 	dispose: () => void;
 };
@@ -289,6 +294,7 @@ function stopPageSelectionGuard(event: Event): void {
 
 /** Lifts copy-protection (CSS `user-select:none`, cancelled `selectstart`) while picking text. */
 function setPageSelectionUnlocked(unlocked: boolean): void {
+	setTooltipPicking(unlocked);
 	document.getElementById(UNLOCK_STYLE_ID)?.remove();
 	for (const type of SELECTION_GUARD_EVENTS)
 		window.removeEventListener(type, stopPageSelectionGuard, true);
@@ -306,6 +312,10 @@ function setPageSelectionUnlocked(unlocked: boolean): void {
 function createLauncher(locale: string): Launcher {
 	let currentLocale = locale;
 	let selecting = false;
+	let tooltipPick:
+		| { kind: "alias" | "replacement"; target: TooltipCreateTarget }
+		| undefined;
+	let pickGeneration = 0;
 	let desktop: DesktopSettings = parseDesktopSettings(undefined);
 	let sourceValue: unknown;
 	let auth = parseStoredAuth(undefined);
@@ -470,7 +480,13 @@ function createLauncher(locale: string): Launcher {
 	tasks.setAttribute("aria-live", "polite");
 	const updateHint = () => {
 		const text = labels(currentLocale);
-		hint.textContent = text.selectHint;
+		hint.textContent = tooltipPick
+			? vanillaAiText(currentLocale)(
+					tooltipPick.kind === "alias"
+						? "tooltip.pickAliasHint"
+						: "tooltip.pickReplacementHint",
+				)
+			: text.selectHint;
 	};
 	const updateActionLabels = () => {
 		const text = labels(currentLocale);
@@ -1090,6 +1106,8 @@ function createLauncher(locale: string): Launcher {
 		hideAction();
 		clearNotice();
 		selecting = false;
+		tooltipPick = undefined;
+		pickGeneration += 1;
 		setPageSelectionUnlocked(false);
 		hint.hidden = true;
 		selectionStart = undefined;
@@ -1352,6 +1370,7 @@ function createLauncher(locale: string): Launcher {
 	};
 	const onPointerOutside = (event: PointerEvent) => {
 		if (selecting) {
+			if (tooltipPick?.kind === "replacement" && !event.isTrusted) return;
 			if (!host.contains(event.target as Node) && event.button === 0) {
 				selectionStart = { x: event.clientX, y: event.clientY };
 				window.getSelection()?.removeAllRanges();
@@ -1361,6 +1380,7 @@ function createLauncher(locale: string): Launcher {
 		if (!host.contains(event.target as Node)) close();
 	};
 	const onSelectionEnd = (event: PointerEvent) => {
+		if (tooltipPick?.kind === "replacement" && !event.isTrusted) return;
 		if (
 			!selecting ||
 			!selectionStart ||
@@ -1369,10 +1389,12 @@ function createLauncher(locale: string): Launcher {
 		)
 			return;
 		const start = selectionStart;
+		const generation = pickGeneration;
 		selectionStart = undefined;
 		// Let the browser finish its native drag selection before reading it.
 		setTimeout(() => {
-			if (!selecting || !host.isConnected) return;
+			if (!selecting || !host.isConnected || generation !== pickGeneration)
+				return;
 			const selection = window.getSelection();
 			let text = selection?.toString().trim() ?? "";
 			let picked =
@@ -1416,6 +1438,64 @@ function createLauncher(locale: string): Launcher {
 				}
 			}
 			if (!text) return;
+			if (tooltipPick && (text.length > 512 || !picked)) return;
+			const skipped = (node: Node) =>
+				(node instanceof Element ? node : node.parentElement)?.closest(
+					"script,style,noscript,template,input,textarea,select,[contenteditable],[data-storylens-skip],.storylens-keyword-tooltip-root",
+				);
+			if (
+				picked &&
+				(skipped(picked.startContainer) || skipped(picked.endContainer))
+			)
+				return;
+			if (tooltipPick) {
+				const { kind, target } = tooltipPick;
+				stopPicking();
+				window.getSelection()?.removeAllRanges();
+				if (kind === "alias") {
+					trackEvent("tooltip_create_requested", {
+						kind: "alias",
+						picked: true,
+					});
+					open(text, undefined, {
+						create: "alias",
+						parentId: target.keywordId,
+						novelId: target.novelId,
+					});
+				} else {
+					const requestGeneration = pickGeneration;
+					showNotice(vanillaAiText(currentLocale)("tooltip.savingReplacement"));
+					void (async () => {
+						try {
+							const reply = await sendMessage("createPageReplacement", {
+								keywordId: target.keywordId,
+								novelId: target.novelId,
+								from: text,
+							});
+							if (!host.isConnected || pickGeneration !== requestGeneration)
+								return;
+							if ("error" in reply) {
+								showNotice(vanillaAiText(currentLocale)(reply.error));
+								return;
+							}
+							trackEvent("tooltip_replacement_saved");
+							showNotice(
+								vanillaAiText(currentLocale)(
+									reply.refreshed
+										? "tooltip.replacementSaved"
+										: "tooltip.replacementSavedRefresh",
+								),
+							);
+						} catch {
+							if (host.isConnected && pickGeneration === requestGeneration)
+								showNotice(
+									vanillaAiText(currentLocale)("tooltip.replacementFailed"),
+								);
+						}
+					})();
+				}
+				return;
+			}
 			const context = picked ? textAround(picked) : undefined;
 			const rect = picked?.getBoundingClientRect();
 			const chooser = openChooser(text);
@@ -1644,6 +1724,20 @@ function createLauncher(locale: string): Launcher {
 			});
 			return true;
 		},
+		create: (kind, target) => {
+			trackEvent("tooltip_create_requested", { kind, picked: false });
+			open(undefined, undefined, {
+				create: kind,
+				parentId: target.keywordId,
+				novelId: target.novelId,
+			});
+		},
+		pick: (kind, target) => {
+			selectText();
+			tooltipPick = { kind, target };
+			updateHint();
+			trackEvent("tooltip_pick_started", { kind });
+		},
 		// An in-site navigation: a popup without unsaved work is removed, so the next one detects the new page.
 		navigated: () => {
 			for (const tab of tabs) tab.stale = true;
@@ -1709,6 +1803,8 @@ export function setPagePopupLauncher(visible: boolean, locale: string): void {
 	launcher.setLocale(locale);
 	setTooltipActions({
 		onEdit: openPagePopupEditor,
+		onCreate: (kind, target) => launcher?.create(kind, target),
+		onPick: (kind, target) => launcher?.pick(kind, target),
 		onImageOpen: trackTooltipImage,
 		onGenerateImage: generatePagePopupImage,
 	});

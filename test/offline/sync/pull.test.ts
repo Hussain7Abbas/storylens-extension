@@ -523,3 +523,140 @@ describe("offline storage unavailable (phase 6.7)", () => {
 		}
 	});
 });
+
+describe("sync refresh failures", () => {
+	it("keeps failures visible with an empty outbox and clears them after recovery", async () => {
+		const { getSyncStatus } = await import(
+			"../../../src/lib/offline/sync/status"
+		);
+		const { syncIndicator } = await import(
+			"../../../src/lib/offline/sync/indicator"
+		);
+		await pullNovel(env.novel.id, ctx());
+		await pinNovel(env.novel.id, env.db);
+		env.api.failNext(
+			{ kind: "status", status: 500 },
+			(method) => method === "GET",
+			3,
+		);
+		const failed = await pullDueUnits(ctx(), { mode: "all" });
+		expect(failed.failedUnits).toBe(3);
+		const status = await getSyncStatus(env.db);
+		expect(status.pending).toBe(0);
+		expect(status.pullIssues?.map((issue) => issue.unit)).toEqual([
+			"catalogue",
+			"lookups",
+			`novel:${env.novel.id}`,
+		]);
+		expect(syncIndicator(status).message).toBe("sync.status.refreshFailed");
+		await pullDueUnits(ctx(), { mode: "stale" });
+		expect((await getSyncStatus(env.db)).pullIssues).toEqual([]);
+		expect(syncIndicator(await getSyncStatus(env.db)).icon).toBe("synced");
+	});
+});
+
+describe("deleting a version with a sync issue", () => {
+	for (const status of ["conflict", "rejected"] as const) {
+		it(`sends a delete past a ${status} edit, retaining its labels`, async () => {
+			const keyword = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Mira",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			const version = env.api.seedVersion(keyword.id, {
+				startingChapter: 543,
+				createdById: env.user.id,
+			});
+			await pullNovel(env.novel.id, ctx());
+			const edit = await enqueue(
+				{
+					entity: "keywordVersion",
+					op: "update",
+					id: version.id,
+					changes: { description: "My edit" },
+				},
+				{ db: env.db },
+			);
+			await env.db.mutations
+				.where("id")
+				.equals(edit.mutationId ?? "")
+				.modify({ status, conflict: { kind: "rule" } });
+			await enqueue(
+				{ entity: "keywordVersion", op: "delete", id: version.id },
+				{ db: env.db },
+			);
+			const mutations = await env.db.mutations.toArray();
+			expect(mutations).toHaveLength(1);
+			expect(mutations[0]).toMatchObject({
+				op: "delete",
+				status: "pending",
+				context: {
+					row: { startingChapter: 543 },
+					keyword: { nameEn: "Mira" },
+					novel: { nameEn: "Novel" },
+				},
+			});
+			const result = await runSync({
+				reason: "manual",
+				manual: true,
+				pull: "all",
+				db: env.db,
+			});
+			expect(result.sent).toBe(1);
+			expect(result.failedPulls).toBe(0);
+			expect(await env.db.mutations.count()).toBe(0);
+			expect(env.api.versions.has(version.id)).toBe(false);
+		});
+	}
+	it("cancels a refused version create without sending a delete", async () => {
+		const keyword = env.api.seedKeyword(
+			env.novel.id,
+			{ nameEn: "Mira", categoryId: env.category.id, natureId: env.nature.id },
+			env.user.id,
+		);
+		await pullNovel(env.novel.id, ctx());
+		const created = await enqueue(
+			{
+				entity: "keywordVersion",
+				op: "create",
+				keywordId: keyword.id,
+				values: { currentChapter: 543 },
+			},
+			{ db: env.db },
+		);
+		await env.db.mutations
+			.where("id")
+			.equals(created.mutationId ?? "")
+			.modify({ status: "rejected", conflict: { kind: "rule" } });
+		await enqueue(
+			{ entity: "keywordVersion", op: "delete", id: created.entityId },
+			{ db: env.db },
+		);
+		expect(await env.db.mutations.count()).toBe(0);
+	});
+});
+
+describe("refresh authentication", () => {
+	it("pauses for sign-in when a pull rejects an otherwise empty sync run", async () => {
+		const { getSyncStatus } = await import(
+			"../../../src/lib/offline/sync/status"
+		);
+		env.api.failNext(
+			{ kind: "status", status: 401 },
+			(method, path) =>
+				method === "GET" && path.includes("/sync/snapshot/catalogue"),
+		);
+		const result = await runSync({
+			reason: "manual",
+			manual: true,
+			pull: "all",
+			db: env.db,
+		});
+		expect(result.state).toBe("authRequired");
+		expect((await getSyncStatus(env.db)).runner).toBe("authRequired");
+	});
+});
