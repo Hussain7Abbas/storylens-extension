@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 ## Store listing
 
@@ -90,3 +90,5 @@ For release steps see [the publishing runbook](../../docs/publishing.md). New li
 2026-10-12 maintenance — Sync issues show the novel, parent keyword, chapter range, requested operation and recovery actions. Refresh failures remain visible until recovered; deleting a refused version clears or supersedes its queued change. The keyword Edit button floats below its tooltip, above Generate image. Package version and store submission status are unchanged.
 
 2026-10-12 tooltip actions — Attached action boxes and tabs flip together to the edge nearest the hovered word. Added parent-scoped alias/version creation, page-picked alias names, direct page-picked replacements with offline saving and immediate refresh, and contextual Info / Original tabs. Package version and store submission status are unchanged.
+
+2026-10-13 tooltip styling — Action buttons appear as separate floating islands in a transparent container. Transparent gaps retain the shared hover area, keeping the tooltip open when crossing between buttons. Tooltip details now keep a fixed 420 px width, shrink to fit narrow viewports, and wrap all text and tab labels.

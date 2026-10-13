@@ -25,7 +25,11 @@
 	visibility: visible;
 	position: fixed;
 	pointer-events: auto;
-	width: fit-content;
+	box-sizing: border-box;
+	width: 420px;
+	max-width: min(100%, calc(100vw - 16px));
+	white-space: normal;
+	overflow-wrap: anywhere;
 	background-color: var(--sl-tooltip-surface);
 	color: var(--sl-tooltip-ink);
 	text-align: center;
@@ -93,12 +97,10 @@
 	pointer-events: none;
 }
 
-/* Keyword info in tooltip; in em so the box keeps its proportions at every font size */
+/* Fixed-width details; text grows and wraps within the viewport-capped box. */
 .storylens-keyword-info {
 	display: flex;
 	flex-direction: column;
-	box-sizing: border-box;
-	max-width: min(18em, calc(100vw - 16px));
 }
 
 .storylens-tooltip-content {
@@ -133,7 +135,7 @@
 .storylens-keyword-info .storylens-keyword-image {
 	display: block;
 	width: auto;
-	max-width: 16rem;
+	max-width: min(16rem, 100%);
 	max-height: 12rem;
 	object-fit: contain;
 	border-radius: 8px;
@@ -143,6 +145,7 @@
 /* Tooltip images open at full size when clicked */
 .storylens-image-btn {
 	display: block;
+	max-width: 100%;
 	margin: 0 auto;
 	padding: 0;
 	border: none;
@@ -175,6 +178,7 @@
 
 .storylens-keyword-meta {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 6px;
 	font-size: 0.71em;
@@ -187,23 +191,24 @@
 	background-color: var(--sl-tooltip-wash);
 }
 
-/* Floating keyword actions below the tooltip: Edit above Generate image. */
+/* Independent floating buttons in one transparent, continuous hover area. */
 .storylens-keyword-hover-actions {
 	position: fixed;
 	display: flex;
 	gap: 6px;
 	flex-direction: column;
 	align-items: stretch;
+	/* Transparent padding and gaps still belong to the shared hover area. */
 	pointer-events: auto;
 	width: fit-content;
 	box-sizing: border-box;
 	max-width: calc(100vw - 16px);
 	padding: 4px 6px;
-	border: 1px solid var(--sl-tooltip-border);
-	border-radius: 2rem;
-	background-color: var(--sl-tooltip-surface);
+	border: 0;
+	border-radius: 0;
+	background-color: transparent;
 	color: var(--sl-tooltip-ink);
-	box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+	box-shadow: none;
 	font-size: var(--storylens-font-size, 24px) !important;
 	font-family: var(--storylens-font-face, inherit) !important;
 	z-index: 2147483647;
@@ -229,6 +234,8 @@
 }
 
 .storylens-keyword-hover-actions .storylens-edit-btn {
+	background-color: var(--sl-tooltip-surface);
+	box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
 	font-size: 0.6em;
 	white-space: normal;
 	justify-content: center;
@@ -317,6 +324,7 @@ dialog.storylens-image-modal::backdrop {
 
 .storylens-tab-btn {
 	flex: 1;
+	min-width: 0;
 	background: none;
 	border: none;
 	border-bottom: 2px solid transparent;
@@ -326,7 +334,8 @@ dialog.storylens-image-modal::backdrop {
 	padding: 4px 4px 3px;
 	pointer-events: auto;
 	margin-bottom: -1px;
-	white-space: nowrap;
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .storylens-tab-btn:hover {
@@ -482,9 +491,9 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 		--sl-tooltip-wash: #302a45;
 	}
 }
-.storylens-tooltip-text--floating {
-	overflow-wrap: anywhere;
-	max-width: calc(100vw - 24px);
+.storylens-keyword-info .storylens-edit-btn {
+	min-width: 0;
+	white-space: normal;
 }
 .storylens-tab-btn:focus-visible,
 .storylens-show-more-btn:focus-visible,
