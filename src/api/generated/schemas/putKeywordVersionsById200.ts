@@ -11,6 +11,8 @@ import type { PutKeywordVersionsById200CategoryId } from "./putKeywordVersionsBy
 import type { PutKeywordVersionsById200CreatedAt } from "./putKeywordVersionsById200CreatedAt";
 import type { PutKeywordVersionsById200CreatedById } from "./putKeywordVersionsById200CreatedById";
 import type { PutKeywordVersionsById200Description } from "./putKeywordVersionsById200Description";
+import type { PutKeywordVersionsById200DescriptionAr } from "./putKeywordVersionsById200DescriptionAr";
+import type { PutKeywordVersionsById200DescriptionEn } from "./putKeywordVersionsById200DescriptionEn";
 import type { PutKeywordVersionsById200EndingChapter } from "./putKeywordVersionsById200EndingChapter";
 import type { PutKeywordVersionsById200Image } from "./putKeywordVersionsById200Image";
 import type { PutKeywordVersionsById200ImageId } from "./putKeywordVersionsById200ImageId";
@@ -22,6 +24,8 @@ import type { PutKeywordVersionsById200UpdatedAt } from "./putKeywordVersionsByI
 export type PutKeywordVersionsById200 = {
 	id: string;
 	description: PutKeywordVersionsById200Description;
+	descriptionAr: PutKeywordVersionsById200DescriptionAr;
+	descriptionEn: PutKeywordVersionsById200DescriptionEn;
 	startingChapter: PutKeywordVersionsById200StartingChapter;
 	endingChapter: PutKeywordVersionsById200EndingChapter;
 	categoryId: PutKeywordVersionsById200CategoryId;

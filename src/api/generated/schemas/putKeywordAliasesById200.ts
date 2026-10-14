@@ -11,6 +11,8 @@ import type { PutKeywordAliasesById200CategoryId } from "./putKeywordAliasesById
 import type { PutKeywordAliasesById200CreatedAt } from "./putKeywordAliasesById200CreatedAt";
 import type { PutKeywordAliasesById200CreatedById } from "./putKeywordAliasesById200CreatedById";
 import type { PutKeywordAliasesById200Description } from "./putKeywordAliasesById200Description";
+import type { PutKeywordAliasesById200DescriptionAr } from "./putKeywordAliasesById200DescriptionAr";
+import type { PutKeywordAliasesById200DescriptionEn } from "./putKeywordAliasesById200DescriptionEn";
 import type { PutKeywordAliasesById200Image } from "./putKeywordAliasesById200Image";
 import type { PutKeywordAliasesById200ImageId } from "./putKeywordAliasesById200ImageId";
 import type { PutKeywordAliasesById200MatchingType } from "./putKeywordAliasesById200MatchingType";
@@ -25,6 +27,8 @@ export type PutKeywordAliasesById200 = {
 	nameAr: PutKeywordAliasesById200NameAr;
 	nameEn: PutKeywordAliasesById200NameEn;
 	description: PutKeywordAliasesById200Description;
+	descriptionAr: PutKeywordAliasesById200DescriptionAr;
+	descriptionEn: PutKeywordAliasesById200DescriptionEn;
 	matchingType: PutKeywordAliasesById200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

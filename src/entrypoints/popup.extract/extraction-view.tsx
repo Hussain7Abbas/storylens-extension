@@ -57,6 +57,7 @@ import { nameKey } from "@/utils/arabic";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import {
 	aliasMatchNames,
+	descriptionKey,
 	displayNameIn,
 	type Language,
 	nameFields,
@@ -387,7 +388,7 @@ export function ExtractionView() {
 					matchingType: "FULL",
 					categoryId: row.categoryId as string,
 					natureId: row.natureId as string,
-					description: description || null,
+					[descriptionKey(language)]: description || null,
 				});
 				setRows((current) =>
 					current.map((item) =>
@@ -405,7 +406,7 @@ export function ExtractionView() {
 				await aliasMutations.createMutation.mutateAsync({
 					keywordId: parent.id,
 					...nameFields(language, row.name),
-					description: description || null,
+					[descriptionKey(language)]: description || null,
 					matchingType: "FULL",
 					categoryId: row.categoryId ?? null,
 					natureId: row.natureId ?? null,
@@ -416,7 +417,7 @@ export function ExtractionView() {
 					keywordId: parent.id,
 					categoryId: row.categoryId,
 					natureId: row.natureId,
-					description: description || null,
+					[descriptionKey(language)]: description || null,
 					currentChapter: chapter,
 				});
 			updateRow(row.key, { saving: undefined, saved: action });

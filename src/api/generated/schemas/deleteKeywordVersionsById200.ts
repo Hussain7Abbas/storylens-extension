@@ -11,6 +11,8 @@ import type { DeleteKeywordVersionsById200CategoryId } from "./deleteKeywordVers
 import type { DeleteKeywordVersionsById200CreatedAt } from "./deleteKeywordVersionsById200CreatedAt";
 import type { DeleteKeywordVersionsById200CreatedById } from "./deleteKeywordVersionsById200CreatedById";
 import type { DeleteKeywordVersionsById200Description } from "./deleteKeywordVersionsById200Description";
+import type { DeleteKeywordVersionsById200DescriptionAr } from "./deleteKeywordVersionsById200DescriptionAr";
+import type { DeleteKeywordVersionsById200DescriptionEn } from "./deleteKeywordVersionsById200DescriptionEn";
 import type { DeleteKeywordVersionsById200EndingChapter } from "./deleteKeywordVersionsById200EndingChapter";
 import type { DeleteKeywordVersionsById200Image } from "./deleteKeywordVersionsById200Image";
 import type { DeleteKeywordVersionsById200ImageId } from "./deleteKeywordVersionsById200ImageId";
@@ -22,6 +24,8 @@ import type { DeleteKeywordVersionsById200UpdatedAt } from "./deleteKeywordVersi
 export type DeleteKeywordVersionsById200 = {
 	id: string;
 	description: DeleteKeywordVersionsById200Description;
+	descriptionAr: DeleteKeywordVersionsById200DescriptionAr;
+	descriptionEn: DeleteKeywordVersionsById200DescriptionEn;
 	startingChapter: DeleteKeywordVersionsById200StartingChapter;
 	endingChapter: DeleteKeywordVersionsById200EndingChapter;
 	categoryId: DeleteKeywordVersionsById200CategoryId;

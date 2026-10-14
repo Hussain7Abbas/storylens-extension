@@ -11,6 +11,8 @@ import type { GetKeywordAliases200DataItemCategoryId } from "./getKeywordAliases
 import type { GetKeywordAliases200DataItemCreatedAt } from "./getKeywordAliases200DataItemCreatedAt";
 import type { GetKeywordAliases200DataItemCreatedById } from "./getKeywordAliases200DataItemCreatedById";
 import type { GetKeywordAliases200DataItemDescription } from "./getKeywordAliases200DataItemDescription";
+import type { GetKeywordAliases200DataItemDescriptionAr } from "./getKeywordAliases200DataItemDescriptionAr";
+import type { GetKeywordAliases200DataItemDescriptionEn } from "./getKeywordAliases200DataItemDescriptionEn";
 import type { GetKeywordAliases200DataItemImage } from "./getKeywordAliases200DataItemImage";
 import type { GetKeywordAliases200DataItemImageId } from "./getKeywordAliases200DataItemImageId";
 import type { GetKeywordAliases200DataItemMatchingType } from "./getKeywordAliases200DataItemMatchingType";
@@ -25,6 +27,8 @@ export type GetKeywordAliases200DataItem = {
 	nameAr: GetKeywordAliases200DataItemNameAr;
 	nameEn: GetKeywordAliases200DataItemNameEn;
 	description: GetKeywordAliases200DataItemDescription;
+	descriptionAr: GetKeywordAliases200DataItemDescriptionAr;
+	descriptionEn: GetKeywordAliases200DataItemDescriptionEn;
 	matchingType: GetKeywordAliases200DataItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

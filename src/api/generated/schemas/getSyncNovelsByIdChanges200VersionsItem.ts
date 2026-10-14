@@ -11,6 +11,8 @@ import type { GetSyncNovelsByIdChanges200VersionsItemCategoryId } from "./getSyn
 import type { GetSyncNovelsByIdChanges200VersionsItemCreatedAt } from "./getSyncNovelsByIdChanges200VersionsItemCreatedAt";
 import type { GetSyncNovelsByIdChanges200VersionsItemCreatedById } from "./getSyncNovelsByIdChanges200VersionsItemCreatedById";
 import type { GetSyncNovelsByIdChanges200VersionsItemDescription } from "./getSyncNovelsByIdChanges200VersionsItemDescription";
+import type { GetSyncNovelsByIdChanges200VersionsItemDescriptionAr } from "./getSyncNovelsByIdChanges200VersionsItemDescriptionAr";
+import type { GetSyncNovelsByIdChanges200VersionsItemDescriptionEn } from "./getSyncNovelsByIdChanges200VersionsItemDescriptionEn";
 import type { GetSyncNovelsByIdChanges200VersionsItemEndingChapter } from "./getSyncNovelsByIdChanges200VersionsItemEndingChapter";
 import type { GetSyncNovelsByIdChanges200VersionsItemImage } from "./getSyncNovelsByIdChanges200VersionsItemImage";
 import type { GetSyncNovelsByIdChanges200VersionsItemImageId } from "./getSyncNovelsByIdChanges200VersionsItemImageId";
@@ -22,6 +24,8 @@ import type { GetSyncNovelsByIdChanges200VersionsItemUpdatedAt } from "./getSync
 export type GetSyncNovelsByIdChanges200VersionsItem = {
 	id: string;
 	description: GetSyncNovelsByIdChanges200VersionsItemDescription;
+	descriptionAr: GetSyncNovelsByIdChanges200VersionsItemDescriptionAr;
+	descriptionEn: GetSyncNovelsByIdChanges200VersionsItemDescriptionEn;
 	startingChapter: GetSyncNovelsByIdChanges200VersionsItemStartingChapter;
 	endingChapter: GetSyncNovelsByIdChanges200VersionsItemEndingChapter;
 	categoryId: GetSyncNovelsByIdChanges200VersionsItemCategoryId;

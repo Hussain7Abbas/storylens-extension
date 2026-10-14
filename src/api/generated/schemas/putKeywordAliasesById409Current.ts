@@ -11,6 +11,8 @@ import type { PutKeywordAliasesById409CurrentCategoryId } from "./putKeywordAlia
 import type { PutKeywordAliasesById409CurrentCreatedAt } from "./putKeywordAliasesById409CurrentCreatedAt";
 import type { PutKeywordAliasesById409CurrentCreatedById } from "./putKeywordAliasesById409CurrentCreatedById";
 import type { PutKeywordAliasesById409CurrentDescription } from "./putKeywordAliasesById409CurrentDescription";
+import type { PutKeywordAliasesById409CurrentDescriptionAr } from "./putKeywordAliasesById409CurrentDescriptionAr";
+import type { PutKeywordAliasesById409CurrentDescriptionEn } from "./putKeywordAliasesById409CurrentDescriptionEn";
 import type { PutKeywordAliasesById409CurrentImage } from "./putKeywordAliasesById409CurrentImage";
 import type { PutKeywordAliasesById409CurrentImageId } from "./putKeywordAliasesById409CurrentImageId";
 import type { PutKeywordAliasesById409CurrentMatchingType } from "./putKeywordAliasesById409CurrentMatchingType";
@@ -25,6 +27,8 @@ export type PutKeywordAliasesById409Current = {
 	nameAr: PutKeywordAliasesById409CurrentNameAr;
 	nameEn: PutKeywordAliasesById409CurrentNameEn;
 	description: PutKeywordAliasesById409CurrentDescription;
+	descriptionAr: PutKeywordAliasesById409CurrentDescriptionAr;
+	descriptionEn: PutKeywordAliasesById409CurrentDescriptionEn;
 	matchingType: PutKeywordAliasesById409CurrentMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

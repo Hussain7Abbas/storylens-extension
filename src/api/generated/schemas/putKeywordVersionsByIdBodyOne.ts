@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 import type { PutKeywordVersionsByIdBodyOneDescription } from "./putKeywordVersionsByIdBodyOneDescription";
+import type { PutKeywordVersionsByIdBodyOneDescriptionAr } from "./putKeywordVersionsByIdBodyOneDescriptionAr";
+import type { PutKeywordVersionsByIdBodyOneDescriptionEn } from "./putKeywordVersionsByIdBodyOneDescriptionEn";
 import type { PutKeywordVersionsByIdBodyOneEndingChapter } from "./putKeywordVersionsByIdBodyOneEndingChapter";
 import type { PutKeywordVersionsByIdBodyOneImageId } from "./putKeywordVersionsByIdBodyOneImageId";
 
@@ -13,6 +15,10 @@ export type PutKeywordVersionsByIdBodyOne = {
 	baseUpdatedAt: string;
 	/** @nullable */
 	description?: PutKeywordVersionsByIdBodyOneDescription;
+	/** @nullable */
+	descriptionAr?: PutKeywordVersionsByIdBodyOneDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PutKeywordVersionsByIdBodyOneDescriptionEn;
 	categoryId?: string;
 	natureId?: string;
 	/** @nullable */

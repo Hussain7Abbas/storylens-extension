@@ -13,8 +13,10 @@ import { makeUser } from "../helpers/engine";
 import {
 	alias,
 	baseVersion,
+	category,
 	image,
 	keyword,
+	nature,
 	version,
 } from "../helpers/keywords";
 
@@ -29,7 +31,7 @@ const {
 	setTooltipTrigger,
 	setTooltipUser,
 } = await import("../../src/utils/keyword-tooltip");
-const { enrichKeywords } = await import(
+const { enrichKeywords, resolveTooltipInfo } = await import(
 	"../../src/utils/resolve-keyword-version"
 );
 
@@ -668,7 +670,54 @@ describe("tooltip edit buttons", () => {
 });
 
 describe("tooltip contextual details", () => {
-	it("shows the alias's own data even without a style override, and base details only in Original", () => {
+	it("shows the UI language's description for keywords and aliases", () => {
+		const raw = keyword({
+			versions: [
+				baseVersion({
+					descriptionEn: "English keyword",
+					descriptionAr: "وصف الكلمة",
+				}),
+			],
+			aliases: [
+				alias({
+					id: "alias-localized",
+					descriptionEn: "English alias",
+					descriptionAr: "وصف الاسم البديل",
+				}),
+			],
+		});
+		expect(
+			hover(raw).querySelector('[role="tabpanel"]')?.textContent,
+		).toContain("English keyword");
+		expect(
+			hover(raw).querySelector('[role="tabpanel"]')?.textContent,
+		).not.toContain("وصف الكلمة");
+		expect(
+			hover(raw, "alias-localized").querySelector('[role="tabpanel"]')
+				?.textContent,
+		).toContain("English alias");
+		// Tooltip's content language comes from anchor data, independent of translated labels.
+		const anchor = document.createElement("span");
+		document.body.append(anchor);
+		const enriched = enrichKeywords([raw], 5, "en")[0];
+		registerKeywordTooltipAnchor(
+			anchor,
+			enriched,
+			raw,
+			raw.aliases[0],
+			5,
+			"ar",
+		);
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(document.querySelector('[role="tabpanel"]')?.textContent).toContain(
+			"وصف الاسم البديل",
+		);
+		expect(
+			document.querySelector('[role="tabpanel"]')?.textContent,
+		).not.toContain("English alias");
+	});
+
+	it("shows the alias's own data even without a style override, and keeps the Original tab", () => {
 		const raw = keyword({
 			nameEn: "Mira",
 			versions: [
@@ -698,6 +747,95 @@ describe("tooltip contextual details", () => {
 		);
 		expect(original?.textContent).toContain("Original history");
 		expect(original?.textContent).toContain("Mira");
+	});
+
+	for (const kind of ["alias", "version"] as const) {
+		it(`fills null ${kind} fields from the original keyword while keeping its own fields`, () => {
+			const ownCategory = {
+				...category,
+				id: "own-category",
+				nameEn: "Own category",
+			};
+			const own = {
+				category: ownCategory,
+				categoryId: ownCategory.id,
+				nature: null,
+				natureId: null,
+				descriptionEn: null,
+				image: null,
+				imageId: null,
+			};
+			const raw = keyword({
+				nameEn: "Mira",
+				versions: [
+					baseVersion({
+						descriptionEn: "Original history",
+						image: keywordImage,
+						endingChapter: 2,
+					}),
+					version({
+						id: "v2",
+						startingChapter: 3,
+						...(kind === "version"
+							? own
+							: { descriptionEn: "Current history", image: aliasImage }),
+					}),
+				],
+				aliases: [
+					alias({ id: "alias-fallback", nameEn: "The Scholar", ...own }),
+				],
+			});
+			const info = resolveTooltipInfo(
+				raw,
+				kind === "alias" ? raw.aliases[0] : null,
+				5,
+				"en",
+			);
+			expect(info.description.value).toBe("Original history");
+			expect(info.description.source).toBe("keyword");
+			expect(info.category.value).toEqual(ownCategory);
+			expect(info.category.source).toBe(kind);
+			expect(info.nature.value).toEqual(nature);
+			expect(info.image.value?.url).toBe(keywordImage.url);
+			const tooltip = hover(
+				raw,
+				kind === "alias" ? "alias-fallback" : undefined,
+			);
+			const panel = tooltip.querySelector('[role="tabpanel"]');
+			expect(panel?.textContent).toContain("Original history");
+			expect(panel?.textContent).toContain("Own category");
+			expect(panel?.textContent).toContain("Ally");
+			expect(panel?.querySelector("img")?.getAttribute("src")).toBe(
+				keywordImage.url,
+			);
+			expect(panel?.textContent).not.toContain("Current history");
+		});
+	}
+
+	it("inherits only the selected language and leaves fields empty when the original is empty too", () => {
+		const raw = keyword({
+			nameEn: "Mira",
+			nameAr: "ميرا",
+			versions: [
+				baseVersion({
+					descriptionEn: "English original",
+					descriptionAr: "الوصف الأصلي",
+					nature: null,
+					natureId: null,
+				}),
+			],
+			aliases: [
+				alias({ id: "alias-null", nameEn: null, nameAr: "الاسم البديل" }),
+			],
+		});
+		const english = resolveTooltipInfo(raw, raw.aliases[0], 5, "en");
+		expect(english.name.value).toBe("Mira");
+		expect(english.description.value).toBe("English original");
+		expect(english.nature.value).toBeNull();
+		expect(english.image.value).toBeNull();
+		const arabic = resolveTooltipInfo(raw, raw.aliases[0], 5, "ar");
+		expect(arabic.name.value).toBe("الاسم البديل");
+		expect(arabic.description.value).toBe("الوصف الأصلي");
 	});
 	it("shows active version details with a separate original tab", () => {
 		const tooltip = hover(

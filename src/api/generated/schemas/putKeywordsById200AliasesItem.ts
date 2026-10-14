@@ -11,6 +11,8 @@ import type { PutKeywordsById200AliasesItemCategoryId } from "./putKeywordsById2
 import type { PutKeywordsById200AliasesItemCreatedAt } from "./putKeywordsById200AliasesItemCreatedAt";
 import type { PutKeywordsById200AliasesItemCreatedById } from "./putKeywordsById200AliasesItemCreatedById";
 import type { PutKeywordsById200AliasesItemDescription } from "./putKeywordsById200AliasesItemDescription";
+import type { PutKeywordsById200AliasesItemDescriptionAr } from "./putKeywordsById200AliasesItemDescriptionAr";
+import type { PutKeywordsById200AliasesItemDescriptionEn } from "./putKeywordsById200AliasesItemDescriptionEn";
 import type { PutKeywordsById200AliasesItemImage } from "./putKeywordsById200AliasesItemImage";
 import type { PutKeywordsById200AliasesItemImageId } from "./putKeywordsById200AliasesItemImageId";
 import type { PutKeywordsById200AliasesItemMatchingType } from "./putKeywordsById200AliasesItemMatchingType";
@@ -25,6 +27,8 @@ export type PutKeywordsById200AliasesItem = {
 	nameAr: PutKeywordsById200AliasesItemNameAr;
 	nameEn: PutKeywordsById200AliasesItemNameEn;
 	description: PutKeywordsById200AliasesItemDescription;
+	descriptionAr: PutKeywordsById200AliasesItemDescriptionAr;
+	descriptionEn: PutKeywordsById200AliasesItemDescriptionEn;
 	matchingType: PutKeywordsById200AliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

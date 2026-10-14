@@ -27,6 +27,7 @@ import {
 	useTranslationKeywords,
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
+import { keywordDescriptionIn } from "@/utils/translation";
 
 export type KeywordSuggestionState =
 	| { status: "idle" }
@@ -85,11 +86,13 @@ export function useKeywordSuggestion(
 						id: keyword.id,
 						nameAr: keyword.nameAr,
 						nameEn: keyword.nameEn,
-						description:
+						description: keywordDescriptionIn(
 							[...keyword.versions].sort(
 								(left, right) =>
 									Number(left.startingChapter) - Number(right.startingChapter),
-							)[0]?.description ?? null,
+							)[0],
+							candidates.language,
+						),
 					})),
 				),
 			};
@@ -102,13 +105,13 @@ export function useKeywordSuggestion(
 						id: alias.id,
 						nameAr: alias.nameAr,
 						nameEn: alias.nameEn,
-						description: alias.description,
+						description: keywordDescriptionIn(alias, candidates.language),
 					})),
 				),
 			};
 		}
 		return undefined;
-	}, [request, keywordTranslations, aliasTranslations]);
+	}, [request, keywordTranslations, aliasTranslations, candidates.language]);
 	const lookups = useRef({ categories, natures, translations });
 	lookups.current = { categories, natures, translations };
 	const lookupsReady =

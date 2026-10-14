@@ -11,6 +11,8 @@ import type { PutKeywordsById200VersionsItemCategoryId } from "./putKeywordsById
 import type { PutKeywordsById200VersionsItemCreatedAt } from "./putKeywordsById200VersionsItemCreatedAt";
 import type { PutKeywordsById200VersionsItemCreatedById } from "./putKeywordsById200VersionsItemCreatedById";
 import type { PutKeywordsById200VersionsItemDescription } from "./putKeywordsById200VersionsItemDescription";
+import type { PutKeywordsById200VersionsItemDescriptionAr } from "./putKeywordsById200VersionsItemDescriptionAr";
+import type { PutKeywordsById200VersionsItemDescriptionEn } from "./putKeywordsById200VersionsItemDescriptionEn";
 import type { PutKeywordsById200VersionsItemEndingChapter } from "./putKeywordsById200VersionsItemEndingChapter";
 import type { PutKeywordsById200VersionsItemImage } from "./putKeywordsById200VersionsItemImage";
 import type { PutKeywordsById200VersionsItemImageId } from "./putKeywordsById200VersionsItemImageId";
@@ -22,6 +24,8 @@ import type { PutKeywordsById200VersionsItemUpdatedAt } from "./putKeywordsById2
 export type PutKeywordsById200VersionsItem = {
 	id: string;
 	description: PutKeywordsById200VersionsItemDescription;
+	descriptionAr: PutKeywordsById200VersionsItemDescriptionAr;
+	descriptionEn: PutKeywordsById200VersionsItemDescriptionEn;
 	startingChapter: PutKeywordsById200VersionsItemStartingChapter;
 	endingChapter: PutKeywordsById200VersionsItemEndingChapter;
 	categoryId: PutKeywordsById200VersionsItemCategoryId;

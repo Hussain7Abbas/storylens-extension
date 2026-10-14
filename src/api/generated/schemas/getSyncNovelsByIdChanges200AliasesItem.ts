@@ -11,6 +11,8 @@ import type { GetSyncNovelsByIdChanges200AliasesItemCategoryId } from "./getSync
 import type { GetSyncNovelsByIdChanges200AliasesItemCreatedAt } from "./getSyncNovelsByIdChanges200AliasesItemCreatedAt";
 import type { GetSyncNovelsByIdChanges200AliasesItemCreatedById } from "./getSyncNovelsByIdChanges200AliasesItemCreatedById";
 import type { GetSyncNovelsByIdChanges200AliasesItemDescription } from "./getSyncNovelsByIdChanges200AliasesItemDescription";
+import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionAr } from "./getSyncNovelsByIdChanges200AliasesItemDescriptionAr";
+import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionEn } from "./getSyncNovelsByIdChanges200AliasesItemDescriptionEn";
 import type { GetSyncNovelsByIdChanges200AliasesItemImage } from "./getSyncNovelsByIdChanges200AliasesItemImage";
 import type { GetSyncNovelsByIdChanges200AliasesItemImageId } from "./getSyncNovelsByIdChanges200AliasesItemImageId";
 import type { GetSyncNovelsByIdChanges200AliasesItemMatchingType } from "./getSyncNovelsByIdChanges200AliasesItemMatchingType";
@@ -25,6 +27,8 @@ export type GetSyncNovelsByIdChanges200AliasesItem = {
 	nameAr: GetSyncNovelsByIdChanges200AliasesItemNameAr;
 	nameEn: GetSyncNovelsByIdChanges200AliasesItemNameEn;
 	description: GetSyncNovelsByIdChanges200AliasesItemDescription;
+	descriptionAr: GetSyncNovelsByIdChanges200AliasesItemDescriptionAr;
+	descriptionEn: GetSyncNovelsByIdChanges200AliasesItemDescriptionEn;
 	matchingType: GetSyncNovelsByIdChanges200AliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

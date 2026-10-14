@@ -7,6 +7,8 @@
  */
 
 import type { PostKeywordsBodyOneDescription } from "./postKeywordsBodyOneDescription";
+import type { PostKeywordsBodyOneDescriptionAr } from "./postKeywordsBodyOneDescriptionAr";
+import type { PostKeywordsBodyOneDescriptionEn } from "./postKeywordsBodyOneDescriptionEn";
 import type { PostKeywordsBodyOneImageId } from "./postKeywordsBodyOneImageId";
 import type { PostKeywordsBodyOneMatchingType } from "./postKeywordsBodyOneMatchingType";
 import type { PostKeywordsBodyOneNameAr } from "./postKeywordsBodyOneNameAr";
@@ -21,6 +23,10 @@ export type PostKeywordsBodyOne = {
 	nameEn?: PostKeywordsBodyOneNameEn;
 	/** @nullable */
 	description?: PostKeywordsBodyOneDescription;
+	/** @nullable */
+	descriptionAr?: PostKeywordsBodyOneDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PostKeywordsBodyOneDescriptionEn;
 	matchingType?: PostKeywordsBodyOneMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
 	novelId: string;

@@ -8,6 +8,8 @@
 
 import type { PostKeywordAliasesBodyOneCategoryId } from "./postKeywordAliasesBodyOneCategoryId";
 import type { PostKeywordAliasesBodyOneDescription } from "./postKeywordAliasesBodyOneDescription";
+import type { PostKeywordAliasesBodyOneDescriptionAr } from "./postKeywordAliasesBodyOneDescriptionAr";
+import type { PostKeywordAliasesBodyOneDescriptionEn } from "./postKeywordAliasesBodyOneDescriptionEn";
 import type { PostKeywordAliasesBodyOneImageId } from "./postKeywordAliasesBodyOneImageId";
 import type { PostKeywordAliasesBodyOneMatchingType } from "./postKeywordAliasesBodyOneMatchingType";
 import type { PostKeywordAliasesBodyOneNameAr } from "./postKeywordAliasesBodyOneNameAr";
@@ -23,6 +25,10 @@ export type PostKeywordAliasesBodyOne = {
 	nameEn?: PostKeywordAliasesBodyOneNameEn;
 	/** @nullable */
 	description?: PostKeywordAliasesBodyOneDescription;
+	/** @nullable */
+	descriptionAr?: PostKeywordAliasesBodyOneDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PostKeywordAliasesBodyOneDescriptionEn;
 	matchingType?: PostKeywordAliasesBodyOneMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
 	/** @nullable */

@@ -11,6 +11,8 @@ import type { PostKeywordVersions200CategoryId } from "./postKeywordVersions200C
 import type { PostKeywordVersions200CreatedAt } from "./postKeywordVersions200CreatedAt";
 import type { PostKeywordVersions200CreatedById } from "./postKeywordVersions200CreatedById";
 import type { PostKeywordVersions200Description } from "./postKeywordVersions200Description";
+import type { PostKeywordVersions200DescriptionAr } from "./postKeywordVersions200DescriptionAr";
+import type { PostKeywordVersions200DescriptionEn } from "./postKeywordVersions200DescriptionEn";
 import type { PostKeywordVersions200EndingChapter } from "./postKeywordVersions200EndingChapter";
 import type { PostKeywordVersions200Image } from "./postKeywordVersions200Image";
 import type { PostKeywordVersions200ImageId } from "./postKeywordVersions200ImageId";
@@ -22,6 +24,8 @@ import type { PostKeywordVersions200UpdatedAt } from "./postKeywordVersions200Up
 export type PostKeywordVersions200 = {
 	id: string;
 	description: PostKeywordVersions200Description;
+	descriptionAr: PostKeywordVersions200DescriptionAr;
+	descriptionEn: PostKeywordVersions200DescriptionEn;
 	startingChapter: PostKeywordVersions200StartingChapter;
 	endingChapter: PostKeywordVersions200EndingChapter;
 	categoryId: PostKeywordVersions200CategoryId;

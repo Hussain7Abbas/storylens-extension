@@ -11,6 +11,8 @@ import type { PutKeywordVersionsById409CurrentCategoryId } from "./putKeywordVer
 import type { PutKeywordVersionsById409CurrentCreatedAt } from "./putKeywordVersionsById409CurrentCreatedAt";
 import type { PutKeywordVersionsById409CurrentCreatedById } from "./putKeywordVersionsById409CurrentCreatedById";
 import type { PutKeywordVersionsById409CurrentDescription } from "./putKeywordVersionsById409CurrentDescription";
+import type { PutKeywordVersionsById409CurrentDescriptionAr } from "./putKeywordVersionsById409CurrentDescriptionAr";
+import type { PutKeywordVersionsById409CurrentDescriptionEn } from "./putKeywordVersionsById409CurrentDescriptionEn";
 import type { PutKeywordVersionsById409CurrentEndingChapter } from "./putKeywordVersionsById409CurrentEndingChapter";
 import type { PutKeywordVersionsById409CurrentImage } from "./putKeywordVersionsById409CurrentImage";
 import type { PutKeywordVersionsById409CurrentImageId } from "./putKeywordVersionsById409CurrentImageId";
@@ -22,6 +24,8 @@ import type { PutKeywordVersionsById409CurrentUpdatedAt } from "./putKeywordVers
 export type PutKeywordVersionsById409Current = {
 	id: string;
 	description: PutKeywordVersionsById409CurrentDescription;
+	descriptionAr: PutKeywordVersionsById409CurrentDescriptionAr;
+	descriptionEn: PutKeywordVersionsById409CurrentDescriptionEn;
 	startingChapter: PutKeywordVersionsById409CurrentStartingChapter;
 	endingChapter: PutKeywordVersionsById409CurrentEndingChapter;
 	categoryId: PutKeywordVersionsById409CurrentCategoryId;

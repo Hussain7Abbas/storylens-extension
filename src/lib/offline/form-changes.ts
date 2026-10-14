@@ -38,11 +38,33 @@ export type KeywordFormFields = {
 	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string;
 	natureId: string;
-	description: string | null;
+	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	imageId?: string | null;
 };
 
 /** The names a form's two language tabs save; an empty tab is `null`. */
+function descriptions(fields: {
+	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
+}): Row {
+	return {
+		...(fields.descriptionAr === undefined
+			? {}
+			: { descriptionAr: optionalText(fields.descriptionAr) }),
+		...(fields.descriptionEn === undefined
+			? {}
+			: { descriptionEn: optionalText(fields.descriptionEn) }),
+		...(fields.descriptionAr !== undefined ||
+		fields.descriptionEn !== undefined ||
+		fields.description === undefined
+			? {}
+			: { description: optionalText(fields.description) }),
+	};
+}
+
 function names(fields: { nameAr: string; nameEn: string }): Row {
 	return {
 		nameAr: fields.nameAr.trim() || null,
@@ -74,13 +96,13 @@ export function keywordFormChanges(
 		),
 		baseVersion: diff(
 			{
-				description: optionalText(initial.description),
+				...descriptions(initial),
 				categoryId: initial.categoryId,
 				natureId: initial.natureId,
 				imageId: initial.imageId ?? null,
 			},
 			{
-				description: optionalText(values.description),
+				...descriptions(values),
 				categoryId: values.categoryId,
 				natureId: values.natureId,
 				imageId:
@@ -98,7 +120,9 @@ export type AliasFormFields = {
 	overrideStyle: boolean;
 	categoryId: string | null;
 	natureId: string | null;
-	description: string | null;
+	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	imageId?: string | null;
 };
 
@@ -114,7 +138,7 @@ export function aliasFormChanges(
 		overrideStyle: fields.overrideStyle,
 		categoryId: fields.categoryId || null,
 		natureId: fields.natureId || null,
-		description: optionalText(fields.description),
+		...descriptions(fields),
 		...(fields.imageId === undefined
 			? {}
 			: { imageId: fields.imageId ?? null }),
@@ -125,7 +149,9 @@ export function aliasFormChanges(
 export type VersionFormFields = {
 	categoryId: string | null;
 	natureId: string | null;
-	description: string | null;
+	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	imageId?: string | null;
 	startingChapter?: number | null;
 	endingChapter?: number | null;
@@ -138,7 +164,7 @@ export function versionFormChanges(
 	const shape = (fields: VersionFormFields) => ({
 		categoryId: fields.categoryId || undefined,
 		natureId: fields.natureId || undefined,
-		description: optionalText(fields.description),
+		...descriptions(fields),
 		...(fields.imageId === undefined
 			? {}
 			: { imageId: fields.imageId ?? null }),

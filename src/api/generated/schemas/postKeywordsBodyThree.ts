@@ -7,6 +7,8 @@
  */
 
 import type { PostKeywordsBodyThreeDescription } from "./postKeywordsBodyThreeDescription";
+import type { PostKeywordsBodyThreeDescriptionAr } from "./postKeywordsBodyThreeDescriptionAr";
+import type { PostKeywordsBodyThreeDescriptionEn } from "./postKeywordsBodyThreeDescriptionEn";
 import type { PostKeywordsBodyThreeImageId } from "./postKeywordsBodyThreeImageId";
 import type { PostKeywordsBodyThreeMatchingType } from "./postKeywordsBodyThreeMatchingType";
 import type { PostKeywordsBodyThreeNameAr } from "./postKeywordsBodyThreeNameAr";
@@ -21,6 +23,10 @@ export type PostKeywordsBodyThree = {
 	nameEn?: PostKeywordsBodyThreeNameEn;
 	/** @nullable */
 	description?: PostKeywordsBodyThreeDescription;
+	/** @nullable */
+	descriptionAr?: PostKeywordsBodyThreeDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PostKeywordsBodyThreeDescriptionEn;
 	matchingType?: PostKeywordsBodyThreeMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
 	novelId: string;

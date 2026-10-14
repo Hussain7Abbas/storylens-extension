@@ -8,6 +8,8 @@
 
 import type { PutKeywordAliasesByIdBodyThreeCategoryId } from "./putKeywordAliasesByIdBodyThreeCategoryId";
 import type { PutKeywordAliasesByIdBodyThreeDescription } from "./putKeywordAliasesByIdBodyThreeDescription";
+import type { PutKeywordAliasesByIdBodyThreeDescriptionAr } from "./putKeywordAliasesByIdBodyThreeDescriptionAr";
+import type { PutKeywordAliasesByIdBodyThreeDescriptionEn } from "./putKeywordAliasesByIdBodyThreeDescriptionEn";
 import type { PutKeywordAliasesByIdBodyThreeImageId } from "./putKeywordAliasesByIdBodyThreeImageId";
 import type { PutKeywordAliasesByIdBodyThreeMatchingType } from "./putKeywordAliasesByIdBodyThreeMatchingType";
 import type { PutKeywordAliasesByIdBodyThreeNameAr } from "./putKeywordAliasesByIdBodyThreeNameAr";
@@ -22,6 +24,10 @@ export type PutKeywordAliasesByIdBodyThree = {
 	nameEn?: PutKeywordAliasesByIdBodyThreeNameEn;
 	/** @nullable */
 	description?: PutKeywordAliasesByIdBodyThreeDescription;
+	/** @nullable */
+	descriptionAr?: PutKeywordAliasesByIdBodyThreeDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PutKeywordAliasesByIdBodyThreeDescriptionEn;
 	matchingType?: PutKeywordAliasesByIdBodyThreeMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
 	/** @nullable */

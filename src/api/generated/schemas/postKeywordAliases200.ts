@@ -11,6 +11,8 @@ import type { PostKeywordAliases200CategoryId } from "./postKeywordAliases200Cat
 import type { PostKeywordAliases200CreatedAt } from "./postKeywordAliases200CreatedAt";
 import type { PostKeywordAliases200CreatedById } from "./postKeywordAliases200CreatedById";
 import type { PostKeywordAliases200Description } from "./postKeywordAliases200Description";
+import type { PostKeywordAliases200DescriptionAr } from "./postKeywordAliases200DescriptionAr";
+import type { PostKeywordAliases200DescriptionEn } from "./postKeywordAliases200DescriptionEn";
 import type { PostKeywordAliases200Image } from "./postKeywordAliases200Image";
 import type { PostKeywordAliases200ImageId } from "./postKeywordAliases200ImageId";
 import type { PostKeywordAliases200MatchingType } from "./postKeywordAliases200MatchingType";
@@ -25,6 +27,8 @@ export type PostKeywordAliases200 = {
 	nameAr: PostKeywordAliases200NameAr;
 	nameEn: PostKeywordAliases200NameEn;
 	description: PostKeywordAliases200Description;
+	descriptionAr: PostKeywordAliases200DescriptionAr;
+	descriptionEn: PostKeywordAliases200DescriptionEn;
 	matchingType: PostKeywordAliases200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

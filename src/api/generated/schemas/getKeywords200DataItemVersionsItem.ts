@@ -11,6 +11,8 @@ import type { GetKeywords200DataItemVersionsItemCategoryId } from "./getKeywords
 import type { GetKeywords200DataItemVersionsItemCreatedAt } from "./getKeywords200DataItemVersionsItemCreatedAt";
 import type { GetKeywords200DataItemVersionsItemCreatedById } from "./getKeywords200DataItemVersionsItemCreatedById";
 import type { GetKeywords200DataItemVersionsItemDescription } from "./getKeywords200DataItemVersionsItemDescription";
+import type { GetKeywords200DataItemVersionsItemDescriptionAr } from "./getKeywords200DataItemVersionsItemDescriptionAr";
+import type { GetKeywords200DataItemVersionsItemDescriptionEn } from "./getKeywords200DataItemVersionsItemDescriptionEn";
 import type { GetKeywords200DataItemVersionsItemEndingChapter } from "./getKeywords200DataItemVersionsItemEndingChapter";
 import type { GetKeywords200DataItemVersionsItemImage } from "./getKeywords200DataItemVersionsItemImage";
 import type { GetKeywords200DataItemVersionsItemImageId } from "./getKeywords200DataItemVersionsItemImageId";
@@ -22,6 +24,8 @@ import type { GetKeywords200DataItemVersionsItemUpdatedAt } from "./getKeywords2
 export type GetKeywords200DataItemVersionsItem = {
 	id: string;
 	description: GetKeywords200DataItemVersionsItemDescription;
+	descriptionAr: GetKeywords200DataItemVersionsItemDescriptionAr;
+	descriptionEn: GetKeywords200DataItemVersionsItemDescriptionEn;
 	startingChapter: GetKeywords200DataItemVersionsItemStartingChapter;
 	endingChapter: GetKeywords200DataItemVersionsItemEndingChapter;
 	categoryId: GetKeywords200DataItemVersionsItemCategoryId;

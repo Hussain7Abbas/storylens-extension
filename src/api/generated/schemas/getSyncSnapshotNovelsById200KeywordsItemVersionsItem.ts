@@ -11,6 +11,8 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryId } f
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCreatedAt } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCreatedAt";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCreatedById } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCreatedById";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescription } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemDescription";
+import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionAr } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionAr";
+import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionEn } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionEn";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImage } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImage";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId";
@@ -22,6 +24,8 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemUpdatedAt } fr
 export type GetSyncSnapshotNovelsById200KeywordsItemVersionsItem = {
 	id: string;
 	description: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescription;
+	descriptionAr: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionAr;
+	descriptionEn: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionEn;
 	startingChapter: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemStartingChapter;
 	endingChapter: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryId;

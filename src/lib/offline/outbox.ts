@@ -97,6 +97,8 @@ export type KeywordValues = {
 	categoryId: string;
 	natureId: string;
 	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	imageId?: string | null;
 };
 
@@ -122,6 +124,8 @@ export type AliasValues = {
 	nameAr?: string | null;
 	nameEn?: string | null;
 	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	matchingType?: MatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
 	overrideStyle?: boolean;
@@ -132,6 +136,8 @@ export type AliasValues = {
 
 export type VersionValues = {
 	description?: string | null;
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	categoryId?: string | null;
 	natureId?: string | null;
 	imageId?: string | null;
@@ -805,7 +811,9 @@ async function enqueueKeyword(
 				input.values.fuzzyMatchArabicCharacters ?? true,
 			categoryId: input.values.categoryId,
 			natureId: input.values.natureId,
-			description: cleanText(input.values.description) ?? null,
+			description: cleanText(input.values.description),
+			descriptionAr: cleanText(input.values.descriptionAr),
+			descriptionEn: cleanText(input.values.descriptionEn),
 			imageId: fileId ?? input.values.imageId ?? null,
 			versionId,
 			translationKeywordId: input.translationKeywordId,
@@ -912,6 +920,8 @@ const ALIAS_FIELDS = [
 	"nameAr",
 	"nameEn",
 	"description",
+	"descriptionAr",
+	"descriptionEn",
 	"matchingType",
 	"fuzzyMatchArabicCharacters",
 	"overrideStyle",
@@ -925,6 +935,8 @@ function aliasValues(values: Partial<AliasValues>): Row {
 		nameAr: cleanName(values.nameAr),
 		nameEn: cleanName(values.nameEn),
 		description: cleanText(values.description),
+		descriptionAr: cleanText(values.descriptionAr),
+		descriptionEn: cleanText(values.descriptionEn),
 		matchingType: values.matchingType,
 		fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 		overrideStyle: values.overrideStyle,
@@ -959,7 +971,10 @@ async function enqueueAlias(
 			keywordId: input.keywordId,
 			nameAr: null,
 			nameEn: null,
-			description: null,
+			...(input.values.descriptionAr !== undefined ||
+			input.values.descriptionEn !== undefined
+				? {}
+				: { description: null }),
 			matchingType: "FULL",
 			fuzzyMatchArabicCharacters: true,
 			overrideStyle: false,
@@ -1083,6 +1098,8 @@ async function enqueueAlias(
 
 const BASE_VERSION_FIELDS = [
 	"description",
+	"descriptionAr",
+	"descriptionEn",
 	"categoryId",
 	"natureId",
 	"imageId",
@@ -1094,6 +1111,8 @@ function versionValues(
 ): Row {
 	return defined({
 		description: cleanText(values.description),
+		descriptionAr: cleanText(values.descriptionAr),
+		descriptionEn: cleanText(values.descriptionEn),
 		categoryId: values.categoryId,
 		natureId: values.natureId,
 		imageId: values.imageId,
@@ -1123,7 +1142,9 @@ async function enqueueVersion(
 		const entityId = newId();
 		const patch = defined({
 			keywordId: input.keywordId,
-			description: cleanText(input.values.description) ?? null,
+			description: cleanText(input.values.description),
+			descriptionAr: cleanText(input.values.descriptionAr),
+			descriptionEn: cleanText(input.values.descriptionEn),
 			categoryId: input.values.categoryId ?? undefined,
 			natureId: input.values.natureId ?? undefined,
 			imageId: fileId ?? input.values.imageId ?? null,
@@ -1615,6 +1636,8 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				categoryId: base.categoryId ?? row.categoryId,
 				natureId: base.natureId ?? row.natureId,
 				description: base.description ?? row.description ?? null,
+				descriptionAr: base.descriptionAr ?? row.descriptionAr ?? null,
+				descriptionEn: base.descriptionEn ?? row.descriptionEn ?? null,
 				imageId: base.imageId ?? row.imageId ?? null,
 				versionId: newId(),
 			};
@@ -1627,6 +1650,8 @@ function createAgainPatch(mutation: Mutation): Row | null {
 			return defined({
 				keywordId: row.keywordId ?? mutation.parentId,
 				description: row.description ?? null,
+				descriptionAr: row.descriptionAr ?? null,
+				descriptionEn: row.descriptionEn ?? null,
 				categoryId: row.categoryId ?? undefined,
 				natureId: row.natureId ?? undefined,
 				imageId: row.imageId ?? null,
@@ -1651,6 +1676,8 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				nameEn: row.nameEn ?? null,
 				color: row.color,
 				description: row.description ?? null,
+				descriptionAr: row.descriptionAr ?? null,
+				descriptionEn: row.descriptionEn ?? null,
 			};
 		default:
 			return null;

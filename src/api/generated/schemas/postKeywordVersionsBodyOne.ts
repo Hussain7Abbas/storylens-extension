@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.0.0
  */
 import type { PostKeywordVersionsBodyOneDescription } from "./postKeywordVersionsBodyOneDescription";
+import type { PostKeywordVersionsBodyOneDescriptionAr } from "./postKeywordVersionsBodyOneDescriptionAr";
+import type { PostKeywordVersionsBodyOneDescriptionEn } from "./postKeywordVersionsBodyOneDescriptionEn";
 import type { PostKeywordVersionsBodyOneEndingChapter } from "./postKeywordVersionsBodyOneEndingChapter";
 import type { PostKeywordVersionsBodyOneImageId } from "./postKeywordVersionsBodyOneImageId";
 
@@ -16,6 +18,10 @@ export type PostKeywordVersionsBodyOne = {
 	natureId?: string;
 	/** @nullable */
 	description?: PostKeywordVersionsBodyOneDescription;
+	/** @nullable */
+	descriptionAr?: PostKeywordVersionsBodyOneDescriptionAr;
+	/** @nullable */
+	descriptionEn?: PostKeywordVersionsBodyOneDescriptionEn;
 	/** @nullable */
 	imageId?: PostKeywordVersionsBodyOneImageId;
 	/** @minimum 0 */

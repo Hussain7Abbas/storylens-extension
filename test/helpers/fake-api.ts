@@ -17,7 +17,12 @@ import {
 type Row = Record<string, unknown> & { id: string };
 
 /** Names a translation link hands to the saved row. */
-type TranslatedNames = { nameAr?: unknown; nameEn?: unknown };
+type TranslatedNames = {
+	nameAr?: unknown;
+	nameEn?: unknown;
+	descriptionAr?: unknown;
+	descriptionEn?: unknown;
+};
 type User = {
 	id: string;
 	username: string;
@@ -184,7 +189,14 @@ export class FakeApi {
 		values: Partial<Row> & { categoryId: string; natureId: string },
 		createdById: string | null = null,
 	): Row {
-		const { categoryId, natureId, description = null, ...rest } = values;
+		const {
+			categoryId,
+			natureId,
+			description = null,
+			descriptionAr = null,
+			descriptionEn = null,
+			...rest
+		} = values;
 		const now = this.now();
 		const keyword: Row = {
 			id: crypto.randomUUID(),
@@ -204,6 +216,8 @@ export class FakeApi {
 			id: crypto.randomUUID(),
 			keywordId: keyword.id,
 			description,
+			descriptionAr,
+			descriptionEn,
 			categoryId,
 			natureId,
 			imageId: null,
@@ -670,6 +684,10 @@ export class FakeApi {
 			if (existing && compatible) {
 				existing.nameAr = existing.nameAr ?? free("nameAr");
 				existing.nameEn = existing.nameEn ?? free("nameEn");
+				existing.descriptionAr =
+					existing.descriptionAr ?? alias.descriptionAr ?? null;
+				existing.descriptionEn =
+					existing.descriptionEn ?? alias.descriptionEn ?? null;
 				this.record(
 					"keywordAlias",
 					existing.id,
@@ -688,6 +706,17 @@ export class FakeApi {
 		}
 		for (const row of this.replacements.values())
 			if (row.keywordId === source.id) row.keywordId = target.id as string;
+		const base = [...this.versions.values()]
+			.filter((row) => row.keywordId === target.id)
+			.sort((a, b) => Number(a.startingChapter) - Number(b.startingChapter))[0];
+		const sourceBase = versions[0];
+		if (base && sourceBase) {
+			base.descriptionAr =
+				base.descriptionAr ?? sourceBase.descriptionAr ?? null;
+			base.descriptionEn =
+				base.descriptionEn ?? sourceBase.descriptionEn ?? null;
+			this.record("keywordVersion", base.id, source.novelId as string);
+		}
 		this.deleteKeyword(source.id as string);
 		return names;
 	}
@@ -728,7 +757,12 @@ export class FakeApi {
 			source.id as string,
 			this.novelOf("keywordAlias", source),
 		);
-		return names;
+		const stored = target.id ? this.aliases.get(target.id) : undefined;
+		return {
+			...names,
+			descriptionAr: stored?.descriptionAr ?? source.descriptionAr ?? null,
+			descriptionEn: stored?.descriptionEn ?? source.descriptionEn ?? null,
+		};
 	}
 
 	private route(
@@ -876,6 +910,8 @@ export class FakeApi {
 				id: body.versionId as string,
 				keywordId: keyword.id,
 				description: body.description ?? null,
+				descriptionAr: body.descriptionAr ?? null,
+				descriptionEn: body.descriptionEn ?? null,
 				categoryId: body.categoryId,
 				natureId: body.natureId,
 				imageId: body.imageId ?? null,
@@ -970,6 +1006,8 @@ export class FakeApi {
 			"nameAr",
 			"nameEn",
 			"description",
+			"descriptionAr",
+			"descriptionEn",
 			"matchingType",
 			"fuzzyMatchArabicCharacters",
 			"overrideStyle",
@@ -1030,7 +1068,15 @@ export class FakeApi {
 				body.translationAliasId,
 				user,
 			);
-			Object.assign(alias, linked);
+			Object.assign(
+				alias,
+				linked,
+				Object.fromEntries(
+					["descriptionAr", "descriptionEn"]
+						.filter((field) => body[field] !== undefined)
+						.map((field) => [field, body[field]]),
+				),
+			);
 			this.aliases.set(alias.id, alias);
 			this.record(
 				"keywordAlias",
@@ -1081,8 +1127,8 @@ export class FakeApi {
 			);
 			const next = {
 				...alias,
-				...sent,
 				...linked,
+				...sent,
 				updatedAt: this.now(),
 			};
 			this.assertName(next);
@@ -1169,6 +1215,8 @@ export class FakeApi {
 				id: body.id as string,
 				keywordId: body.keywordId,
 				description: body.description ?? null,
+				descriptionAr: body.descriptionAr ?? null,
+				descriptionEn: body.descriptionEn ?? null,
 				categoryId: body.categoryId ?? null,
 				natureId: body.natureId ?? null,
 				imageId: body.imageId ?? null,
@@ -1190,6 +1238,8 @@ export class FakeApi {
 			);
 			const fields = [
 				"description",
+				"descriptionAr",
+				"descriptionEn",
 				"categoryId",
 				"natureId",
 				"imageId",

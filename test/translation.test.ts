@@ -4,6 +4,7 @@ import {
 	aliasMatchNames,
 	displayNameIn,
 	hasNameIn,
+	keywordDescriptionIn,
 	namedIn,
 	nameFields,
 	nameIn,
@@ -61,5 +62,30 @@ describe("translated names", () => {
 		expect(displayNameIn(arabicOnly, "en")).toBe("لين");
 		expect(displayNameIn({ nameAr: "", nameEn: "Hero" }, "ar")).toBe("Hero");
 		expect(displayNameIn({ nameAr: null, nameEn: null }, "ar")).toBe("");
+	});
+});
+
+describe("localized keyword descriptions", () => {
+	test("uses only the requested translation and respects explicit clearing", () => {
+		const row = {
+			description: "Legacy",
+			descriptionAr: "وصف عربي",
+			descriptionEn: "English",
+		};
+		expect(keywordDescriptionIn(row, "ar")).toBe("وصف عربي");
+		expect(keywordDescriptionIn(row, "en")).toBe("English");
+		expect(
+			keywordDescriptionIn({ ...row, descriptionEn: null }, "en"),
+		).toBeNull();
+	});
+	test("reads older offline snapshots without mixing description languages", () => {
+		expect(keywordDescriptionIn({ description: "English" }, "en")).toBe(
+			"English",
+		);
+		expect(keywordDescriptionIn({ description: "English" }, "ar")).toBeNull();
+		expect(keywordDescriptionIn({ description: "وصف عربي" }, "ar")).toBe(
+			"وصف عربي",
+		);
+		expect(keywordDescriptionIn({ description: "وصف عربي" }, "en")).toBeNull();
 	});
 });

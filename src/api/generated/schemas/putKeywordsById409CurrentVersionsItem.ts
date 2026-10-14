@@ -11,6 +11,8 @@ import type { PutKeywordsById409CurrentVersionsItemCategoryId } from "./putKeywo
 import type { PutKeywordsById409CurrentVersionsItemCreatedAt } from "./putKeywordsById409CurrentVersionsItemCreatedAt";
 import type { PutKeywordsById409CurrentVersionsItemCreatedById } from "./putKeywordsById409CurrentVersionsItemCreatedById";
 import type { PutKeywordsById409CurrentVersionsItemDescription } from "./putKeywordsById409CurrentVersionsItemDescription";
+import type { PutKeywordsById409CurrentVersionsItemDescriptionAr } from "./putKeywordsById409CurrentVersionsItemDescriptionAr";
+import type { PutKeywordsById409CurrentVersionsItemDescriptionEn } from "./putKeywordsById409CurrentVersionsItemDescriptionEn";
 import type { PutKeywordsById409CurrentVersionsItemEndingChapter } from "./putKeywordsById409CurrentVersionsItemEndingChapter";
 import type { PutKeywordsById409CurrentVersionsItemImage } from "./putKeywordsById409CurrentVersionsItemImage";
 import type { PutKeywordsById409CurrentVersionsItemImageId } from "./putKeywordsById409CurrentVersionsItemImageId";
@@ -22,6 +24,8 @@ import type { PutKeywordsById409CurrentVersionsItemUpdatedAt } from "./putKeywor
 export type PutKeywordsById409CurrentVersionsItem = {
 	id: string;
 	description: PutKeywordsById409CurrentVersionsItemDescription;
+	descriptionAr: PutKeywordsById409CurrentVersionsItemDescriptionAr;
+	descriptionEn: PutKeywordsById409CurrentVersionsItemDescriptionEn;
 	startingChapter: PutKeywordsById409CurrentVersionsItemStartingChapter;
 	endingChapter: PutKeywordsById409CurrentVersionsItemEndingChapter;
 	categoryId: PutKeywordsById409CurrentVersionsItemCategoryId;

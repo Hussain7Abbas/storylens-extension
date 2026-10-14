@@ -75,3 +75,20 @@ export function displayNameIn(item: Named, language: Language): string {
 export function aliasDisplayName(alias: Named, language: Language): string {
 	return displayNameIn(alias, language);
 }
+
+/** Localized keyword details, including snapshots saved before translated fields existed. */
+export function keywordDescriptionIn(
+	item: (Described & { description?: string | null }) | undefined | null,
+	language: Language,
+): string | null {
+	if (!item) return null;
+	const field = descriptionKey(language);
+	if (item[field] !== undefined) return item[field] || null;
+	// A legacy shared value belongs to its own script; never show Arabic in the EN tab.
+	const legacy = item.description;
+	if (!legacy) return null;
+	const legacyLanguage = /(?=\p{L})\p{Script=Arabic}/u.test(legacy)
+		? "ar"
+		: "en";
+	return legacyLanguage === language ? legacy : null;
+}

@@ -11,6 +11,7 @@ import type {
 import {
 	aliasDisplayName,
 	aliasMatchNames,
+	keywordDescriptionIn,
 	type Language,
 	nameIn,
 } from "@/utils/translation";
@@ -101,6 +102,7 @@ export function resolveStyle(
 	base: GetKeywords200DataItemVersionsItem | undefined,
 	alias?: GetKeywords200DataItemAliasesItem | null,
 	versions: GetKeywords200DataItemVersionsItem[] = [],
+	language: Language = "en",
 ): ResolvedStyle | null {
 	const override = alias?.overrideStyle ?? false;
 
@@ -120,9 +122,9 @@ export function resolveStyle(
 	if (!category || !nature) return null;
 
 	const description = pickField(
-		active?.description,
-		base?.description,
-		alias?.description,
+		keywordDescriptionIn(active, language),
+		keywordDescriptionIn(base, language),
+		keywordDescriptionIn(alias, language),
 		override,
 	);
 
@@ -161,7 +163,7 @@ export function enrichKeywords(
 		const base = sorted[0];
 		const active = pickActiveVersion(kw.versions, currentChapter);
 
-		const kwStyle = resolveStyle(active, base, null, kw.versions);
+		const kwStyle = resolveStyle(active, base, null, kw.versions, language);
 		if (!kwStyle) continue;
 
 		enriched.push({
@@ -184,7 +186,13 @@ export function enrichKeywords(
 		});
 
 		for (const alias of kw.aliases) {
-			const aliasStyle = resolveStyle(active, base, alias, kw.versions);
+			const aliasStyle = resolveStyle(
+				active,
+				base,
+				alias,
+				kw.versions,
+				language,
+			);
 			if (!aliasStyle) continue;
 
 			// One entry per name, so an alias's translation is highlighted too.
@@ -404,9 +412,9 @@ export function resolveKeywordInfo(
 	);
 
 	const description = resolveFieldInfo<string>(
-		active?.description,
-		base?.description,
-		alias?.description,
+		keywordDescriptionIn(active, language),
+		keywordDescriptionIn(base, language),
+		keywordDescriptionIn(alias, language),
 		override,
 		activeIsBase,
 	);
@@ -416,7 +424,7 @@ export function resolveKeywordInfo(
 	return { name, category, nature, description, image };
 }
 
-/** Tooltip details describe the hovered row, independently of highlight style overrides. */
+/** Tooltip fields prefer the hovered row, then the original keyword's base values. */
 export function resolveTooltipInfo(
 	keyword: GetKeywords200DataItem,
 	alias: GetKeywords200DataItemAliasesItem | null,
@@ -426,22 +434,51 @@ export function resolveTooltipInfo(
 	const info = resolveKeywordInfo(keyword, alias, currentChapter, language);
 	const base = pickBaseVersion(keyword.versions);
 	const active = pickActiveVersion(keyword.versions, currentChapter);
-	const row = alias ?? active;
+	const row = alias ?? active ?? base;
 	const source: InfoSource = alias
 		? "alias"
 		: active?.id !== base?.id
 			? "version"
 			: "keyword";
-	const own = <T>(value: T | null | undefined): FieldInfo<T> => ({
-		value: value ?? null,
-		source,
+	const withOriginal = <T>(
+		value: T | null | undefined,
+		original: T | null | undefined,
+	): FieldInfo<T> => ({
+		value: value ?? original ?? null,
+		source: value == null ? "keyword" : source,
 		overrides: [],
 	});
+	const image = withOriginal<RawImage>(
+		hasImage(row) ? row?.image : null,
+		hasImage(base) ? base?.image : null,
+	);
+	// Preserve image provenance and find an image elsewhere only when both are empty.
+	const tooltipImage = image.value
+		? {
+				...image,
+				overrides: [
+					{ source: info.image.source, value: info.image.value },
+					...info.image.overrides,
+				].filter((entry) => entry.value !== image.value),
+			}
+		: info.image;
 	return {
 		...info,
-		name: { ...info.name, overrides: [] },
-		description: own(row?.description),
-		category: own(row?.category as EnrichedCategory | null | undefined),
-		nature: own(row?.nature as EnrichedNature | null | undefined),
+		name: alias
+			? withOriginal(nameIn(alias, language) || null, nameIn(keyword, language))
+			: { ...info.name, overrides: [] },
+		description: withOriginal(
+			keywordDescriptionIn(row, language),
+			keywordDescriptionIn(base, language),
+		),
+		category: withOriginal(
+			row?.category as EnrichedCategory | null | undefined,
+			base?.category as EnrichedCategory | null | undefined,
+		),
+		nature: withOriginal(
+			row?.nature as EnrichedNature | null | undefined,
+			base?.nature as EnrichedNature | null | undefined,
+		),
+		image: tooltipImage,
 	};
 }

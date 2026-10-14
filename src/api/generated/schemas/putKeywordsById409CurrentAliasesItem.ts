@@ -11,6 +11,8 @@ import type { PutKeywordsById409CurrentAliasesItemCategoryId } from "./putKeywor
 import type { PutKeywordsById409CurrentAliasesItemCreatedAt } from "./putKeywordsById409CurrentAliasesItemCreatedAt";
 import type { PutKeywordsById409CurrentAliasesItemCreatedById } from "./putKeywordsById409CurrentAliasesItemCreatedById";
 import type { PutKeywordsById409CurrentAliasesItemDescription } from "./putKeywordsById409CurrentAliasesItemDescription";
+import type { PutKeywordsById409CurrentAliasesItemDescriptionAr } from "./putKeywordsById409CurrentAliasesItemDescriptionAr";
+import type { PutKeywordsById409CurrentAliasesItemDescriptionEn } from "./putKeywordsById409CurrentAliasesItemDescriptionEn";
 import type { PutKeywordsById409CurrentAliasesItemImage } from "./putKeywordsById409CurrentAliasesItemImage";
 import type { PutKeywordsById409CurrentAliasesItemImageId } from "./putKeywordsById409CurrentAliasesItemImageId";
 import type { PutKeywordsById409CurrentAliasesItemMatchingType } from "./putKeywordsById409CurrentAliasesItemMatchingType";
@@ -25,6 +27,8 @@ export type PutKeywordsById409CurrentAliasesItem = {
 	nameAr: PutKeywordsById409CurrentAliasesItemNameAr;
 	nameEn: PutKeywordsById409CurrentAliasesItemNameEn;
 	description: PutKeywordsById409CurrentAliasesItemDescription;
+	descriptionAr: PutKeywordsById409CurrentAliasesItemDescriptionAr;
+	descriptionEn: PutKeywordsById409CurrentAliasesItemDescriptionEn;
 	matchingType: PutKeywordsById409CurrentAliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
 	overrideStyle: boolean;

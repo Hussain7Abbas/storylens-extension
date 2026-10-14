@@ -1476,6 +1476,58 @@ describe("language tabs in a character form", () => {
 		}
 	});
 
+	for (const kind of ["keyword", "alias"] as const) {
+		it(`saves independent descriptions from both ${kind} language tabs`, async () => {
+			const parent = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Parent",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			const view = await openKeywordForm(
+				"Mira",
+				kind,
+				kind === "alias" ? parent.id : undefined,
+			);
+			try {
+				const description = () =>
+					view.getByLabelText("coloring.description", {
+						selector: "input",
+					}) as HTMLInputElement;
+				fireEvent.change(description(), {
+					target: { value: "English description" },
+				});
+				fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+				await waitFor(() => expect(description().value).toBe(""));
+				fireEvent.change(nameInput(view), { target: { value: "ميرا" } });
+				fireEvent.change(description(), { target: { value: "وصف عربي" } });
+				fireEvent.click(view.getByRole("tab", { name: "coloring.english" }));
+				await waitFor(() =>
+					expect(description().value).toBe("English description"),
+				);
+				if (kind === "keyword") await chooseStyles(view);
+				const form = view
+					.getByRole("button", { name: "_.save" })
+					.closest("form");
+				if (!form) throw new Error("form missing");
+				fireEvent.submit(form);
+				await waitFor(async () =>
+					expect(await env.db.mutations.count()).toBe(1),
+				);
+				const [mutation] = await env.db.mutations.toArray();
+				expect(mutation?.patch).toMatchObject({
+					descriptionEn: "English description",
+					descriptionAr: "وصف عربي",
+				});
+			} finally {
+				view.unmount();
+			}
+		});
+	}
+
 	it("saves both tabs' names typed by hand, without a link", async () => {
 		const view = await openKeywordForm("Leo");
 		const previousUrl = window.location.href;

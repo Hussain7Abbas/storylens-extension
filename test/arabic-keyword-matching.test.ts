@@ -54,6 +54,8 @@ function keyword(values: Partial<RawKeyword> = {}): RawKeyword {
 			{
 				id: "version-base",
 				description: null,
+				descriptionAr: null,
+				descriptionEn: null,
 				startingChapter: 0,
 				endingChapter: null,
 				categoryId: category.id,
@@ -78,6 +80,8 @@ function alias(
 		nameAr: null,
 		nameEn: null,
 		description: null,
+		descriptionAr: null,
+		descriptionEn: null,
 		matchingType: "FULL",
 		fuzzyMatchArabicCharacters: true,
 		overrideStyle: false,

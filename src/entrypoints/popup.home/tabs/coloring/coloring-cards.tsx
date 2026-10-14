@@ -44,6 +44,7 @@ import {
 	aliasDisplayName,
 	aliasMatchNames,
 	displayNameIn,
+	keywordDescriptionIn,
 	type Language,
 	nameIn,
 } from "@/utils/translation";
@@ -84,7 +85,11 @@ function groupMatchesSearch(
 	return fuzzyMatches(term, [
 		nameIn(group.parent, language),
 		...group.aliases.flatMap(aliasMatchNames),
-		...group.versions.map((v) => v.description),
+		...group.versions.flatMap((v) => [
+			v.descriptionAr,
+			v.descriptionEn,
+			v.description,
+		]),
 	]);
 }
 
@@ -230,9 +235,12 @@ function VersionCard({
 		| undefined;
 
 	const hasOwnImage = Boolean(version.imageId ?? version.image?.url);
-	const ownDescription = version.description ?? null;
+	const language = useLanguage();
+	const ownDescription = keywordDescriptionIn(version, language);
 	const inheritedDescription =
-		!ownDescription && !isBase ? (baseVersion?.description ?? null) : null;
+		!ownDescription && !isBase
+			? keywordDescriptionIn(baseVersion, language)
+			: null;
 	const displayDescription = ownDescription ?? inheritedDescription;
 	const isDescInherited = !ownDescription && !!inheritedDescription;
 
@@ -322,9 +330,9 @@ function AliasCard({
 		| null
 		| undefined;
 
-	const ownDescription = alias.description ?? null;
+	const ownDescription = keywordDescriptionIn(alias, language);
 	const inheritedDescription = !ownDescription
-		? (baseVersion?.description ?? null)
+		? keywordDescriptionIn(baseVersion, language)
 		: null;
 	const displayDescription = ownDescription ?? inheritedDescription;
 	const isDescInherited = !ownDescription && !!inheritedDescription;
@@ -541,9 +549,9 @@ export function ColoringCards({
 										)}
 									</Group>
 								</Group>
-								{baseVersion?.description && (
+								{keywordDescriptionIn(baseVersion, language) && (
 									<Text size="sm" c="dimmed">
-										{baseVersion.description}
+										{keywordDescriptionIn(baseVersion, language)}
 									</Text>
 								)}
 							</ListItemCard>

@@ -17,6 +17,7 @@ import type {
 	ReplacementRow,
 	VersionRow,
 } from "@/lib/offline/types";
+import { keywordDescriptionIn } from "@/utils/translation";
 
 export type NovelSnapshot = {
 	novel?: CatalogNovel;
@@ -76,6 +77,21 @@ function pick(patch: Row, fields: readonly string[]): Row {
 	return out;
 }
 
+function localizedPatch(patch: Row): Row {
+	if (
+		patch.description === undefined ||
+		patch.descriptionAr !== undefined ||
+		patch.descriptionEn !== undefined
+	)
+		return patch;
+	const value = patch.description;
+	const field =
+		typeof value === "string" && /(?=\p{L})\p{Script=Arabic}/u.test(value)
+			? "descriptionAr"
+			: "descriptionEn";
+	return { ...patch, [field]: value };
+}
+
 const KEYWORD_FIELDS = [
 	"nameAr",
 	"nameEn",
@@ -84,6 +100,8 @@ const KEYWORD_FIELDS = [
 ] as const;
 const BASE_VERSION_FIELDS = [
 	"description",
+	"descriptionAr",
+	"descriptionEn",
 	"categoryId",
 	"natureId",
 	"imageId",
@@ -92,6 +110,8 @@ const ALIAS_FIELDS = [
 	"nameAr",
 	"nameEn",
 	"description",
+	"descriptionAr",
+	"descriptionEn",
 	"matchingType",
 	"fuzzyMatchArabicCharacters",
 	"overrideStyle",
@@ -101,6 +121,8 @@ const ALIAS_FIELDS = [
 ] as const;
 const VERSION_FIELDS = [
 	"description",
+	"descriptionAr",
+	"descriptionEn",
 	"categoryId",
 	"natureId",
 	"imageId",
@@ -283,6 +305,12 @@ function absorbKeyword(
 				...existing,
 				nameAr: existing.nameAr ?? free("nameAr"),
 				nameEn: existing.nameEn ?? free("nameEn"),
+				descriptionAr:
+					keywordDescriptionIn(existing, "ar") ??
+					keywordDescriptionIn(alias, "ar"),
+				descriptionEn:
+					keywordDescriptionIn(existing, "en") ??
+					keywordDescriptionIn(alias, "en"),
 			});
 			work.aliases.delete(alias.id);
 			continue;
@@ -295,6 +323,22 @@ function absorbKeyword(
 		}
 		work.aliases.set(alias.id, { ...alias, ...names, keywordId: targetId });
 	}
+	const baseOf = (keywordId: string) =>
+		[...work.versions.values()]
+			.filter((row) => row.keywordId === keywordId)
+			.sort((a, b) => Number(a.startingChapter) - Number(b.startingChapter))[0];
+	const base = baseOf(targetId);
+	const sourceBase = baseOf(sourceId);
+	if (base && sourceBase)
+		work.versions.set(base.id, {
+			...base,
+			descriptionAr:
+				keywordDescriptionIn(base, "ar") ??
+				keywordDescriptionIn(sourceBase, "ar"),
+			descriptionEn:
+				keywordDescriptionIn(base, "en") ??
+				keywordDescriptionIn(sourceBase, "en"),
+		});
 	for (const [id, version] of work.versions)
 		if (version.keywordId === sourceId) work.versions.delete(id);
 	for (const [id, replacement] of work.replacements) {
@@ -319,6 +363,10 @@ function absorbAlias(work: Working, targetId: string, sourceId: string): void {
 		...target,
 		nameAr: target.nameAr ?? source.nameAr,
 		nameEn: target.nameEn ?? source.nameEn,
+		descriptionAr:
+			keywordDescriptionIn(target, "ar") ?? keywordDescriptionIn(source, "ar"),
+		descriptionEn:
+			keywordDescriptionIn(target, "en") ?? keywordDescriptionIn(source, "en"),
 	});
 	work.aliases.delete(sourceId);
 }
@@ -369,6 +417,8 @@ function applyKeyword(
 		const version = work.versions.get(versionId);
 		work.versions.set(versionId, {
 			description: null,
+			descriptionAr: null,
+			descriptionEn: null,
 			categoryId: null,
 			natureId: null,
 			imageId: null,
@@ -378,7 +428,7 @@ function applyKeyword(
 			createdAt,
 			updatedAt: createdAt,
 			...version,
-			...pick(mutation.patch, BASE_VERSION_FIELDS),
+			...pick(localizedPatch(mutation.patch), BASE_VERSION_FIELDS),
 			id: versionId,
 			keywordId: mutation.entityId,
 			startingChapter: 0,
@@ -398,7 +448,7 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		work.aliases.delete(mutation.entityId);
 		return true;
 	}
-	const changes = pick(mutation.patch, ALIAS_FIELDS);
+	const changes = pick(localizedPatch(mutation.patch), ALIAS_FIELDS);
 	const linked = linkOf(mutation.patch, "translationAliasId");
 	if (mutation.op === "update") {
 		if (!existing) return false;
@@ -420,6 +470,8 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		nameAr: null,
 		nameEn: null,
 		description: null,
+		descriptionAr: null,
+		descriptionEn: null,
 		matchingType: "FULL",
 		fuzzyMatchArabicCharacters: true,
 		overrideStyle: false,
@@ -451,7 +503,7 @@ function applyVersion(work: Working, mutation: Mutation): boolean {
 		work.versions.delete(mutation.entityId);
 		return true;
 	}
-	const changes = pick(mutation.patch, VERSION_FIELDS);
+	const changes = pick(localizedPatch(mutation.patch), VERSION_FIELDS);
 	if (mutation.op === "update") {
 		if (!existing) return false;
 		// The server ignores chapter ranges from readers.
@@ -496,6 +548,8 @@ function applyVersion(work: Working, mutation: Mutation): boolean {
 	const base: VersionRow = existing ?? {
 		id: mutation.entityId,
 		description: null,
+		descriptionAr: null,
+		descriptionEn: null,
 		startingChapter: start,
 		endingChapter,
 		categoryId: null,

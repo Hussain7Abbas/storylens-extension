@@ -27,7 +27,12 @@ import {
 	resolveKeywordImage,
 	resolveTooltipInfo,
 } from "@/utils/resolve-keyword-version";
-import { aliasDisplayName, type Language, nameIn } from "@/utils/translation";
+import {
+	aliasDisplayName,
+	keywordDescriptionIn,
+	type Language,
+	nameIn,
+} from "@/utils/translation";
 
 const TOOLTIP_ROOT_ID = "storylens-keyword-tooltip-root";
 const TOOLTIP_GAP_PX = 8;
@@ -598,8 +603,8 @@ function buildAliasesPanel(
 		}
 
 		// Description
-		const ownDesc = alias.description ?? null;
-		const displayDesc = ownDesc ?? base?.description ?? null;
+		const ownDesc = keywordDescriptionIn(alias, language);
+		const displayDesc = ownDesc ?? keywordDescriptionIn(base, language);
 		const isInherited = !ownDesc && !!displayDesc;
 		if (displayDesc) {
 			const descEl = document.createElement("div");
@@ -630,6 +635,7 @@ function buildAliasesPanel(
 
 function buildVersionsPanel(
 	raw: RawKeyword,
+	language: Language,
 	currentChapter: number,
 ): HTMLElement {
 	const panel = document.createElement("div");
@@ -721,9 +727,9 @@ function buildVersionsPanel(
 		}
 
 		// Description (own + inherited from base)
-		const ownDesc = version.description ?? null;
+		const ownDesc = keywordDescriptionIn(version, language);
 		const inheritedDesc =
-			!ownDesc && !isBase ? (base?.description ?? null) : null;
+			!ownDesc && !isBase ? keywordDescriptionIn(base, language) : null;
 		const displayDesc = ownDesc ?? inheritedDesc;
 		const isInherited = !ownDesc && !!inheritedDesc;
 		if (displayDesc) {
@@ -867,7 +873,7 @@ function buildKeywordTooltipContent(
 	if (data.raw.versions.length > 1) {
 		tabs.push({
 			label: tt("versions"),
-			content: buildVersionsPanel(data.raw, data.currentChapter),
+			content: buildVersionsPanel(data.raw, data.language, data.currentChapter),
 		});
 	}
 

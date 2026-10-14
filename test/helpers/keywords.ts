@@ -46,6 +46,14 @@ export function version(
 ): RawKeywordVersion {
 	return {
 		description: null,
+		descriptionAr:
+			values.description && /[ء-ي]/u.test(values.description)
+				? values.description
+				: null,
+		descriptionEn:
+			values.description && !/[ء-ي]/u.test(values.description)
+				? values.description
+				: null,
 		startingChapter: 0,
 		endingChapter: null,
 		categoryId: null,
@@ -69,6 +77,14 @@ export function alias(
 		nameAr: null,
 		nameEn: "Alias",
 		description: null,
+		descriptionAr:
+			values.description && /[ء-ي]/u.test(values.description)
+				? values.description
+				: null,
+		descriptionEn:
+			values.description && !/[ء-ي]/u.test(values.description)
+				? values.description
+				: null,
 		matchingType: "FULL",
 		overrideStyle: false,
 		categoryId: null,

@@ -63,7 +63,9 @@ import { stripArabicDiacritics } from "@/utils/arabic";
 import { loadFormValues } from "@/utils/form-baseline";
 import {
 	aliasMatchNames,
+	descriptionKey,
 	displayNameIn,
+	keywordDescriptionIn,
 	LANGUAGES,
 	type Language,
 	nameIn,
@@ -139,6 +141,8 @@ type Translation = {
 };
 
 type Styled = {
+	descriptionAr?: string | null;
+	descriptionEn?: string | null;
 	description?: string | null;
 	categoryId?: string | null;
 	natureId?: string | null;
@@ -153,7 +157,7 @@ function translationOf(
 ): Translation {
 	return {
 		name: nameIn(named, language),
-		description: styled?.description ?? "",
+		description: keywordDescriptionIn(styled, language) ?? "",
 		categoryId: styled?.categoryId ?? null,
 		natureId: styled?.natureId ?? null,
 		imageId: (styled?.imageId as string | null | undefined) ?? null,
@@ -245,7 +249,8 @@ type KeywordFormValues = {
 	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string;
 	natureId: string;
-	description: string;
+	descriptionAr: string;
+	descriptionEn: string;
 	imageId?: string;
 };
 
@@ -333,7 +338,12 @@ function KeywordForm({
 			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
 			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
 			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
-			description: baseVersion?.description ?? suggestion?.description ?? "",
+			descriptionAr:
+				keywordDescriptionIn(baseVersion, "ar") ??
+				(language === "ar" ? (suggestion?.description ?? "") : ""),
+			descriptionEn:
+				keywordDescriptionIn(baseVersion, "en") ??
+				(language === "en" ? (suggestion?.description ?? "") : ""),
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
 		},
 		validate: {
@@ -362,7 +372,7 @@ function KeywordForm({
 
 	const { setFieldValue, isDirty, resetDirty } = form;
 	/**
-	 * A link fills the other language's name and overwrites the shared style with
+	 * A link fills the other language's name and description and overwrites the shared style with
 	 * the linked keyword's, because the merge keeps only one of the two rows.
 	 * `baseline` is for a link the AI proposed: its values load without counting
 	 * as unsaved changes. Clearing the link restores only the stored name.
@@ -372,7 +382,7 @@ function KeywordForm({
 			const write = () => {
 				setFieldValue(nameKey(other), translation?.name ?? storedOther);
 				if (!translation) return;
-				setFieldValue("description", translation.description);
+				setFieldValue(descriptionKey(other), translation.description);
 				setFieldValue("categoryId", translation.categoryId ?? "");
 				setFieldValue("natureId", translation.natureId ?? "");
 				setFieldValue("imageId", translation.imageId ?? undefined);
@@ -426,7 +436,8 @@ function KeywordForm({
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
-					description: values.description || null,
+					descriptionAr: values.descriptionAr || null,
+					descriptionEn: values.descriptionEn || null,
 					imageId: values.imageId ?? null,
 					image,
 					// The linked keyword is merged in and gives this one its other name.
@@ -443,7 +454,8 @@ function KeywordForm({
 								keyword.fuzzyMatchArabicCharacters ?? true,
 							categoryId: baseVersion?.categoryId ?? "",
 							natureId: baseVersion?.natureId ?? "",
-							description: baseVersion?.description ?? null,
+							descriptionAr: keywordDescriptionIn(baseVersion, "ar"),
+							descriptionEn: keywordDescriptionIn(baseVersion, "en"),
 							imageId: baseVersion?.imageId ?? null,
 						},
 						{ ...values, imageId: values.imageId ?? null },
@@ -596,7 +608,7 @@ function KeywordForm({
 								/>
 								<TextInput
 									label={t("coloring.description")}
-									{...form.getInputProps("description")}
+									{...form.getInputProps(descriptionKey(tab))}
 								/>
 								<FileInput
 									label={t("coloring.image")}
@@ -610,7 +622,7 @@ function KeywordForm({
 									novelId={selectedNovelId}
 									name={nameIn(form.values, item)}
 									otherNames={keyword?.aliases.flatMap(aliasMatchNames) ?? []}
-									description={form.values.description}
+									description={form.values[descriptionKey(tab)]}
 									category={categoryLabel(
 										categoriesData,
 										form.values.categoryId,
@@ -733,7 +745,8 @@ function KeywordForm({
 type AliasFormValues = {
 	nameAr: string;
 	nameEn: string;
-	description: string;
+	descriptionAr: string;
+	descriptionEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
 	categoryId: string | null;
@@ -809,7 +822,12 @@ function AliasForm({
 		initialValues: {
 			nameAr: storedName("ar"),
 			nameEn: storedName("en"),
-			description: alias?.description ?? suggestion?.description ?? "",
+			descriptionAr:
+				keywordDescriptionIn(alias, "ar") ??
+				(language === "ar" ? (suggestion?.description ?? "") : ""),
+			descriptionEn:
+				keywordDescriptionIn(alias, "en") ??
+				(language === "en" ? (suggestion?.description ?? "") : ""),
 			matchingType: alias?.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
 			categoryId: alias?.categoryId ?? null,
@@ -845,7 +863,7 @@ function AliasForm({
 			const write = () => {
 				setFieldValue(nameKey(other), translation?.name ?? storedOther);
 				if (!translation) return;
-				setFieldValue("description", translation.description);
+				setFieldValue(descriptionKey(other), translation.description);
 				setFieldValue("categoryId", translation.categoryId);
 				setFieldValue("natureId", translation.natureId);
 				setFieldValue("imageId", translation.imageId ?? undefined);
@@ -891,7 +909,8 @@ function AliasForm({
 					// One name per language tab, like keywords.
 					nameAr: values.nameAr.trim() || null,
 					nameEn: values.nameEn.trim() || null,
-					description: values.description || null,
+					descriptionAr: values.descriptionAr || null,
+					descriptionEn: values.descriptionEn || null,
 					matchingType: values.matchingType,
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					categoryId: values.categoryId,
@@ -906,7 +925,8 @@ function AliasForm({
 				const initial = {
 					nameAr: alias.nameAr ?? "",
 					nameEn: alias.nameEn ?? "",
-					description: alias.description ?? null,
+					descriptionAr: keywordDescriptionIn(alias, "ar"),
+					descriptionEn: keywordDescriptionIn(alias, "en"),
 					matchingType: alias.matchingType,
 					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 					categoryId: alias.categoryId ?? null,
@@ -1037,7 +1057,7 @@ function AliasForm({
 								)}
 								<TextInput
 									label={t("coloring.description")}
-									{...form.getInputProps("description")}
+									{...form.getInputProps(descriptionKey(tab))}
 								/>
 								<Select
 									label={t("coloring.category")}
@@ -1085,7 +1105,7 @@ function AliasForm({
 									novelId={selectedNovelId}
 									name={nameIn(form.values, item)}
 									otherNames={[nameIn(frame.parentKeyword, language)]}
-									description={form.values.description}
+									description={form.values[descriptionKey(tab)]}
 									category={categoryLabel(
 										categoriesData,
 										form.values.categoryId,
@@ -1260,7 +1280,7 @@ function VersionForm({
 	const form = useForm<VersionFormValues>({
 		initialValues: {
 			description:
-				version?.description ??
+				keywordDescriptionIn(version, language) ??
 				suggestion?.description ??
 				(frame.mode === "version-add" ? (frame.initialText ?? "") : ""),
 			categoryId: version?.categoryId ?? suggestion?.categoryId ?? null,
@@ -1311,7 +1331,7 @@ function VersionForm({
 					keywordId: frame.parentKeyword.id,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
-					description: values.description || null,
+					[descriptionKey(language)]: values.description || null,
 					imageId: values.imageId ?? null,
 					currentChapter,
 					...range,
@@ -1322,7 +1342,7 @@ function VersionForm({
 					{
 						categoryId: version.categoryId ?? null,
 						natureId: version.natureId ?? null,
-						description: version.description ?? null,
+						[descriptionKey(language)]: keywordDescriptionIn(version, language),
 						imageId: version.imageId ?? null,
 						...(isModerator
 							? {
@@ -1336,6 +1356,7 @@ function VersionForm({
 					},
 					{
 						...values,
+						[descriptionKey(language)]: values.description || null,
 						imageId: values.imageId ?? null,
 						...(isModerator
 							? {
