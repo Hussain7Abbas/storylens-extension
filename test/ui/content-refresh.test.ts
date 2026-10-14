@@ -9,6 +9,7 @@ import {
 	it,
 } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import { TOOLTIP_TRIGGER_KEY } from "../../src/lib/tooltip-trigger";
 import type { NovelContentData } from "../../src/types/content-data";
 import { fakeBrowser, resetFakeBrowser } from "../helpers/fake-browser";
 import { keyword } from "../helpers/keywords";
@@ -93,6 +94,7 @@ beforeEach(async () => {
 		return { res: undefined };
 	};
 	if (!started) {
+		await fakeBrowser.storage.local.set({ [TOOLTIP_TRIGGER_KEY]: "hover" });
 		await runContentScript({ addEventListener() {} } as unknown as Parameters<
 			typeof runContentScript
 		>[0]);
@@ -116,6 +118,28 @@ afterAll(async () => {
 });
 
 describe("page highlight refresh", () => {
+	it("loads the saved tooltip trigger and applies storage changes to existing highlights", async () => {
+		const anchor = root.querySelector<HTMLElement>(".storylens-keyword");
+		if (!anchor) throw new Error("keyword missing");
+		const visible = () => document.querySelector('[role="tooltip"]');
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(visible()).not.toBeNull();
+		await fakeBrowser.storage.local.set({ [TOOLTIP_TRIGGER_KEY]: "click" });
+		expect(visible()).toBeNull();
+		expect(root.querySelector(".storylens-keyword")).toBe(anchor);
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(visible()).toBeNull();
+		anchor.click();
+		expect(visible()).not.toBeNull();
+		await fakeBrowser.storage.local.set({ [TOOLTIP_TRIGGER_KEY]: "hover" });
+		expect(visible()).toBeNull();
+		await fakeBrowser.storage.local.remove(TOOLTIP_TRIGGER_KEY);
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(visible()).toBeNull();
+		anchor.click();
+		expect(visible()).not.toBeNull();
+	});
+
 	it("keeps existing keywords visible while replacement data is pending", async () => {
 		const pending = refreshPageContent();
 		await new Promise((resolve) => setTimeout(resolve, 0));

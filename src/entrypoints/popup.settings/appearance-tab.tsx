@@ -1,4 +1,11 @@
-import { Select, Stack, Text, Title } from "@mantine/core";
+import {
+	Input,
+	SegmentedControl,
+	Select,
+	Stack,
+	Text,
+	Title,
+} from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { useAtom, useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
@@ -10,12 +17,14 @@ import {
 	NIGHT_LIGHT_MIN_LEVEL,
 	parseNightLightLevel,
 } from "@/lib/night-light";
+import { parseTooltipTrigger } from "@/lib/tooltip-trigger";
 import {
 	FONT_FACE_OPTIONS,
 	type FontFace,
 	fontFaceAtom,
 	fontSizeAtom,
 	nightLightLevelAtom,
+	tooltipTriggerAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
 
@@ -23,6 +32,7 @@ export function AppearanceTab() {
 	const { t } = useTranslation();
 	const [fontFace, setFontFace] = useAtom(fontFaceAtom);
 	const [fontSize, setFontSize] = useAtom(fontSizeAtom);
+	const [tooltipTrigger, setTooltipTrigger] = useAtom(tooltipTriggerAtom);
 	const [nightLightLevel, setNightLightLevel] = useAtom(nightLightLevelAtom);
 	const direction = useAtomValue(localeAtom) === "ar" ? "rtl" : "ltr";
 	// One event per adjustment, not one per step of a drag or key press.
@@ -44,6 +54,23 @@ export function AppearanceTab() {
 					{t("settings.appearance.description")}
 				</Text>
 			</div>
+
+			<Input.Wrapper label={t("settings.appearance.showTooltip")}>
+				<SegmentedControl
+					fullWidth
+					aria-label={t("settings.appearance.showTooltip")}
+					value={tooltipTrigger}
+					data={[
+						{ value: "hover", label: t("settings.appearance.onHover") },
+						{ value: "click", label: t("settings.appearance.onClick") },
+					]}
+					onChange={(value) => {
+						const trigger = parseTooltipTrigger(value);
+						setTooltipTrigger(trigger);
+						trackEvent("tooltip_trigger_changed", { trigger });
+					}}
+				/>
+			</Input.Wrapper>
 
 			<Select
 				label={t("settings.appearance.fontFace")}

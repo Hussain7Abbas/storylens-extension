@@ -381,6 +381,9 @@
 			"nightLight": "Night Light",
 			"nightLightDescription": "A yellow light over the novel page. Turn it on or off from the in-site Story Lens button.",
 			"nightLightLevel": "Level",
+			"showTooltip": "Show tooltip",
+			"onHover": "On hover",
+			"onClick": "On click",
 			"title": "Tooltip Appearance"
 		},
 		"cancel": "Cancel",

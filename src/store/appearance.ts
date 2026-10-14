@@ -5,9 +5,27 @@ import {
 	NIGHT_LIGHT_DEFAULT_LEVEL,
 	NIGHT_LIGHT_LEVEL_KEY,
 } from "@/lib/night-light";
+import {
+	parseTooltipTrigger,
+	TOOLTIP_TRIGGER_KEY,
+	type TooltipTrigger,
+} from "@/lib/tooltip-trigger";
 
 export const APPEARANCE_FONT_FACE_KEY = "storylens-font-face";
 export const APPEARANCE_FONT_SIZE_KEY = "storylens-font-size";
+
+const storedTooltipTriggerAtom = atomWithStorage<TooltipTrigger>(
+	TOOLTIP_TRIGGER_KEY,
+	"click",
+	undefined,
+	{ getOnInit: true },
+);
+
+export const tooltipTriggerAtom = atom(
+	(get) => parseTooltipTrigger(get(storedTooltipTriggerAtom)),
+	(_get, set, trigger: TooltipTrigger) =>
+		set(storedTooltipTriggerAtom, parseTooltipTrigger(trigger)),
+);
 
 export const FONT_FACE_OPTIONS = [
 	"Default",

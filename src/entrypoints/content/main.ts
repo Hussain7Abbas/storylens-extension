@@ -7,6 +7,7 @@ import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
 import { pageAiTasks, parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
+import { TOOLTIP_TRIGGER_KEY } from "@/lib/tooltip-trigger";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { findContentRoot } from "@/utils/content-processor";
@@ -14,6 +15,7 @@ import {
 	setTooltipFontFace,
 	setTooltipFontSize,
 	setTooltipLocale,
+	setTooltipTrigger,
 	setTooltipUser,
 } from "@/utils/keyword-tooltip";
 import { readPageText } from "@/utils/page-text";
@@ -191,8 +193,10 @@ export async function runContentScript(
 		"storylens-locale",
 		"storylens-font-face",
 		"storylens-font-size",
+		TOOLTIP_TRIGGER_KEY,
 	]);
 	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
+	setTooltipTrigger(stored[TOOLTIP_TRIGGER_KEY]);
 	// Tooltip Edit buttons follow the reader's per-row permissions.
 	setTooltipUser(parseStoredAuth(stored[AUTH_STORAGE_KEY]).user);
 	if (typeof stored["storylens-locale"] === "string") {
@@ -208,6 +212,9 @@ export async function runContentScript(
 
 	browser.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
+		if (TOOLTIP_TRIGGER_KEY in changes) {
+			setTooltipTrigger(changes[TOOLTIP_TRIGGER_KEY].newValue);
+		}
 		if (AUTH_STORAGE_KEY in changes) {
 			setTooltipUser(parseStoredAuth(changes[AUTH_STORAGE_KEY].newValue).user);
 		}

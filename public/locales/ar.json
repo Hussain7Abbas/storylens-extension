@@ -385,6 +385,9 @@
 			"nightLight": "الإضاءة الليلية",
 			"nightLightDescription": "ضوء أصفر فوق صفحة الرواية. شغّله أو أوقفه من زر Story Lens داخل الموقع.",
 			"nightLightLevel": "المستوى",
+			"showTooltip": "إظهار التلميح",
+			"onHover": "عند التمرير",
+			"onClick": "عند النقر",
 			"title": "مظهر التلميح"
 		},
 		"cancel": "إلغاء",

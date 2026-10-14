@@ -28,12 +28,14 @@ import { NIGHT_LIGHT_LEVEL_KEY } from "@/lib/night-light";
 import { isOfflineUnavailable, openOfflineDb } from "@/lib/offline/db";
 import { useOfflineInvalidation } from "@/lib/offline/hooks";
 import { usePopupAutoSync } from "@/lib/offline/use-popup-auto-sync";
+import { TOOLTIP_TRIGGER_KEY } from "@/lib/tooltip-trigger";
 import {
 	APPEARANCE_FONT_FACE_KEY,
 	APPEARANCE_FONT_SIZE_KEY,
 	fontFaceAtom,
 	fontSizeAtom,
 	nightLightLevelAtom,
+	tooltipTriggerAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
 import { cssVariablesResolver, theme } from "@/styles/theme";
@@ -127,6 +129,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const locale = useAtomValue(localeAtom);
 	const fontFace = useAtomValue(fontFaceAtom);
 	const fontSize = useAtomValue(fontSizeAtom);
+	const tooltipTrigger = useAtomValue(tooltipTriggerAtom);
 	const nightLightLevel = useAtomValue(nightLightLevelAtom);
 
 	// One client for the popup's lifetime: locale and font changes re-render App
@@ -147,6 +150,10 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	useEffect(() => {
 		void browser.storage.local.set({ [APPEARANCE_FONT_SIZE_KEY]: fontSize });
 	}, [fontSize]);
+
+	useEffect(() => {
+		void browser.storage.local.set({ [TOOLTIP_TRIGGER_KEY]: tooltipTrigger });
+	}, [tooltipTrigger]);
 
 	useEffect(() => {
 		void browser.storage.local.set({

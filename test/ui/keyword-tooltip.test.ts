@@ -25,6 +25,8 @@ const {
 	setTooltipActions,
 	setTooltipFontSize,
 	setTooltipLocale,
+	setTooltipPicking,
+	setTooltipTrigger,
 	setTooltipUser,
 } = await import("../../src/utils/keyword-tooltip");
 const { enrichKeywords } = await import(
@@ -35,8 +37,7 @@ const keywordImage = image("keyword-image");
 const aliasImage = image("alias-image");
 const owner = makeUser("owner");
 
-/** Hovers a highlighted word of `raw` (its alias when `aliasId` is given). */
-function hover(raw: RawKeyword, aliasId?: string): HTMLElement {
+function createAnchor(raw: RawKeyword, aliasId?: string): HTMLElement {
 	const enriched = enrichKeywords([raw], 5, "en").find(
 		(item) => item.id === (aliasId ?? raw.id),
 	) as EnrichedKeyword;
@@ -50,6 +51,13 @@ function hover(raw: RawKeyword, aliasId?: string): HTMLElement {
 		5,
 		"en",
 	);
+	return anchor;
+}
+
+/** Hovers a highlighted word of `raw` (its alias when `aliasId` is given). */
+function hover(raw: RawKeyword, aliasId?: string): HTMLElement {
+	setTooltipTrigger("hover");
+	const anchor = createAnchor(raw, aliasId);
 	anchor.dispatchEvent(new MouseEvent("mouseenter"));
 	const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]');
 	if (!tooltip) throw new Error("tooltip did not open");
@@ -72,11 +80,86 @@ afterEach(() => {
 	setTooltipUser(null);
 	setTooltipLocale("en");
 	setTooltipFontSize(null);
+	setTooltipTrigger(undefined);
+	setTooltipPicking(false);
 	document.body.replaceChildren();
 });
 
 afterAll(async () => {
 	if (registeredHere) await GlobalRegistrator.unregister();
+});
+
+describe("tooltip trigger", () => {
+	const visible = () => document.querySelector('[role="tooltip"]');
+
+	it("defaults to click and stays open after the pointer leaves", async () => {
+		initKeywordTooltipPortal();
+		const anchor = createAnchor(keyword());
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(visible()).toBeNull();
+		anchor.click();
+		expect(visible()).not.toBeNull();
+		expect(anchor.getAttribute("aria-expanded")).toBe("true");
+		anchor.dispatchEvent(new MouseEvent("mouseleave"));
+		visible()?.dispatchEvent(new MouseEvent("mouseleave"));
+		await new Promise((resolve) => setTimeout(resolve, 120));
+		expect(visible()).not.toBeNull();
+		anchor.click();
+		expect(visible()).toBeNull();
+		expect(anchor.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	it("keeps inner clicks open, switches words, and dismisses outside or on Escape", () => {
+		initKeywordTooltipPortal();
+		const first = createAnchor(keyword());
+		const second = createAnchor(keyword({ nameEn: "Second" }));
+		first.click();
+		visible()?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+		expect(visible()).not.toBeNull();
+		second.click();
+		expect(visible()?.textContent).toContain("Second");
+		expect(first.getAttribute("aria-expanded")).toBe("false");
+		document.body.click();
+		expect(visible()).toBeNull();
+		first.click();
+		document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+		expect(visible()).toBeNull();
+	});
+
+	it("updates existing words and resets invalid settings to click", async () => {
+		const anchor = createAnchor(keyword());
+		anchor.click();
+		setTooltipTrigger("hover");
+		expect(visible()).toBeNull();
+		anchor.click();
+		expect(visible()).toBeNull();
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(visible()).not.toBeNull();
+		anchor.dispatchEvent(new MouseEvent("mouseleave"));
+		await new Promise((resolve) => setTimeout(resolve, 120));
+		expect(visible()).toBeNull();
+		setTooltipTrigger("invalid");
+		anchor.dispatchEvent(new MouseEvent("mouseenter"));
+		expect(visible()).toBeNull();
+		anchor.click();
+		expect(visible()).not.toBeNull();
+	});
+
+	it("supports keyboard activation and suppresses clicks while picking text", () => {
+		const anchor = createAnchor(keyword());
+		expect(anchor.tabIndex).toBe(0);
+		anchor.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+		expect(visible()).not.toBeNull();
+		anchor.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+		expect(visible()).toBeNull();
+		setTooltipPicking(true);
+		anchor.click();
+		anchor.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+		expect(visible()).toBeNull();
+		setTooltipPicking(false);
+		anchor.click();
+		expect(visible()).not.toBeNull();
+	});
 });
 
 describe("tooltip font size", () => {

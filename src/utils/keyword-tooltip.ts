@@ -7,6 +7,10 @@ import {
 	canEditVersion,
 } from "@/lib/auth/permissions";
 import { parseFontSize } from "@/lib/font-size";
+import {
+	parseTooltipTrigger,
+	type TooltipTrigger,
+} from "@/lib/tooltip-trigger";
 import type {
 	EnrichedCategory,
 	EnrichedKeyword,
@@ -41,6 +45,7 @@ const anchorDataMap = new WeakMap<HTMLElement, AnchorData>();
 
 let portalInitialized = false;
 let pickingText = false;
+let tooltipTrigger: TooltipTrigger = "click";
 let tabSequence = 0;
 let activeAnchor: HTMLElement | null = null;
 let activeTooltip: HTMLElement | null = null;
@@ -146,6 +151,14 @@ export function setTooltipActions(next: TooltipActions | null): void {
 export function setTooltipPicking(picking: boolean): void {
 	pickingText = picking;
 	if (picking) hideActiveTooltip();
+}
+
+/** Existing anchors read this preference on each event; no re-highlighting needed. */
+export function setTooltipTrigger(value: unknown): void {
+	const next = parseTooltipTrigger(value);
+	if (next === tooltipTrigger) return;
+	tooltipTrigger = next;
+	hideActiveTooltip();
 }
 
 /** The signed-in reader, for the per-row edit rules. */
@@ -1082,6 +1095,7 @@ function clearHideTimeout(): void {
 
 function hideActiveTooltip(): void {
 	clearHideTimeout();
+	activeAnchor?.setAttribute("aria-expanded", "false");
 	activeTooltip?.remove();
 	activeTooltip = null;
 	activeActions?.remove();
@@ -1090,6 +1104,7 @@ function hideActiveTooltip(): void {
 }
 
 function scheduleHideTooltip(): void {
+	if (tooltipTrigger !== "hover") return;
 	clearHideTimeout();
 	hideTimeout = setTimeout(() => {
 		hideActiveTooltip();
@@ -1113,6 +1128,7 @@ function showTooltip(anchor: HTMLElement): void {
 
 	hideActiveTooltip();
 	activeAnchor = anchor;
+	anchor.setAttribute("aria-expanded", "true");
 
 	const tooltip = buildKeywordTooltipContent(data, () => {
 		if (activeAnchor && activeTooltip) {
@@ -1181,9 +1197,18 @@ export function registerKeywordTooltipAnchor(
 	language: Language,
 ): void {
 	anchorDataMap.set(anchor, { enriched, raw, alias, currentChapter, language });
+	anchor.tabIndex = 0;
+	anchor.setAttribute("role", "button");
+	anchor.setAttribute("aria-expanded", "false");
 
 	anchor.addEventListener("mouseenter", () => {
-		showTooltip(anchor);
+		if (tooltipTrigger === "hover") showTooltip(anchor);
+	});
+
+	anchor.addEventListener("click", () => {
+		if (pickingText || tooltipTrigger !== "click") return;
+		if (activeAnchor === anchor && activeTooltip) hideActiveTooltip();
+		else showTooltip(anchor);
 	});
 
 	anchor.addEventListener("mouseleave", (event) => {
@@ -1197,6 +1222,29 @@ export function registerKeywordTooltipAnchor(
 
 		scheduleHideTooltip();
 	});
+
+	anchor.addEventListener("keydown", (event) => {
+		if (pickingText || (event.key !== "Enter" && event.key !== " ")) return;
+		event.preventDefault();
+		if (activeAnchor === anchor && activeTooltip) hideActiveTooltip();
+		else showTooltip(anchor);
+	});
+}
+
+function handleOutsideClick(event: MouseEvent): void {
+	if (!activeTooltip) return;
+	const path = event.composedPath();
+	if (
+		(activeAnchor && path.includes(activeAnchor)) ||
+		path.includes(activeTooltip) ||
+		(activeActions && path.includes(activeActions))
+	)
+		return;
+	hideActiveTooltip();
+}
+
+function handleEscape(event: KeyboardEvent): void {
+	if (event.key === "Escape") hideActiveTooltip();
 }
 
 export function initKeywordTooltipPortal(): void {
@@ -1206,6 +1254,8 @@ export function initKeywordTooltipPortal(): void {
 
 	applyAppearanceToRoot(getTooltipRoot());
 	attachScrollListener();
+	document.addEventListener("click", handleOutsideClick, true);
+	document.addEventListener("keydown", handleEscape);
 	portalInitialized = true;
 }
 
@@ -1215,5 +1265,7 @@ export function destroyKeywordTooltipPortal(): void {
 	closeImageModal();
 	document.getElementById(TOOLTIP_ROOT_ID)?.remove();
 	detachScrollListener();
+	document.removeEventListener("click", handleOutsideClick, true);
+	document.removeEventListener("keydown", handleEscape);
 	portalInitialized = false;
 }

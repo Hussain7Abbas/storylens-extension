@@ -99,8 +99,13 @@ const { AppearanceTab } = await import(
 	"../../src/entrypoints/popup.settings/appearance-tab"
 );
 const { NIGHT_LIGHT_LEVEL_KEY } = await import("../../src/lib/night-light");
-const { APPEARANCE_FONT_SIZE_KEY, fontSizeAtom, nightLightLevelAtom } =
-	await import("../../src/store/appearance");
+const {
+	APPEARANCE_FONT_SIZE_KEY,
+	fontSizeAtom,
+	nightLightLevelAtom,
+	tooltipTriggerAtom,
+} = await import("../../src/store/appearance");
+const { TOOLTIP_TRIGGER_KEY } = await import("../../src/lib/tooltip-trigger");
 
 type Env = Awaited<ReturnType<typeof setupEngine>>;
 let env: Env;
@@ -559,6 +564,23 @@ describe("stored sessions (phase 6 test 6)", () => {
 });
 
 describe("popup App (phase 1 test 4)", () => {
+	it("mirrors tooltip trigger changes to extension storage", async () => {
+		const view = render(React.createElement(App, { type: "popup" }));
+		await waitFor(() =>
+			expect(fakeBrowser.storage.local.peek(TOOLTIP_TRIGGER_KEY)).toBe("click"),
+		);
+		await act(async () => {
+			getDefaultStore().set(tooltipTriggerAtom, "hover");
+		});
+		await waitFor(() =>
+			expect(fakeBrowser.storage.local.peek(TOOLTIP_TRIGGER_KEY)).toBe("hover"),
+		);
+		await act(async () => {
+			getDefaultStore().set(tooltipTriggerAtom, "click");
+		});
+		view.unmount();
+	});
+
 	it("keeps one QueryClient across locale changes", async () => {
 		const view = render(React.createElement(App, { type: "popup" }));
 		const before = queryClientsCreated;
@@ -1567,6 +1589,36 @@ describe("appearance settings", () => {
 	afterEach(() => {
 		window.localStorage.clear();
 		document.documentElement.removeAttribute("dir");
+	});
+
+	it("defaults to On click and saves the selected tooltip trigger", () => {
+		const { view, store } = renderAppearanceTab();
+		const click = view.getByRole("radio", {
+			name: "settings.appearance.onClick",
+		}) as HTMLInputElement;
+		const hover = view.getByRole("radio", {
+			name: "settings.appearance.onHover",
+		}) as HTMLInputElement;
+		expect(click.checked).toBe(true);
+		fireEvent.click(hover);
+		expect(store.get(tooltipTriggerAtom)).toBe("hover");
+		expect(window.localStorage.getItem(TOOLTIP_TRIGGER_KEY)).toBe('"hover"');
+		fireEvent.click(click);
+		expect(store.get(tooltipTriggerAtom)).toBe("click");
+	});
+
+	it("loads the saved trigger before the popup mirrors it to page storage", async () => {
+		const load = async (suffix: string) => {
+			const path = `../../src/store/appearance.ts?${suffix}`;
+			const { tooltipTriggerAtom: atom } = (await import(
+				path
+			)) as typeof import("../../src/store/appearance");
+			return createStore().get(atom);
+		};
+		window.localStorage.setItem(TOOLTIP_TRIGGER_KEY, '"hover"');
+		expect(await load("tooltip-trigger-saved")).toBe("hover");
+		window.localStorage.setItem(TOOLTIP_TRIGGER_KEY, '"invalid"');
+		expect(await load("tooltip-trigger-invalid")).toBe("click");
 	});
 
 	it("starts the popup atom at the saved size and resets the old default", async () => {

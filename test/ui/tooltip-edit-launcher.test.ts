@@ -33,6 +33,7 @@ const {
 	destroyKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
 	setTooltipUser,
+	setTooltipTrigger,
 } = await import("../../src/utils/keyword-tooltip");
 const { enrichKeywords } = await import(
 	"../../src/utils/resolve-keyword-version"
@@ -102,6 +103,7 @@ beforeEach(() => {
 	settings.disableIframePageLoading = true;
 	console.error = () => {};
 	setTooltipUser(owner);
+	setTooltipTrigger("hover");
 	setPagePopupLauncher(true, "en");
 });
 
@@ -109,6 +111,7 @@ afterEach(() => {
 	destroyKeywordTooltipPortal();
 	setPagePopupLauncher(false, "en");
 	setTooltipUser(null);
+	setTooltipTrigger(undefined);
 	document.body.replaceChildren();
 	settings.disableIframePageLoading = iframeLoading;
 	console.error = loggedErrors;
