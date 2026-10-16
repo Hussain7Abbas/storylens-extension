@@ -4,6 +4,7 @@ import { availabilityKey } from "@/lib/ai-source/availability";
 import { useAiSnapshot } from "@/lib/ai-source/hooks";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { withImageContinuity } from "@/lib/chapter-context/image";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import { DEFAULT_AI_PROMPTS } from "@/lib/desktop-client/ai-prompts";
@@ -253,7 +254,7 @@ export function useKeywordSuggestion(
 			const draw = async () => {
 				if (!request.generateImage || drawing.signal.aborted) return;
 				try {
-					const prompt = buildCharacterImagePrompt({
+					let prompt = buildCharacterImagePrompt({
 						name: request.name,
 						otherNames: [],
 						description: "",
@@ -263,6 +264,13 @@ export function useKeywordSuggestion(
 						],
 						novelContext,
 					});
+					if (novelId)
+						prompt = await withImageContinuity({
+							novelId,
+							names: [request.name],
+							prompt,
+						});
+					if (drawing.signal.aborted) return;
 					setImage({ status: "loading", prompt });
 					if (!imageAvailability.ok)
 						throw new Error(t(availabilityKey(imageAvailability)));

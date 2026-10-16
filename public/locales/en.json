@@ -153,6 +153,8 @@
 		"token": "Pairing token",
 		"chapterCoverPrompt": "Chapter cover image prompt",
 		"chapterCoverPromptHelp": "Creates a cinematic chapter cover using the chapter text, novel context and the descriptions and image references of keywords mentioned in it.",
+		"autoChapterContext": "Auto generate chapter context",
+		"autoChapterContextHelp": "Saves structured scenes, character states and lasting changes for each chapter you open that has no saved context. Existing context is reused. Uses the selected text AI provider and its displayed lens price. Neighboring contexts load only when preparing an image.",
 		"autoChapterCover": "Auto Generate Chapter Cover",
 		"autoChapterCoverHelp": "Generate a shared cover when a chapter loads without one. Uses your selected image provider; Story Lens Cloud uses lenses. Off by default."
 	},

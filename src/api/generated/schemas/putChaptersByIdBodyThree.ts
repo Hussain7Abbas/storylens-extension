@@ -11,5 +11,9 @@ export type PutChaptersByIdBodyThree = {
 	name: string;
 	/** @minimum 1 */
 	number: number;
+	/**
+	 * Deprecated since 2026-10-17; removed after 2027-04-30. Use Chapter context.summary instead.
+	 * @deprecated
+	 */
 	description?: string;
 };

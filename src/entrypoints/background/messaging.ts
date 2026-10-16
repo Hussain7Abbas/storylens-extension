@@ -24,6 +24,25 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	readChapterContext(
+		data: import("@/lib/chapter-context/transport").ChapterKey,
+	): import("@/lib/chapter-context/schema").ChapterContextRecord;
+	claimChapterContext(
+		data: import("@/lib/chapter-context/transport").ContextClaim,
+	): { token: string | null; ready: boolean };
+	publishChapterContext(
+		data: import("@/lib/chapter-context/transport").ContextPublish,
+	): void;
+	releaseChapterContext(
+		data: import("@/lib/chapter-context/transport").ChapterKey & {
+			token: string;
+		},
+	): void;
+	imageContinuity(
+		data: import("@/lib/chapter-context/transport").ChapterKey & {
+			entityKeys: string[];
+		},
+	): import("@/lib/chapter-context/schema").ContinuityContext;
 	chapterCoverKeywords(
 		novelId: string,
 	): import("@/types/content-data").RawKeyword[];

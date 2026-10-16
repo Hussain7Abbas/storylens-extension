@@ -8,6 +8,7 @@
 
 import type { PutChaptersById200CreatedAt } from "./putChaptersById200CreatedAt";
 import type { PutChaptersById200Description } from "./putChaptersById200Description";
+import type { PutChaptersById200ImageId } from "./putChaptersById200ImageId";
 import type { PutChaptersById200Number } from "./putChaptersById200Number";
 import type { PutChaptersById200UpdatedAt } from "./putChaptersById200UpdatedAt";
 
@@ -15,8 +16,15 @@ export type PutChaptersById200 = {
 	id: string;
 	name: string;
 	number: PutChaptersById200Number;
-	description: PutChaptersById200Description;
 	novelId: string;
+	/** @nullable */
+	imageId: PutChaptersById200ImageId;
 	createdAt: PutChaptersById200CreatedAt;
 	updatedAt: PutChaptersById200UpdatedAt;
+	/**
+	 * Deprecated since 2026-10-17; removed after 2027-04-30. Use Chapter context.summary instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	description?: PutChaptersById200Description;
 };

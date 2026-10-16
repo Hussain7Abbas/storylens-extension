@@ -5,7 +5,7 @@ import type { CoverReply, CoverRequest } from "./types";
 export async function chapterCoverRequest(
 	input: CoverRequest,
 ): Promise<CoverReply> {
-	const path = `/api/user/chapter-covers/${encodeURIComponent(input.novelId)}/${input.chapterNumber}`;
+	const path = `/api/user/chapter-artwork/${encodeURIComponent(input.novelId)}/${input.chapterNumber}`;
 	if (input.action === "read")
 		return (await customInstance<CoverReply>({ url: path, method: "GET" }))
 			.data;

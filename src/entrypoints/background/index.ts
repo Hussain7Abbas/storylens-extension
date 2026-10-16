@@ -10,6 +10,13 @@ import {
 	refreshAiPricing,
 	refreshLensBalance,
 } from "@/lib/billing/background";
+import {
+	claimContext,
+	publishContext,
+	readContext,
+	readContinuity,
+	releaseContext,
+} from "@/lib/chapter-context/transport";
 import { chapterCoverRequest } from "@/lib/chapter-cover/background";
 import {
 	cancelCloudPrompt,
@@ -198,6 +205,26 @@ export default defineBackground(() => {
 		if (view.novel) return view.keywords;
 		return (await fetchNovelBundle(data, { token: token ?? undefined }))
 			.keywords;
+	});
+	onMessage("readChapterContext", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return readContext(data);
+	});
+	onMessage("claimChapterContext", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return claimContext(data);
+	});
+	onMessage("publishChapterContext", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return publishContext(data);
+	});
+	onMessage("releaseChapterContext", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return releaseContext(data);
+	});
+	onMessage("imageContinuity", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return readContinuity(data);
 	});
 	onMessage("chapterCover", ({ data, sender }) => {
 		desktopJobOwner(sender);

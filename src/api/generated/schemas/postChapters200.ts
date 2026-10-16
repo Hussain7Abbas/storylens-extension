@@ -8,6 +8,7 @@
 
 import type { PostChapters200CreatedAt } from "./postChapters200CreatedAt";
 import type { PostChapters200Description } from "./postChapters200Description";
+import type { PostChapters200ImageId } from "./postChapters200ImageId";
 import type { PostChapters200Number } from "./postChapters200Number";
 import type { PostChapters200UpdatedAt } from "./postChapters200UpdatedAt";
 
@@ -15,8 +16,15 @@ export type PostChapters200 = {
 	id: string;
 	name: string;
 	number: PostChapters200Number;
-	description: PostChapters200Description;
 	novelId: string;
+	/** @nullable */
+	imageId: PostChapters200ImageId;
 	createdAt: PostChapters200CreatedAt;
 	updatedAt: PostChapters200UpdatedAt;
+	/**
+	 * Deprecated since 2026-10-17; removed after 2027-04-30. Use Chapter context.summary instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	description?: PostChapters200Description;
 };

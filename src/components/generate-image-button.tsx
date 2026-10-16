@@ -11,6 +11,7 @@ import { availabilityKey } from "@/lib/ai-source/availability";
 import { useAiAvailability, useAiSnapshot } from "@/lib/ai-source/hooks";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { withImageContinuity } from "@/lib/chapter-context/image";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import { DEFAULT_AI_PROMPTS } from "@/lib/desktop-client/ai-prompts";
@@ -182,7 +183,11 @@ export function GenerateImageButton({
 			activeChapterText(),
 			loadNovel(novelId, toAiLanguage(i18n.language)).catch(() => undefined),
 		]);
-		return build(prompts.imagePrompt, chapterText, novel?.context ?? "");
+		return withImageContinuity({
+			novelId,
+			names: [name, ...otherNames],
+			prompt: build(prompts.imagePrompt, chapterText, novel?.context ?? ""),
+		});
 	};
 
 	const generate = async () => {
@@ -227,7 +232,12 @@ export function GenerateImageButton({
 				signal: abort.signal,
 			});
 			if (abort.signal.aborted) return;
-			prompt = build(prompts.imagePrompt, chapterText, novelContext);
+			prompt = await withImageContinuity({
+				novelId,
+				names: [name, ...otherNames],
+				prompt: build(prompts.imagePrompt, chapterText, novelContext),
+			});
+			if (abort.signal.aborted) return;
 			setPrompt(prompt);
 			trackEvent("ai_image_generation_requested", {
 				provider: ai.source,

@@ -25,17 +25,34 @@ import type { ErrorType } from "../../axios-instance";
 
 import { customInstance } from "../../axios-instance";
 import type {
+	DeleteChapterArtworkByNovelIdByChapterNumberClaim404,
+	DeleteChapterArtworkByNovelIdByChapterNumberClaim500,
+	DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne,
+	DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree,
+	DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo,
 	DeleteChapterCoversByNovelIdByChapterNumberClaim404,
 	DeleteChapterCoversByNovelIdByChapterNumberClaim500,
 	DeleteChapterCoversByNovelIdByChapterNumberClaimBodyOne,
 	DeleteChapterCoversByNovelIdByChapterNumberClaimBodyThree,
 	DeleteChapterCoversByNovelIdByChapterNumberClaimBodyTwo,
+	GetChapterArtworkByNovelIdByChapterNumber200,
+	GetChapterArtworkByNovelIdByChapterNumber404,
+	GetChapterArtworkByNovelIdByChapterNumber500,
 	GetChapterCoversByNovelIdByChapterNumber200,
 	GetChapterCoversByNovelIdByChapterNumber404,
 	GetChapterCoversByNovelIdByChapterNumber500,
+	PostChapterArtworkByNovelIdByChapterNumberClaim200,
+	PostChapterArtworkByNovelIdByChapterNumberClaim404,
+	PostChapterArtworkByNovelIdByChapterNumberClaim500,
 	PostChapterCoversByNovelIdByChapterNumberClaim200,
 	PostChapterCoversByNovelIdByChapterNumberClaim404,
 	PostChapterCoversByNovelIdByChapterNumberClaim500,
+	PutChapterArtworkByNovelIdByChapterNumber200,
+	PutChapterArtworkByNovelIdByChapterNumber404,
+	PutChapterArtworkByNovelIdByChapterNumber500,
+	PutChapterArtworkByNovelIdByChapterNumberBodyOne,
+	PutChapterArtworkByNovelIdByChapterNumberBodyThree,
+	PutChapterArtworkByNovelIdByChapterNumberBodyTwo,
 	PutChapterCoversByNovelIdByChapterNumber200,
 	PutChapterCoversByNovelIdByChapterNumber404,
 	PutChapterCoversByNovelIdByChapterNumber500,
@@ -47,6 +64,8 @@ import type {
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
+ * Deprecated since 2026-10-17; removed after 2027-04-30. Use /api/user/chapter-artwork/:novelId/:chapterNumber instead.
+ * @deprecated
  * @summary Read a shared chapter cover
  */
 export const getChapterCoversByNovelIdByChapterNumber = (
@@ -216,6 +235,7 @@ export function useGetChapterCoversByNovelIdByChapterNumber<
 	queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
+ * @deprecated
  * @summary Read a shared chapter cover
  */
 
@@ -259,6 +279,8 @@ export function useGetChapterCoversByNovelIdByChapterNumber<
 }
 
 /**
+ * Deprecated since 2026-10-17; removed after 2027-04-30. Use /api/user/chapter-artwork/:novelId/:chapterNumber instead.
+ * @deprecated
  * @summary Save a generated shared chapter cover
  */
 export const putChapterCoversByNovelIdByChapterNumber = (
@@ -361,6 +383,7 @@ export type PutChapterCoversByNovelIdByChapterNumberMutationError = ErrorType<
 >;
 
 /**
+ * @deprecated
  * @summary Save a generated shared chapter cover
  */
 export const usePutChapterCoversByNovelIdByChapterNumber = <
@@ -406,6 +429,8 @@ export const usePutChapterCoversByNovelIdByChapterNumber = <
 	return useMutation(mutationOptions, queryClient);
 };
 /**
+ * Deprecated since 2026-10-17; removed after 2027-04-30. Use /api/user/chapter-artwork/:novelId/:chapterNumber instead.
+ * @deprecated
  * @summary Reserve generation of a missing shared chapter cover
  */
 export const postChapterCoversByNovelIdByChapterNumberClaim = (
@@ -486,6 +511,7 @@ export type PostChapterCoversByNovelIdByChapterNumberClaimMutationError =
 	>;
 
 /**
+ * @deprecated
  * @summary Reserve generation of a missing shared chapter cover
  */
 export const usePostChapterCoversByNovelIdByChapterNumberClaim = <
@@ -519,6 +545,8 @@ export const usePostChapterCoversByNovelIdByChapterNumberClaim = <
 	return useMutation(mutationOptions, queryClient);
 };
 /**
+ * Deprecated since 2026-10-17; removed after 2027-04-30. Use /api/user/chapter-artwork/:novelId/:chapterNumber instead.
+ * @deprecated
  * @summary Release an unfinished chapter cover reservation
  */
 export const deleteChapterCoversByNovelIdByChapterNumberClaim = (
@@ -629,6 +657,7 @@ export type DeleteChapterCoversByNovelIdByChapterNumberClaimMutationError =
 	>;
 
 /**
+ * @deprecated
  * @summary Release an unfinished chapter cover reservation
  */
 export const useDeleteChapterCoversByNovelIdByChapterNumberClaim = <
@@ -672,6 +701,642 @@ export const useDeleteChapterCoversByNovelIdByChapterNumberClaim = <
 > => {
 	const mutationOptions =
 		getDeleteChapterCoversByNovelIdByChapterNumberClaimMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Read a shared chapter cover
+ */
+export const getChapterArtworkByNovelIdByChapterNumber = (
+	novelId: string,
+	chapterNumber: string | number,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetChapterArtworkByNovelIdByChapterNumber200>(
+		{
+			url: `http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getGetChapterArtworkByNovelIdByChapterNumberQueryKey = (
+	novelId?: string,
+	chapterNumber?: string | number,
+) => {
+	return [
+		`http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}`,
+	] as const;
+};
+
+export const getGetChapterArtworkByNovelIdByChapterNumberQueryOptions = <
+	TData = Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+	TError = ErrorType<
+		| GetChapterArtworkByNovelIdByChapterNumber404
+		| GetChapterArtworkByNovelIdByChapterNumber500
+	>,
+>(
+	novelId: string,
+	chapterNumber: string | number,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey =
+		queryOptions?.queryKey ??
+		getGetChapterArtworkByNovelIdByChapterNumberQueryKey(
+			novelId,
+			chapterNumber,
+		);
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>
+	> = ({ signal }) =>
+		getChapterArtworkByNovelIdByChapterNumber(
+			novelId,
+			chapterNumber,
+			requestOptions,
+			signal,
+		);
+
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!(novelId && chapterNumber),
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetChapterArtworkByNovelIdByChapterNumberQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>
+>;
+export type GetChapterArtworkByNovelIdByChapterNumberQueryError = ErrorType<
+	| GetChapterArtworkByNovelIdByChapterNumber404
+	| GetChapterArtworkByNovelIdByChapterNumber500
+>;
+
+export function useGetChapterArtworkByNovelIdByChapterNumber<
+	TData = Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+	TError = ErrorType<
+		| GetChapterArtworkByNovelIdByChapterNumber404
+		| GetChapterArtworkByNovelIdByChapterNumber500
+	>,
+>(
+	novelId: string,
+	chapterNumber: string | number,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+					TError,
+					Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetChapterArtworkByNovelIdByChapterNumber<
+	TData = Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+	TError = ErrorType<
+		| GetChapterArtworkByNovelIdByChapterNumber404
+		| GetChapterArtworkByNovelIdByChapterNumber500
+	>,
+>(
+	novelId: string,
+	chapterNumber: string | number,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+					TError,
+					Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetChapterArtworkByNovelIdByChapterNumber<
+	TData = Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+	TError = ErrorType<
+		| GetChapterArtworkByNovelIdByChapterNumber404
+		| GetChapterArtworkByNovelIdByChapterNumber500
+	>,
+>(
+	novelId: string,
+	chapterNumber: string | number,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Read a shared chapter cover
+ */
+
+export function useGetChapterArtworkByNovelIdByChapterNumber<
+	TData = Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+	TError = ErrorType<
+		| GetChapterArtworkByNovelIdByChapterNumber404
+		| GetChapterArtworkByNovelIdByChapterNumber500
+	>,
+>(
+	novelId: string,
+	chapterNumber: string | number,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getChapterArtworkByNovelIdByChapterNumber>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetChapterArtworkByNovelIdByChapterNumberQueryOptions(
+		novelId,
+		chapterNumber,
+		options,
+	);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+/**
+ * @summary Save a generated shared chapter cover
+ */
+export const putChapterArtworkByNovelIdByChapterNumber = (
+	novelId: string,
+	chapterNumber: string | number,
+	putChapterArtworkByNovelIdByChapterNumberBody:
+		| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+		| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+		| PutChapterArtworkByNovelIdByChapterNumberBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<PutChapterArtworkByNovelIdByChapterNumber200>(
+		{
+			url: `http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}`,
+			method: "PUT",
+			data: putChapterArtworkByNovelIdByChapterNumberBody,
+		},
+		options,
+	);
+};
+
+export const getPutChapterArtworkByNovelIdByChapterNumberMutationOptions = <
+	TError = ErrorType<
+		| PutChapterArtworkByNovelIdByChapterNumber404
+		| PutChapterArtworkByNovelIdByChapterNumber500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumber>>,
+		TError,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+				| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+				| PutChapterArtworkByNovelIdByChapterNumberBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumber>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+			| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+			| PutChapterArtworkByNovelIdByChapterNumberBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["putChapterArtworkByNovelIdByChapterNumber"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumber>>,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+				| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+				| PutChapterArtworkByNovelIdByChapterNumberBodyThree;
+		}
+	> = (props) => {
+		const { novelId, chapterNumber, data } = props ?? {};
+
+		return putChapterArtworkByNovelIdByChapterNumber(
+			novelId,
+			chapterNumber,
+			data,
+			requestOptions,
+		);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PutChapterArtworkByNovelIdByChapterNumberMutationResult =
+	NonNullable<
+		Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumber>>
+	>;
+export type PutChapterArtworkByNovelIdByChapterNumberMutationBody =
+	| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+	| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+	| PutChapterArtworkByNovelIdByChapterNumberBodyThree;
+export type PutChapterArtworkByNovelIdByChapterNumberMutationError = ErrorType<
+	| PutChapterArtworkByNovelIdByChapterNumber404
+	| PutChapterArtworkByNovelIdByChapterNumber500
+>;
+
+/**
+ * @summary Save a generated shared chapter cover
+ */
+export const usePutChapterArtworkByNovelIdByChapterNumber = <
+	TError = ErrorType<
+		| PutChapterArtworkByNovelIdByChapterNumber404
+		| PutChapterArtworkByNovelIdByChapterNumber500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumber>>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+					| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+					| PutChapterArtworkByNovelIdByChapterNumberBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumber>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PutChapterArtworkByNovelIdByChapterNumberBodyOne
+			| PutChapterArtworkByNovelIdByChapterNumberBodyTwo
+			| PutChapterArtworkByNovelIdByChapterNumberBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPutChapterArtworkByNovelIdByChapterNumberMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Reserve generation of a missing shared chapter cover
+ */
+export const postChapterArtworkByNovelIdByChapterNumberClaim = (
+	novelId: string,
+	chapterNumber: string | number,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PostChapterArtworkByNovelIdByChapterNumberClaim200>(
+		{
+			url: `http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}/claim`,
+			method: "POST",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostChapterArtworkByNovelIdByChapterNumberClaimMutationOptions =
+	<
+		TError = ErrorType<
+			| PostChapterArtworkByNovelIdByChapterNumberClaim404
+			| PostChapterArtworkByNovelIdByChapterNumberClaim500
+		>,
+		TContext = unknown,
+	>(options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>
+			>,
+			TError,
+			{ novelId: string; chapterNumber: string | number },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	}): UseMutationOptions<
+		Awaited<ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>>,
+		TError,
+		{ novelId: string; chapterNumber: string | number },
+		TContext
+	> => {
+		const mutationKey = ["postChapterArtworkByNovelIdByChapterNumberClaim"];
+		const { mutation: mutationOptions, request: requestOptions } = options
+			? options.mutation &&
+				"mutationKey" in options.mutation &&
+				options.mutation.mutationKey
+				? options
+				: { ...options, mutation: { ...options.mutation, mutationKey } }
+			: { mutation: { mutationKey }, request: undefined };
+
+		const mutationFn: MutationFunction<
+			Awaited<
+				ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>
+			>,
+			{ novelId: string; chapterNumber: string | number }
+		> = (props) => {
+			const { novelId, chapterNumber } = props ?? {};
+
+			return postChapterArtworkByNovelIdByChapterNumberClaim(
+				novelId,
+				chapterNumber,
+				requestOptions,
+			);
+		};
+
+		return { mutationFn, ...mutationOptions };
+	};
+
+export type PostChapterArtworkByNovelIdByChapterNumberClaimMutationResult =
+	NonNullable<
+		Awaited<ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>>
+	>;
+
+export type PostChapterArtworkByNovelIdByChapterNumberClaimMutationError =
+	ErrorType<
+		| PostChapterArtworkByNovelIdByChapterNumberClaim404
+		| PostChapterArtworkByNovelIdByChapterNumberClaim500
+	>;
+
+/**
+ * @summary Reserve generation of a missing shared chapter cover
+ */
+export const usePostChapterArtworkByNovelIdByChapterNumberClaim = <
+	TError = ErrorType<
+		| PostChapterArtworkByNovelIdByChapterNumberClaim404
+		| PostChapterArtworkByNovelIdByChapterNumberClaim500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>
+			>,
+			TError,
+			{ novelId: string; chapterNumber: string | number },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>>,
+	TError,
+	{ novelId: string; chapterNumber: string | number },
+	TContext
+> => {
+	const mutationOptions =
+		getPostChapterArtworkByNovelIdByChapterNumberClaimMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Release an unfinished chapter cover reservation
+ */
+export const deleteChapterArtworkByNovelIdByChapterNumberClaim = (
+	novelId: string,
+	chapterNumber: string | number,
+	deleteChapterArtworkByNovelIdByChapterNumberClaimBody:
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}/claim`,
+			method: "DELETE",
+			data: deleteChapterArtworkByNovelIdByChapterNumberClaimBody,
+		},
+		options,
+	);
+};
+
+export const getDeleteChapterArtworkByNovelIdByChapterNumberClaimMutationOptions =
+	<
+		TError = ErrorType<
+			| DeleteChapterArtworkByNovelIdByChapterNumberClaim404
+			| DeleteChapterArtworkByNovelIdByChapterNumberClaim500
+		>,
+		TContext = unknown,
+	>(options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof deleteChapterArtworkByNovelIdByChapterNumberClaim>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	}): UseMutationOptions<
+		Awaited<
+			ReturnType<typeof deleteChapterArtworkByNovelIdByChapterNumberClaim>
+		>,
+		TError,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+				| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+				| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+		},
+		TContext
+	> => {
+		const mutationKey = ["deleteChapterArtworkByNovelIdByChapterNumberClaim"];
+		const { mutation: mutationOptions, request: requestOptions } = options
+			? options.mutation &&
+				"mutationKey" in options.mutation &&
+				options.mutation.mutationKey
+				? options
+				: { ...options, mutation: { ...options.mutation, mutationKey } }
+			: { mutation: { mutationKey }, request: undefined };
+
+		const mutationFn: MutationFunction<
+			Awaited<
+				ReturnType<typeof deleteChapterArtworkByNovelIdByChapterNumberClaim>
+			>,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+			}
+		> = (props) => {
+			const { novelId, chapterNumber, data } = props ?? {};
+
+			return deleteChapterArtworkByNovelIdByChapterNumberClaim(
+				novelId,
+				chapterNumber,
+				data,
+				requestOptions,
+			);
+		};
+
+		return { mutationFn, ...mutationOptions };
+	};
+
+export type DeleteChapterArtworkByNovelIdByChapterNumberClaimMutationResult =
+	NonNullable<
+		Awaited<
+			ReturnType<typeof deleteChapterArtworkByNovelIdByChapterNumberClaim>
+		>
+	>;
+export type DeleteChapterArtworkByNovelIdByChapterNumberClaimMutationBody =
+	| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+	| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+	| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+export type DeleteChapterArtworkByNovelIdByChapterNumberClaimMutationError =
+	ErrorType<
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaim404
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaim500
+	>;
+
+/**
+ * @summary Release an unfinished chapter cover reservation
+ */
+export const useDeleteChapterArtworkByNovelIdByChapterNumberClaim = <
+	TError = ErrorType<
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaim404
+		| DeleteChapterArtworkByNovelIdByChapterNumberClaim500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof deleteChapterArtworkByNovelIdByChapterNumberClaim>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+					| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof deleteChapterArtworkByNovelIdByChapterNumberClaim>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+			| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+			| DeleteChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getDeleteChapterArtworkByNovelIdByChapterNumberClaimMutationOptions(
+			options,
+		);
 
 	return useMutation(mutationOptions, queryClient);
 };

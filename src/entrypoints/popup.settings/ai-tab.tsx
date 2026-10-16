@@ -15,11 +15,13 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
+import { AiPrice } from "@/components/lens/ai-price";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { useAiSnapshot } from "@/lib/ai-source/hooks";
 import type { AiSource } from "@/lib/ai-source/source";
 import { saveAiSource } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { AUTO_CHAPTER_CONTEXT_KEY } from "@/lib/chapter-context/prompt";
 import { AUTO_CHAPTER_COVER_KEY } from "@/lib/chapter-cover/types";
 import {
 	type AiPrompts,
@@ -158,12 +160,16 @@ export function AiTab() {
 	);
 	const [catalog, setCatalog] = useState<DesktopCapabilities>();
 	const [autoCover, setAutoCover] = useState(false);
+	const [autoContext, setAutoContext] = useState(false);
 	const [autoLoaded, setAutoLoaded] = useState(false);
 	useEffect(() => {
-		void browser.storage.local.get(AUTO_CHAPTER_COVER_KEY).then((stored) => {
-			setAutoCover(stored[AUTO_CHAPTER_COVER_KEY] === true);
-			setAutoLoaded(true);
-		});
+		void browser.storage.local
+			.get([AUTO_CHAPTER_COVER_KEY, AUTO_CHAPTER_CONTEXT_KEY])
+			.then((stored) => {
+				setAutoCover(stored[AUTO_CHAPTER_COVER_KEY] === true);
+				setAutoContext(stored[AUTO_CHAPTER_CONTEXT_KEY] === true);
+				setAutoLoaded(true);
+			});
 	}, []);
 	const [busy, setBusy] = useState(false);
 	const [message, setMessage] = useState("");
@@ -328,6 +334,25 @@ export function AiTab() {
 					)}
 				</>
 			)}
+			<Switch
+				label={
+					<Group gap="xs">
+						<span>{t("desktop.autoChapterContext")}</span>
+						<AiPrice feature="chapter_context" />
+					</Group>
+				}
+				description={t("desktop.autoChapterContextHelp")}
+				checked={autoContext}
+				disabled={!autoLoaded}
+				onChange={(event) => {
+					const enabled = event.currentTarget.checked;
+					setAutoContext(enabled);
+					void browser.storage.local.set({
+						[AUTO_CHAPTER_CONTEXT_KEY]: enabled,
+					});
+					trackEvent("ai_auto_chapter_context_changed", { enabled });
+				}}
+			/>
 			<Switch
 				label={t("desktop.autoChapterCover")}
 				description={t("desktop.autoChapterCoverHelp")}

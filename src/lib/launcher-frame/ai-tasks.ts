@@ -12,6 +12,7 @@ export const AI_TASK_OPERATIONS = [
 	"suggest-keyword",
 	"generate-image",
 	"summarize",
+	"generate-context",
 	"extract-characters",
 	"detect-selectors",
 ] as const;

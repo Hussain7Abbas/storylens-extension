@@ -3,6 +3,8 @@ import { sendMessage } from "@/entrypoints/background/messaging";
 import { availabilityKey } from "@/lib/ai-source/availability";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { withImageContinuity } from "@/lib/chapter-context/image";
+import { placeChapterContext } from "@/lib/chapter-context/page";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { generateCharacterImage } from "@/lib/desktop-client/character-image-job";
@@ -12,7 +14,7 @@ import { createLensCoin, formatLenses } from "@/lib/lens-coin";
 import type { NovelContentData } from "@/types/content-data";
 import { findContentRoot } from "@/utils/content-processor";
 import { readPageText } from "@/utils/page-text";
-import { buildChapterCoverPrompt } from "./prompt";
+import { buildChapterCoverPrompt, chapterCoverReferences } from "./prompt";
 import {
 	AUTO_CHAPTER_COVER_KEY,
 	type ChapterCover,
@@ -144,6 +146,7 @@ function attachCover(session: Session) {
 	if (root === document.body) root.prepend(session.host);
 	else root.before(session.host);
 	session.mounted = true;
+	placeChapterContext();
 }
 function showCover(session: Session, cover: ChapterCover) {
 	const text = words[session.locale];
@@ -215,7 +218,7 @@ async function generate(session: Session, data: NovelContentData) {
 			throw new Error(
 				vanillaAiText(session.locale)(availabilityKey(state.availability)),
 			);
-		const prepared = await preparePrompt(data);
+		const prepared = await preparePrompt(data, true);
 		session.prompt = prepared.prompt;
 		session.copy.disabled = false;
 		if (signal.aborted || !alive(session)) return;
@@ -356,6 +359,8 @@ async function mount(data: NovelContentData, manual: boolean) {
 	});
 	copy.addEventListener("click", async () => {
 		try {
+			const prepared = await preparePrompt(data, true);
+			session.prompt = prepared.prompt;
 			await navigator.clipboard.writeText(session.prompt);
 			if (alive(session)) copy.textContent = text.copied;
 			trackEvent("ai_image_prompt_copied", {});
@@ -452,16 +457,32 @@ export function refreshChapterCoverPreference() {
 }
 
 /** Cover context includes both languages, independently of the highlight filter. */
-async function preparePrompt(data: NovelContentData) {
+async function preparePrompt(data: NovelContentData, continuity = false) {
 	const [prompts, keywords] = await Promise.all([
 		aiPrompts(),
 		sendMessage("chapterCoverKeywords", data.novel.id).catch(
 			() => data.keywords,
 		),
 	]);
-	return buildChapterCoverPrompt(
-		{ ...data, keywords: Array.isArray(keywords) ? keywords : data.keywords },
-		readPageText(findContentRoot(), 120_000),
+	const chapterText = readPageText(findContentRoot(), 120_000);
+	const resolvedData = {
+		...data,
+		keywords: Array.isArray(keywords) ? keywords : data.keywords,
+	};
+	const prepared = buildChapterCoverPrompt(
+		resolvedData,
+		chapterText,
 		prompts.chapterCoverPrompt,
 	);
+	if (continuity)
+		prepared.prompt = await withImageContinuity({
+			novelId: data.novel.id,
+			feature: "chapter_cover",
+			chapterNumber: data.chapterNumber,
+			prompt: prepared.prompt,
+			names: chapterCoverReferences(resolvedData, chapterText).flatMap(
+				(row) => row.names,
+			),
+		});
+	return prepared;
 }

@@ -6,4 +6,12 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetChaptersNovelByNovelId200DataItemDescription = null | string;
+/**
+ * Deprecated since 2026-10-17; removed after 2027-04-30. Use Chapter context.summary instead.
+ * @deprecated
+ * @nullable
+ */
+export type GetChaptersNovelByNovelId200DataItemDescription =
+	| string
+	| null
+	| null;

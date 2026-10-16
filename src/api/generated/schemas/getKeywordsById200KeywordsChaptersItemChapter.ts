@@ -8,6 +8,7 @@
 
 import type { GetKeywordsById200KeywordsChaptersItemChapterCreatedAt } from "./getKeywordsById200KeywordsChaptersItemChapterCreatedAt";
 import type { GetKeywordsById200KeywordsChaptersItemChapterDescription } from "./getKeywordsById200KeywordsChaptersItemChapterDescription";
+import type { GetKeywordsById200KeywordsChaptersItemChapterImageId } from "./getKeywordsById200KeywordsChaptersItemChapterImageId";
 import type { GetKeywordsById200KeywordsChaptersItemChapterNumber } from "./getKeywordsById200KeywordsChaptersItemChapterNumber";
 import type { GetKeywordsById200KeywordsChaptersItemChapterUpdatedAt } from "./getKeywordsById200KeywordsChaptersItemChapterUpdatedAt";
 
@@ -15,8 +16,15 @@ export type GetKeywordsById200KeywordsChaptersItemChapter = {
 	id: string;
 	name: string;
 	number: GetKeywordsById200KeywordsChaptersItemChapterNumber;
-	description: GetKeywordsById200KeywordsChaptersItemChapterDescription;
 	novelId: string;
+	/** @nullable */
+	imageId: GetKeywordsById200KeywordsChaptersItemChapterImageId;
 	createdAt: GetKeywordsById200KeywordsChaptersItemChapterCreatedAt;
 	updatedAt: GetKeywordsById200KeywordsChaptersItemChapterUpdatedAt;
+	/**
+	 * Deprecated since 2026-10-17; removed after 2027-04-30. Use Chapter context.summary instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	description?: GetKeywordsById200KeywordsChaptersItemChapterDescription;
 };

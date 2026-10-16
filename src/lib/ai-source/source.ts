@@ -16,6 +16,7 @@ export function parseAiSource(
 }
 export const AI_FEATURES = [
 	"page_summary",
+	"chapter_context",
 	"keyword_suggestion",
 	"chapter_extraction",
 	"character_image",

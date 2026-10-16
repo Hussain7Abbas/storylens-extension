@@ -3,6 +3,12 @@ import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { trackEvent } from "@/lib/analytics/client";
 import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
 import {
+	clearChapterContext,
+	refreshChapterContextPreference,
+	syncChapterContext,
+} from "@/lib/chapter-context/page";
+import { AUTO_CHAPTER_CONTEXT_KEY } from "@/lib/chapter-context/prompt";
+import {
 	clearChapterCover,
 	refreshChapterCoverPreference,
 	syncChapterCover,
@@ -117,7 +123,13 @@ async function handleDetectedNovel(force = false): Promise<void> {
 		return;
 	}
 
-	await processDetectedNovel(novel, { force, onReady: syncChapterCover });
+	await processDetectedNovel(novel, {
+		force,
+		onReady: (data) => {
+			syncChapterCover(data);
+			syncChapterContext(data);
+		},
+	});
 	lastProcessedKey = processKey;
 }
 
@@ -132,7 +144,13 @@ export async function refreshPageContent(): Promise<void> {
 		return;
 	}
 
-	await processDetectedNovel(novel, { force: true, onReady: syncChapterCover });
+	await processDetectedNovel(novel, {
+		force: true,
+		onReady: (data) => {
+			syncChapterCover(data);
+			syncChapterContext(data);
+		},
+	});
 	lastProcessedKey = buildDetectedNovelKey(novel);
 }
 
@@ -240,6 +258,7 @@ export async function runContentScript(
 
 	browser.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
+		if (AUTO_CHAPTER_CONTEXT_KEY in changes) refreshChapterContextPreference();
 		if (AUTO_CHAPTER_COVER_KEY in changes) refreshChapterCoverPreference();
 		if (SHOW_WORD_VFX_KEY in changes) {
 			setWordVfxVisible(changes[SHOW_WORD_VFX_KEY].newValue);
@@ -309,13 +328,20 @@ export async function runContentScript(
 		});
 	});
 
-	ctx.addEventListener(window, "pagehide", clearChapterCover);
+	ctx.addEventListener(window, "pagehide", () => {
+		clearChapterCover();
+		clearChapterContext();
+	});
 	ctx.addEventListener(window, "pageshow", (event) => {
 		if (event.persisted) void handleDetectedNovel(true);
 	});
-	ctx.onInvalidated(clearChapterCover);
+	ctx.onInvalidated(() => {
+		clearChapterCover();
+		clearChapterContext();
+	});
 	ctx.addEventListener(window, "wxt:locationchange", () => {
 		clearChapterCover();
+		clearChapterContext();
 		clearPageSummary();
 		clearChapterExtraction();
 		pagePopupLauncherNavigated();

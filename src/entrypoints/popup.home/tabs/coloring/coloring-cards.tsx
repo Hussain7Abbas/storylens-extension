@@ -422,8 +422,10 @@ export function ColoringCards({
 				aliases: parent.aliases,
 				versions: parent.versions,
 			}))
-			.sort((a, b) =>
-				nameIn(a.parent, language).localeCompare(nameIn(b.parent, language)),
+			.sort(
+				(a, b) =>
+					Date.parse(String(b.parent.createdAt)) -
+					Date.parse(String(a.parent.createdAt)),
 			);
 		if (!term) return all;
 		return all.filter((g) => groupMatchesSearch(g, term, language));

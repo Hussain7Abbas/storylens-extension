@@ -8,6 +8,7 @@
 
 import type { DeleteChaptersById200CreatedAt } from "./deleteChaptersById200CreatedAt";
 import type { DeleteChaptersById200Description } from "./deleteChaptersById200Description";
+import type { DeleteChaptersById200ImageId } from "./deleteChaptersById200ImageId";
 import type { DeleteChaptersById200Number } from "./deleteChaptersById200Number";
 import type { DeleteChaptersById200UpdatedAt } from "./deleteChaptersById200UpdatedAt";
 
@@ -15,8 +16,15 @@ export type DeleteChaptersById200 = {
 	id: string;
 	name: string;
 	number: DeleteChaptersById200Number;
-	description: DeleteChaptersById200Description;
 	novelId: string;
+	/** @nullable */
+	imageId: DeleteChaptersById200ImageId;
 	createdAt: DeleteChaptersById200CreatedAt;
 	updatedAt: DeleteChaptersById200UpdatedAt;
+	/**
+	 * Deprecated since 2026-10-17; removed after 2027-04-30. Use Chapter context.summary instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	description?: DeleteChaptersById200Description;
 };
