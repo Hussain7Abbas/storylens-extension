@@ -56,6 +56,7 @@ import type {
 } from "@/lib/offline/types";
 import { readNovelSnapshot, readUserMutations } from "@/lib/offline/views";
 import { cleanKeywordName } from "@/utils/arabic";
+import { MAX_IMAGE_BYTES } from "../image-upload";
 
 // ---------------------------------------------------------------------------
 // Errors (typed, so forms show localized messages)
@@ -271,7 +272,7 @@ export type EnqueueOptions = {
 	now?: number;
 };
 
-export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+export { MAX_IMAGE_BYTES } from "../image-upload";
 export const QUEUED_IMAGES_WARNING_BYTES = 200 * 1024 * 1024;
 
 // ---------------------------------------------------------------------------

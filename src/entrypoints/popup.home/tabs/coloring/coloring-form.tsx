@@ -3,7 +3,6 @@ import {
 	Alert,
 	Badge,
 	Button,
-	FileInput,
 	Group,
 	Image,
 	Loader,
@@ -34,6 +33,7 @@ import type {
 import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
+import { ImageUpload } from "@/components/image-upload";
 import {
 	TranslationLinkSelect,
 	type TranslationOption,
@@ -269,7 +269,7 @@ type KeywordFormValues = {
 	natureId: string;
 	descriptionAr: string;
 	descriptionEn: string;
-	imageId?: string;
+	imageId?: string | null;
 	startingChapter: number | "";
 	endingChapter: number | "";
 };
@@ -579,7 +579,10 @@ function KeywordForm({
 	};
 
 	const displayedImageUrl =
-		imagePreviewUrl ?? linkedImageUrl ?? baseVersion?.image?.url ?? null;
+		imagePreviewUrl ??
+		(form.values.imageId === null
+			? null
+			: (linkedImageUrl ?? baseVersion?.image?.url ?? null));
 
 	return (
 		<Stack gap="xs" p="xs">
@@ -694,13 +697,14 @@ function KeywordForm({
 									label={t("coloring.description")}
 									{...form.getInputProps(descriptionKey(tab))}
 								/>
-								<FileInput
+								<ImageUpload
 									label={t("coloring.image")}
-									accept="image/*"
 									value={imageFile}
-									onChange={setImageFile}
-									placeholder={t("coloring.imageOptional")}
-									clearable
+									hasImage={!!displayedImageUrl || !!form.values.imageId}
+									onChange={(file) => {
+										setImageFile(file);
+										if (!file) form.setFieldValue("imageId", null);
+									}}
 								/>
 								<GenerateImageButton
 									initialError={frame.imageError}
@@ -908,7 +912,7 @@ type AliasFormValues = {
 	wordVfxColor: string;
 	categoryId: string | null;
 	natureId: string | null;
-	imageId?: string;
+	imageId?: string | null;
 	overrideStyle: boolean;
 };
 
@@ -961,8 +965,6 @@ function AliasForm({
 		useOfflineKeywordCategories();
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
-	const displayedImageUrl =
-		imagePreviewUrl ?? linkedImageUrl ?? alias?.image?.url ?? null;
 
 	const pickedName =
 		frame.mode === "alias-add"
@@ -1017,6 +1019,12 @@ function AliasForm({
 		id: item.id,
 		name: nameIn(item, other),
 	}));
+
+	const displayedImageUrl =
+		imagePreviewUrl ??
+		(form.values.imageId === null
+			? null
+			: (linkedImageUrl ?? alias?.image?.url ?? null));
 
 	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
@@ -1273,13 +1281,14 @@ function AliasForm({
 										)
 									}
 								/>
-								<FileInput
+								<ImageUpload
 									label={t("coloring.image")}
-									accept="image/*"
 									value={imageFile}
-									onChange={setImageFile}
-									placeholder={t("coloring.imageOptional")}
-									clearable
+									hasImage={!!displayedImageUrl || !!form.values.imageId}
+									onChange={(file) => {
+										setImageFile(file);
+										if (!file) form.setFieldValue("imageId", null);
+									}}
 								/>
 								<GenerateImageButton
 									initialError={frame.imageError}
@@ -1451,7 +1460,7 @@ type VersionFormValues = {
 	description: string;
 	categoryId: string | null;
 	natureId: string | null;
-	imageId?: string;
+	imageId?: string | null;
 	startingChapter?: number;
 	endingChapter?: number | null;
 };
@@ -1530,7 +1539,9 @@ function VersionForm({
 	const { data: naturesData, isLoading: naturesLoading } =
 		useOfflineKeywordNatures();
 
-	const displayedImageUrl = imagePreviewUrl ?? version?.image?.url ?? null;
+	const displayedImageUrl =
+		imagePreviewUrl ??
+		(form.values.imageId === null ? null : (version?.image?.url ?? null));
 
 	useLauncherWork({ dirty: form.isDirty() || !!imageFile });
 
@@ -1717,13 +1728,14 @@ function VersionForm({
 						label={t("coloring.description")}
 						{...form.getInputProps("description")}
 					/>
-					<FileInput
+					<ImageUpload
 						label={t("coloring.image")}
-						accept="image/*"
 						value={imageFile}
-						onChange={setImageFile}
-						placeholder={t("coloring.imageOptional")}
-						clearable
+						hasImage={!!displayedImageUrl || !!form.values.imageId}
+						onChange={(file) => {
+							setImageFile(file);
+							if (!file) form.setFieldValue("imageId", null);
+						}}
 					/>
 					<GenerateImageButton
 						initialError={frame.imageError}

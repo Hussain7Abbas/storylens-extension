@@ -1,0 +1,93 @@
+.root {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	position: relative;
+	min-inline-size: 0;
+}
+.area {
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	inline-size: 100%;
+	block-size: 100px;
+	padding: 8px 32px;
+	border: 1.5px dashed var(--mantine-color-default-border);
+	border-radius: var(--mantine-radius-md);
+	background: var(--sl-surface);
+	color: var(--mantine-color-dimmed);
+	font: inherit;
+	cursor: pointer;
+	transition:
+		border-color 150ms ease,
+		background-color 150ms ease,
+		box-shadow 150ms ease;
+}
+.area:not(:disabled):hover {
+	border-color: var(--mantine-primary-color-filled);
+	background: var(--sl-wash);
+}
+.area:focus-visible {
+	outline: 3px solid var(--mantine-primary-color-filled);
+	outline-offset: 2px;
+}
+.area:not(:disabled)[data-drag="accept"] {
+	border-style: solid;
+	border-color: var(--mantine-primary-color-filled);
+	background: var(--mantine-primary-color-light);
+	color: var(--mantine-primary-color-light-color);
+	box-shadow: 0 0 0 3px var(--mantine-primary-color-light);
+}
+.area:not(:disabled)[data-drag="reject"],
+.area:not(:disabled)[data-error] {
+	border-color: var(--mantine-color-error);
+	color: var(--mantine-color-error);
+}
+.area:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+.instruction {
+	font-size: var(--mantine-font-size-xs);
+	line-height: 1.35;
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+.filename {
+	inline-size: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: center;
+}
+.remove {
+	position: absolute;
+	inset-block-start: 5px;
+	inset-inline-end: 5px;
+}
+@media (pointer: coarse) {
+	.remove {
+		min-inline-size: 44px;
+		min-block-size: 44px;
+	}
+	.area {
+		padding-inline: 48px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.area {
+		transition: none;
+	}
+}
+@media (forced-colors: active) {
+	.area:not(:disabled)[data-drag="accept"] {
+		outline: 3px solid Highlight;
+	}
+	.area:not(:disabled)[data-drag="reject"],
+	.area:not(:disabled)[data-error] {
+		border-style: double;
+	}
+}

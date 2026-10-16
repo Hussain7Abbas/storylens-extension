@@ -1117,7 +1117,7 @@ describe("language tabs in a character form", () => {
 	/** Opens the keyword form the text picker would open, without AI. */
 	async function openKeywordForm(
 		search: string,
-		kind: "keyword" | "alias" = "keyword",
+		kind: "keyword" | "alias" | "version" = "keyword",
 		parentId?: string,
 		editId?: string,
 		generateImage = false,
@@ -1339,6 +1339,83 @@ describe("language tabs in a character form", () => {
 		});
 	}
 
+	for (const kind of ["keyword", "alias", "version"] as const) {
+		it(`deletes the saved ${kind} image through the offline change set`, async () => {
+			const previousUrl = window.location.href;
+			const image = {
+				id: "saved-image",
+				url: "https://images.example.invalid/saved.png",
+				type: "Image",
+				provider_image_id: "saved-image",
+				delete_url: "",
+				userId: null,
+				createdAt: "2026-01-01",
+				updatedAt: "2026-01-01",
+			};
+			env.api.files.set(image.id, image);
+			const parent = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Mira",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			const base = [...env.api.versions.values()].find(
+				(version) => version.keywordId === parent.id,
+			);
+			if (!base) throw new Error("base version missing");
+			let targetId = parent.id;
+			if (kind === "keyword")
+				env.api.editRow(
+					env.api.versions,
+					base.id,
+					{ imageId: image.id },
+					"keywordVersion",
+				);
+			if (kind === "alias")
+				targetId = env.api.seedAlias(parent.id, {
+					nameEn: "Scout",
+					imageId: image.id,
+					createdById: env.user.id,
+				}).id;
+			if (kind === "version")
+				targetId = env.api.seedVersion(parent.id, {
+					startingChapter: 10,
+					imageId: image.id,
+					createdById: env.user.id,
+				}).id;
+			const view = await openKeywordForm("", kind, parent.id, targetId);
+			try {
+				expect(view.getByAltText("coloring.imagePreview")).toBeTruthy();
+				fireEvent.click(
+					view.getByRole("button", { name: "imageUpload.remove" }),
+				);
+				await waitFor(() =>
+					expect(view.queryByAltText("coloring.imagePreview")).toBeNull(),
+				);
+				expect(
+					view.queryByRole("button", { name: "imageUpload.remove" }),
+				).toBeNull();
+				setOnline(false);
+				const form = view
+					.getByRole("button", { name: "_.save" })
+					.closest("form");
+				if (!form) throw new Error("form missing");
+				fireEvent.submit(form);
+				await waitFor(async () =>
+					expect(await env.db.mutations.count()).toBe(1),
+				);
+				const mutation = (await env.db.mutations.toArray())[0];
+				expect(mutation?.patch.imageId).toBeNull();
+				expect(await env.db.files.count()).toBe(0);
+			} finally {
+				view.unmount();
+				window.history.replaceState(null, "", previousUrl);
+			}
+		});
+	}
 	it("starts a hover image request once when the source becomes ready", async () => {
 		const previousUrl = window.location.href;
 		const runtime = fakeBrowser.runtime as { sendMessage: unknown };
@@ -3307,5 +3384,117 @@ describe("manual image prompts", () => {
 					item.type === "generateAiImage" || item.type === "executeAiPrompt",
 			),
 		).toBe(false);
+	});
+});
+
+describe("image drag and drop input", async () => {
+	const { ImageUpload } = await import("../../src/components/image-upload");
+	const transfer = (files: File[]) => ({
+		types: ["Files"],
+		files,
+		items: files.map((file) => ({ kind: "file", type: file.type })),
+		dropEffect: "none",
+	});
+	function Harness({
+		saved = false,
+		disabled = false,
+	}: {
+		saved?: boolean;
+		disabled?: boolean;
+	}) {
+		const [file, setFile] = React.useState<File | null>(null);
+		const [existing, setExisting] = React.useState(saved);
+		return React.createElement(ImageUpload, {
+			label: "Image",
+			value: file,
+			hasImage: existing,
+			disabled,
+			onChange(value) {
+				setFile(value);
+				if (!value) setExisting(false);
+			},
+		});
+	}
+	it("accepts a dropped image, keeps drag feedback over nested children and deletes without opening the picker", async () => {
+		const view = render(React.createElement(Harness), { wrapper });
+		const area = view.getByRole("button", { name: /imageUpload.dropOrClick/ });
+		const input = view.getByLabelText("Image", {
+			selector: "input",
+		}) as HTMLInputElement;
+		const click = mock(() => {});
+		input.click = click;
+		const file = new File(["png"], "portrait.png", { type: "image/png" });
+		const dataTransfer = transfer([file]);
+		fireEvent.dragEnter(area, { dataTransfer });
+		expect(area.getAttribute("data-drag")).toBe("accept");
+		fireEvent.dragEnter(area.querySelector("svg") ?? area, { dataTransfer });
+		fireEvent.dragLeave(area.querySelector("svg") ?? area, { dataTransfer });
+		expect(area.getAttribute("data-drag")).toBe("accept");
+		fireEvent.drop(area, { dataTransfer });
+		expect(area.getAttribute("data-drag")).toBe("idle");
+		expect(view.getByText(file.name)).toBeTruthy();
+		fireEvent.click(view.getByRole("button", { name: "imageUpload.remove" }));
+		expect(view.queryByText(file.name)).toBeNull();
+		expect(click).not.toHaveBeenCalled();
+		expect(document.activeElement).toBe(area);
+		fireEvent.click(area);
+		expect(click).toHaveBeenCalledTimes(1);
+	});
+	it("rejects invalid, multiple and oversized drops without replacing the current image", () => {
+		const view = render(React.createElement(Harness), { wrapper });
+		const area = view.getByRole("button", { name: /imageUpload.dropOrClick/ });
+		const file = new File(["ok"], "saved.png", { type: "image/png" });
+		fireEvent.drop(area, { dataTransfer: transfer([file]) });
+		const bad = new File(["text"], "notes.txt", { type: "text/plain" });
+		fireEvent.dragEnter(area, { dataTransfer: transfer([bad]) });
+		expect(area.getAttribute("data-drag")).toBe("reject");
+		fireEvent.drop(area, { dataTransfer: transfer([bad]) });
+		expect(view.getByRole("alert").textContent).toBe("imageUpload.imagesOnly");
+		fireEvent.drop(area, { dataTransfer: transfer([file, file]) });
+		expect(view.getByRole("alert").textContent).toBe("imageUpload.oneImage");
+		const large = new File(["too big"], "large.png", { type: "image/png" });
+		Object.defineProperty(large, "size", { value: 10 * 1024 * 1024 + 1 });
+		fireEvent.drop(area, { dataTransfer: transfer([large]) });
+		expect(view.getByRole("alert").textContent).toBe("imageUpload.tooLarge");
+		expect(view.getByText("saved.png")).toBeTruthy();
+	});
+	it("accepts picker selections and can select the same file again after deleting it", () => {
+		const view = render(React.createElement(Harness), { wrapper });
+		const input = view.getByLabelText("Image", {
+			selector: "input",
+		}) as HTMLInputElement;
+		const file = new File(["image"], "portrait.webp", { type: "image/webp" });
+		fireEvent.change(input, { target: { files: [file] } });
+		expect(view.getByText(file.name)).toBeTruthy();
+		fireEvent.click(view.getByRole("button", { name: "imageUpload.remove" }));
+		fireEvent.change(input, { target: { files: [file] } });
+		expect(view.getByText(file.name)).toBeTruthy();
+	});
+	it("supports deleting a saved image and ignores drops while disabled", () => {
+		const view = render(
+			React.createElement(Harness, { saved: true, disabled: true }),
+			{ wrapper },
+		);
+		const area = view.getByRole("button", { name: /imageUpload.dropOrClick/ });
+		const file = new File(["image"], "new.png", { type: "image/png" });
+		fireEvent.drop(area, { dataTransfer: transfer([file]) });
+		expect(view.queryByText(file.name)).toBeNull();
+		expect(
+			(
+				view.getByRole("button", {
+					name: "imageUpload.remove",
+				}) as HTMLButtonElement
+			).disabled,
+		).toBe(true);
+		view.unmount();
+		const enabled = render(React.createElement(Harness, { saved: true }), {
+			wrapper,
+		});
+		fireEvent.click(
+			enabled.getByRole("button", { name: "imageUpload.remove" }),
+		);
+		expect(
+			enabled.queryByRole("button", { name: "imageUpload.remove" }),
+		).toBeNull();
 	});
 });

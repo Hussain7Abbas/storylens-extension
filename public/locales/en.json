@@ -605,5 +605,15 @@
 		"replacementSaved": "Replacement saved. The page is refreshing.",
 		"replacementSavedRefresh": "Replacement saved. Reload the page to apply it.",
 		"savingReplacement": "Saving replacement…"
+	},
+	"imageUpload": {
+		"dropOrClick": "Drag and drop an image or click to upload",
+		"dropNow": "Drop your image here",
+		"invalidDrop": "Drop one image file",
+		"oneImage": "Choose one image at a time.",
+		"imagesOnly": "Please choose an image file.",
+		"tooLarge": "The image must be 10 MB or smaller.",
+		"selected": "Image selected · click to replace",
+		"remove": "Delete image"
 	}
 }
