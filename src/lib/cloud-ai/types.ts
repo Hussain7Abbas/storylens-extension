@@ -1,10 +1,10 @@
-import type { AiFeature, AiSource } from "../ai-source/source";
+import type { AiFeature, AiImageFeature, AiSource } from "../ai-source/source";
 export type AiPromptInput = {
 	source: AiSource;
 	requestId: string;
 	actionId: string;
 	attempt: 1 | 2;
-	feature: Exclude<AiFeature, "character_image">;
+	feature: Exclude<AiFeature, AiImageFeature>;
 	prompt: string;
 	responseLanguage: "en" | "ar";
 	novelId?: string;
@@ -13,6 +13,8 @@ export type AiPromptInput = {
 	webSearch?: boolean;
 };
 export type AiImageInput = {
+	feature?: AiImageFeature;
+	referenceImageUrls?: string[];
 	source: AiSource;
 	requestId: string;
 	actionId: string;

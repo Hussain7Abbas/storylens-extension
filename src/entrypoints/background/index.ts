@@ -3,13 +3,14 @@ import { browser } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { trackAnalyticsEvent } from "@/lib/analytics/background";
 import { setupAuthInterceptor } from "@/lib/auth/auth-service";
-import { AUTH_STORAGE_KEY } from "@/lib/auth/auth-storage";
+import { AUTH_STORAGE_KEY, getStoredAuth } from "@/lib/auth/auth-storage";
 import {
 	claimLensNotices,
 	markLensNoticesSeen,
 	refreshAiPricing,
 	refreshLensBalance,
 } from "@/lib/billing/background";
+import { chapterCoverRequest } from "@/lib/chapter-cover/background";
 import {
 	cancelCloudPrompt,
 	cancelCloudTabPrompts,
@@ -28,6 +29,7 @@ import {
 import { parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
 import { queuePageReplacement } from "@/lib/offline/page-replacement";
+import { fetchNovelBundle } from "@/lib/offline/sync/pull";
 import {
 	downloadNovel,
 	initSyncBackground,
@@ -44,6 +46,7 @@ import {
 	removeTabNovel,
 	setTabNovel,
 } from "@/lib/offline/sync/tabs";
+import { getNovelView } from "@/lib/offline/views";
 import { savePersonalColor } from "@/lib/personal-colors/background";
 import { websitePageUrl } from "@/lib/website";
 import type { currentNovelMeta } from "@/types";
@@ -187,6 +190,18 @@ export default defineBackground(() => {
 		} catch (error) {
 			return { ok: false as const, failure: serializeAiFailure(error) };
 		}
+	});
+	onMessage("chapterCoverKeywords", async ({ data, sender }) => {
+		desktopJobOwner(sender);
+		const { user, token } = await getStoredAuth();
+		const view = await getNovelView(data, user?.id);
+		if (view.novel) return view.keywords;
+		return (await fetchNovelBundle(data, { token: token ?? undefined }))
+			.keywords;
+	});
+	onMessage("chapterCover", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return chapterCoverRequest(data);
 	});
 	onMessage("generateAiImage", async ({ data, sender }) => {
 		const owner = desktopJobOwner(sender);

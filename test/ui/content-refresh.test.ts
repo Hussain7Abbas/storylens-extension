@@ -102,9 +102,10 @@ beforeEach(async () => {
 			[TOOLTIP_TRIGGER_KEY]: "hover",
 			[SHOW_WORD_VFX_KEY]: true,
 		});
-		await runContentScript({ addEventListener() {} } as unknown as Parameters<
-			typeof runContentScript
-		>[0]);
+		await runContentScript({
+			addEventListener() {},
+			onInvalidated() {},
+		} as unknown as Parameters<typeof runContentScript>[0]);
 		// Initial highlighting is deferred by runContentScript.
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		started = true;

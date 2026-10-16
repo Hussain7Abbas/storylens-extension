@@ -1,5 +1,5 @@
 import { sendMessage } from "@/entrypoints/background/messaging";
-import type { AiSource } from "@/lib/ai-source/source";
+import type { AiImageFeature, AiSource } from "@/lib/ai-source/source";
 import { unwrapAiReply } from "@/lib/cloud-ai/errors";
 import type { DesktopSettings } from "./types";
 
@@ -17,11 +17,18 @@ function base64File(data: string, mimeType: string, name: string): File {
 	return new File([bytes], `${base}.${extension}`, { type: mimeType });
 }
 
-export type GeneratedCharacterImage = { file: File; revisedPrompt?: string };
+export type GeneratedCharacterImage = {
+	file: File;
+	revisedPrompt?: string;
+	data: string;
+	mimeType: string;
+};
 
 /** Shared image transport and cancellation for manual and selection requests. */
 export async function generateCharacterImage(input: {
 	source: AiSource;
+	feature?: AiImageFeature;
+	referenceImageUrls?: string[];
 	settings: DesktopSettings;
 	prompt: string;
 	name: string;
@@ -37,6 +44,10 @@ export async function generateCharacterImage(input: {
 		const image = unwrapAiReply(
 			await sendMessage("generateAiImage", {
 				source: input.source,
+				...(input.feature ? { feature: input.feature } : {}),
+				...(input.referenceImageUrls?.length
+					? { referenceImageUrls: input.referenceImageUrls }
+					: {}),
 				actionId: crypto.randomUUID(),
 				requestId,
 				prompt: input.prompt,
@@ -48,6 +59,8 @@ export async function generateCharacterImage(input: {
 		input.signal.throwIfAborted();
 		return {
 			file: base64File(image.data, image.mimeType, input.name),
+			data: image.data,
+			mimeType: image.mimeType,
 			revisedPrompt: image.revisedPrompt,
 		};
 	} finally {

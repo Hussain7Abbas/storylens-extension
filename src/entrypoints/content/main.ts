@@ -2,6 +2,12 @@ import { browser, type ContentScriptContext } from "#imports";
 import { onMessage, sendMessage } from "@/entrypoints/background/messaging";
 import { trackEvent } from "@/lib/analytics/client";
 import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
+import {
+	clearChapterCover,
+	refreshChapterCoverPreference,
+	syncChapterCover,
+} from "@/lib/chapter-cover/page";
+import { AUTO_CHAPTER_COVER_KEY } from "@/lib/chapter-cover/types";
 import { CHAPTER_TEXT_CHARS } from "@/lib/desktop-client/chapter-extraction";
 import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
@@ -111,7 +117,7 @@ async function handleDetectedNovel(force = false): Promise<void> {
 		return;
 	}
 
-	await processDetectedNovel(novel, { force });
+	await processDetectedNovel(novel, { force, onReady: syncChapterCover });
 	lastProcessedKey = processKey;
 }
 
@@ -126,7 +132,7 @@ export async function refreshPageContent(): Promise<void> {
 		return;
 	}
 
-	await processDetectedNovel(novel, { force: true });
+	await processDetectedNovel(novel, { force: true, onReady: syncChapterCover });
 	lastProcessedKey = buildDetectedNovelKey(novel);
 }
 
@@ -234,6 +240,7 @@ export async function runContentScript(
 
 	browser.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
+		if (AUTO_CHAPTER_COVER_KEY in changes) refreshChapterCoverPreference();
 		if (SHOW_WORD_VFX_KEY in changes) {
 			setWordVfxVisible(changes[SHOW_WORD_VFX_KEY].newValue);
 		}
@@ -302,7 +309,13 @@ export async function runContentScript(
 		});
 	});
 
+	ctx.addEventListener(window, "pagehide", clearChapterCover);
+	ctx.addEventListener(window, "pageshow", (event) => {
+		if (event.persisted) void handleDetectedNovel(true);
+	});
+	ctx.onInvalidated(clearChapterCover);
 	ctx.addEventListener(window, "wxt:locationchange", () => {
+		clearChapterCover();
 		clearPageSummary();
 		clearChapterExtraction();
 		pagePopupLauncherNavigated();

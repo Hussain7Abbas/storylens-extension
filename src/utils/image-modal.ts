@@ -32,6 +32,27 @@ export function openImageModal(
 	image.className = "storylens-image-modal-image";
 	image.src = src;
 	image.alt = alt;
+	image.draggable = true;
+
+	// Keep the browser's image actions, even on sites that block right-click or dragging.
+	// Capture before document handlers without cancelling the native default action.
+	const nativeImageEvents = [
+		"contextmenu",
+		"pointerdown",
+		"mousedown",
+		"dragstart",
+	] as const;
+	const preserveImageInteraction = (event: Event) => {
+		if (event.target !== image) return;
+		if (
+			(event.type === "pointerdown" || event.type === "mousedown") &&
+			(event as MouseEvent).button !== 2
+		)
+			return;
+		event.stopPropagation();
+	};
+	for (const type of nativeImageEvents)
+		window.addEventListener(type, preserveImageInteraction, true);
 
 	const close = document.createElement("button");
 	close.type = "button";
@@ -61,7 +82,11 @@ export function openImageModal(
 			if (!inside) dialog.close();
 		});
 	}
-	dialog.addEventListener("close", () => dialog.remove());
+	dialog.addEventListener("close", () => {
+		for (const type of nativeImageEvents)
+			window.removeEventListener(type, preserveImageInteraction, true);
+		dialog.remove();
+	});
 
 	dialog.append(image, close);
 	(document.body ?? document.documentElement).append(dialog);

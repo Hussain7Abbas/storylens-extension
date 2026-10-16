@@ -1,7 +1,7 @@
 import type { GetBillingPricing200 } from "@/api/generated/schemas";
 import { isAiConfigured } from "../desktop-client/ai-config";
 import type { DesktopSettings } from "../desktop-client/types";
-import type { AiFeature, AiSource } from "./source";
+import { type AiFeature, type AiSource, isImageFeature } from "./source";
 
 export type AiUnavailableReason =
 	| "desktop-unpaired"
@@ -21,7 +21,7 @@ export function aiAvailability(input: {
 }): AiAvailability {
 	if (input.source === "desktop")
 		return (
-			input.feature === "character_image"
+			isImageFeature(input.feature)
 				? !!input.desktop.token
 				: isAiConfigured(input.desktop)
 		)

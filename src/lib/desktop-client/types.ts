@@ -22,7 +22,11 @@ export type DesktopCapabilities = {
 		concurrent: number;
 	};
 	/** Optional features; clients before image generation omit this object. */
-	features?: { webSearch: boolean; imageGeneration: boolean };
+	features?: {
+		webSearch: boolean;
+		imageGeneration: boolean;
+		imageReferences?: boolean;
+	};
 };
 export type ExecutePromptInput = {
 	requestId: string;
@@ -34,6 +38,7 @@ export type ExecutePromptInput = {
 	webSearch?: boolean;
 };
 export type GenerateImageInput = {
+	referenceImageUrls?: string[];
 	requestId: string;
 	prompt: string;
 	model: string;

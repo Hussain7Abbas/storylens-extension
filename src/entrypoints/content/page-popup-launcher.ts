@@ -4,6 +4,7 @@ import {
 	createElement,
 	House,
 	type IconNode,
+	ImagePlus,
 	ListFilter,
 	LoaderCircle,
 	Moon,
@@ -25,6 +26,7 @@ import {
 import { trackEvent } from "@/lib/analytics/client";
 import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
 import { AI_PRICING_KEY, type PricingCache } from "@/lib/billing/cache";
+import { startChapterCover } from "@/lib/chapter-cover/page";
 import { handleUnavailableAi } from "@/lib/cloud-ai/top-up";
 import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { startChapterExtraction } from "@/lib/desktop-client/chapter-panel";
@@ -185,6 +187,7 @@ function labels(locale: string): {
 	close: string;
 	select: string;
 	summarize: string;
+	chapterCover: string;
 	extract: string;
 	nightLightOn: string;
 	nightLightOff: string;
@@ -219,6 +222,7 @@ function labels(locale: string): {
 				close: "إغلاق عدسة القصة",
 				select: "حدد نصاً في الصفحة",
 				summarize: "لخّص الصفحة بالذكاء الاصطناعي",
+				chapterCover: "توليد صورة غلاف الفصل",
 				extract: "استخرج شخصيات الفصل بالذكاء الاصطناعي",
 				nightLightOn: "شغّل الإضاءة الليلية",
 				nightLightOff: "أوقف الإضاءة الليلية",
@@ -252,6 +256,7 @@ function labels(locale: string): {
 				close: "Close Story Lens",
 				select: "Select text on page",
 				summarize: "Summarize page with AI",
+				chapterCover: "Generate Chapter Cover Image",
 				extract: "Extract chapter characters with AI",
 				nightLightOn: "Turn on night light",
 				nightLightOff: "Turn off night light",
@@ -466,6 +471,7 @@ function createLauncher(locale: string): Launcher {
 	};
 	const action = createAction("select", Plus);
 	const summarizeAction = createAction("summarize", TextSearch);
+	const coverAction = createAction("chapter-cover", ImagePlus);
 	const extractAction = createAction("extract", ListFilter);
 	const nightLightAction = createAction("night-light", Moon);
 	const panel = document.createElement("section");
@@ -529,6 +535,7 @@ function createLauncher(locale: string): Launcher {
 		};
 		describe(action, text.select);
 		describe(summarizeAction, text.summarize, "page_summary");
+		describe(coverAction, text.chapterCover, "chapter_cover");
 		describe(extractAction, text.extract, "chapter_extraction");
 		describe(
 			nightLightAction,
@@ -1623,6 +1630,15 @@ function createLauncher(locale: string): Launcher {
 	actions.addEventListener("focusout", onControlBlur);
 	action.addEventListener("click", onActionClick);
 	summarizeAction.addEventListener("click", onSummarizeClick);
+	coverAction.addEventListener("click", () => {
+		hideAction();
+		if (!startChapterCover())
+			showNotice(
+				currentLocale.startsWith("ar")
+					? "محتوى الفصل غير جاهز بعد."
+					: "Chapter content is not ready yet.",
+			);
+	});
 	extractAction.addEventListener("click", onExtractClick);
 	nightLightAction.addEventListener("click", onNightLightClick);
 	const onStorageChange: Parameters<

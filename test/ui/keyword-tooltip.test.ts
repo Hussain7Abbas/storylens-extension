@@ -256,6 +256,41 @@ describe("tooltip image", () => {
 		expect(dialogs[0].querySelector("img")?.src).toBe(aliasImage.url);
 	});
 
+	it("keeps native image actions available when the site blocks context menus", () => {
+		const blockMenu = (event: Event) => event.preventDefault();
+		document.addEventListener("contextmenu", blockMenu, true);
+		try {
+			hover(keyword({ versions: [baseVersion({ image: keywordImage })] }))
+				.querySelector<HTMLButtonElement>(".storylens-image-btn")
+				?.click();
+			const dialog = document.querySelector<HTMLDialogElement>(
+				"dialog.storylens-image-modal",
+			);
+			const image = dialog?.querySelector("img");
+			if (!dialog || !image) throw new Error("Image viewer is missing");
+			expect(image.src).toBe(keywordImage.url);
+			expect(image.draggable).toBe(true);
+			const rightClick = () =>
+				new MouseEvent("contextmenu", {
+					bubbles: true,
+					cancelable: true,
+					button: 2,
+				});
+			expect(image.dispatchEvent(rightClick())).toBe(true);
+			expect(dialog.open).toBe(true);
+
+			// Normal page images still follow the site's handlers, including after closing.
+			const pageImage = document.createElement("img");
+			document.body.append(pageImage);
+			expect(pageImage.dispatchEvent(rightClick())).toBe(false);
+			dialog.close();
+			document.body.append(image);
+			expect(image.dispatchEvent(rightClick())).toBe(false);
+		} finally {
+			document.removeEventListener("contextmenu", blockMenu, true);
+		}
+	});
+
 	it("removing the page markup closes an open modal", () => {
 		hover(keyword({ versions: [baseVersion({ image: keywordImage })] }))
 			.querySelector<HTMLButtonElement>(".storylens-image-btn")

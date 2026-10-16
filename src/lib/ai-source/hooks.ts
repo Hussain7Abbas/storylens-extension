@@ -20,6 +20,7 @@ import {
 	AI_SOURCE_KEY,
 	type AiFeature,
 	featureAiSource,
+	isImageFeature,
 	parseAiSource,
 } from "./source";
 
@@ -89,7 +90,7 @@ export function useAiAvailability(feature: AiFeature) {
 	const state = useAiSnapshot();
 	return aiAvailability({
 		...state,
-		source: feature === "character_image" ? state.imageSource : state.source,
+		source: isImageFeature(feature) ? state.imageSource : state.source,
 		feature,
 	});
 }

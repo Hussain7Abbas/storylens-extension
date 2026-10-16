@@ -17,6 +17,7 @@ describe("parseAiPrompts", () => {
 		).toEqual({
 			keywordPrompt: DEFAULT_AI_PROMPTS.keywordPrompt,
 			imagePrompt: "Watercolor.",
+			chapterCoverPrompt: DEFAULT_AI_PROMPTS.chapterCoverPrompt,
 		});
 	});
 });

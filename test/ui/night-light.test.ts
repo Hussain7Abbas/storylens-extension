@@ -295,6 +295,12 @@ describe("launcher night light action", () => {
 				.getElementById("storylens-page-launcher")
 				?.shadowRoot?.querySelectorAll<HTMLElement>(".action") ?? []),
 		].map((element) => element.dataset.action);
-		expect(names).toEqual(["select", "summarize", "extract", "night-light"]);
+		expect(names).toEqual([
+			"select",
+			"summarize",
+			"chapter-cover",
+			"extract",
+			"night-light",
+		]);
 	});
 });

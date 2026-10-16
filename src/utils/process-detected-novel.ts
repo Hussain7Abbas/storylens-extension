@@ -1,4 +1,5 @@
 import type { currentNovelMeta } from "@/types";
+import type { NovelContentData } from "@/types/content-data";
 import {
 	applyContentProcessing,
 	buildProcessKey,
@@ -42,7 +43,7 @@ async function waitForContentRoot(): Promise<HTMLElement | undefined> {
 
 export async function processDetectedNovel(
 	meta: currentNovelMeta,
-	options?: { force?: boolean },
+	options?: { force?: boolean; onReady?: (data: NovelContentData) => void },
 ): Promise<void> {
 	const request = ++latestRequest;
 	const url = window.location.href;
@@ -74,6 +75,7 @@ export async function processDetectedNovel(
 			buildProcessKey(meta.novelSlug, meta.chapter),
 			{ force: options?.force },
 		);
+		options?.onReady?.(contentData);
 	} catch (error) {
 		console.error(`${LOG_PREFIX} Failed to process detected novel`, error);
 	}

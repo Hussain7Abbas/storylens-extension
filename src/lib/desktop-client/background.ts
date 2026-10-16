@@ -139,22 +139,32 @@ async function runDesktopJob<T>(
 	path: string,
 	requestId: string,
 	tabId: number,
-	body: Record<string, unknown>,
+	body:
+		| Record<string, unknown>
+		| ((
+				settings: DesktopSettings,
+				signal: AbortSignal,
+		  ) => Promise<Record<string, unknown>>),
 	options: { timeoutMs: number; maxBytes: number },
 	pick: (frame: ResultFrame) => T,
 ): Promise<T> {
-	const settings = await desktopSettings();
 	if (active.has(requestId))
 		throw new Error("This request is already running.");
 	const controller = new AbortController();
 	active.set(requestId, { tabId, controller });
 	try {
+		const settings = await desktopSettings();
+		const payload =
+			typeof body === "function"
+				? await body(settings, controller.signal)
+				: body;
+		controller.signal.throwIfAborted();
 		return await retryWhileBusy(
 			() =>
 				attemptDesktopJob(
 					path,
 					settings,
-					body,
+					payload,
 					options,
 					pick,
 					controller.signal,
@@ -236,12 +246,32 @@ export async function generateDesktopImage(
 		throw new Error(
 			"Prompt is too large for the desktop client (500 KB limit).",
 		);
+
 	return runDesktopJob(
 		"/GenerateImage",
 		data.requestId,
 		tabId,
-		{ prompt: data.prompt, model: data.model, effort: data.effort },
-		{ timeoutMs: 320_000, maxBytes: 12_000_000 },
+		async (settings, signal) => {
+			let references: string[] | undefined;
+			if (data.referenceImageUrls?.length) {
+				const response = await request("/capabilities", settings, {
+					signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]),
+				});
+				const capabilities: unknown = await response.json();
+				if (
+					isCapabilities(capabilities) &&
+					capabilities.features?.imageReferences
+				)
+					references = data.referenceImageUrls;
+			}
+			return {
+				prompt: data.prompt,
+				model: data.model,
+				effort: data.effort,
+				...(references ? { referenceImageUrls: references } : {}),
+			};
+		},
+		{ timeoutMs: 360_000, maxBytes: 12_000_000 },
 		(frame) => {
 			if (
 				typeof frame.data !== "string" ||

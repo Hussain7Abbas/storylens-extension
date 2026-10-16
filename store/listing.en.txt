@@ -18,7 +18,7 @@ Features
 • Text replacements for preferred names and translations
 • Search, editing, and offline access to downloaded references
 • English and Arabic interface
-• Story Lens Cloud: page summaries, keyword suggestions, chapter extraction, novel research, selector detection and character images using lenses
+• Story Lens Cloud: page summaries, keyword suggestions, chapter extraction, novel research, selector detection, character images and cinematic chapter covers using lenses
 • A free desktop alternative using your own Claude/Codex account
 • Lens balance and prices on AI actions; request more lenses on the website
 
@@ -43,3 +43,5 @@ English
 
 SINGLE PURPOSE
 Improve web novel reading with reference highlights, replacements, chapter context, and optional requested AI reading tools.
+
+Shared chapter covers appear before the chapter text. Choose an iconic-scene prompt in AI settings and optionally enable automatic generation for chapters without a cover (off by default).

@@ -281,7 +281,7 @@ export const usePostAiPrompts = <
 };
 /**
  * Streams NDJSON frames like `/ai/prompts`; the `result` frame carries `mimeType`, base64 `data` and `revisedPrompt`.
- * @summary Draw a character image with Story Lens Cloud AI
+ * @summary Draw a character image or chapter cover with Story Lens Cloud AI
  */
 export const postAiImages = (
 	postAiImagesBody:
@@ -352,7 +352,7 @@ export type PostAiImagesMutationError = ErrorType<
 >;
 
 /**
- * @summary Draw a character image with Story Lens Cloud AI
+ * @summary Draw a character image or chapter cover with Story Lens Cloud AI
  */
 export const usePostAiImages = <
 	TError = ErrorType<PostAiImages404 | PostAiImages500>,

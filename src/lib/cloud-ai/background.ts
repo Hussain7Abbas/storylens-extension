@@ -43,7 +43,9 @@ async function run(
 	}, 20_000);
 	try {
 		await refreshAiPricing(30 * 60_000);
-		const feature = image ? "character_image" : (data as AiPromptInput).feature;
+		const feature = image
+			? ((data as AiImageInput).feature ?? "character_image")
+			: (data as AiPromptInput).feature;
 		const state = await aiState(feature);
 		const auth = await getStoredAuth();
 		if (!auth.user || !auth.token)
@@ -88,6 +90,9 @@ async function run(
 				body: {
 					actionId: data.actionId,
 					feature,
+					...(image && (data as AiImageInput).referenceImageUrls
+						? { referenceImageUrls: (data as AiImageInput).referenceImageUrls }
+						: {}),
 					prompt: data.prompt,
 					...(!image
 						? {

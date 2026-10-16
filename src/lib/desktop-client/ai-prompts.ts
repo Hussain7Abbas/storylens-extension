@@ -4,6 +4,8 @@ export type AiPrompts = {
 	keywordPrompt: string;
 	/** How character images are drawn from the chapter and novel context. */
 	imagePrompt: string;
+	/** Cinematic chapter cover composition and reference guidance. */
+	chapterCoverPrompt: string;
 };
 
 export const AI_PROMPTS_KEY = "storylens-ai-prompts";
@@ -24,7 +26,20 @@ export const DEFAULT_AI_PROMPTS: AiPrompts = {
 - The design must be an original interpretation of the written description, not a copy of any official cover, manhua, anime or game artwork.
 - No text, captions, logos, watermarks, signatures or UI elements in the image. One character only.
 - For a place or an item, draw that place or item instead of a person, in the same style.`,
+	chapterCoverPrompt: `Create a cinematic chapter cover illustration centered on the most iconic, emotionally powerful scene in this chapter.
+- Choose the scene that best captures the chapter's turning point, conflict or atmosphere. If several moments are essential, merge them into one coherent cinematic composition with a clear focal point; avoid an unrelated collage.
+- Use dramatic cinematic lighting, rich atmosphere, strong depth, expressive poses and detailed environments. Compose as a wide landscape chapter cover (16:9), without text.
+- Include only characters, places and objects that belong to the selected chapter scene(s). Use the provided keyword descriptions and reference image URLs for every depicted entity that has them: preserve recognizable faces, hair, clothing, species, weapons and distinguishing details, adapted to the action. Do not force every referenced entity into the scene.
+- Treat the chapter as the source of events and the novel context as background for genre, era, culture and world. Do not invent later events or spoilers.
+- Draw an original illustration, not a copy of an official cover or adaptation. No titles, captions, logos, watermarks, signatures or UI.`,
 };
+
+// Upgrade only the unchanged original seed, preserving the reader's custom prompts.
+const ORIGINAL_CHAPTER_COVER_PROMPT =
+	DEFAULT_AI_PROMPTS.chapterCoverPrompt.replace(
+		"a wide landscape chapter cover (16:9)",
+		"a portrait book cover (2:3)",
+	);
 
 export function parseAiPrompts(value: unknown): AiPrompts {
 	const stored =
@@ -35,9 +50,14 @@ export function parseAiPrompts(value: unknown): AiPrompts {
 		typeof stored?.[key] === "string" && stored[key].trim()
 			? stored[key]
 			: DEFAULT_AI_PROMPTS[key];
+	const chapterCoverPrompt = pick("chapterCoverPrompt");
 	return {
 		keywordPrompt: pick("keywordPrompt"),
 		imagePrompt: pick("imagePrompt"),
+		chapterCoverPrompt:
+			chapterCoverPrompt === ORIGINAL_CHAPTER_COVER_PROMPT
+				? DEFAULT_AI_PROMPTS.chapterCoverPrompt
+				: chapterCoverPrompt,
 	};
 }
 

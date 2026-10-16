@@ -1,6 +1,10 @@
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { runLocalizedPrompt } from "@/lib/ai-source/prompt-runner";
-import type { AiFeature, AiSource } from "@/lib/ai-source/source";
+import type {
+	AiFeature,
+	AiImageFeature,
+	AiSource,
+} from "@/lib/ai-source/source";
 import { aiState } from "@/lib/ai-source/storage";
 import { unwrapAiReply } from "@/lib/cloud-ai/errors";
 import type { AiLanguage } from "./ai-language";
@@ -9,7 +13,7 @@ import type { DesktopSettings } from "./types";
 export async function executeLocalizedPrompt<T>(input: {
 	prompt: string;
 	language: AiLanguage;
-	feature: Exclude<AiFeature, "character_image">;
+	feature: Exclude<AiFeature, AiImageFeature>;
 	source?: AiSource;
 	settings?: DesktopSettings;
 	novelId?: string;

@@ -7,6 +7,7 @@ import {
 	SegmentedControl,
 	Select,
 	Stack,
+	Switch,
 	Text,
 	Textarea,
 	Tooltip,
@@ -19,6 +20,7 @@ import { useAiSnapshot } from "@/lib/ai-source/hooks";
 import type { AiSource } from "@/lib/ai-source/source";
 import { saveAiSource } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { AUTO_CHAPTER_COVER_KEY } from "@/lib/chapter-cover/types";
 import {
 	type AiPrompts,
 	DEFAULT_AI_PROMPTS,
@@ -53,12 +55,16 @@ function AiPromptsSection() {
 	}, []);
 	const dirty =
 		prompts.keywordPrompt !== saved.keywordPrompt ||
-		prompts.imagePrompt !== saved.imagePrompt;
+		prompts.imagePrompt !== saved.imagePrompt ||
+		prompts.chapterCoverPrompt !== saved.chapterCoverPrompt;
 	const save = async () => {
 		const next: AiPrompts = {
 			keywordPrompt:
 				prompts.keywordPrompt.trim() || DEFAULT_AI_PROMPTS.keywordPrompt,
 			imagePrompt: prompts.imagePrompt.trim() || DEFAULT_AI_PROMPTS.imagePrompt,
+			chapterCoverPrompt:
+				prompts.chapterCoverPrompt.trim() ||
+				DEFAULT_AI_PROMPTS.chapterCoverPrompt,
 		};
 		await saveAiPrompts(next);
 		setPrompts(next);
@@ -67,6 +73,8 @@ function AiPromptsSection() {
 		trackEvent("ai_prompts_saved", {
 			keyword_custom: next.keywordPrompt !== DEFAULT_AI_PROMPTS.keywordPrompt,
 			image_custom: next.imagePrompt !== DEFAULT_AI_PROMPTS.imagePrompt,
+			chapter_cover_custom:
+				next.chapterCoverPrompt !== DEFAULT_AI_PROMPTS.chapterCoverPrompt,
 		});
 	};
 	const field = (key: keyof AiPrompts, label: string, description: string) => (
@@ -117,6 +125,11 @@ function AiPromptsSection() {
 				t("desktop.imagePrompt"),
 				t("desktop.imagePromptHelp"),
 			)}
+			{field(
+				"chapterCoverPrompt",
+				t("desktop.chapterCoverPrompt"),
+				t("desktop.chapterCoverPromptHelp"),
+			)}
 			<Group justify="space-between" gap="xs">
 				<Text size="xs" role="status">
 					{status}
@@ -144,6 +157,14 @@ export function AiTab() {
 		parseDesktopSettings(undefined),
 	);
 	const [catalog, setCatalog] = useState<DesktopCapabilities>();
+	const [autoCover, setAutoCover] = useState(false);
+	const [autoLoaded, setAutoLoaded] = useState(false);
+	useEffect(() => {
+		void browser.storage.local.get(AUTO_CHAPTER_COVER_KEY).then((stored) => {
+			setAutoCover(stored[AUTO_CHAPTER_COVER_KEY] === true);
+			setAutoLoaded(true);
+		});
+	}, []);
 	const [busy, setBusy] = useState(false);
 	const [message, setMessage] = useState("");
 	useEffect(() => {
@@ -307,6 +328,18 @@ export function AiTab() {
 					)}
 				</>
 			)}
+			<Switch
+				label={t("desktop.autoChapterCover")}
+				description={t("desktop.autoChapterCoverHelp")}
+				checked={autoCover}
+				disabled={!autoLoaded}
+				onChange={(event) => {
+					const enabled = event.currentTarget.checked;
+					setAutoCover(enabled);
+					void browser.storage.local.set({ [AUTO_CHAPTER_COVER_KEY]: enabled });
+					trackEvent("ai_auto_chapter_cover_changed", { enabled });
+				}}
+			/>
 			<Divider my="xs" />
 			<AiPromptsSection />
 		</Stack>

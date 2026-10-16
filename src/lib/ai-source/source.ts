@@ -19,10 +19,14 @@ export const AI_FEATURES = [
 	"keyword_suggestion",
 	"chapter_extraction",
 	"character_image",
+	"chapter_cover",
 	"novel_context",
 	"selector_detection",
 ] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
+export type AiImageFeature = "character_image" | "chapter_cover";
+export const isImageFeature = (feature: AiFeature): feature is AiImageFeature =>
+	feature === "character_image" || feature === "chapter_cover";
 
 /** Older installs used the text source for images too. */
 export function featureAiSource(
@@ -32,7 +36,7 @@ export function featureAiSource(
 	desktop: DesktopSettings,
 ): AiSource {
 	return parseAiSource(
-		feature === "character_image" &&
+		isImageFeature(feature) &&
 			(imageSource === "cloud" || imageSource === "desktop")
 			? imageSource
 			: textSource,

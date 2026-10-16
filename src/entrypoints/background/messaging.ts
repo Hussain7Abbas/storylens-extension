@@ -24,6 +24,12 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	chapterCoverKeywords(
+		novelId: string,
+	): import("@/types/content-data").RawKeyword[];
+	chapterCover(
+		data: import("@/lib/chapter-cover/types").CoverRequest,
+	): import("@/lib/chapter-cover/types").CoverReply;
 	savePersonalColor(data: ColorChange & { userId: string }): void;
 	createPageReplacement(data: PageReplacementInput): PageReplacementReply;
 	executeAiPrompt(data: AiPromptInput): AiReply<string>;

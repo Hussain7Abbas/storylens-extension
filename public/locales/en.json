@@ -150,7 +150,11 @@
 		"savePrompts": "Save prompts",
 		"selectModel": "Connect and choose a model first.",
 		"settings": "Desktop client",
-		"token": "Pairing token"
+		"token": "Pairing token",
+		"chapterCoverPrompt": "Chapter cover image prompt",
+		"chapterCoverPromptHelp": "Creates a cinematic chapter cover using the chapter text, novel context and the descriptions and image references of keywords mentioned in it.",
+		"autoChapterCover": "Auto Generate Chapter Cover",
+		"autoChapterCoverHelp": "Generate a shared cover when a chapter loads without one. Uses your selected image provider; Story Lens Cloud uses lenses. Off by default."
 	},
 	"extDescription": "Colorize, rename, and track characters, places, and techniques in web novels. Your personal glossary while you read.",
 	"extName": "Story Lens",

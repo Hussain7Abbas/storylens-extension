@@ -285,6 +285,9 @@ dialog.storylens-image-modal::backdrop {
 /* The image is the whole modal: natural size, capped to the viewport. */
 .storylens-image-modal .storylens-image-modal-image {
 	display: block;
+	pointer-events: auto !important;
+	user-select: auto !important;
+	-webkit-user-drag: auto !important;
 	width: auto;
 	height: auto;
 	max-width: calc(100vw - 34px);
