@@ -1,24 +1,33 @@
 /// <reference types="bun" />
-import { describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import axios, { AxiosError, type AxiosResponse } from "axios";
+import { fakeBrowser } from "./helpers/fake-browser";
 
 let updateChecks = 0;
 let reloads = 0;
 
-mock.module("#imports", () => ({
-	browser: {
-		runtime: {
-			getManifest: () => ({ version: "3.1.1" }),
-			requestUpdateCheck: async () => {
-				updateChecks += 1;
-				return { status: "update_available" };
-			},
-			reload: () => {
-				reloads += 1;
-			},
-		},
-	},
-}));
+const originalRuntime = {
+	getManifest: fakeBrowser.runtime.getManifest,
+	requestUpdateCheck: fakeBrowser.runtime.requestUpdateCheck,
+	reload: fakeBrowser.runtime.reload,
+};
+
+beforeEach(() => {
+	updateChecks = 0;
+	reloads = 0;
+	fakeBrowser.runtime.getManifest = () => ({ version: "3.1.1" });
+	fakeBrowser.runtime.requestUpdateCheck = async () => {
+		updateChecks += 1;
+		return { status: "update_available" };
+	};
+	fakeBrowser.runtime.reload = () => {
+		reloads += 1;
+	};
+});
+
+afterEach(() => {
+	Object.assign(fakeBrowser.runtime, originalRuntime);
+});
 
 const { installClientCompat } = await import("../src/api/client-compat");
 
