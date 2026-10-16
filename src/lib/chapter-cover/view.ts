@@ -5,7 +5,6 @@ import { contentThemeCss } from "@/styles/palette";
 type CoverLabels = {
 	actions: string;
 	ready: string;
-	loading: string;
 	copy: string;
 	generate: string;
 	stop: string;
@@ -55,7 +54,6 @@ button:disabled{opacity:.6;cursor:not-allowed}
 	const status = document.createElement("p");
 	status.className = "status";
 	status.setAttribute("role", "status");
-	status.textContent = text.loading;
 	const menu = document.createElement("details");
 	const trigger = document.createElement("summary");
 	trigger.setAttribute("aria-label", text.actions);

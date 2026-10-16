@@ -137,6 +137,53 @@ test("default off does not generate an absent cover; an existing shared cover ap
 	expect(root()?.querySelector("img")?.src).toContain("cover.png");
 	expect(sent.some((item) => item.data?.action === "claim")).toBe(false);
 });
+test("cover lookup adds nothing to the DOM until a saved cover is found", async () => {
+	const pending = Promise.withResolvers<unknown>();
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		const item = message as { type: string; data?: { action?: string } };
+		return item.type === "chapterCover" && item.data?.action === "read"
+			? pending.promise
+			: reply(message);
+	};
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(sent.some((item) => item.type === "chapterCoverKeywords")).toBe(true);
+	expect(document.getElementById("storylens-chapter-cover")).toBeNull();
+	expect(document.body.textContent).toBe(
+		"Mira raises her sword on the bridge.",
+	);
+	pending.resolve({
+		res: {
+			image: { id: "cover", url: "https://images.example.invalid/cover.png" },
+			generating: false,
+		},
+	});
+	await tick();
+	expect(root()?.querySelector("img")?.src).toContain("cover.png");
+	expect(root()?.querySelector('[role="status"]')?.textContent).toBe("");
+});
+test("a lookup completed after disposal cannot add a cover to the DOM", async () => {
+	const pending = Promise.withResolvers<unknown>();
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		const item = message as { type: string; data?: { action?: string } };
+		return item.type === "chapterCover" && item.data?.action === "read"
+			? pending.promise
+			: reply(message);
+	};
+	syncChapterCover(coverChapter());
+	await tick();
+	clearChapterCover();
+	pending.resolve({
+		res: {
+			image: { id: "cover", url: "https://images.example.invalid/cover.png" },
+			generating: false,
+		},
+	});
+	await tick();
+	expect(document.getElementById("storylens-chapter-cover")).toBeNull();
+});
 test("a saved cover is a bare image with its actions inside the corner disclosure", async () => {
 	hasCover = true;
 	syncChapterCover(coverChapter());
@@ -226,9 +273,11 @@ test("a shared generation in progress does not start a second request", async ()
 	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
 	syncChapterCover(coverChapter());
 	await tick();
+	expect(root()).toBeUndefined();
+	expect(sent.some((item) => item.data?.action === "claim")).toBe(false);
+	startChapterCover();
 	expect(root()?.textContent).toContain("Another reader");
 	expect(button("Generate Chapter Cover Image")?.disabled).toBe(true);
-	expect(sent.some((item) => item.data?.action === "claim")).toBe(false);
 });
 test("Stop cancels the image request, releases the lease and ignores a late result", async () => {
 	generateReply = Promise.withResolvers<unknown>();

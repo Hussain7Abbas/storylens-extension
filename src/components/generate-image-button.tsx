@@ -1,4 +1,4 @@
-import { Alert, Button, Text, Tooltip } from "@mantine/core";
+import { Alert, Button, Group, Text, Tooltip } from "@mantine/core";
 import { ImagePlus as IconImagePlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -118,8 +118,24 @@ export function GenerateImageButton({
 	const [revisedPrompt, setRevisedPrompt] = useState<string | undefined>(
 		initialRevisedPrompt,
 	);
-	const [prompt, setPrompt] = useState(initialPrompt);
+	const promptInputs = JSON.stringify([
+		novelId,
+		name,
+		otherNames,
+		description,
+		category,
+		i18n.language,
+	]);
+	const [preparedPrompt, setPreparedPrompt] = useState(
+		initialPrompt ? { value: initialPrompt, inputs: promptInputs } : undefined,
+	);
 	const [busy, setBusy] = useState(false);
+	const prompt =
+		busy || preparedPrompt?.inputs === promptInputs
+			? preparedPrompt?.value
+			: undefined;
+	const setPrompt = (value: string) =>
+		setPreparedPrompt({ value, inputs: promptInputs });
 	const [stopped, setStopped] = useState(initialStopped);
 	const [error, setError] = useState<string | null>(initialError ?? null);
 	const controller = useRef<AbortController | null>(null);
@@ -145,6 +161,30 @@ export function GenerateImageButton({
 		onBusyChange?.(value);
 	};
 
+	const build = (
+		instructions: string,
+		chapterText: string,
+		novelContext: string,
+	) =>
+		buildCharacterImagePrompt({
+			name,
+			otherNames,
+			description,
+			category,
+			instructions,
+			chapterExcerpts: chapterMentions(chapterText, [name, ...otherNames]),
+			novelContext,
+		});
+
+	const preparePrompt = async () => {
+		const [prompts, chapterText, novel] = await Promise.all([
+			aiPrompts().catch(() => DEFAULT_AI_PROMPTS),
+			activeChapterText(),
+			loadNovel(novelId, toAiLanguage(i18n.language)).catch(() => undefined),
+		]);
+		return build(prompts.imagePrompt, chapterText, novel?.context ?? "");
+	};
+
 	const generate = async () => {
 		if (!name.trim()) {
 			setError(t("coloring.imageNeedsName"));
@@ -157,20 +197,6 @@ export function GenerateImageButton({
 		setStopped(false);
 		setRevisedPrompt(undefined);
 		setBusyState(true);
-		const build = (
-			instructions: string,
-			chapterText: string,
-			novelContext: string,
-		) =>
-			buildCharacterImagePrompt({
-				name,
-				otherNames,
-				description,
-				category,
-				instructions,
-				chapterExcerpts: chapterMentions(chapterText, [name, ...otherNames]),
-				novelContext,
-			});
 		// A usable prompt remains available even when pairing, billing or generation fails.
 		setPrompt(build(DEFAULT_AI_PROMPTS.imagePrompt, "", ""));
 		try {
@@ -254,33 +280,39 @@ export function GenerateImageButton({
 	};
 	return (
 		<>
-			<Tooltip
-				label={
-					aiConfigured
-						? `${t("coloring.generateImageHint")}${imagePrice > 0 ? ` · ${label(imagePrice)}` : ""}${researchPrice > 0 ? ` · ${t("cloud.researchCost", { lenses: label(researchPrice) })}` : ""}`
-						: t(availabilityKey(availability))
-				}
-				withArrow
-				openDelay={350}
-				multiline
-				maw={260}
-			>
-				<Button
-					type="button"
-					size="xs"
-					variant="light"
-					leftSection={<IconImagePlus size={14} strokeWidth={1.75} />}
-					loading={busy}
-					onClick={() => {
-						void generate();
-					}}
-					style={{ alignSelf: "flex-start" }}
+			<Group gap="xs" align="flex-start">
+				<Tooltip
+					label={
+						aiConfigured
+							? `${t("coloring.generateImageHint")}${imagePrice > 0 ? ` · ${label(imagePrice)}` : ""}${researchPrice > 0 ? ` · ${t("cloud.researchCost", { lenses: label(researchPrice) })}` : ""}`
+							: t(availabilityKey(availability))
+					}
+					withArrow
+					openDelay={350}
+					multiline
+					maw={260}
 				>
-					{t("coloring.generateImage")} <AiPrice feature="character_image" />
-				</Button>
-			</Tooltip>
+					<Button
+						type="button"
+						size="xs"
+						variant="light"
+						leftSection={<IconImagePlus size={14} strokeWidth={1.75} />}
+						loading={busy}
+						onClick={() => {
+							void generate();
+						}}
+						style={{ alignSelf: "flex-start" }}
+					>
+						{t("coloring.generateImage")} <AiPrice feature="character_image" />
+					</Button>
+				</Tooltip>
+				<CopyImagePrompt
+					prompt={prompt ?? preparePrompt}
+					promptKey={prompt ?? promptInputs}
+					disabled={!prompt && !name.trim()}
+				/>
+			</Group>
 			{busy && <StopImageButton onStop={stop} />}
-			{prompt && <CopyImagePrompt prompt={prompt} />}
 			{stopped && (
 				<Text size="xs" c="dimmed" role="status">
 					{t("coloring.imageStopped")}

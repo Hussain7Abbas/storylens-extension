@@ -3103,9 +3103,13 @@ describe("personal category and nature colors", () => {
 describe("manual image prompts", () => {
 	const runtime = fakeBrowser.runtime as { sendMessage: unknown };
 	let original: unknown;
+	let authorization: (typeof axiosInstance.defaults.headers.common)["Authorization"];
 	let clipboard: PropertyDescriptor | undefined;
 	let requests: { type: string; data: Record<string, unknown> }[];
 	beforeEach(async () => {
+		authorization = axiosInstance.defaults.headers.common.Authorization;
+		axiosInstance.defaults.headers.common.Authorization =
+			"Bearer token-reader-1";
 		original = runtime.sendMessage;
 		clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
 		requests = [];
@@ -3139,9 +3143,86 @@ describe("manual image prompts", () => {
 	});
 	afterEach(() => {
 		cleanup();
+		if (authorization === undefined)
+			delete axiosInstance.defaults.headers.common.Authorization;
+		else axiosInstance.defaults.headers.common.Authorization = authorization;
 		runtime.sendMessage = original;
 		if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
 		else Reflect.deleteProperty(navigator, "clipboard");
+	});
+
+	it("copies the current form brief before generation and refreshes it after edits", async () => {
+		const tabs = fakeBrowser.tabs as { sendMessage: unknown };
+		const originalSend = tabs.sendMessage;
+		const originalTabs = fakeBrowser.tabs.open;
+		fakeBrowser.tabs.open = [{ id: 7 }];
+		tabs.sendMessage = async () => ({
+			res: { text: "Mira wore a silver cloak by the river." },
+		});
+		const copied: string[] = [];
+		Object.defineProperty(navigator, "clipboard", {
+			configurable: true,
+			value: {
+				writeText: async (value: string) => {
+					copied.push(value);
+				},
+			},
+		});
+		const { GenerateImageButton } = await import(
+			"../../src/components/generate-image-button"
+		);
+		const props = {
+			novelId: env.novel.id,
+			name: "Mira",
+			otherNames: ["The scout"],
+			description: "A red-haired scout.",
+			category: "Character",
+			onGenerated() {
+				throw new Error("Copy must not generate an image");
+			},
+		};
+		const view = render(React.createElement(GenerateImageButton, props), {
+			wrapper,
+		});
+		try {
+			fireEvent.click(
+				view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+			);
+			await waitFor(() => expect(copied).toHaveLength(1));
+			for (const detail of [
+				"Ink wash portrait.",
+				"Mira / The scout",
+				"A red-haired scout.",
+				"Category: Character",
+				"Mira wore a silver cloak",
+				"A fantasy novel.",
+			]) {
+				expect(copied[0]).toContain(detail);
+			}
+			expect(view.getByText("coloring.imagePromptCopied")).toBeTruthy();
+			view.rerender(
+				React.createElement(GenerateImageButton, {
+					...props,
+					description: "A blue-haired mage.",
+				}),
+			);
+			fireEvent.click(
+				view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+			);
+			await waitFor(() => expect(copied).toHaveLength(2));
+			expect(copied[1]).toContain("A blue-haired mage.");
+			expect(copied[1]).not.toContain("A red-haired scout.");
+			expect(
+				requests.some(
+					(item) =>
+						item.type === "generateAiImage" || item.type === "executeAiPrompt",
+				),
+			).toBe(false);
+		} finally {
+			tabs.sendMessage = originalSend;
+			fakeBrowser.tabs.open = originalTabs;
+			view.unmount();
+		}
 	});
 
 	for (const source of ["desktop", "cloud"] as const) {
@@ -3346,6 +3427,7 @@ describe("manual image prompts", () => {
 	});
 	it("prepares the saved prompt without pairing or sending any AI request", async () => {
 		await fakeBrowser.storage.local.remove("storylens-desktop-client");
+		env.novel.context = null;
 		const { GenerateImageButton } = await import(
 			"../../src/components/generate-image-button"
 		);
@@ -3357,12 +3439,6 @@ describe("manual image prompts", () => {
 				onGenerated() {},
 			}),
 			{ wrapper },
-		);
-		fireEvent.click(
-			view.getByRole("button", { name: /coloring.generateImage$/ }),
-		);
-		await waitFor(() =>
-			expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy(),
 		);
 		const copied: string[] = [];
 		Object.defineProperty(navigator, "clipboard", {
@@ -3378,6 +3454,7 @@ describe("manual image prompts", () => {
 		);
 		await waitFor(() => expect(copied).toHaveLength(1));
 		expect(copied[0]).toContain("Ink wash portrait.");
+		expect(view.queryByText(/coloring.imageGenerateFailed/)).toBeNull();
 		expect(
 			requests.some(
 				(item) =>

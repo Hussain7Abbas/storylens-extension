@@ -30,7 +30,6 @@ const words = {
 		stop: "Stop",
 		stopped: "Image generation stopped.",
 		actions: "Chapter cover actions",
-		loading: "Checking for a chapter cover…",
 		working: "Generating chapter cover…",
 		waiting: "Another reader is generating this chapter’s cover…",
 		missing: "No cover has been generated for this chapter.",
@@ -52,7 +51,6 @@ const words = {
 		stop: "إيقاف",
 		stopped: "تم إيقاف توليد الصورة.",
 		actions: "إجراءات غلاف الفصل",
-		loading: "جارٍ البحث عن غلاف للفصل…",
 		working: "جارٍ توليد غلاف الفصل…",
 		waiting: "قارئ آخر يولّد غلاف هذا الفصل…",
 		missing: "لم يُولّد غلاف لهذا الفصل بعد.",
@@ -70,6 +68,7 @@ type Session = {
 	url: string;
 	id: string;
 	host: HTMLElement;
+	mounted: boolean;
 	disposeMenu: () => void;
 	status: HTMLElement;
 	image: HTMLImageElement;
@@ -94,7 +93,7 @@ let context: NovelContentData | undefined;
 let current: Session | undefined;
 const alive = (session: Session) =>
 	current === session &&
-	session.host.isConnected &&
+	(!session.mounted || session.host.isConnected) &&
 	session.url === window.location.href;
 
 function endTask(session: Session, state: "done" | "failed") {
@@ -139,6 +138,13 @@ function busy(session: Session, working: boolean) {
 	session.save.disabled = working;
 	session.image.setAttribute("aria-busy", String(working));
 }
+function attachCover(session: Session) {
+	if (session.mounted) return;
+	const root = findContentRoot();
+	if (root === document.body) root.prepend(session.host);
+	else root.before(session.host);
+	session.mounted = true;
+}
 function showCover(session: Session, cover: ChapterCover) {
 	const text = words[session.locale];
 	session.waiting = cover.generating;
@@ -150,8 +156,10 @@ function showCover(session: Session, cover: ChapterCover) {
 		session.download.hidden = false;
 		session.generate.hidden = true;
 		session.status.textContent = "";
+		attachCover(session);
 		return true;
 	}
+	if (!session.automatic) attachCover(session);
 	session.status.textContent = cover.generating ? text.waiting : text.missing;
 	session.generate.disabled = cover.generating;
 	return false;
@@ -196,6 +204,7 @@ async function generate(session: Session, data: NovelContentData) {
 	const text = words[session.locale];
 	session.controller = new AbortController();
 	const { signal } = session.controller;
+	attachCover(session);
 	busy(session, true);
 	session.status.textContent = text.working;
 	try {
@@ -302,6 +311,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 	) {
 		if (manual) {
 			current.automatic = false;
+			if (current.waiting) attachCover(current);
 			if (
 				current.image.hidden &&
 				!current.working &&
@@ -316,15 +326,13 @@ async function mount(data: NovelContentData, manual: boolean) {
 	const locale = data.language;
 	const text = words[locale];
 	const view = createCoverView(locale, data.chapterNumber, text);
-	const { host, status, generate: start, copy, stop, save } = view;
-	const root = findContentRoot();
-	if (root === document.body) root.prepend(host);
-	else root.before(host);
+	const { status, generate: start, copy, stop, save } = view;
 	const session: Session = {
 		key: { novelId: data.novel.id, chapterNumber: data.chapterNumber },
 		id: crypto.randomUUID(),
 		url: window.location.href,
 		...view,
+		mounted: false,
 		controller: new AbortController(),
 		prompt: "",
 		working: false,
@@ -407,6 +415,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 	} catch (error) {
 		if (alive(session)) {
 			if (manual || !session.automatic) {
+				attachCover(session);
 				start.disabled = false;
 				status.textContent =
 					error instanceof Error ? error.message : text.unavailable;

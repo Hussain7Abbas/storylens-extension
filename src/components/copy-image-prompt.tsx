@@ -4,19 +4,36 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { trackEvent } from "@/lib/analytics/client";
 
-/** Keeps the exact submitted brief available above the form's image preview. */
-export function CopyImagePrompt({ prompt }: { prompt: string }) {
+/** Copies a submitted brief or prepares one without starting an AI request. */
+export function CopyImagePrompt({
+	prompt,
+	promptKey,
+	disabled = false,
+}: {
+	prompt: string | (() => Promise<string>);
+	/** Identifies the form inputs when the prompt is prepared on click. */
+	promptKey?: string;
+	disabled?: boolean;
+}) {
 	const { t } = useTranslation();
-	const [copiedPrompt, setCopiedPrompt] = useState<string>();
-	const [failedPrompt, setFailedPrompt] = useState<string>();
-	const copied = copiedPrompt === prompt;
-	const failed = failedPrompt === prompt;
+	const source = promptKey ?? prompt;
+	const [busy, setBusy] = useState(false);
+	const [result, setResult] = useState<{
+		source: typeof prompt;
+		value: string;
+		copied: boolean;
+	}>();
+	const current = result?.source === source ? result : undefined;
+	const copied = current?.copied;
+	const failed = current && !current.copied;
 	return (
-		<Stack gap={4}>
+		<Stack gap={4} maw="100%">
 			<Button
 				type="button"
 				size="xs"
-				variant="subtle"
+				variant="default"
+				disabled={disabled}
+				loading={busy}
 				style={{ alignSelf: "flex-start" }}
 				leftSection={
 					copied ? (
@@ -26,14 +43,17 @@ export function CopyImagePrompt({ prompt }: { prompt: string }) {
 					)
 				}
 				onClick={async () => {
+					setBusy(true);
+					let value = typeof prompt === "string" ? prompt : "";
 					try {
-						await navigator.clipboard.writeText(prompt);
-						setCopiedPrompt(prompt);
-						setFailedPrompt(undefined);
+						if (typeof prompt === "function") value = await prompt();
+						await navigator.clipboard.writeText(value);
+						setResult({ source, value, copied: true });
 						trackEvent("ai_image_prompt_copied");
 					} catch {
-						setCopiedPrompt(undefined);
-						setFailedPrompt(prompt);
+						setResult({ source, value, copied: false });
+					} finally {
+						setBusy(false);
 					}
 				}}
 			>
@@ -46,10 +66,10 @@ export function CopyImagePrompt({ prompt }: { prompt: string }) {
 						? t("coloring.imagePromptCopyFailed")
 						: ""}
 			</Text>
-			{failed && (
+			{failed && current.value && (
 				<Textarea
 					label={t("desktop.imagePrompt")}
-					value={prompt}
+					value={current.value}
 					readOnly
 					autosize
 					maxRows={8}

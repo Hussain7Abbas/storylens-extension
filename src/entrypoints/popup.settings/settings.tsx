@@ -16,6 +16,7 @@ export function SettingsPage() {
 			<Tabs
 				defaultValue={isModerator ? "general" : "appearance"}
 				variant="pills"
+				styles={{ tab: { flex: "1 0 auto" } }}
 			>
 				<Stack
 					gap="xs"
@@ -27,7 +28,7 @@ export function SettingsPage() {
 					pt="xs"
 					bg="var(--mantine-color-body)"
 				>
-					<Tabs.List grow>
+					<Tabs.List>
 						{isModerator && (
 							<Tabs.Tab value="general">{t("tabs.general")}</Tabs.Tab>
 						)}
