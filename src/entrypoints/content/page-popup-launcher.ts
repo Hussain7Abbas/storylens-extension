@@ -16,8 +16,10 @@ import { browser } from "#imports";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { aiAvailability, availabilityKey } from "@/lib/ai-source/availability";
 import {
+	AI_IMAGE_SOURCE_KEY,
 	AI_SOURCE_KEY,
 	type AiFeature,
+	featureAiSource,
 	parseAiSource,
 } from "@/lib/ai-source/source";
 import { trackEvent } from "@/lib/analytics/client";
@@ -318,11 +320,14 @@ function createLauncher(locale: string): Launcher {
 	let pickGeneration = 0;
 	let desktop: DesktopSettings = parseDesktopSettings(undefined);
 	let sourceValue: unknown;
+	let imageSourceValue: unknown;
+	const sourceFor = (feature: AiFeature) =>
+		featureAiSource(feature, sourceValue, imageSourceValue, desktop);
 	let auth = parseStoredAuth(undefined);
 	let pricing: PricingCache | undefined;
 	const availability = (feature: AiFeature) =>
 		aiAvailability({
-			source: parseAiSource(sourceValue, desktop),
+			source: sourceFor(feature),
 			desktop,
 			user: auth.user,
 			pricing: pricing?.data ?? null,
@@ -499,7 +504,7 @@ function createLauncher(locale: string): Launcher {
 			const unavailable = !value.ok;
 			const reason = vanillaAiText(currentLocale)(availabilityKey(value));
 			const price =
-				feature && parseAiSource(sourceValue, desktop) === "cloud"
+				feature && sourceFor(feature) === "cloud"
 					? pricing?.data.features.find((row) => row.key === feature)?.lenses
 					: undefined;
 			element.querySelector(".lens-price")?.remove();
@@ -1011,6 +1016,7 @@ function createLauncher(locale: string): Launcher {
 	};
 	const createFrame = (query: string) => {
 		const frame = document.createElement("iframe");
+		frame.allow = "clipboard-write";
 		frame.title = labels(currentLocale).open;
 		frame.src = popupUrl + (query ? `?${query}` : "");
 		return frame;
@@ -1624,14 +1630,19 @@ function createLauncher(locale: string): Launcher {
 	>[0] = (changes, area) => {
 		if (area !== "local") return;
 		if (AI_SOURCE_KEY in changes) sourceValue = changes[AI_SOURCE_KEY].newValue;
+		if (AI_IMAGE_SOURCE_KEY in changes)
+			imageSourceValue = changes[AI_IMAGE_SOURCE_KEY].newValue;
 		if (AUTH_STORAGE_KEY in changes)
 			auth = parseStoredAuth(changes[AUTH_STORAGE_KEY].newValue);
 		if (AI_PRICING_KEY in changes)
 			pricing = changes[AI_PRICING_KEY].newValue as PricingCache | undefined;
 		if (
-			[AI_SOURCE_KEY, AUTH_STORAGE_KEY, AI_PRICING_KEY].some(
-				(key) => key in changes,
-			)
+			[
+				AI_SOURCE_KEY,
+				AI_IMAGE_SOURCE_KEY,
+				AUTH_STORAGE_KEY,
+				AI_PRICING_KEY,
+			].some((key) => key in changes)
 		)
 			updateActionLabels();
 		if (DESKTOP_SETTINGS_KEY in changes) {
@@ -1678,6 +1689,7 @@ function createLauncher(locale: string): Launcher {
 			POSITION_KEY,
 			DESKTOP_SETTINGS_KEY,
 			AI_SOURCE_KEY,
+			AI_IMAGE_SOURCE_KEY,
 			AUTH_STORAGE_KEY,
 			AI_PRICING_KEY,
 			NIGHT_LIGHT_ENABLED_KEY,
@@ -1687,6 +1699,7 @@ function createLauncher(locale: string): Launcher {
 			if (!host.isConnected) return;
 			desktop = parseDesktopSettings(stored[DESKTOP_SETTINGS_KEY]);
 			sourceValue = stored[AI_SOURCE_KEY];
+			imageSourceValue = stored[AI_IMAGE_SOURCE_KEY];
 			auth = parseStoredAuth(stored[AUTH_STORAGE_KEY]);
 			pricing = stored[AI_PRICING_KEY] as PricingCache | undefined;
 			updateActionLabels();
@@ -1718,10 +1731,6 @@ function createLauncher(locale: string): Launcher {
 		},
 		// The popup opens the form of the entry named by these parameters.
 		edit: (target, generateImage) => {
-			if (generateImage && !desktopReady("character_image")) {
-				handleUnavailableAi(availability("character_image"));
-				return false;
-			}
 			open(undefined, undefined, {
 				edit: target.kind,
 				id: target.id,

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { aiAvailability, availabilityKey } from "@/lib/ai-source/availability";
+import { availabilityKey } from "@/lib/ai-source/availability";
 import { useAiSnapshot } from "@/lib/ai-source/hooks";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
+import { DEFAULT_AI_PROMPTS } from "@/lib/desktop-client/ai-prompts";
 import { buildCharacterImagePrompt } from "@/lib/desktop-client/character-image";
 import {
 	type GeneratedCharacterImage,
@@ -40,11 +41,13 @@ export type KeywordSuggestionState =
 	| { status: "ready"; suggestion: KeywordSuggestion }
 	| { status: "error"; message: string };
 
-export type SelectionImageState =
+export type SelectionImageState = (
 	| { status: "idle" }
+	| { status: "stopped" }
 	| { status: "loading" }
 	| ({ status: "ready" } & GeneratedCharacterImage)
-	| { status: "error"; message: string };
+	| { status: "error"; message: string }
+) & { prompt?: string };
 
 /**
  * Requests a description, category, and nature for the text picked with the
@@ -57,6 +60,7 @@ export function useKeywordSuggestion(
 ): {
 	state: KeywordSuggestionState;
 	image: SelectionImageState;
+	stopImage: () => void;
 	clear: () => void;
 } {
 	const { t, i18n } = useTranslation();
@@ -144,6 +148,8 @@ export function useKeywordSuggestion(
 	});
 	const [image, setImage] = useState<SelectionImageState>({ status: "idle" });
 	const finished = useRef(false);
+	const imageController = useRef<AbortController | null>(null);
+	const imageStopped = useRef(false);
 	const language = toAiLanguage(i18n.language);
 	const { loaded } = useAiSnapshot();
 
@@ -151,18 +157,32 @@ export function useKeywordSuggestion(
 		if (!request || !loaded || !enabled || !lookupsReady || finished.current)
 			return;
 		const controller = new AbortController();
+		const drawing = new AbortController();
+		imageController.current = drawing;
+		if (imageStopped.current) drawing.abort();
 		setState({ status: "loading" });
-		if (request.generateImage) setImage({ status: "loading" });
+		if (request.generateImage && !imageStopped.current)
+			setImage({
+				status: "loading",
+				prompt: buildCharacterImagePrompt({
+					name: request.name,
+					otherNames: [],
+					description: "",
+					instructions: DEFAULT_AI_PROMPTS.imagePrompt,
+					chapterExcerpts: [
+						`${request.context.before}${request.name}${request.context.after}`,
+					],
+					novelContext: "",
+				}),
+			});
 		void (async () => {
-			const ai = await aiState("keyword_suggestion");
+			const [ai, imageAi] = await Promise.all([
+				aiState("keyword_suggestion"),
+				aiState("character_image"),
+			]);
 			const settings = ai.desktop;
 			if (controller.signal.aborted) return;
-			if (!ai.availability.ok)
-				throw new Error(t(availabilityKey(ai.availability)));
-			const imageAvailability = aiAvailability({
-				...ai,
-				feature: "character_image",
-			});
+			const imageAvailability = imageAi.availability;
 			const options = {
 				categories: lookups.current.categories ?? [],
 				natures: lookups.current.natures ?? [],
@@ -178,7 +198,10 @@ export function useKeywordSuggestion(
 							source: ai.source,
 							parentFeature: "keyword_suggestion",
 							additionalParentFeatures:
-								request.generateImage && imageAvailability.ok
+								request.generateImage &&
+								!drawing.signal.aborted &&
+								imageAvailability.ok &&
+								imageAi.source === "cloud"
 									? ["character_image"]
 									: [],
 							signal: controller.signal,
@@ -188,6 +211,8 @@ export function useKeywordSuggestion(
 			if (controller.signal.aborted) return;
 			const suggest = async () => {
 				try {
+					if (!ai.availability.ok)
+						throw new Error(t(availabilityKey(ai.availability)));
 					trackEvent("ai_keyword_suggestion_requested", {
 						provider: ai.source,
 						...(ai.source === "desktop" ? { effort: settings.effort } : {}),
@@ -226,39 +251,48 @@ export function useKeywordSuggestion(
 				}
 			};
 			const draw = async () => {
-				if (!request.generateImage) return;
+				if (!request.generateImage || drawing.signal.aborted) return;
 				try {
+					const prompt = buildCharacterImagePrompt({
+						name: request.name,
+						otherNames: [],
+						description: "",
+						instructions: prompts.imagePrompt,
+						chapterExcerpts: [
+							`${request.context.before}${request.name}${request.context.after}`,
+						],
+						novelContext,
+					});
+					setImage({ status: "loading", prompt });
 					if (!imageAvailability.ok)
 						throw new Error(t(availabilityKey(imageAvailability)));
 					trackEvent("ai_image_generation_requested", {
-						provider: ai.source,
-						...(ai.source === "desktop" ? { effort: settings.effort } : {}),
+						provider: imageAi.source,
 						has_novel_context: !!novelContext,
 					});
 					const result = await generateCharacterImage({
-						source: ai.source,
-						settings,
+						source: imageAi.source,
+						settings: imageAi.desktop,
 						name: request.name,
-						prompt: buildCharacterImagePrompt({
-							name: request.name,
-							otherNames: [],
-							description: "",
-							instructions: prompts.imagePrompt,
-							chapterExcerpts: [
-								`${request.context.before}${request.name}${request.context.after}`,
-							],
-							novelContext,
-						}),
-						signal: controller.signal,
+						prompt,
+						signal: drawing.signal,
 					});
-					if (!controller.signal.aborted)
-						setImage({ status: "ready", ...result });
+					if (!drawing.signal.aborted)
+						setImage((current) => ({
+							status: "ready",
+							...result,
+							prompt: current.prompt,
+						}));
 				} catch (error: unknown) {
-					if (!controller.signal.aborted)
-						setImage({
+					if (!drawing.signal.aborted) {
+						const message = await aiErrorMessage(error, "character_image", t);
+						if (drawing.signal.aborted) return;
+						setImage((current) => ({
 							status: "error",
-							message: await aiErrorMessage(error, "character_image", t),
-						});
+							message,
+							prompt: current.prompt,
+						}));
+					}
 				}
 			};
 			// Both requests start from the picked text; neither waits for the other.
@@ -271,13 +305,21 @@ export function useKeywordSuggestion(
 				status: "error",
 				message: await aiErrorMessage(error, "keyword_suggestion", t),
 			});
-			if (request.generateImage)
-				setImage({
+			if (request.generateImage && !drawing.signal.aborted) {
+				const message = await aiErrorMessage(error, "character_image", t);
+				if (drawing.signal.aborted) return;
+				setImage((current) => ({
 					status: "error",
-					message: await aiErrorMessage(error, "character_image", t),
-				});
+					message,
+					prompt: current.prompt,
+				}));
+			}
 		});
-		return () => controller.abort();
+		return () => {
+			controller.abort();
+			drawing.abort();
+			if (imageController.current === drawing) imageController.current = null;
+		};
 	}, [request, enabled, loaded, lookupsReady, language, novelId, t]);
 	// The launcher keeps the popup and shows progress while the suggestion is written.
 	useLauncherWork({
@@ -303,6 +345,15 @@ export function useKeywordSuggestion(
 	return {
 		state,
 		image,
+		stopImage: () => {
+			const active = imageController.current;
+			if (image.status !== "loading" || !active || active.signal.aborted)
+				return;
+			imageStopped.current = true;
+			active.abort();
+			setImage((current) => ({ status: "stopped", prompt: current.prompt }));
+			trackEvent("ai_image_generation_stopped");
+		},
 		clear: () => {
 			setState({ status: "idle" });
 			setImage({ status: "idle" });

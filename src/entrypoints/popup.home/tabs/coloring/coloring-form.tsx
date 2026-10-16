@@ -120,6 +120,8 @@ type StackFrame = (
 ) & {
 	generatedImage?: GeneratedCharacterImage;
 	imageError?: string;
+	imagePrompt?: string;
+	imageStopped?: boolean;
 	suggestionError?: string;
 };
 
@@ -702,6 +704,8 @@ function KeywordForm({
 								/>
 								<GenerateImageButton
 									initialError={frame.imageError}
+									initialPrompt={frame.imagePrompt}
+									initialStopped={frame.imageStopped}
 									initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 									novelId={selectedNovelId}
 									name={nameIn(form.values, item)}
@@ -1279,6 +1283,8 @@ function AliasForm({
 								/>
 								<GenerateImageButton
 									initialError={frame.imageError}
+									initialPrompt={frame.imagePrompt}
+									initialStopped={frame.imageStopped}
 									initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 									novelId={selectedNovelId}
 									name={nameIn(form.values, item)}
@@ -1721,6 +1727,8 @@ function VersionForm({
 					/>
 					<GenerateImageButton
 						initialError={frame.imageError}
+						initialPrompt={frame.imagePrompt}
+						initialStopped={frame.imageStopped}
 						initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 						novelId={selectedNovelId}
 						name={nameIn(frame.parentKeyword, language)}

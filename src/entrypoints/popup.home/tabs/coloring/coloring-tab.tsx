@@ -11,6 +11,7 @@ import type {
 import { AiPrice } from "@/components/lens/ai-price";
 import { GetLensesLink } from "@/components/lens/get-lenses-link";
 import { SearchInput } from "@/components/search-input";
+import { StopImageButton } from "@/components/stop-image-button";
 import { useCanMutateKeywords } from "@/lib/auth";
 import {
 	canEditAlias,
@@ -71,6 +72,8 @@ type StackFrame = (
 ) & {
 	generatedImage?: GeneratedCharacterImage;
 	imageError?: string;
+	imagePrompt?: string;
+	imageStopped?: boolean;
 	suggestionError?: string;
 };
 
@@ -98,6 +101,7 @@ export function ColoringTab({
 	const {
 		state: aiSuggestion,
 		image: aiImage,
+		stopImage,
 		clear: clearAiSuggestion,
 	} = useKeywordSuggestion(canMutate, selectedNovelId);
 	// Aliases and versions reuse the suggestion, noting which character they belong to.
@@ -154,6 +158,8 @@ export function ColoringTab({
 		const suggestion =
 			aiSuggestion.status === "ready" ? aiSuggestion.suggestion : undefined;
 		const imageResult = {
+			imagePrompt: aiImage.prompt,
+			imageStopped: aiImage.status === "stopped",
 			generatedImage: aiImage.status === "ready" ? aiImage : undefined,
 			imageError: aiImage.status === "error" ? aiImage.message : undefined,
 			suggestionError:
@@ -323,6 +329,14 @@ export function ColoringTab({
 						<Text size="xs" c="dimmed" ta="center" role="status">
 							{t("coloring.generatingImage")}{" "}
 							<AiPrice feature="character_image" />
+						</Text>
+					)}
+					{aiImage.status === "loading" && (
+						<StopImageButton onStop={stopImage} />
+					)}
+					{aiImage.status === "stopped" && (
+						<Text size="xs" c="dimmed" role="status">
+							{t("coloring.imageStopped")}
 						</Text>
 					)}
 					{aiSuggestion.status === "ready" && (

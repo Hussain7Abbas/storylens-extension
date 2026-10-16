@@ -31,7 +31,7 @@
 		"cloudHelp": "Uses lenses. Runs on Story Lens servers through OpenRouter.",
 		"congratulations": "Congratulations!",
 		"desktop": "Desktop companion",
-		"desktopHelp": "Free. Uses your own Claude or Codex on this computer.",
+		"desktopHelp": "Free. Uses your own Claude, Codex or Gemini CLI on this computer.",
 		"disclosure": "Cloud sends page and chapter text, nearby text, names, descriptions and your AI prompts to the Story Lens API, then OpenRouter and the configured AI providers (currently Google Gemini for text and ByteDance Seedream for images).",
 		"failed": "Story Lens Cloud could not complete this request.",
 		"feature-off": "This AI feature is turned off.",
@@ -55,7 +55,12 @@
 		"trial": "You received {{lenses}} free to try Story Lens Cloud.",
 		"upgrade": "Update Story Lens to use Cloud.",
 		"whatDrawn": "What was drawn",
-		"researchCost": "+{{lenses}} to research this novel first"
+		"researchCost": "+{{lenses}} to research this novel first",
+		"textSource": "Text AI provider",
+		"imageSource": "Image generation provider",
+		"imageSourceHelp": "Choose images independently from text. Desktop images use the default Codex model and effort.",
+		"desktopImages": "Desktop (Codex)",
+		"textModel": "Text model"
 	},
 	"coloring": {
 		"advance": "Advance",
@@ -81,7 +86,7 @@
 		"fuzzyMatchArabicCharacters": "Fuzzy Match Arabic Characters Variants",
 		"fuzzyMatchArabicCharactersDescription": "Treat ا, أ, إ, آ and ٱ as the same letter when highlighting.",
 		"generateImage": "Generate image",
-		"generateImageHint": "Draw this entry with Codex from the current chapter, its description, and the novel context. The image uploads when you save.",
+		"generateImageHint": "Draw this entry with the selected image provider using the current chapter, its description and novel context. The image uploads when saved.",
 		"generatingImage": "Generating image… this can take a minute or two.",
 		"image": "Image",
 		"imageGenerateFailed": "Image generation failed",
@@ -111,7 +116,13 @@
 		"wordVfxHint": "Applies only to this keyword or alias, independently of its category.",
 		"wordVfxColor": "Word VFX color",
 		"wordVfxColorHint": "Leave empty to use this keyword or alias’s highlight color.",
-		"inheritWordColor": "Inherit word color"
+		"inheritWordColor": "Inherit word color",
+		"copyImagePrompt": "Copy image prompt",
+		"imagePromptCopied": "Image prompt copied.",
+		"imagePromptCopyFailed": "Could not copy automatically. Select and copy the prompt below.",
+		"stopImage": "Stop image generation",
+		"stopImageHint": "Stop this image request and keep its prompt.",
+		"imageStopped": "Image generation stopped."
 	},
 	"dataTable": {
 		"noRecords": "There is no records to show",

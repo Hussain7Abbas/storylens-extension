@@ -15,9 +15,16 @@ import {
 import { parseDesktopSettings } from "../desktop-client/settings";
 import { DESKTOP_SETTINGS_KEY } from "../desktop-client/types";
 import { aiAvailability } from "./availability";
-import { AI_SOURCE_KEY, type AiFeature, parseAiSource } from "./source";
+import {
+	AI_IMAGE_SOURCE_KEY,
+	AI_SOURCE_KEY,
+	type AiFeature,
+	featureAiSource,
+	parseAiSource,
+} from "./source";
 
 const keys = [
+	AI_IMAGE_SOURCE_KEY,
 	AI_SOURCE_KEY,
 	DESKTOP_SETTINGS_KEY,
 	AUTH_STORAGE_KEY,
@@ -52,6 +59,12 @@ export function useAiSnapshot() {
 	const stored = useAtomValue(snapshotAtom);
 	const desktop = parseDesktopSettings(stored[DESKTOP_SETTINGS_KEY]);
 	const source = parseAiSource(stored[AI_SOURCE_KEY], desktop);
+	const imageSource = featureAiSource(
+		"character_image",
+		stored[AI_SOURCE_KEY],
+		stored[AI_IMAGE_SOURCE_KEY],
+		desktop,
+	);
 	const authRaw = stored[AUTH_STORAGE_KEY];
 	const auth = useMemo(() => parseStoredAuth(authRaw), [authRaw]);
 	const pricing =
@@ -64,6 +77,7 @@ export function useAiSnapshot() {
 	return {
 		loaded: stored.__loaded === true,
 		source,
+		imageSource,
 		desktop,
 		user: auth.user,
 		pricing,
@@ -72,7 +86,12 @@ export function useAiSnapshot() {
 	};
 }
 export function useAiAvailability(feature: AiFeature) {
-	return aiAvailability({ ...useAiSnapshot(), feature });
+	const state = useAiSnapshot();
+	return aiAvailability({
+		...state,
+		source: feature === "character_image" ? state.imageSource : state.source,
+		feature,
+	});
 }
 export function useAiPricing() {
 	return useAiSnapshot().pricing;

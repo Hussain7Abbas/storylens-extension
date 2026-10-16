@@ -20,7 +20,11 @@ export function aiAvailability(input: {
 	feature: AiFeature;
 }): AiAvailability {
 	if (input.source === "desktop")
-		return isAiConfigured(input.desktop)
+		return (
+			input.feature === "character_image"
+				? !!input.desktop.token
+				: isAiConfigured(input.desktop)
+		)
 			? { ok: true }
 			: { ok: false, reason: "desktop-unpaired" };
 	if (!input.user) return { ok: false, reason: "signed-out" };

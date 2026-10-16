@@ -1,6 +1,6 @@
 export type DesktopModel = {
 	id: string;
-	provider: "claude" | "codex";
+	provider: "claude" | "codex" | "gemini";
 	providerModel: string;
 	label: string;
 	efforts: string[];
@@ -11,7 +11,7 @@ export type DesktopCapabilities = {
 	protocolVersion: 2;
 	models: DesktopModel[];
 	providers: {
-		provider: "claude" | "codex";
+		provider: "claude" | "codex" | "gemini";
 		available: boolean;
 		error?: string;
 	}[];

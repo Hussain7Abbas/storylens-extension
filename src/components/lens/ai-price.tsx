@@ -8,7 +8,10 @@ export function AiPrice({
 	feature: AiFeature;
 	filled?: boolean;
 }) {
-	const { source, pricing } = useAiSnapshot();
+	const state = useAiSnapshot();
+	const { pricing } = state;
+	const source =
+		feature === "character_image" ? state.imageSource : state.source;
 	const lenses = pricing?.features.find((row) => row.key === feature)?.lenses;
 	return source === "cloud" && lenses !== undefined && lenses > 0 ? (
 		<LensPrice

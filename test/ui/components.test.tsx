@@ -1374,8 +1374,11 @@ describe("language tabs in a character form", () => {
 			const generate = view.getByRole("button", {
 				name: /coloring.generateImage$/,
 			});
+			expect(generate.hasAttribute("data-disabled")).toBe(false);
 			await waitFor(() =>
-				expect(generate.hasAttribute("data-disabled")).toBe(true),
+				expect(
+					view?.getByRole("button", { name: "coloring.copyImagePrompt" }),
+				).toBeTruthy(),
 			);
 			expect(imageRequests).toHaveLength(0);
 			expect(new URLSearchParams(window.location.search).has("generate")).toBe(
@@ -2056,6 +2059,12 @@ describe("Cloud and lens UI", async () => {
 		await waitFor(() =>
 			expect(view.getByText("cloud.disclosure")).toBeTruthy(),
 		);
+		await waitFor(() =>
+			expect(
+				(view.getByRole("radio", { name: "cloud.desktop" }) as HTMLInputElement)
+					.disabled,
+			).toBe(false),
+		);
 		fireEvent.click(view.getByText("cloud.desktop"));
 		await waitFor(() =>
 			expect(view.getByLabelText("desktop.port")).toBeTruthy(),
@@ -2072,6 +2081,54 @@ describe("Cloud and lens UI", async () => {
 					message.data.name === "ai_source_changed",
 			),
 		).toBe(true);
+	});
+	it("keeps text and image choices independent and preserves legacy image routing", async () => {
+		const view = render(React.createElement(AiTab), { wrapper });
+		await waitFor(() =>
+			expect(
+				view.getByLabelText("cloud.imageSource", { selector: "input" }),
+			).toBeTruthy(),
+		);
+		await waitFor(() =>
+			expect(
+				(view.getByRole("radio", { name: "cloud.desktop" }) as HTMLInputElement)
+					.disabled,
+			).toBe(false),
+		);
+		fireEvent.click(view.getByText("cloud.desktop"));
+		await waitFor(() =>
+			expect(fakeBrowser.storage.local.peek("storylens-ai-source")).toBe(
+				"desktop",
+			),
+		);
+		expect(fakeBrowser.storage.local.peek("storylens-ai-image-source")).toBe(
+			"cloud",
+		);
+		const select = view.getByLabelText("cloud.imageSource", {
+			selector: "input",
+		});
+		fireEvent.click(select);
+		fireEvent.click(
+			await view.findByRole("option", {
+				name: "cloud.desktopImages",
+				hidden: true,
+			}),
+		);
+		await waitFor(() =>
+			expect(fakeBrowser.storage.local.peek("storylens-ai-image-source")).toBe(
+				"desktop",
+			),
+		);
+		fireEvent.click(view.getByRole("radio", { name: "cloud.name" }));
+		await waitFor(() =>
+			expect(fakeBrowser.storage.local.peek("storylens-ai-source")).toBe(
+				"cloud",
+			),
+		);
+		expect(fakeBrowser.storage.local.peek("storylens-ai-image-source")).toBe(
+			"desktop",
+		);
+		expect(view.getByLabelText("desktop.port")).toBeTruthy();
 	});
 	it("starts Use AI off for both sources and shows the Cloud price only", async () => {
 		const view = render(React.createElement(SelectionView), { wrapper });
@@ -2484,6 +2541,7 @@ describe("parallel selection suggestions and images", () => {
 			await bothStarted();
 			const prompt = requests.find((item) => item.type === "generateAiImage")
 				?.data.prompt;
+			if (typeof prompt !== "string") throw new Error("image prompt missing");
 			expect(prompt).toContain("Draw a watercolor portrait.");
 			expect(prompt).toContain("The red-haired Rand carried a sword.");
 			expect(prompt).toContain("A fantasy novel.");
@@ -2498,6 +2556,34 @@ describe("parallel selection suggestions and images", () => {
 				expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
 			);
 			expect(view.getByText("A red-haired swordsman.")).toBeTruthy();
+			const copy = view.getByRole("button", {
+				name: "coloring.copyImagePrompt",
+			});
+			expect(
+				copy.compareDocumentPosition(
+					view.getByAltText("coloring.imagePreview"),
+				) & Node.DOCUMENT_POSITION_FOLLOWING,
+			).toBeTruthy();
+			const clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+			const copied: string[] = [];
+			Object.defineProperty(navigator, "clipboard", {
+				configurable: true,
+				value: {
+					writeText: async (text: string) => {
+						copied.push(text);
+					},
+				},
+			});
+			try {
+				fireEvent.click(copy);
+				await waitFor(() => expect(copied).toEqual([prompt]));
+				await waitFor(() =>
+					expect(view.getByText("coloring.imagePromptCopied")).toBeTruthy(),
+				);
+			} finally {
+				if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
+				else Reflect.deleteProperty(navigator, "clipboard");
+			}
 			expect(
 				(view.getByLabelText("coloring.description") as HTMLInputElement).value,
 			).toContain("A shepherd.");
@@ -2603,11 +2689,61 @@ describe("parallel selection suggestions and images", () => {
 		expect(view.getByDisplayValue("A shepherd.")).toBeTruthy();
 		expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy();
 		expect(
+			view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+		).toBeTruthy();
+		expect(
 			view
 				.getByRole("button", { name: /coloring.generateImage$/ })
 				.hasAttribute("data-disabled"),
 		).toBe(false);
 	});
+
+	for (const kind of ["keyword", "alias", "version"] as const) {
+		it(`stops a selection image for ${kind} without stopping its text suggestion`, async () => {
+			const view = await open(kind);
+			await bothStarted();
+			const imageRequest = requests.find(
+				(item) => item.type === "generateAiImage",
+			)?.data;
+			const textRequest = requests.find(
+				(item) => item.type === "executeAiPrompt",
+			)?.data;
+			fireEvent.click(view.getByRole("button", { name: "coloring.stopImage" }));
+			await waitFor(() =>
+				expect(
+					requests.some(
+						(item) =>
+							item.type === "cancelAiPrompt" &&
+							(item.data as unknown) === imageRequest?.requestId,
+					),
+				).toBe(true),
+			);
+			expect(
+				requests.some(
+					(item) =>
+						item.type === "cancelAiPrompt" &&
+						(item.data as unknown) === textRequest?.requestId,
+				),
+			).toBe(false);
+			suggestion();
+			await waitFor(() =>
+				expect(view.getByRole("button", { name: "_.save" })).toBeTruthy(),
+			);
+			expect(view.getByText("coloring.imageStopped")).toBeTruthy();
+			expect(
+				view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+			).toBeTruthy();
+			expect(view.getByDisplayValue(/A shepherd/)).toBeTruthy();
+			await act(async () => {
+				image();
+			});
+			expect(view.queryByAltText("coloring.imagePreview")).toBeNull();
+			expect(view.queryByText(/coloring.imageGenerateFailed/)).toBeNull();
+			expect(
+				requests.filter((item) => item.type === "generateAiImage"),
+			).toHaveLength(1);
+		});
+	}
 	it("sends no image request with only Use AI enabled", async () => {
 		const view = await open("keyword", false);
 		await waitFor(() =>
@@ -2624,6 +2760,42 @@ describe("parallel selection suggestions and images", () => {
 		).toHaveLength(0);
 	});
 
+	for (const textSource of ["cloud", "desktop"] as const) {
+		it(`routes ${textSource} text and the other image source independently`, async () => {
+			const imageSource = textSource === "cloud" ? "desktop" : "cloud";
+			await fakeBrowser.storage.local.set({
+				"storylens-ai-source": textSource,
+				"storylens-ai-image-source": imageSource,
+				"storylens-ai-pricing": {
+					data: {
+						cloudAi: { enabled: true },
+						features: [
+							{ key: "keyword_suggestion", lenses: 1, enabled: true },
+							{ key: "character_image", lenses: 3, enabled: true },
+						],
+					},
+				},
+			});
+			const view = await open();
+			await bothStarted();
+			expect(
+				requests.find((item) => item.type === "executeAiPrompt")?.data.source,
+			).toBe(textSource);
+			const imageRequest = requests.find(
+				(item) => item.type === "generateAiImage",
+			)?.data;
+			expect(imageRequest?.source).toBe(imageSource);
+			expect(imageRequest?.model).toBe("codex");
+			expect(imageRequest?.effort).toBe("default");
+			suggestion();
+			image();
+			await waitFor(() =>
+				expect(
+					view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+				).toBeTruthy(),
+			);
+		});
+	}
 	it("preserves the combined Cloud budget by skipping optional research", async () => {
 		env.novel.context = null;
 		await fakeBrowser.storage.local.set({
@@ -2848,5 +3020,292 @@ describe("personal category and nature colors", () => {
 		).toBeTruthy();
 		expect(view.getByRole("button", { name: "_.delete" })).toBeTruthy();
 		view.unmount();
+	});
+});
+
+describe("manual image prompts", () => {
+	const runtime = fakeBrowser.runtime as { sendMessage: unknown };
+	let original: unknown;
+	let clipboard: PropertyDescriptor | undefined;
+	let requests: { type: string; data: Record<string, unknown> }[];
+	beforeEach(async () => {
+		original = runtime.sendMessage;
+		clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
+		requests = [];
+		runtime.sendMessage = async (message: unknown) => {
+			const item = message as { type: string; data: Record<string, unknown> };
+			requests.push(item);
+			if (item.type === "generateAiImage")
+				return {
+					res: {
+						ok: false,
+						failure: {
+							code: "AI_PROVIDER_FAILED",
+							message: "Image failed",
+							details: {},
+						},
+					},
+				};
+			return { res: undefined };
+		};
+		env.novel.context = "A fantasy novel.";
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-source": "desktop",
+			"storylens-ai-image-source": "desktop",
+			"storylens-desktop-client": {
+				token: "paired",
+				model: "gemini:test",
+				effort: "default",
+			},
+			"storylens-ai-prompts": { imagePrompt: "Ink wash portrait." },
+		});
+	});
+	afterEach(() => {
+		cleanup();
+		runtime.sendMessage = original;
+		if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
+		else Reflect.deleteProperty(navigator, "clipboard");
+	});
+
+	for (const source of ["desktop", "cloud"] as const) {
+		it(`stops ${source} images immediately, ignores late results and allows retry`, async () => {
+			await fakeBrowser.storage.local.set({
+				"storylens-ai-image-source": source,
+				"storylens-ai-pricing": {
+					data: {
+						cloudAi: { enabled: true },
+						features: [{ key: "character_image", enabled: true, lenses: 1 }],
+					},
+				},
+			});
+			const pending: ((value: unknown) => void)[] = [];
+			runtime.sendMessage = async (message: unknown) => {
+				const item = message as { type: string; data: Record<string, unknown> };
+				requests.push(item);
+				if (item.type === "generateAiImage")
+					return new Promise((resolve) => pending.push(resolve));
+				return { res: undefined };
+			};
+			const { GenerateImageButton } = await import(
+				"../../src/components/generate-image-button"
+			);
+			const files: File[] = [],
+				busy: boolean[] = [];
+			const view = render(
+				React.createElement(GenerateImageButton, {
+					novelId: env.novel.id,
+					name: "Mira",
+					description: "A scout.",
+					autoStart: true,
+					onGenerated(file) {
+						files.push(file);
+					},
+					onBusyChange(value) {
+						busy.push(value);
+					},
+				}),
+				{ wrapper },
+			);
+			try {
+				await waitFor(() => expect(pending).toHaveLength(1));
+				const first = requests.find(
+					(item) => item.type === "generateAiImage",
+				)?.data;
+				fireEvent.click(
+					view.getByRole("button", { name: "coloring.stopImage" }),
+				);
+				expect(busy.at(-1)).toBe(false);
+				expect(view.getByText("coloring.imageStopped")).toBeTruthy();
+				expect(
+					view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+				).toBeTruthy();
+				expect(
+					view.queryByRole("button", { name: "coloring.stopImage" }),
+				).toBeNull();
+				await waitFor(() =>
+					expect(
+						requests.some(
+							(item) =>
+								item.type === "cancelAiPrompt" &&
+								(item.data as unknown) === first?.requestId,
+						),
+					).toBe(true),
+				);
+				fireEvent.click(
+					view.getByRole("button", { name: /^coloring.generateImage/ }),
+				);
+				await waitFor(() => expect(pending).toHaveLength(2));
+				await act(async () =>
+					pending[0]({
+						res: { ok: true, value: { data: "AA==", mimeType: "image/png" } },
+					}),
+				);
+				expect(files).toHaveLength(0);
+				expect(busy.at(-1)).toBe(true);
+				expect(
+					view.getByRole("button", { name: "coloring.stopImage" }),
+				).toBeTruthy();
+				await act(async () =>
+					pending[1]({
+						res: { ok: true, value: { data: "AA==", mimeType: "image/png" } },
+					}),
+				);
+				await waitFor(() => expect(files).toHaveLength(1));
+				expect(busy.at(-1)).toBe(false);
+				expect(view.queryByText("coloring.imageStopped")).toBeNull();
+			} finally {
+				pending.forEach((resolve) => {
+					resolve({ res: undefined });
+				});
+				view.unmount();
+			}
+		});
+	}
+	it("stops image preparation during novel research without starting an image request", async () => {
+		env.novel.context = null;
+		let finish: (value: unknown) => void = () => {};
+		runtime.sendMessage = async (message: unknown) => {
+			const item = message as { type: string; data: Record<string, unknown> };
+			requests.push(item);
+			if (item.type === "executeAiPrompt")
+				return new Promise((resolve) => {
+					finish = resolve;
+				});
+			return { res: undefined };
+		};
+		const { GenerateImageButton } = await import(
+			"../../src/components/generate-image-button"
+		);
+		const view = render(
+			React.createElement(GenerateImageButton, {
+				novelId: env.novel.id,
+				name: "Mira",
+				description: "A scout.",
+				onGenerated() {},
+			}),
+			{ wrapper },
+		);
+		try {
+			fireEvent.click(
+				view.getByRole("button", { name: /coloring.generateImage$/ }),
+			);
+			await waitFor(() =>
+				expect(requests.some((item) => item.type === "executeAiPrompt")).toBe(
+					true,
+				),
+			);
+			const research = requests.find(
+				(item) => item.type === "executeAiPrompt",
+			)?.data;
+			fireEvent.click(view.getByRole("button", { name: "coloring.stopImage" }));
+			await waitFor(() =>
+				expect(
+					requests.some(
+						(item) =>
+							item.type === "cancelAiPrompt" &&
+							(item.data as unknown) === research?.requestId,
+					),
+				).toBe(true),
+			);
+			await act(async () =>
+				finish({ res: { ok: true, value: "A fantasy world." } }),
+			);
+			expect(requests.some((item) => item.type === "generateAiImage")).toBe(
+				false,
+			);
+			expect(view.getByText("coloring.imageStopped")).toBeTruthy();
+		} finally {
+			finish({ res: undefined });
+			view.unmount();
+		}
+	});
+	it("keeps the submitted prompt copyable after failure and offers text when clipboard access fails", async () => {
+		const { GenerateImageButton } = await import(
+			"../../src/components/generate-image-button"
+		);
+		const view = render(
+			React.createElement(GenerateImageButton, {
+				novelId: env.novel.id,
+				name: "Mira",
+				description: "A red-haired scout.",
+				onGenerated() {},
+			}),
+			{ wrapper },
+		);
+		fireEvent.click(
+			view.getByRole("button", { name: /coloring.generateImage$/ }),
+		);
+		const copy = await view.findByRole("button", {
+			name: "coloring.copyImagePrompt",
+		});
+		await waitFor(() =>
+			expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy(),
+		);
+		const imageRequest = requests.find(
+			(item) => item.type === "generateAiImage",
+		)?.data;
+		expect(imageRequest?.model).toBe("codex");
+		expect(imageRequest?.prompt).toContain("Ink wash portrait.");
+		expect(imageRequest?.prompt).toContain("A red-haired scout.");
+		Object.defineProperty(navigator, "clipboard", {
+			configurable: true,
+			value: {
+				writeText: async () => {
+					throw new Error("blocked");
+				},
+			},
+		});
+		fireEvent.click(copy);
+		const fallback = await view.findByLabelText("desktop.imagePrompt", {
+			selector: "textarea",
+		});
+		const submittedPrompt = imageRequest?.prompt;
+		if (typeof submittedPrompt !== "string")
+			throw new Error("image prompt missing");
+		expect((fallback as HTMLTextAreaElement).value).toBe(submittedPrompt);
+		expect(
+			requests.filter((item) => item.type === "generateAiImage"),
+		).toHaveLength(1);
+	});
+	it("prepares the saved prompt without pairing or sending any AI request", async () => {
+		await fakeBrowser.storage.local.remove("storylens-desktop-client");
+		const { GenerateImageButton } = await import(
+			"../../src/components/generate-image-button"
+		);
+		const view = render(
+			React.createElement(GenerateImageButton, {
+				novelId: env.novel.id,
+				name: "Mira",
+				description: "A scout.",
+				onGenerated() {},
+			}),
+			{ wrapper },
+		);
+		fireEvent.click(
+			view.getByRole("button", { name: /coloring.generateImage$/ }),
+		);
+		await waitFor(() =>
+			expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy(),
+		);
+		const copied: string[] = [];
+		Object.defineProperty(navigator, "clipboard", {
+			configurable: true,
+			value: {
+				writeText: async (prompt: string) => {
+					copied.push(prompt);
+				},
+			},
+		});
+		fireEvent.click(
+			view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+		);
+		await waitFor(() => expect(copied).toHaveLength(1));
+		expect(copied[0]).toContain("Ink wash portrait.");
+		expect(
+			requests.some(
+				(item) =>
+					item.type === "generateAiImage" || item.type === "executeAiPrompt",
+			),
+		).toBe(false);
 	});
 });

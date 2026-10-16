@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { GetBillingPricing200 } from "@/api/generated/schemas";
 import { aiAvailability } from "@/lib/ai-source/availability";
 import { runLocalizedPrompt } from "@/lib/ai-source/prompt-runner";
-import { parseAiSource } from "@/lib/ai-source/source";
+import { featureAiSource, parseAiSource } from "@/lib/ai-source/source";
 import { accountBalance, cacheFresh } from "@/lib/billing/cache";
 import {
 	CloudAiError,
@@ -350,4 +350,43 @@ test("content-script lens labels use all Arabic plural categories", async () => 
 	expect(ar("lens.count", { count: 100, formatted: "100" })).toBe("100 عدسة");
 	expect(en("lens.count", { count: 1, formatted: "1" })).toBe("1 lens");
 	expect(en("lens.count", { count: 3, formatted: "3" })).toBe("3 lenses");
+});
+
+test("image source is independent while legacy settings preserve their source", () => {
+	expect(featureAiSource("character_image", "desktop", "cloud", paired)).toBe(
+		"cloud",
+	);
+	expect(featureAiSource("page_summary", "desktop", "cloud", paired)).toBe(
+		"desktop",
+	);
+	expect(featureAiSource("character_image", "cloud", "desktop", paired)).toBe(
+		"desktop",
+	);
+	expect(
+		featureAiSource("keyword_suggestion", "cloud", "desktop", paired),
+	).toBe("cloud");
+	expect(featureAiSource("character_image", "desktop", undefined, paired)).toBe(
+		"desktop",
+	);
+	expect(featureAiSource("character_image", undefined, undefined, paired)).toBe(
+		"desktop",
+	);
+	expect(featureAiSource("character_image", "cloud", "invalid", paired)).toBe(
+		"cloud",
+	);
+});
+test("desktop images need pairing independently of the text model", () => {
+	const base = {
+		source: "desktop" as const,
+		desktop: { ...desktop, token: "paired" },
+		user: null,
+		pricing: null,
+	};
+	expect(aiAvailability({ ...base, feature: "character_image" })).toEqual({
+		ok: true,
+	});
+	expect(aiAvailability({ ...base, feature: "page_summary" })).toEqual({
+		ok: false,
+		reason: "desktop-unpaired",
+	});
 });

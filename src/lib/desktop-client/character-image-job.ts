@@ -40,8 +40,9 @@ export async function generateCharacterImage(input: {
 				actionId: crypto.randomUUID(),
 				requestId,
 				prompt: input.prompt,
-				model: input.settings.model,
-				effort: input.settings.effort,
+				// Desktop images always use Codex and its default effort, independently of text.
+				model: "codex",
+				effort: "default",
 			}),
 		);
 		input.signal.throwIfAborted();

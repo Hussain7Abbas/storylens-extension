@@ -3,6 +3,7 @@ import type { DesktopSettings } from "../desktop-client/types";
 
 export type AiSource = "cloud" | "desktop";
 export const AI_SOURCE_KEY = "storylens-ai-source";
+export const AI_IMAGE_SOURCE_KEY = "storylens-ai-image-source";
 export function parseAiSource(
 	stored: unknown,
 	desktop: DesktopSettings,
@@ -22,3 +23,19 @@ export const AI_FEATURES = [
 	"selector_detection",
 ] as const;
 export type AiFeature = (typeof AI_FEATURES)[number];
+
+/** Older installs used the text source for images too. */
+export function featureAiSource(
+	feature: AiFeature,
+	textSource: unknown,
+	imageSource: unknown,
+	desktop: DesktopSettings,
+): AiSource {
+	return parseAiSource(
+		feature === "character_image" &&
+			(imageSource === "cloud" || imageSource === "desktop")
+			? imageSource
+			: textSource,
+		desktop,
+	);
+}

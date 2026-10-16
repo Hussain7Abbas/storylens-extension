@@ -221,17 +221,14 @@ describe("tooltip Generate image through the launcher", () => {
 		expect(document.querySelector('[role="tooltip"]')).toBeNull();
 	});
 
-	it("explains an unavailable source instead of opening a form", async () => {
+	it("opens the image form even without an available source so its prompt can be copied", async () => {
 		// No desktop pairing and no signed-in Cloud account: nothing can draw it.
 		await restart();
 
 		hover();
 		clickGenerate();
 
-		expect(popupParams()).toBeUndefined();
-		expect(
-			shadow().querySelector<HTMLElement>('[role="status"]')?.textContent,
-		).toBe("Sign in to use Story Lens Cloud.");
+		expect(popupParams()?.generate).toBe("image");
 	});
 });
 

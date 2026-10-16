@@ -11,8 +11,9 @@ import { availabilityKey } from "@/lib/ai-source/availability";
 import { useAiAvailability, useAiSnapshot } from "@/lib/ai-source/hooks";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
-import { aiErrorMessage, handleUnavailableAi } from "@/lib/cloud-ai/top-up";
+import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
+import { DEFAULT_AI_PROMPTS } from "@/lib/desktop-client/ai-prompts";
 import {
 	buildCharacterImagePrompt,
 	chapterMentions,
@@ -25,6 +26,8 @@ import {
 import { aiPrompts } from "@/lib/desktop-client/settings";
 import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
+import { CopyImagePrompt } from "./copy-image-prompt";
+import { StopImageButton } from "./stop-image-button";
 
 /** Reads the chapter shown in the active tab; empty when no novel page is open. */
 async function activeChapterText(): Promise<string> {
@@ -59,6 +62,8 @@ export function GenerateImageButton({
 	autoStart = false,
 	initialError,
 	initialRevisedPrompt,
+	initialPrompt,
+	initialStopped = false,
 }: {
 	novelId: string;
 	name: string;
@@ -74,10 +79,17 @@ export function GenerateImageButton({
 	autoStart?: boolean;
 	initialError?: string;
 	initialRevisedPrompt?: string;
+	initialPrompt?: string;
+	initialStopped?: boolean;
 }) {
 	const { t, i18n } = useTranslation();
 	const availability = useAiAvailability("character_image");
-	const { source, pricing } = useAiSnapshot();
+	const {
+		source: textSource,
+		imageSource: source,
+		pricing,
+		loaded,
+	} = useAiSnapshot();
 	const label = useLensLabel();
 	const [needsContext, setNeedsContext] = useState(false);
 	useEffect(() => {
@@ -97,7 +109,7 @@ export function GenerateImageButton({
 					?.lenses ?? 0)
 			: 0;
 	const researchPrice =
-		source === "cloud" && needsContext
+		textSource === "cloud" && needsContext
 			? (pricing?.features.find(
 					(row) => row.key === "novel_context" && row.enabled,
 				)?.lenses ?? 0)
@@ -106,7 +118,9 @@ export function GenerateImageButton({
 	const [revisedPrompt, setRevisedPrompt] = useState<string | undefined>(
 		initialRevisedPrompt,
 	);
+	const [prompt, setPrompt] = useState(initialPrompt);
 	const [busy, setBusy] = useState(false);
+	const [stopped, setStopped] = useState(initialStopped);
 	const [error, setError] = useState<string | null>(initialError ?? null);
 	const controller = useRef<AbortController | null>(null);
 	// The launcher keeps the popup and shows progress while the image is drawn.
@@ -116,6 +130,7 @@ export function GenerateImageButton({
 		subject: name,
 		working: busy,
 		failed: !!error,
+		holding: !stopped,
 	});
 
 	useEffect(
@@ -135,42 +150,61 @@ export function GenerateImageButton({
 			setError(t("coloring.imageNeedsName"));
 			return;
 		}
+		controller.current?.abort();
 		const abort = new AbortController();
 		controller.current = abort;
 		setError(null);
+		setStopped(false);
 		setRevisedPrompt(undefined);
 		setBusyState(true);
-		try {
-			const ai = await aiState("character_image");
-			const settings = ai.desktop;
-			if (!ai.availability.ok)
-				throw new Error(t(availabilityKey(ai.availability)));
-			const language = toAiLanguage(i18n.language);
-			const [prompts, chapterText, novelContext] = await Promise.all([
-				aiPrompts(),
-				activeChapterText(),
-				ensureNovelContext({
-					novelId,
-					language,
-					settings,
-					source: ai.source,
-					parentFeature: "character_image",
-					signal: abort.signal,
-				}),
-			]);
-			if (abort.signal.aborted) return;
-			const prompt = buildCharacterImagePrompt({
+		const build = (
+			instructions: string,
+			chapterText: string,
+			novelContext: string,
+		) =>
+			buildCharacterImagePrompt({
 				name,
 				otherNames,
 				description,
 				category,
-				instructions: prompts.imagePrompt,
+				instructions,
 				chapterExcerpts: chapterMentions(chapterText, [name, ...otherNames]),
 				novelContext,
 			});
+		// A usable prompt remains available even when pairing, billing or generation fails.
+		setPrompt(build(DEFAULT_AI_PROMPTS.imagePrompt, "", ""));
+		try {
+			const language = toAiLanguage(i18n.language);
+			const [ai, textAi, prompts, chapterText, novel] = await Promise.all([
+				aiState("character_image"),
+				aiState("novel_context"),
+				aiPrompts(),
+				activeChapterText(),
+				loadNovel(novelId, language),
+			]);
+			if (abort.signal.aborted) return;
+			let prompt = build(
+				prompts.imagePrompt,
+				chapterText,
+				novel?.context ?? "",
+			);
+			setPrompt(prompt);
+			if (!ai.availability.ok)
+				throw new Error(t(availabilityKey(ai.availability)));
+			const settings = ai.desktop;
+			const novelContext = await ensureNovelContext({
+				novelId,
+				language,
+				settings: textAi.desktop,
+				source: textAi.source,
+				parentFeature: ai.source === "cloud" ? "character_image" : undefined,
+				signal: abort.signal,
+			});
+			if (abort.signal.aborted) return;
+			prompt = build(prompts.imagePrompt, chapterText, novelContext);
+			setPrompt(prompt);
 			trackEvent("ai_image_generation_requested", {
 				provider: ai.source,
-				...(ai.source === "desktop" ? { effort: settings.effort } : {}),
 				has_novel_context: !!novelContext,
 			});
 			const image = await generateCharacterImage({
@@ -185,22 +219,39 @@ export function GenerateImageButton({
 			onGenerated(image.file);
 		} catch (cause) {
 			if (abort.signal.aborted) return;
-			setError(await aiErrorMessage(cause, "character_image", t));
+			const message = await aiErrorMessage(cause, "character_image", t);
+			if (!abort.signal.aborted) setError(message);
 		} finally {
-			if (!abort.signal.aborted) setBusyState(false);
+			if (controller.current === abort) {
+				controller.current = null;
+				setBusyState(false);
+			}
 		}
 	};
 
 	// A form opened to draw an image starts once, after its values loaded.
-	const started = useRef(false);
+	const started = useRef(initialStopped);
 	const latestGenerate = useRef(generate);
 	latestGenerate.current = generate;
 	useEffect(() => {
-		if (started.current || !autoStart || !aiConfigured || !name.trim()) return;
-		started.current = true;
+		if (started.current || !autoStart || !loaded || !name.trim()) return;
+		// Preparing an unavailable source still exposes the prompt; start once it becomes ready.
+		if (aiConfigured) started.current = true;
 		void latestGenerate.current();
-	}, [autoStart, aiConfigured, name]);
+	}, [autoStart, loaded, aiConfigured, name]);
 
+	const stop = () => {
+		const active = controller.current;
+		if (!active) return;
+		// A stopped auto-start request stays stopped even if settings change.
+		started.current = true;
+		controller.current = null;
+		active.abort();
+		setBusyState(false);
+		setStopped(true);
+		setError(null);
+		trackEvent("ai_image_generation_stopped");
+	};
 	return (
 		<>
 			<Tooltip
@@ -220,18 +271,21 @@ export function GenerateImageButton({
 					variant="light"
 					leftSection={<IconImagePlus size={14} strokeWidth={1.75} />}
 					loading={busy}
-					data-disabled={!aiConfigured || undefined}
-					onClick={(event) => {
-						if (!aiConfigured) {
-							event.preventDefault();
-							handleUnavailableAi(availability);
-						} else void generate();
+					onClick={() => {
+						void generate();
 					}}
 					style={{ alignSelf: "flex-start" }}
 				>
 					{t("coloring.generateImage")} <AiPrice feature="character_image" />
 				</Button>
 			</Tooltip>
+			{busy && <StopImageButton onStop={stop} />}
+			{prompt && <CopyImagePrompt prompt={prompt} />}
+			{stopped && (
+				<Text size="xs" c="dimmed" role="status">
+					{t("coloring.imageStopped")}
+				</Text>
+			)}
 			{busy && (
 				<Text size="xs" c="dimmed" role="status">
 					{t("coloring.generatingImage")}

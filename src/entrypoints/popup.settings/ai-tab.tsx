@@ -16,7 +16,8 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { useAiSnapshot } from "@/lib/ai-source/hooks";
-import { AI_SOURCE_KEY, type AiSource } from "@/lib/ai-source/source";
+import type { AiSource } from "@/lib/ai-source/source";
+import { saveAiSource } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import {
 	type AiPrompts,
@@ -138,7 +139,7 @@ function AiPromptsSection() {
 
 export function AiTab() {
 	const { t } = useTranslation();
-	const { source } = useAiSnapshot();
+	const { source, imageSource, loaded } = useAiSnapshot();
 	const [settings, setSettings] = useState<DesktopSettings>(() =>
 		parseDesktopSettings(undefined),
 	);
@@ -195,9 +196,11 @@ export function AiTab() {
 	const selected = catalog?.models.find((item) => item.id === settings.model);
 	return (
 		<Stack gap="xs" p="xs">
+			<Text fw={600}>{t("cloud.textSource")}</Text>
 			<SegmentedControl
 				fullWidth
-				aria-label={t("cloud.source")}
+				aria-label={t("cloud.textSource")}
+				disabled={!loaded}
 				value={source}
 				data={[
 					{ value: "cloud", label: t("cloud.name") },
@@ -205,16 +208,31 @@ export function AiTab() {
 				]}
 				onChange={(value) => {
 					const next = value as AiSource;
-					void browser.storage.local.set({ [AI_SOURCE_KEY]: next });
+					void saveAiSource(next, "text");
 					trackEvent("ai_source_changed", { source: next });
 				}}
 			/>
 			<Text size="xs">
 				{t(source === "cloud" ? "cloud.cloudHelp" : "cloud.desktopHelp")}
 			</Text>
-			{source === "cloud" ? (
-				<CloudPanel />
-			) : (
+			<Select
+				label={t("cloud.imageSource")}
+				description={t("cloud.imageSourceHelp")}
+				value={imageSource}
+				disabled={!loaded}
+				allowDeselect={false}
+				data={[
+					{ value: "cloud", label: t("cloud.name") },
+					{ value: "desktop", label: t("cloud.desktopImages") },
+				]}
+				onChange={(value) => {
+					if (value !== "cloud" && value !== "desktop") return;
+					void saveAiSource(value, "image");
+					trackEvent("ai_image_source_changed", { source: value });
+				}}
+			/>
+			{(source === "cloud" || imageSource === "cloud") && <CloudPanel />}
+			{(source === "desktop" || imageSource === "desktop") && (
 				<>
 					<Text fw={600}>{t("desktop.settings")}</Text>
 					<Text size="xs">{t("desktop.disclosure")}</Text>
@@ -247,10 +265,10 @@ export function AiTab() {
 							{t("desktop.connect")}
 						</Button>
 					</Tooltip>
-					{catalog && (
+					{catalog && source === "desktop" && (
 						<>
 							<Select
-								label={t("desktop.model")}
+								label={t("cloud.textModel")}
 								searchable
 								data={catalog.models.map((model) => ({
 									value: model.id,
