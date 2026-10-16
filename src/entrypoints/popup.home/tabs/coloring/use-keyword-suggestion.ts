@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { availabilityKey } from "@/lib/ai-source/availability";
+import { aiAvailability, availabilityKey } from "@/lib/ai-source/availability";
 import { useAiSnapshot } from "@/lib/ai-source/hooks";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
+import { buildCharacterImagePrompt } from "@/lib/desktop-client/character-image";
+import {
+	type GeneratedCharacterImage,
+	generateCharacterImage,
+} from "@/lib/desktop-client/character-image-job";
 import {
 	boundTranslationCandidates,
 	buildKeywordSuggestionPrompt,
@@ -35,6 +40,12 @@ export type KeywordSuggestionState =
 	| { status: "ready"; suggestion: KeywordSuggestion }
 	| { status: "error"; message: string };
 
+export type SelectionImageState =
+	| { status: "idle" }
+	| { status: "loading" }
+	| ({ status: "ready" } & GeneratedCharacterImage)
+	| { status: "error"; message: string };
+
 /**
  * Requests a description, category, and nature for the text picked with the
  * selection panel with AI enabled. The page context arrives in a hidden query parameter;
@@ -43,7 +54,11 @@ export type KeywordSuggestionState =
 export function useKeywordSuggestion(
 	enabled: boolean,
 	novelId: string | undefined,
-): { state: KeywordSuggestionState; clear: () => void } {
+): {
+	state: KeywordSuggestionState;
+	image: SelectionImageState;
+	clear: () => void;
+} {
 	const { t, i18n } = useTranslation();
 	const request = useMemo(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -52,7 +67,15 @@ export function useKeywordSuggestion(
 		// The chooser says which form it is opening and, for a child, its keyword.
 		const kind = params.get("create");
 		const parentId = params.get("parentId") ?? undefined;
-		return name && context ? { name, context, kind, parentId } : undefined;
+		return name && context
+			? {
+					name,
+					context,
+					kind,
+					parentId,
+					generateImage: params.get("generate") === "image",
+				}
+			: undefined;
 	}, []);
 	const { data: categories } = useOfflineKeywordCategories();
 	const { data: natures } = useOfflineKeywordNatures();
@@ -119,6 +142,7 @@ export function useKeywordSuggestion(
 	const [state, setState] = useState<KeywordSuggestionState>({
 		status: "idle",
 	});
+	const [image, setImage] = useState<SelectionImageState>({ status: "idle" });
 	const finished = useRef(false);
 	const language = toAiLanguage(i18n.language);
 	const { loaded } = useAiSnapshot();
@@ -128,12 +152,17 @@ export function useKeywordSuggestion(
 			return;
 		const controller = new AbortController();
 		setState({ status: "loading" });
+		if (request.generateImage) setImage({ status: "loading" });
 		void (async () => {
 			const ai = await aiState("keyword_suggestion");
 			const settings = ai.desktop;
 			if (controller.signal.aborted) return;
 			if (!ai.availability.ok)
 				throw new Error(t(availabilityKey(ai.availability)));
+			const imageAvailability = aiAvailability({
+				...ai,
+				feature: "character_image",
+			});
 			const options = {
 				categories: lookups.current.categories ?? [],
 				natures: lookups.current.natures ?? [],
@@ -148,41 +177,93 @@ export function useKeywordSuggestion(
 							settings,
 							source: ai.source,
 							parentFeature: "keyword_suggestion",
+							additionalParentFeatures:
+								request.generateImage && imageAvailability.ok
+									? ["character_image"]
+									: [],
 							signal: controller.signal,
 						})
 					: "",
 			]);
 			if (controller.signal.aborted) return;
-			trackEvent("ai_keyword_suggestion_requested", {
-				provider: ai.source,
-				...(ai.source === "desktop" ? { effort: settings.effort } : {}),
-			});
-			const suggestion = await executeLocalizedPrompt({
-				feature: "keyword_suggestion",
-				source: ai.source,
-				prompt: buildKeywordSuggestionPrompt({
-					name: request.name,
-					context: request.context,
-					...options,
-					language,
-					instructions: prompts.keywordPrompt,
-					novelContext,
-				}),
-				language,
-				settings,
-				signal: controller.signal,
-				parse: (output) =>
-					parseKeywordSuggestion(
-						output,
-						options.categories,
-						options.natures,
-						options.translations,
-					),
-				texts: (result) => [result.description],
-			});
-			if (controller.signal.aborted) return;
+			const suggest = async () => {
+				try {
+					trackEvent("ai_keyword_suggestion_requested", {
+						provider: ai.source,
+						...(ai.source === "desktop" ? { effort: settings.effort } : {}),
+					});
+					const suggestion = await executeLocalizedPrompt({
+						feature: "keyword_suggestion",
+						source: ai.source,
+						prompt: buildKeywordSuggestionPrompt({
+							name: request.name,
+							context: request.context,
+							...options,
+							language,
+							instructions: prompts.keywordPrompt,
+							novelContext,
+						}),
+						language,
+						settings,
+						signal: controller.signal,
+						parse: (output) =>
+							parseKeywordSuggestion(
+								output,
+								options.categories,
+								options.natures,
+								options.translations,
+							),
+						texts: (result) => [result.description],
+					});
+					if (!controller.signal.aborted)
+						setState({ status: "ready", suggestion });
+				} catch (error: unknown) {
+					if (!controller.signal.aborted)
+						setState({
+							status: "error",
+							message: await aiErrorMessage(error, "keyword_suggestion", t),
+						});
+				}
+			};
+			const draw = async () => {
+				if (!request.generateImage) return;
+				try {
+					if (!imageAvailability.ok)
+						throw new Error(t(availabilityKey(imageAvailability)));
+					trackEvent("ai_image_generation_requested", {
+						provider: ai.source,
+						...(ai.source === "desktop" ? { effort: settings.effort } : {}),
+						has_novel_context: !!novelContext,
+					});
+					const result = await generateCharacterImage({
+						source: ai.source,
+						settings,
+						name: request.name,
+						prompt: buildCharacterImagePrompt({
+							name: request.name,
+							otherNames: [],
+							description: "",
+							instructions: prompts.imagePrompt,
+							chapterExcerpts: [
+								`${request.context.before}${request.name}${request.context.after}`,
+							],
+							novelContext,
+						}),
+						signal: controller.signal,
+					});
+					if (!controller.signal.aborted)
+						setImage({ status: "ready", ...result });
+				} catch (error: unknown) {
+					if (!controller.signal.aborted)
+						setImage({
+							status: "error",
+							message: await aiErrorMessage(error, "character_image", t),
+						});
+				}
+			};
+			// Both requests start from the picked text; neither waits for the other.
+			await Promise.all([suggest(), draw()]);
 			finished.current = true;
-			setState({ status: "ready", suggestion });
 		})().catch(async (error: unknown) => {
 			if (controller.signal.aborted) return;
 			finished.current = true;
@@ -190,13 +271,18 @@ export function useKeywordSuggestion(
 				status: "error",
 				message: await aiErrorMessage(error, "keyword_suggestion", t),
 			});
+			if (request.generateImage)
+				setImage({
+					status: "error",
+					message: await aiErrorMessage(error, "character_image", t),
+				});
 		});
 		return () => controller.abort();
 	}, [request, enabled, loaded, lookupsReady, language, novelId, t]);
 	// The launcher keeps the popup and shows progress while the suggestion is written.
 	useLauncherWork({
-		working: state.status === "loading",
-		failed: state.status === "error",
+		working: state.status === "loading" || image.status === "loading",
+		failed: state.status === "error" || image.status === "error",
 	});
 	// Listed under the launcher until the form holding the suggestion closes.
 	useAiTask({
@@ -207,5 +293,19 @@ export function useKeywordSuggestion(
 		holding: state.status === "ready",
 	});
 
-	return { state, clear: () => setState({ status: "idle" }) };
+	useAiTask({
+		operation: "generate-image",
+		subject: request?.name ?? "",
+		working: image.status === "loading",
+		failed: image.status === "error",
+		holding: image.status === "ready",
+	});
+	return {
+		state,
+		image,
+		clear: () => {
+			setState({ status: "idle" });
+			setImage({ status: "idle" });
+		},
+	};
 }

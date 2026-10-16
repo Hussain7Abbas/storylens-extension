@@ -17,6 +17,7 @@ export type GetKeywords200DataItemAliasesItemCategoryAnyOf = {
 	nameEn: GetKeywords200DataItemAliasesItemCategoryAnyOfNameEn;
 	nameAr: GetKeywords200DataItemAliasesItemCategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: GetKeywords200DataItemAliasesItemCategoryAnyOfDescription;
 	createdAt: GetKeywords200DataItemAliasesItemCategoryAnyOfCreatedAt;
 	updatedAt: GetKeywords200DataItemAliasesItemCategoryAnyOfUpdatedAt;

@@ -11,10 +11,15 @@ import {
 	stripArabicDiacritics,
 } from "@/utils/arabic";
 import {
+	applyKeywordEffect,
+	clearKeywordEffects,
+} from "@/utils/keyword-effects";
+import {
 	destroyKeywordTooltipPortal,
 	initKeywordTooltipPortal,
 	registerKeywordTooltipAnchor,
 } from "@/utils/keyword-tooltip";
+import { applyLookupColor } from "@/utils/personal-colors";
 import { enrichKeywords } from "@/utils/resolve-keyword-version";
 import { type Language, nameIn } from "@/utils/translation";
 
@@ -391,19 +396,21 @@ function createKeywordElement(
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
-	span.style.setProperty("color", keyword.category.color, "important");
+	applyLookupColor(span, "category", keyword.category);
 	span.dataset.keywordId = keyword.id;
 
 	const natureIndicator = document.createElement("span");
 	natureIndicator.className = "storylens-nature-indicator";
-	natureIndicator.style.setProperty(
+	applyLookupColor(
+		natureIndicator,
+		"nature",
+		keyword.nature,
 		"background-color",
-		keyword.nature.color,
-		"important",
 	);
 	natureIndicator.setAttribute("aria-hidden", "true");
 	span.append(natureIndicator);
 	span.append(document.createTextNode(matchedText));
+	applyKeywordEffect(span, keyword.category.effect);
 
 	const rawCtx = rawContextLookup.get(keyword.id);
 	if (rawCtx) {
@@ -587,6 +594,7 @@ function unwrapMarkupSpan(span: HTMLSpanElement): void {
 }
 
 export function removeExtensionMarkup(): void {
+	clearKeywordEffects();
 	destroyKeywordTooltipPortal();
 
 	const keywordSpans = [...document.querySelectorAll("span.storylens-keyword")];

@@ -7,6 +7,7 @@
  */
 
 import type { PostKeywordCategoriesBodyTwoDescription } from "./postKeywordCategoriesBodyTwoDescription";
+import type { PostKeywordCategoriesBodyTwoEffect } from "./postKeywordCategoriesBodyTwoEffect";
 import type { PostKeywordCategoriesBodyTwoNameAr } from "./postKeywordCategoriesBodyTwoNameAr";
 import type { PostKeywordCategoriesBodyTwoNameEn } from "./postKeywordCategoriesBodyTwoNameEn";
 
@@ -18,6 +19,7 @@ export type PostKeywordCategoriesBodyTwo = {
 	nameAr?: PostKeywordCategoriesBodyTwoNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
+	effect?: PostKeywordCategoriesBodyTwoEffect;
 	/** @nullable */
 	description?: PostKeywordCategoriesBodyTwoDescription;
 };

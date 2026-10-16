@@ -9,14 +9,23 @@
 import type { PostKeywordsBodyThreeDescription } from "./postKeywordsBodyThreeDescription";
 import type { PostKeywordsBodyThreeDescriptionAr } from "./postKeywordsBodyThreeDescriptionAr";
 import type { PostKeywordsBodyThreeDescriptionEn } from "./postKeywordsBodyThreeDescriptionEn";
+import type { PostKeywordsBodyThreeEndingChapter } from "./postKeywordsBodyThreeEndingChapter";
 import type { PostKeywordsBodyThreeImageId } from "./postKeywordsBodyThreeImageId";
 import type { PostKeywordsBodyThreeMatchingType } from "./postKeywordsBodyThreeMatchingType";
 import type { PostKeywordsBodyThreeNameAr } from "./postKeywordsBodyThreeNameAr";
 import type { PostKeywordsBodyThreeNameEn } from "./postKeywordsBodyThreeNameEn";
+import type { PostKeywordsBodyThreeStartingChapter } from "./postKeywordsBodyThreeStartingChapter";
 
 export type PostKeywordsBodyThree = {
 	id: string;
 	versionId: string;
+	/**
+	 * @minimum 0
+	 * @maximum 2147483647
+	 */
+	startingChapter?: PostKeywordsBodyThreeStartingChapter;
+	/** @nullable */
+	endingChapter?: PostKeywordsBodyThreeEndingChapter;
 	/** @nullable */
 	nameAr?: PostKeywordsBodyThreeNameAr;
 	/** @nullable */

@@ -17,6 +17,7 @@ export type PostKeywordAliases200CategoryAnyOf = {
 	nameEn: PostKeywordAliases200CategoryAnyOfNameEn;
 	nameAr: PostKeywordAliases200CategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: PostKeywordAliases200CategoryAnyOfDescription;
 	createdAt: PostKeywordAliases200CategoryAnyOfCreatedAt;
 	updatedAt: PostKeywordAliases200CategoryAnyOfUpdatedAt;

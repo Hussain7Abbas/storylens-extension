@@ -7,6 +7,7 @@
  */
 
 import type { PostKeywordCategoriesBodyThreeDescription } from "./postKeywordCategoriesBodyThreeDescription";
+import type { PostKeywordCategoriesBodyThreeEffect } from "./postKeywordCategoriesBodyThreeEffect";
 import type { PostKeywordCategoriesBodyThreeNameAr } from "./postKeywordCategoriesBodyThreeNameAr";
 import type { PostKeywordCategoriesBodyThreeNameEn } from "./postKeywordCategoriesBodyThreeNameEn";
 
@@ -18,6 +19,7 @@ export type PostKeywordCategoriesBodyThree = {
 	nameAr?: PostKeywordCategoriesBodyThreeNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
+	effect?: PostKeywordCategoriesBodyThreeEffect;
 	/** @nullable */
 	description?: PostKeywordCategoriesBodyThreeDescription;
 };

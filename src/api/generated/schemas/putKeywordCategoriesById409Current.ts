@@ -17,6 +17,7 @@ export type PutKeywordCategoriesById409Current = {
 	nameEn: PutKeywordCategoriesById409CurrentNameEn;
 	nameAr: PutKeywordCategoriesById409CurrentNameAr;
 	color: string;
+	effect: string;
 	description: PutKeywordCategoriesById409CurrentDescription;
 	createdAt: PutKeywordCategoriesById409CurrentCreatedAt;
 	updatedAt: PutKeywordCategoriesById409CurrentUpdatedAt;

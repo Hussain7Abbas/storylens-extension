@@ -6,7 +6,7 @@ import {
 	parseStoredAuth,
 	storeAuth,
 } from "@/lib/auth/auth-storage";
-import { websiteMatchPattern } from "@/lib/website";
+import { isWebsiteOrigin, websiteMatchPattern } from "@/lib/website";
 import {
 	ACCOUNT_BRIDGE_CHANNEL,
 	type ExtensionMessage,
@@ -19,6 +19,9 @@ export default defineContentScript({
 	matches: [websiteMatchPattern()],
 	runAt: "document_start",
 	main(ctx) {
+		// Match patterns cover all ports; never expose a session to another
+		// local service (or frame) outside the configured website origin.
+		if (!isWebsiteOrigin(window.location.origin)) return;
 		const post = (session: ExtensionMessage["session"], id?: string): void => {
 			const message: ExtensionMessage = {
 				channel: ACCOUNT_BRIDGE_CHANNEL,

@@ -17,6 +17,7 @@ export type DeleteKeywordCategoriesById200 = {
 	nameEn: DeleteKeywordCategoriesById200NameEn;
 	nameAr: DeleteKeywordCategoriesById200NameAr;
 	color: string;
+	effect: string;
 	description: DeleteKeywordCategoriesById200Description;
 	createdAt: DeleteKeywordCategoriesById200CreatedAt;
 	updatedAt: DeleteKeywordCategoriesById200UpdatedAt;

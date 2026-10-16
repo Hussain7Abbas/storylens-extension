@@ -42,9 +42,11 @@ mock.module("@tanstack/react-query", () => ({
 }));
 
 const React = await import("react");
-const { render, renderHook, fireEvent, waitFor, cleanup, act } = await import(
-	"@testing-library/react"
-);
+const { render, renderHook, fireEvent, waitFor, cleanup, act, configure } =
+	await import("@testing-library/react");
+// Allow slower rendering while browser build checks run on the same machine.
+configure({ asyncUtilTimeout: 5000 });
+
 const { MantineProvider } = await import("@mantine/core");
 const { QueryClient, QueryClientProvider } = await import(
 	"@tanstack/react-query"
@@ -103,9 +105,13 @@ const {
 	APPEARANCE_FONT_SIZE_KEY,
 	fontSizeAtom,
 	nightLightLevelAtom,
+	showCategoryEffectsAtom,
 	tooltipTriggerAtom,
 } = await import("../../src/store/appearance");
 const { TOOLTIP_TRIGGER_KEY } = await import("../../src/lib/tooltip-trigger");
+const { SHOW_CATEGORY_EFFECTS_KEY } = await import(
+	"../../src/lib/keyword-effects"
+);
 
 type Env = Awaited<ReturnType<typeof setupEngine>>;
 let env: Env;
@@ -248,10 +254,7 @@ describe("edit request from a page tooltip", () => {
 			{ wrapper },
 		);
 		// The list loads, then the requested form (if any) opens and settles.
-		await act(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 150));
-		});
-		expect(view.getByText("Theirs")).toBeTruthy();
+		await waitFor(() => expect(view.getByText("Theirs")).toBeTruthy());
 		return view;
 	}
 
@@ -1171,6 +1174,41 @@ describe("language tabs in a character form", () => {
 		);
 	};
 
+	it("keeps Advance collapsed with legacy defaults, validates bounds and saves the initial range", async () => {
+		const view = await openKeywordForm("Mira");
+		await chooseStyles(view);
+		const section = view.getByText("coloring.advance").closest("details");
+		expect(section?.open).toBe(false);
+		const start = view.getByLabelText(
+			"coloring.startingChapter",
+		) as HTMLInputElement;
+		const end = view.getByLabelText(
+			"coloring.endingChapter",
+		) as HTMLInputElement;
+		expect(start.value).toBe("0");
+		expect(end.value).toBe("");
+		if (section) section.open = true;
+		fireEvent.change(start, { target: { value: "12" } });
+		fireEvent.change(end, { target: { value: "11" } });
+		if (section) section.open = false;
+		const form = view.getByRole("button", { name: "_.save" }).closest("form");
+		if (!form) throw new Error("keyword form missing");
+		setOnline(false);
+		fireEvent.submit(form);
+		await waitFor(() =>
+			expect(view.getByText("coloring.invalidRange")).toBeTruthy(),
+		);
+		expect(section?.open).toBe(true);
+		expect(await env.db.mutations.count()).toBe(0);
+		fireEvent.change(end, { target: { value: "24" } });
+		fireEvent.submit(form);
+		await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+		expect((await env.db.mutations.toArray())[0]?.patch).toMatchObject({
+			startingChapter: 12,
+			endingChapter: 24,
+		});
+	});
+
 	it("starts a hover image request once when the source becomes ready", async () => {
 		const previousUrl = window.location.href;
 		const runtime = fakeBrowser.runtime as { sendMessage: unknown };
@@ -1643,6 +1681,19 @@ describe("appearance settings", () => {
 		document.documentElement.removeAttribute("dir");
 	});
 
+	it("starts category effects off and persists the reader's switch choice", () => {
+		const { view, store } = renderAppearanceTab();
+		const toggle = view.getByRole("switch", {
+			name: /^settings\.appearance\.showCategoryEffects/,
+		}) as HTMLInputElement;
+		expect(toggle.checked).toBe(false);
+		fireEvent.click(toggle);
+		expect(store.get(showCategoryEffectsAtom)).toBe(true);
+		expect(window.localStorage.getItem(SHOW_CATEGORY_EFFECTS_KEY)).toBe("true");
+		fireEvent.click(toggle);
+		expect(store.get(showCategoryEffectsAtom)).toBe(false);
+	});
+
 	it("defaults to On click and saves the selected tooltip trigger", () => {
 		const { view, store } = renderAppearanceTab();
 		const click = view.getByRole("radio", {
@@ -1671,6 +1722,20 @@ describe("appearance settings", () => {
 		expect(await load("tooltip-trigger-saved")).toBe("hover");
 		window.localStorage.setItem(TOOLTIP_TRIGGER_KEY, '"invalid"');
 		expect(await load("tooltip-trigger-invalid")).toBe("click");
+	});
+
+	it("loads saved category effects before mirroring and rejects non-boolean values", async () => {
+		const load = async (suffix: string) => {
+			const path = `../../src/store/appearance.ts?${suffix}`;
+			const { showCategoryEffectsAtom: atom } = (await import(
+				path
+			)) as typeof import("../../src/store/appearance");
+			return createStore().get(atom);
+		};
+		window.localStorage.setItem(SHOW_CATEGORY_EFFECTS_KEY, "true");
+		expect(await load("category-effects-saved")).toBe(true);
+		window.localStorage.setItem(SHOW_CATEGORY_EFFECTS_KEY, '"true"');
+		expect(await load("category-effects-invalid")).toBe(false);
 	});
 
 	it("starts the popup atom at the saved size and resets the old default", async () => {
@@ -1881,11 +1946,54 @@ describe("Cloud and lens UI", async () => {
 	it("starts Use AI off for both sources and shows the Cloud price only", async () => {
 		const view = render(React.createElement(SelectionView), { wrapper });
 		await waitFor(() => expect(view.getByText("1")).toBeTruthy());
-		expect((view.getByRole("switch") as HTMLInputElement).checked).toBe(false);
+		expect(
+			(view.getByRole("switch", { name: /selection.ai/ }) as HTMLInputElement)
+				.checked,
+		).toBe(false);
 		await fakeBrowser.storage.local.set({ "storylens-ai-source": "desktop" });
 		await waitFor(() => expect(view.queryByText("1") === null).toBe(true));
-		expect((view.getByRole("switch") as HTMLInputElement).checked).toBe(false);
+		expect(
+			(view.getByRole("switch", { name: /selection.ai/ }) as HTMLInputElement)
+				.checked,
+		).toBe(false);
 	});
+
+	it("enables image generation only with AI, clears it when AI is off, and respects feature availability", async () => {
+		const view = render(React.createElement(SelectionView), { wrapper });
+		const ai = view.getByRole("switch", {
+			name: /selection.ai/,
+		}) as HTMLInputElement;
+		const image = view.getByRole("switch", {
+			name: /selection.generateImage/,
+		}) as HTMLInputElement;
+		await waitFor(() => expect(view.getByText("3")).toBeTruthy());
+		expect(image.disabled).toBe(true);
+		expect(image.checked).toBe(false);
+		fireEvent.click(ai);
+		await waitFor(() => expect(image.disabled).toBe(false));
+		fireEvent.click(image);
+		expect(image.checked).toBe(true);
+		fireEvent.click(ai);
+		expect(image.disabled).toBe(true);
+		expect(image.checked).toBe(false);
+		fireEvent.click(ai);
+		expect(image.checked).toBe(false);
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-pricing": {
+				data: {
+					...pricing,
+					features: pricing.features.map((feature) =>
+						feature.key === "character_image"
+							? { ...feature, enabled: false }
+							: feature,
+					),
+				},
+				fetchedAt: Date.now(),
+			},
+		});
+		await waitFor(() => expect(image.disabled).toBe(true));
+	});
+
 	it("shows a positive price live and hides free and desktop prices", async () => {
 		const view = render(
 			React.createElement(AiPrice, { feature: "character_image" }),
@@ -2117,5 +2225,528 @@ describe("sync issue recovery details", () => {
 		} finally {
 			runtime.sendMessage = previous;
 		}
+	});
+});
+
+describe("parallel selection suggestions and images", () => {
+	const runtime = fakeBrowser.runtime as { sendMessage: unknown };
+	let original: unknown;
+	let previousUrl: string;
+	let requests: { type: string; data: Record<string, unknown> }[];
+	let finishSuggestion: (value: unknown) => void;
+	let finishImage: (value: unknown) => void;
+
+	beforeEach(async () => {
+		previousUrl = window.location.href;
+		original = runtime.sendMessage;
+		requests = [];
+		const suggestionReply = new Promise<unknown>((resolve) => {
+			finishSuggestion = resolve;
+		});
+		const imageReply = new Promise<unknown>((resolve) => {
+			finishImage = resolve;
+		});
+		runtime.sendMessage = async (message: unknown) => {
+			const item = message as { type: string; data: Record<string, unknown> };
+			requests.push(item);
+			if (item.type === "executeAiPrompt") return suggestionReply;
+			if (item.type === "generateAiImage") return imageReply;
+			return { res: undefined };
+		};
+		env.novel.context = "A fantasy novel.";
+		store.set(localeAtom, "en");
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-source": "desktop",
+			"storylens-desktop-client": {
+				token: "paired",
+				model: "test-model",
+				effort: "low",
+			},
+			"storylens-ai-prompts": {
+				keywordPrompt: "Write concise details.",
+				imagePrompt: "Draw a watercolor portrait.",
+			},
+		});
+	});
+	afterEach(() => {
+		cleanup();
+		finishSuggestion({ res: undefined });
+		finishImage({ res: undefined });
+		runtime.sendMessage = original;
+		window.history.replaceState(null, "", previousUrl);
+	});
+	async function open(
+		kind: "keyword" | "alias" | "version" = "keyword",
+		generate = true,
+	) {
+		const parent = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameEn: "Parent",
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		window.history.replaceState(
+			null,
+			"",
+			`?${new URLSearchParams({
+				create: kind,
+				search: "Rand",
+				parentId: parent.id,
+				aiContext: JSON.stringify({
+					before: "The red-haired ",
+					after: " carried a sword.",
+				}),
+				...(generate ? { generate: "image" } : {}),
+			})}`,
+		);
+		return render(
+			React.createElement(
+				PageContent,
+				null,
+				React.createElement(ColoringTab, {
+					selectedNovelId: env.novel.id,
+					currentChapter: kind === "version" ? 10 : 0,
+				}),
+			),
+			{ wrapper },
+		);
+	}
+	const suggestion = () =>
+		finishSuggestion({
+			res: {
+				ok: true,
+				value: JSON.stringify({
+					description: "A shepherd.",
+					category: 1,
+					nature: 1,
+				}),
+			},
+		});
+	const image = () =>
+		finishImage({
+			res: {
+				ok: true,
+				value: {
+					data: "AA==",
+					mimeType: "image/png",
+					revisedPrompt: "A red-haired swordsman.",
+				},
+			},
+		});
+	const bothStarted = () =>
+		waitFor(() => {
+			expect(
+				requests.filter((item) => item.type === "executeAiPrompt"),
+			).toHaveLength(1);
+			expect(
+				requests.filter((item) => item.type === "generateAiImage"),
+			).toHaveLength(1);
+		});
+
+	for (const kind of ["keyword", "alias", "version"] as const) {
+		it(`runs both actions concurrently and saves the generated image with its ${kind}`, async () => {
+			const view = await open(kind);
+			await bothStarted();
+			const prompt = requests.find((item) => item.type === "generateAiImage")
+				?.data.prompt;
+			expect(prompt).toContain("Draw a watercolor portrait.");
+			expect(prompt).toContain("The red-haired Rand carried a sword.");
+			expect(prompt).toContain("A fantasy novel.");
+			await act(async () => {
+				suggestion();
+			});
+			expect(view.queryByRole("button", { name: "_.save" })).toBeNull();
+			await act(async () => {
+				image();
+			});
+			await waitFor(() =>
+				expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
+			);
+			expect(view.getByText("A red-haired swordsman.")).toBeTruthy();
+			expect(
+				(view.getByLabelText("coloring.description") as HTMLInputElement).value,
+			).toContain("A shepherd.");
+			expect(new URLSearchParams(window.location.search).has("generate")).toBe(
+				false,
+			);
+			const save = view.getByRole("button", { name: "_.save" });
+			const form = save.closest("form");
+			if (!form) throw new Error("entry form missing");
+			setOnline(false);
+			fireEvent.submit(form);
+			await waitFor(async () => expect(await env.db.files.count()).toBe(1));
+			await waitFor(() => expect(store.get(formPageAtom)).toBeNull());
+			expect(
+				requests.filter((item) => item.type === "generateAiImage"),
+			).toHaveLength(1);
+		});
+	}
+
+	it("keeps the generated image when an AI translation link loads its inherited style", async () => {
+		env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameAr: "راند",
+				nameEn: null,
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		const view = await open();
+		await bothStarted();
+		finishSuggestion({
+			res: {
+				ok: true,
+				value: JSON.stringify({
+					description: "A shepherd.",
+					category: 1,
+					nature: 1,
+					translation: 1,
+				}),
+			},
+		});
+		image();
+		await waitFor(() =>
+			expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
+		);
+		fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
+		await waitFor(() =>
+			expect(
+				(
+					view.getByLabelText("coloring.name", {
+						selector: "input",
+					}) as HTMLInputElement
+				).value,
+			).toBe("راند"),
+		);
+		expect(view.getByAltText("coloring.imagePreview")).toBeTruthy();
+		const form = view.getByRole("button", { name: "_.save" }).closest("form");
+		if (!form) throw new Error("entry form missing");
+		setOnline(false);
+		fireEvent.submit(form);
+		await waitFor(async () => expect(await env.db.files.count()).toBe(1));
+	});
+
+	it("keeps the image when the suggestion fails", async () => {
+		const view = await open();
+		await bothStarted();
+		finishSuggestion({
+			res: {
+				ok: false,
+				failure: {
+					code: "AI_PROVIDER_FAILED",
+					message: "Suggestion failed",
+					details: {},
+				},
+			},
+		});
+		image();
+		await waitFor(() =>
+			expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
+		);
+		expect(view.getByText(/coloring.aiFailed/)).toBeTruthy();
+		expect(view.getByRole("button", { name: "_.save" })).toBeTruthy();
+	});
+	it("keeps suggested fields and allows retrying a failed image", async () => {
+		const view = await open();
+		await bothStarted();
+		suggestion();
+		finishImage({
+			res: {
+				ok: false,
+				failure: {
+					code: "AI_PROVIDER_FAILED",
+					message: "Image failed",
+					details: {},
+				},
+			},
+		});
+		await waitFor(() =>
+			expect(view.getByRole("button", { name: "_.save" })).toBeTruthy(),
+		);
+		expect(view.getByDisplayValue("A shepherd.")).toBeTruthy();
+		expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy();
+		expect(
+			view
+				.getByRole("button", { name: /coloring.generateImage$/ })
+				.hasAttribute("data-disabled"),
+		).toBe(false);
+	});
+	it("sends no image request with only Use AI enabled", async () => {
+		const view = await open("keyword", false);
+		await waitFor(() =>
+			expect(
+				requests.filter((item) => item.type === "executeAiPrompt"),
+			).toHaveLength(1),
+		);
+		suggestion();
+		await waitFor(() =>
+			expect(view.getByRole("button", { name: "_.save" })).toBeTruthy(),
+		);
+		expect(
+			requests.filter((item) => item.type === "generateAiImage"),
+		).toHaveLength(0);
+	});
+
+	it("preserves the combined Cloud budget by skipping optional research", async () => {
+		env.novel.context = null;
+		await fakeBrowser.storage.local.set({
+			"storylens-ai-source": "cloud",
+			"storylens-ai-pricing": {
+				data: {
+					cloudAi: { enabled: true },
+					features: [
+						{ key: "keyword_suggestion", lenses: 1, enabled: true },
+						{ key: "character_image", lenses: 3, enabled: true },
+						{ key: "novel_context", lenses: 2, enabled: true },
+					],
+				},
+				fetchedAt: Date.now(),
+			},
+			"storylens-lens-balance": {
+				userId: env.user.id,
+				balance: 4,
+				updatedAt: Date.now(),
+			},
+		});
+		const view = await open();
+		await bothStarted();
+		expect(
+			requests.some(
+				(item) => item.type === "executeAiPrompt" && item.data.webSearch,
+			),
+		).toBe(false);
+		expect(
+			requests.find((item) => item.type === "generateAiImage")?.data.source,
+		).toBe("cloud");
+		suggestion();
+		image();
+		await waitFor(() =>
+			expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
+		);
+	});
+	it("researches missing novel context once for both actions", async () => {
+		env.novel.context = null;
+		const handler = runtime.sendMessage as (
+			message: unknown,
+		) => Promise<unknown>;
+		runtime.sendMessage = async (message: unknown) => {
+			const item = message as { type: string; data: Record<string, unknown> };
+			if (item.type === "executeAiPrompt" && item.data.webSearch) {
+				requests.push(item);
+				return { res: { ok: true, value: "A fantasy novel." } };
+			}
+			return handler(message);
+		};
+		const view = await open();
+		await waitFor(() => {
+			expect(
+				requests.filter(
+					(item) => item.type === "executeAiPrompt" && item.data.webSearch,
+				),
+			).toHaveLength(1);
+			expect(
+				requests.filter(
+					(item) => item.type === "executeAiPrompt" && !item.data.webSearch,
+				),
+			).toHaveLength(1);
+			expect(
+				requests.filter((item) => item.type === "generateAiImage"),
+			).toHaveLength(1);
+		});
+		suggestion();
+		image();
+		await waitFor(() =>
+			expect(view.getByAltText("coloring.imagePreview")).toBeTruthy(),
+		);
+	});
+
+	it("cancels both requests when their popup unmounts", async () => {
+		const view = await open();
+		await bothStarted();
+		const ids = requests
+			.filter(
+				(item) =>
+					item.type === "executeAiPrompt" || item.type === "generateAiImage",
+			)
+			.map((item) => item.data.requestId);
+		view.unmount();
+		await waitFor(() =>
+			expect(
+				requests
+					.filter((item) => item.type === "cancelAiPrompt")
+					.map((item) => item.data),
+			).toEqual(expect.arrayContaining(ids)),
+		);
+	});
+});
+
+describe("category effect form", () => {
+	it("offers five effects and saves the chosen decoration through the outbox", async () => {
+		env = await setupEngine({ moderator: true });
+		store.set(authStateAtom, { user: env.user, token: "token-reader-1" });
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		const { CategoryForm } = await import(
+			"../../src/entrypoints/popup.settings/category-form"
+		);
+		const view = render(
+			React.createElement(
+				PageContent,
+				null,
+				React.createElement(CategoryForm, { mode: "add", onClose: () => {} }),
+			),
+			{ wrapper },
+		);
+		const effect = view.getByLabelText("settings.effect", {
+			selector: "input",
+		}) as HTMLInputElement;
+		expect(effect.value).toBe("settings.effects.NONE");
+		fireEvent.click(effect);
+		const options = await view.findAllByRole("option", { hidden: true });
+		expect(options.map((option) => option.textContent)).toEqual([
+			"settings.effects.NONE",
+			"settings.effects.SPARKLES",
+			"settings.effects.HEAT",
+			"settings.effects.SHAKING",
+			"settings.effects.GLITCHING",
+		]);
+		fireEvent.click(
+			view.getByRole("option", {
+				name: "settings.effects.SPARKLES",
+				hidden: true,
+			}),
+		);
+		fireEvent.change(
+			view.getByLabelText(/settings.nameEn/, { selector: "input" }),
+			{ target: { value: "Magic" } },
+		);
+		const form = view.getByRole("button", { name: "_.save" }).closest("form");
+		if (!form) throw new Error("category form missing");
+		setOnline(false);
+		fireEvent.submit(form);
+		await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+		expect((await env.db.mutations.toArray())[0]?.patch.effect).toBe(
+			"SPARKLES",
+		);
+	});
+});
+
+describe("personal category and nature colors", () => {
+	for (const kind of ["category", "nature"] as const) {
+		it(`lets guests save and clear only their personal ${kind} color`, async () => {
+			const { savePersonalColor, readColorPreferences } = await import(
+				"../../src/lib/personal-colors/background"
+			);
+			const { signIn } = await import("../helpers/engine");
+			const guest = makeUser("guest-color-ui", { guest: true });
+			await signIn(guest);
+			store.set(authStateAtom, { user: guest, token: "token-guest-color-ui" });
+			const runtime = fakeBrowser.runtime as unknown as {
+				sendMessage: (message: unknown) => Promise<unknown>;
+			};
+			const original = runtime.sendMessage;
+			runtime.sendMessage = async (message) => {
+				const request = message as {
+					type: string;
+					data: {
+						userId: string;
+						kind: "category" | "nature";
+						id: string;
+						color: string | null;
+					};
+				};
+				if (request.type === "savePersonalColor")
+					await savePersonalColor(request.data.userId, request.data);
+				return { res: undefined };
+			};
+			try {
+				const row = env[kind];
+				const { CategoryForm } = await import(
+					"../../src/entrypoints/popup.settings/category-form"
+				);
+				const { NatureForm } = await import(
+					"../../src/entrypoints/popup.settings/nature-form"
+				);
+				const editor =
+					kind === "category"
+						? React.createElement(CategoryForm, {
+								mode: "edit",
+								category:
+									row as unknown as import("../../src/types/models").KeywordCategory,
+								onClose() {},
+							})
+						: React.createElement(NatureForm, {
+								mode: "edit",
+								nature:
+									row as unknown as import("../../src/types/models").KeywordNature,
+								onClose() {},
+							});
+				const view = render(React.createElement(PageContent, null, editor), {
+					wrapper,
+				});
+				expect(view.queryByLabelText("settings.nameEn")).toBeNull();
+				expect(view.queryByLabelText("settings.originalColor")).toBeNull();
+				expect(view.queryByRole("button", { name: "_.delete" })).toBeNull();
+				const color = view.getByLabelText("settings.personalColor", {
+					selector: "input",
+				});
+				const save = view.getByRole("button", { name: "_.save" });
+				await waitFor(() => expect(color.hasAttribute("disabled")).toBe(false));
+				fireEvent.change(color, { target: { value: "#abcdef" } });
+				fireEvent.click(save);
+				await waitFor(async () =>
+					expect(
+						(await readColorPreferences(guest.id)).colors[kind][row.id],
+					).toBe("#abcdef"),
+				);
+				await waitFor(() => expect(save.hasAttribute("disabled")).toBe(true));
+				fireEvent.click(
+					view.getByRole("button", { name: "settings.clearPersonalColor" }),
+				);
+				await waitFor(async () =>
+					expect(
+						(await readColorPreferences(guest.id)).colors[kind][row.id],
+					).toBeUndefined(),
+				);
+				expect(await env.db.mutations.count()).toBe(0);
+				view.unmount();
+			} finally {
+				runtime.sendMessage = original;
+			}
+		});
+	}
+	it("lets moderators edit original and personal colors separately", async () => {
+		env = await setupEngine({ moderator: true });
+		store.set(authStateAtom, { user: env.user, token: "token-reader-1" });
+		const { CategoryForm } = await import(
+			"../../src/entrypoints/popup.settings/category-form"
+		);
+		const view = render(
+			React.createElement(
+				PageContent,
+				null,
+				React.createElement(CategoryForm, {
+					mode: "edit",
+					category:
+						env.category as unknown as import("../../src/types/models").KeywordCategory,
+					onClose() {},
+				}),
+			),
+			{ wrapper },
+		);
+		expect(
+			view.getByLabelText(/settings.originalColor/, { selector: "input" }),
+		).toBeTruthy();
+		expect(
+			view.getByLabelText("settings.personalColor", { selector: "input" }),
+		).toBeTruthy();
+		expect(view.getByRole("button", { name: "_.delete" })).toBeTruthy();
+		view.unmount();
 	});
 });

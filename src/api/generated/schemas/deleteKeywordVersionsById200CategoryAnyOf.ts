@@ -17,6 +17,7 @@ export type DeleteKeywordVersionsById200CategoryAnyOf = {
 	nameEn: DeleteKeywordVersionsById200CategoryAnyOfNameEn;
 	nameAr: DeleteKeywordVersionsById200CategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: DeleteKeywordVersionsById200CategoryAnyOfDescription;
 	createdAt: DeleteKeywordVersionsById200CategoryAnyOfCreatedAt;
 	updatedAt: DeleteKeywordVersionsById200CategoryAnyOfUpdatedAt;

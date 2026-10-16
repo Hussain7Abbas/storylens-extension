@@ -17,6 +17,7 @@ export type PostKeywordCategories200 = {
 	nameEn: PostKeywordCategories200NameEn;
 	nameAr: PostKeywordCategories200NameAr;
 	color: string;
+	effect: string;
 	description: PostKeywordCategories200Description;
 	createdAt: PostKeywordCategories200CreatedAt;
 	updatedAt: PostKeywordCategories200UpdatedAt;

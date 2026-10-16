@@ -33,6 +33,7 @@ import {
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
 import type { EntitySyncState } from "@/lib/offline/types";
+import { usePersonalColors } from "@/lib/personal-colors/use-personal-colors";
 import { useLanguage } from "@/store/locale";
 import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
@@ -156,6 +157,7 @@ function CategoryNatureRow({
 	inheritedNature: EnrichedNature | null | undefined;
 }) {
 	const language = useLanguage();
+	const { colorFor } = usePersonalColors();
 	const displayCategory = ownCategory ?? inheritedCategory ?? null;
 	const isCatInherited = !ownCategory && !!inheritedCategory;
 	const displayNature = ownNature ?? inheritedNature ?? null;
@@ -169,7 +171,9 @@ function CategoryNatureRow({
 				<Text
 					size="xs"
 					style={{
-						color: isCatInherited ? undefined : displayCategory.color,
+						color: isCatInherited
+							? undefined
+							: colorFor("category", displayCategory),
 						opacity: isCatInherited ? 0.45 : 1,
 					}}
 					c={isCatInherited ? "dimmed" : undefined}
@@ -181,7 +185,9 @@ function CategoryNatureRow({
 				<Text
 					size="xs"
 					style={{
-						color: isNatInherited ? undefined : displayNature.color,
+						color: isNatInherited
+							? undefined
+							: colorFor("nature", displayNature),
 						opacity: isNatInherited ? 0.45 : 1,
 					}}
 					c={isNatInherited ? "dimmed" : undefined}
@@ -399,6 +405,7 @@ export function ColoringCards({
 }: ColoringCardsProps) {
 	const { t } = useTranslation();
 	const language = useLanguage();
+	const { colorFor } = usePersonalColors();
 	const pendingEntityIds = usePendingEntityIds();
 	const { keywords: allItems, isLoading } = useNovelKeywords(selectedNovelId);
 	const novelView = useNovelView(selectedNovelId).data;
@@ -506,12 +513,18 @@ export function ColoringCards({
 											}
 										/>
 										{baseCategory && (
-											<Text size="xs" style={{ color: baseCategory.color }}>
+											<Text
+												size="xs"
+												style={{ color: colorFor("category", baseCategory) }}
+											>
 												{displayNameIn(baseCategory, language)}
 											</Text>
 										)}
 										{baseNature && (
-											<Text size="xs" style={{ color: baseNature.color }}>
+											<Text
+												size="xs"
+												style={{ color: colorFor("nature", baseNature) }}
+											>
 												{displayNameIn(baseNature, language)}
 											</Text>
 										)}

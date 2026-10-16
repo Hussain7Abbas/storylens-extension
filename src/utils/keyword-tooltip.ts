@@ -19,6 +19,7 @@ import type {
 	RawKeywordAlias,
 } from "@/types/content-data";
 import { closeImageModal, openImageModal } from "@/utils/image-modal";
+import { applyLookupColor } from "@/utils/personal-colors";
 import {
 	type FieldInfo,
 	pickActiveVersion,
@@ -480,7 +481,7 @@ function buildInfoPanel(
 		const catEl = document.createElement("span");
 		catEl.className = "storylens-category";
 		catEl.textContent = getLocalizedName(info.category.value);
-		catEl.style.setProperty("color", info.category.value.color, "important");
+		applyLookupColor(catEl, "category", info.category.value);
 		const catShowMore =
 			info.category.source !== "keyword"
 				? buildShowMoreToggle(
@@ -499,7 +500,7 @@ function buildInfoPanel(
 		const natEl = document.createElement("span");
 		natEl.className = "storylens-nature";
 		natEl.textContent = getLocalizedName(info.nature.value);
-		natEl.style.setProperty("color", info.nature.value.color, "important");
+		applyLookupColor(natEl, "nature", info.nature.value);
 		const natShowMore =
 			info.nature.source !== "keyword"
 				? buildShowMoreToggle(
@@ -580,22 +581,14 @@ function buildAliasesPanel(
 			if (displayCat) {
 				const catEl = document.createElement("span");
 				catEl.textContent = getLocalizedName(displayCat);
-				catEl.style.setProperty(
-					"color",
-					!ownCat ? "inherit" : displayCat.color,
-					"important",
-				);
+				applyLookupColor(catEl, "category", displayCat);
 				if (!ownCat) catEl.className = "storylens-inherited";
 				metaRow.append(catEl);
 			}
 			if (displayNat) {
 				const natEl = document.createElement("span");
 				natEl.textContent = getLocalizedName(displayNat);
-				natEl.style.setProperty(
-					"color",
-					!ownNat ? "inherit" : displayNat.color,
-					"important",
-				);
+				applyLookupColor(natEl, "nature", displayNat);
 				if (!ownNat) natEl.className = "storylens-inherited";
 				metaRow.append(natEl);
 			}
@@ -704,22 +697,14 @@ function buildVersionsPanel(
 			if (displayCat) {
 				const catEl = document.createElement("span");
 				catEl.textContent = getLocalizedName(displayCat);
-				catEl.style.setProperty(
-					"color",
-					!ownCat ? "inherit" : displayCat.color,
-					"important",
-				);
+				applyLookupColor(catEl, "category", displayCat);
 				if (!ownCat) catEl.className = "storylens-inherited";
 				metaRow.append(catEl);
 			}
 			if (displayNat) {
 				const natEl = document.createElement("span");
 				natEl.textContent = getLocalizedName(displayNat);
-				natEl.style.setProperty(
-					"color",
-					!ownNat ? "inherit" : displayNat.color,
-					"important",
-				);
+				applyLookupColor(natEl, "nature", displayNat);
 				if (!ownNat) natEl.className = "storylens-inherited";
 				metaRow.append(natEl);
 			}

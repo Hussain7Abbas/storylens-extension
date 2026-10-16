@@ -11,13 +11,13 @@ import { availabilityKey } from "@/lib/ai-source/availability";
 import { useAiAvailability, useAiSnapshot } from "@/lib/ai-source/hooks";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
-import { unwrapAiReply } from "@/lib/cloud-ai/errors";
 import { aiErrorMessage, handleUnavailableAi } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
 import {
 	buildCharacterImagePrompt,
 	chapterMentions,
 } from "@/lib/desktop-client/character-image";
+import { generateCharacterImage } from "@/lib/desktop-client/character-image-job";
 import {
 	ensureNovelContext,
 	loadNovel,
@@ -43,20 +43,6 @@ async function activeChapterText(): Promise<string> {
 	}
 }
 
-function base64File(data: string, mimeType: string, name: string): File {
-	const binary = atob(data);
-	const bytes = new Uint8Array(binary.length);
-	for (let index = 0; index < binary.length; index++)
-		bytes[index] = binary.charCodeAt(index);
-	const extension = mimeType.split("/")[1]?.replace("jpeg", "jpg") ?? "png";
-	const base =
-		name
-			.trim()
-			.replace(/[^\p{L}\p{N}]+/gu, "-")
-			.replace(/^-|-$/g, "") || "character";
-	return new File([bytes], `${base}.${extension}`, { type: mimeType });
-}
-
 /**
  * Generates a character image with the selected AI source from the
  * chapter mentions, the entity details and the novel context. The image is
@@ -71,6 +57,8 @@ export function GenerateImageButton({
 	onGenerated,
 	onBusyChange,
 	autoStart = false,
+	initialError,
+	initialRevisedPrompt,
 }: {
 	novelId: string;
 	name: string;
@@ -84,6 +72,8 @@ export function GenerateImageButton({
 	 * for a form opened from the page's **Generate image with AI** action.
 	 */
 	autoStart?: boolean;
+	initialError?: string;
+	initialRevisedPrompt?: string;
 }) {
 	const { t, i18n } = useTranslation();
 	const availability = useAiAvailability("character_image");
@@ -113,11 +103,12 @@ export function GenerateImageButton({
 				)?.lenses ?? 0)
 			: 0;
 	const aiConfigured = availability.ok;
-	const [revisedPrompt, setRevisedPrompt] = useState<string>();
+	const [revisedPrompt, setRevisedPrompt] = useState<string | undefined>(
+		initialRevisedPrompt,
+	);
 	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(initialError ?? null);
 	const controller = useRef<AbortController | null>(null);
-	const requestId = useRef<string | null>(null);
 	// The launcher keeps the popup and shows progress while the image is drawn.
 	useLauncherWork({ working: busy, failed: !!error });
 	useAiTask({
@@ -130,8 +121,6 @@ export function GenerateImageButton({
 	useEffect(
 		() => () => {
 			controller.current?.abort();
-			if (requestId.current)
-				void sendMessage("cancelAiPrompt", requestId.current).catch(() => {});
 		},
 		[],
 	);
@@ -184,24 +173,17 @@ export function GenerateImageButton({
 				...(ai.source === "desktop" ? { effort: settings.effort } : {}),
 				has_novel_context: !!novelContext,
 			});
-			const id = crypto.randomUUID();
-			requestId.current = id;
-			const image = unwrapAiReply(
-				await sendMessage("generateAiImage", {
-					source: ai.source,
-					actionId: crypto.randomUUID(),
-					requestId: id,
-					prompt,
-					model: settings.model,
-					effort: settings.effort,
-				}),
-			);
-			requestId.current = null;
+			const image = await generateCharacterImage({
+				source: ai.source,
+				settings,
+				prompt,
+				name,
+				signal: abort.signal,
+			});
 			if (abort.signal.aborted) return;
 			setRevisedPrompt(image.revisedPrompt);
-			onGenerated(base64File(image.data, image.mimeType, name));
+			onGenerated(image.file);
 		} catch (cause) {
-			requestId.current = null;
 			if (abort.signal.aborted) return;
 			setError(await aiErrorMessage(cause, "character_image", t));
 		} finally {

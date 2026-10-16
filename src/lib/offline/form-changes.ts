@@ -197,6 +197,7 @@ export function replacementFormChanges(
 }
 
 export type LookupFormFields = {
+	effect?: string;
 	nameAr?: string | null;
 	nameEn?: string | null;
 	color: string;
@@ -208,6 +209,7 @@ export function lookupFormChanges(
 	values: LookupFormFields,
 ): FormChanges | undefined {
 	const shape = (fields: LookupFormFields) => ({
+		...(fields.effect === undefined ? {} : { effect: fields.effect }),
 		nameAr: optionalText(fields.nameAr),
 		nameEn: optionalText(fields.nameEn),
 		color: fields.color,

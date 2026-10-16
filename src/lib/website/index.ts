@@ -11,8 +11,17 @@ export const WEBSITE_URL = (
 ).replace(/\/+$/, "");
 
 export function websiteMatchPattern(url: string = WEBSITE_URL): string {
-	const { protocol, host } = new URL(url);
-	return `${protocol}//${host}/*`;
+	// WXT's match-pattern parser rejects ports. Match the host, then guard the
+	// exact origin in the bridge before exposing any session messages.
+	const { protocol, hostname } = new URL(url);
+	return `${protocol}//${hostname}/*`;
+}
+
+export function isWebsiteOrigin(
+	origin: string,
+	url: string = WEBSITE_URL,
+): boolean {
+	return origin === new URL(url).origin;
 }
 
 export function websitePageUrl(locale: string, path = ""): string {

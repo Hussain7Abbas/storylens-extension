@@ -44,6 +44,7 @@ import {
 	removeTabNovel,
 	setTabNovel,
 } from "@/lib/offline/sync/tabs";
+import { savePersonalColor } from "@/lib/personal-colors/background";
 import { websitePageUrl } from "@/lib/website";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector } from "@/types/configs";
@@ -134,6 +135,13 @@ export default defineBackground(() => {
 	console.log("🔥", "Background script loaded");
 
 	initSyncBackground();
+	onMessage("savePersonalColor", async ({ data, sender }) => {
+		desktopJobOwner(sender);
+		if (!sender.url?.startsWith(browser.runtime.getURL("/")))
+			throw new Error("Only Story Lens settings can change personal colors.");
+		await savePersonalColor(data.userId, data);
+		void kickSync("enqueue");
+	});
 	browser.runtime.onStartup.addListener(() => {
 		void refreshAiPricing(0);
 	});

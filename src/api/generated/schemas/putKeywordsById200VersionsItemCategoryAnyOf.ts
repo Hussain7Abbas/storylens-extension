@@ -17,6 +17,7 @@ export type PutKeywordsById200VersionsItemCategoryAnyOf = {
 	nameEn: PutKeywordsById200VersionsItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById200VersionsItemCategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: PutKeywordsById200VersionsItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordsById200VersionsItemCategoryAnyOfUpdatedAt;

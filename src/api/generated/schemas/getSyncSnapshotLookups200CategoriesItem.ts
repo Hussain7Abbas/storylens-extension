@@ -17,6 +17,7 @@ export type GetSyncSnapshotLookups200CategoriesItem = {
 	nameEn: GetSyncSnapshotLookups200CategoriesItemNameEn;
 	nameAr: GetSyncSnapshotLookups200CategoriesItemNameAr;
 	color: string;
+	effect: string;
 	description: GetSyncSnapshotLookups200CategoriesItemDescription;
 	createdAt: GetSyncSnapshotLookups200CategoriesItemCreatedAt;
 	updatedAt: GetSyncSnapshotLookups200CategoriesItemUpdatedAt;

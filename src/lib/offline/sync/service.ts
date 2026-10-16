@@ -18,6 +18,7 @@ import { isOnline } from "@/lib/offline/online-status";
 import { dependantsOf, sweepOrphanFiles } from "@/lib/offline/outbox";
 import { removeNovelSnapshot } from "@/lib/offline/snapshot";
 import { deleteOldStorage } from "@/lib/offline/upgrade-cleanup";
+import { syncPersonalColors } from "@/lib/personal-colors/background";
 import { withSyncLock } from "./lock";
 import { type PullMode, pullNovel } from "./pull";
 import {
@@ -49,6 +50,10 @@ export function kickSync(
 	reason: SyncReason,
 	options: { pull?: PullMode; forceCatalogue?: boolean; manual?: boolean } = {},
 ): Promise<SyncRunSummary | undefined> {
+	void (async () => {
+		await syncPersonalColors();
+		await updateBadge();
+	})().catch(console.error);
 	return runSync({ reason, onNovelsChanged, ...options }).catch((error) => {
 		console.error("[StoryLens] Sync run failed", error);
 		return undefined;
@@ -60,6 +65,7 @@ export async function syncNow(): Promise<{
 	summary: SyncRunSummary | undefined;
 	status: SyncStatus;
 }> {
+	await syncPersonalColors();
 	const summary = await runSync({
 		reason: "manual",
 		manual: true,

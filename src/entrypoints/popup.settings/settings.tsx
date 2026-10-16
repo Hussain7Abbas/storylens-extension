@@ -31,12 +31,8 @@ export function SettingsPage() {
 						{isModerator && (
 							<Tabs.Tab value="general">{t("tabs.general")}</Tabs.Tab>
 						)}
-						{isModerator && (
-							<Tabs.Tab value="category">{t("tabs.category")}</Tabs.Tab>
-						)}
-						{isModerator && (
-							<Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>
-						)}
+						<Tabs.Tab value="category">{t("tabs.category")}</Tabs.Tab>
+						<Tabs.Tab value="nature">{t("tabs.nature")}</Tabs.Tab>
 						<Tabs.Tab value="appearance">{t("tabs.appearance")}</Tabs.Tab>
 						<Tabs.Tab value="ai">{t("tabs.ai")}</Tabs.Tab>
 					</Tabs.List>
@@ -46,16 +42,12 @@ export function SettingsPage() {
 						<GeneralTab />
 					</Tabs.Panel>
 				)}
-				{isModerator && (
-					<Tabs.Panel value="category">
-						<CategoryTab />
-					</Tabs.Panel>
-				)}
-				{isModerator && (
-					<Tabs.Panel value="nature">
-						<NatureTab />
-					</Tabs.Panel>
-				)}
+				<Tabs.Panel value="category">
+					<CategoryTab />
+				</Tabs.Panel>
+				<Tabs.Panel value="nature">
+					<NatureTab />
+				</Tabs.Panel>
 				<Tabs.Panel value="appearance">
 					<AppearanceTab />
 				</Tabs.Panel>

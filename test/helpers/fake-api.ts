@@ -73,6 +73,10 @@ function fail(
 const clone = <T>(value: T): T => structuredClone(value);
 
 export class FakeApi {
+	personalColors = new Map<
+		string,
+		{ category: Record<string, string>; nature: Record<string, string> }
+	>();
 	users = new Map<string, User>();
 	novels = new Map<string, Row>();
 	keywords = new Map<string, Row>();
@@ -169,6 +173,7 @@ export class FakeApi {
 			id: crypto.randomUUID(),
 			nameAr: null,
 			nameEn: kind,
+			...(kind === "category" ? { effect: "NONE" } : {}),
 			color: "#112233",
 			description: null,
 			createdAt: now,
@@ -777,6 +782,28 @@ export class FakeApi {
 		const segments = path.split("/").filter(Boolean);
 		const [resource, id, sub] = segments;
 		const nameField = language.startsWith("ar") ? "nameAr" : "nameEn";
+		if (resource === "color-preferences") {
+			const colors = this.personalColors.get(user.id) ?? {
+				category: {},
+				nature: {},
+			};
+			if (method === "GET") return clone(colors);
+			if (method === "PUT" && (id === "category" || id === "nature") && sub) {
+				if (body.color === null) delete colors[id][sub];
+				else {
+					if (!(id === "category" ? this.categories : this.natures).has(sub))
+						fail(404, "NOT_FOUND", "Lookup not found");
+					if (
+						typeof body.color !== "string" ||
+						!/^#[0-9a-f]{6}$/i.test(body.color)
+					)
+						fail(422, "INVALID", "Invalid color");
+					colors[id][sub] = body.color as string;
+				}
+				this.personalColors.set(user.id, colors);
+				return { color: body.color };
+			}
+		}
 
 		if (resource === "sync") {
 			if (id === "protocol") {
@@ -886,6 +913,11 @@ export class FakeApi {
 					"KEYWORD_NAME_TAKEN",
 					"Keyword name already exists for this novel",
 				);
+			if (
+				body.endingChapter != null &&
+				Number(body.endingChapter) < Number(body.startingChapter ?? 0)
+			)
+				fail(422, "VERSION_RANGE_INVALID", "Invalid initial version range");
 			if (this.versions.has(body.versionId as string))
 				fail(
 					409,
@@ -915,8 +947,8 @@ export class FakeApi {
 				categoryId: body.categoryId,
 				natureId: body.natureId,
 				imageId: body.imageId ?? null,
-				startingChapter: 0,
-				endingChapter: null,
+				startingChapter: body.startingChapter ?? 0,
+				endingChapter: body.endingChapter ?? null,
 				createdById: user.id,
 			});
 			const linked = this.mergeTranslationKeyword(
@@ -1172,13 +1204,10 @@ export class FakeApi {
 			const siblings = [...this.versions.values()].filter(
 				(row) => row.keywordId === body.keywordId,
 			);
-			const latest = siblings
-				.filter((row) => row.endingChapter === null)
-				.sort(
-					(left, right) =>
-						(right.startingChapter as number) -
-						(left.startingChapter as number),
-				)[0];
+			const latest = siblings.sort(
+				(left, right) =>
+					(right.startingChapter as number) - (left.startingChapter as number),
+			)[0];
 			let start: number;
 			let end: number | null = null;
 			if (user.moderator) {
@@ -1199,7 +1228,10 @@ export class FakeApi {
 					"VERSION_NOT_AFTER_LATEST",
 					"startingChapter must be greater than the current latest version",
 				);
-			if (latest) {
+			if (
+				latest &&
+				(latest.endingChapter == null || Number(latest.endingChapter) >= start)
+			) {
 				this.versions.set(latest.id, {
 					...latest,
 					endingChapter: start - 1,
@@ -1439,6 +1471,7 @@ export class FakeApi {
 				body.id,
 				(row) =>
 					row.color === body.color &&
+					(body.effect === undefined || row.effect === body.effect) &&
 					row.nameAr === names(body).nameAr &&
 					row.nameEn === names(body).nameEn,
 				clone,
@@ -1452,6 +1485,9 @@ export class FakeApi {
 				id: body.id as string,
 				...names(body),
 				color: body.color,
+				...(entity === "keywordCategory"
+					? { effect: body.effect ?? "NONE" }
+					: {}),
 				description: body.description ?? null,
 				createdAt: now,
 				updatedAt: now,
@@ -1469,7 +1505,13 @@ export class FakeApi {
 			const next = {
 				...row,
 				...Object.fromEntries(
-					["nameAr", "nameEn", "color", "description"]
+					[
+						"nameAr",
+						"nameEn",
+						"color",
+						"description",
+						...(entity === "keywordCategory" ? ["effect"] : []),
+					]
 						.filter((field) => body[field] !== undefined)
 						.map((field) => [field, body[field]]),
 				),

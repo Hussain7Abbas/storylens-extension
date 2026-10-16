@@ -15,6 +15,7 @@ import {
 	useOfflineKeywordNatures,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
+import { usePersonalColors } from "@/lib/personal-colors/use-personal-colors";
 import { localeAtom } from "@/store/locale";
 import type { KeywordNature } from "@/types/models";
 import type { NatureFormModesType } from "./nature-form";
@@ -33,6 +34,7 @@ export function NatureCards({
 }: NatureCardsProps) {
 	const { t } = useTranslation();
 	const locale = useAtomValue(localeAtom);
+	const { colorFor } = usePersonalColors();
 	const pendingEntityIds = usePendingEntityIds();
 	const { data: items, isLoading, states } = useOfflineKeywordNatures(search);
 
@@ -74,7 +76,7 @@ export function NatureCards({
 								w={12}
 								h={12}
 								style={{
-									backgroundColor: nature.color,
+									backgroundColor: colorFor("nature", nature),
 									borderRadius: 4,
 									flexShrink: 0,
 								}}
@@ -89,7 +91,7 @@ export function NatureCards({
 									}
 								/>
 								<Text size="xs" c="dimmed">
-									{nature.color}
+									{colorFor("nature", nature)}
 								</Text>
 							</Group>
 						</Group>

@@ -19,6 +19,7 @@ import {
 } from "@/lib/auth/permissions";
 import { useCurrentUser } from "@/lib/auth/use-permissions";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
+import type { GeneratedCharacterImage } from "@/lib/desktop-client/character-image-job";
 import {
 	type KeywordSuggestion,
 	relatedSuggestionDescription,
@@ -31,7 +32,7 @@ import { ColoringCards } from "./coloring-cards";
 import { ColoringForm } from "./coloring-form";
 import { useKeywordSuggestion } from "./use-keyword-suggestion";
 
-type StackFrame =
+type StackFrame = (
 	| {
 			mode: "keyword-add";
 			initialText?: string;
@@ -66,7 +67,12 @@ type StackFrame =
 			keyword: GetKeywords200DataItemVersionsItem;
 			parentKeyword: GetKeywords200DataItem;
 			generateImage?: boolean;
-	  };
+	  }
+) & {
+	generatedImage?: GeneratedCharacterImage;
+	imageError?: string;
+	suggestionError?: string;
+};
 
 /**
  * Drops a handled form request from the popup's URL. The launcher keeps the
@@ -89,8 +95,11 @@ export function ColoringTab({
 	const { t, i18n } = useTranslation();
 	const language = useLanguage();
 	const canMutate = useCanMutateKeywords();
-	const { state: aiSuggestion, clear: clearAiSuggestion } =
-		useKeywordSuggestion(canMutate, selectedNovelId);
+	const {
+		state: aiSuggestion,
+		image: aiImage,
+		clear: clearAiSuggestion,
+	} = useKeywordSuggestion(canMutate, selectedNovelId);
 	// Aliases and versions reuse the suggestion, noting which character they belong to.
 	const relatedSuggestion = (
 		kind: "alias" | "version",
@@ -138,16 +147,28 @@ export function ColoringTab({
 			!selectedNovelId ||
 			!requested ||
 			aiSuggestion.status === "loading" ||
+			aiImage.status === "loading" ||
 			(hasAiContext && aiSuggestion.status === "idle")
 		)
 			return;
 		const suggestion =
 			aiSuggestion.status === "ready" ? aiSuggestion.suggestion : undefined;
+		const imageResult = {
+			generatedImage: aiImage.status === "ready" ? aiImage : undefined,
+			imageError: aiImage.status === "error" ? aiImage.message : undefined,
+			suggestionError:
+				aiSuggestion.status === "error" ? aiSuggestion.message : undefined,
+		};
 		if (requested === "keyword") {
 			opened.current = true;
-			consumeRequest("create", "aiContext");
+			consumeRequest("create", "aiContext", "generate");
 			setStack([
-				{ mode: "keyword-add", initialText: search.trim(), suggestion },
+				{
+					mode: "keyword-add",
+					initialText: search.trim(),
+					suggestion,
+					...imageResult,
+				},
 			]);
 		} else if (
 			!isLoading &&
@@ -160,10 +181,11 @@ export function ColoringTab({
 			);
 			if (!parent) return;
 			opened.current = true;
-			consumeRequest("create", "parentId", "aiContext");
+			consumeRequest("create", "parentId", "aiContext", "generate");
 			setStack([
 				{
 					mode: requested === "alias" ? "alias-add" : "version-add",
+					...imageResult,
 					parentKeyword: parent,
 					initialText: search.trim(),
 					suggestion: suggestion
@@ -188,6 +210,7 @@ export function ColoringTab({
 		selectedNovelId,
 		requested,
 		aiSuggestion,
+		aiImage,
 		isLoading,
 		keywords,
 		search,
@@ -264,7 +287,10 @@ export function ColoringTab({
 						<Button
 							type="button"
 							variant="filled"
-							loading={aiSuggestion.status === "loading"}
+							loading={
+								aiSuggestion.status === "loading" ||
+								aiImage.status === "loading"
+							}
 							leftSection={
 								aiSuggestion.status === "ready" ? (
 									<IconSparkles size={16} />
@@ -291,6 +317,12 @@ export function ColoringTab({
 						<Text size="xs" c="dimmed" ta="center" role="status">
 							{t("coloring.aiSuggesting")}{" "}
 							<AiPrice feature="keyword_suggestion" />
+						</Text>
+					)}
+					{aiImage.status === "loading" && (
+						<Text size="xs" c="dimmed" ta="center" role="status">
+							{t("coloring.generatingImage")}{" "}
+							<AiPrice feature="character_image" />
 						</Text>
 					)}
 					{aiSuggestion.status === "ready" && (

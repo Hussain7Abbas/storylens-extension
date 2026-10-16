@@ -58,6 +58,10 @@
 		"researchCost": "+{{lenses}} to research this novel first"
 	},
 	"coloring": {
+		"advance": "Advance",
+		"noEndingChapter": "Leave blank for no ending chapter",
+		"invalidChapter": "Enter a nonnegative whole chapter number",
+		"invalidRange": "Ending chapter must be at or after starting chapter",
 		"addAlias": "Add alias",
 		"addVersion": "Add version",
 		"aiFailed": "AI suggestion failed",
@@ -278,6 +282,8 @@
 		"downloadForOffline": "Download for offline use",
 		"downloadRequiresOnline": "Connect to the internet to download novels",
 		"errors": {
+			"VERSION_RANGE_INVALID": "Ending chapter must be at or after starting chapter, using nonnegative whole numbers",
+			"CATEGORY_EFFECT_INVALID": "Choose a supported effect",
 			"ALIAS_NAME_TAKEN": "Alias name already exists for this keyword",
 			"CATEGORY_IN_USE": "This category is used by keywords",
 			"IMAGE_TOO_LARGE": "Images must be 10 MB or smaller",
@@ -355,6 +361,9 @@
 		"toRequired": "To is required"
 	},
 	"selection": {
+		"generateImage": "Generate Image",
+		"imageNeedsAi": "Turn on Use AI to generate an image",
+		"imageHelp": "Generate an image alongside the AI details using the selected text and its context",
 		"ai": "Use AI",
 		"aiHelp": "Suggest details using nearby text",
 		"alias": "Alias",
@@ -369,12 +378,21 @@
 		"version": "Version"
 	},
 	"settings": {
+		"effect": "Effect",
+		"effectHint": "Adds an effect on top of the normal highlighting.",
+		"effects": {
+			"NONE": "None",
+			"SPARKLES": "Sparkles",
+			"HEAT": "Heat",
+			"SHAKING": "Shaking",
+			"GLITCHING": "Glitching"
+		},
 		"aboutStoryLens": "About Story Lens",
 		"actions": "Actions",
 		"addCategory": "Add Category",
 		"addNature": "Add Nature",
 		"appearance": {
-			"description": "Customize the font displayed in keyword tooltips.",
+			"description": "Customize keyword tooltips and category effects.",
 			"fontDefault": "Default",
 			"fontFace": "Font",
 			"fontSize": "Font Size",
@@ -384,7 +402,9 @@
 			"showTooltip": "Show tooltip",
 			"onHover": "On hover",
 			"onClick": "On click",
-			"title": "Tooltip Appearance"
+			"title": "Reading Appearance",
+			"categoryEffectsDescription": "Animate highlighted words using their category effects.",
+			"showCategoryEffects": "Show categories effects"
 		},
 		"cancel": "Cancel",
 		"categories": "Categories",
@@ -417,7 +437,15 @@
 		"usageAnalytics": "Anonymous usage analytics",
 		"usageAnalyticsDescription": "Send anonymous feature usage to Google Analytics to help improve Story Lens. No page content or account details are sent.",
 		"version": "Version",
-		"website": "Website"
+		"website": "Website",
+		"originalColor": "Original color",
+		"personalColor": "Personal color",
+		"personalColorHint": "Your color takes priority and follows your account across devices. Clear it to use the original color.",
+		"clearPersonalColor": "Use original color",
+		"personalColorSaveFailed": "Could not save your color. Try again.",
+		"personalColorPending": "Saved on this device. Waiting to sync your colors.",
+		"originalDetails": "Shared details",
+		"originalDetailsHint": "Changes here apply to everyone."
 	},
 	"sync": {
 		"allSynced": "Everything is synced.",
@@ -541,7 +569,8 @@
 		"reviewDetails": "View sync details",
 		"unit": {
 			"catalogue": "Novel list",
-			"lookups": "Categories and natures"
+			"lookups": "Categories and natures",
+			"personalColors": "Personal colors"
 		}
 	},
 	"tabs": {

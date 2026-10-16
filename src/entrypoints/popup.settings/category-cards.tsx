@@ -15,6 +15,7 @@ import {
 	useOfflineKeywordCategories,
 	usePendingEntityIds,
 } from "@/lib/offline/hooks";
+import { usePersonalColors } from "@/lib/personal-colors/use-personal-colors";
 import { localeAtom } from "@/store/locale";
 import type { KeywordCategory } from "@/types/models";
 import type { CategoryFormModesType } from "./category-form";
@@ -33,6 +34,7 @@ export function CategoryCards({
 }: CategoryCardsProps) {
 	const { t } = useTranslation();
 	const locale = useAtomValue(localeAtom);
+	const { colorFor } = usePersonalColors();
 	const pendingEntityIds = usePendingEntityIds();
 	const {
 		data: items,
@@ -78,7 +80,7 @@ export function CategoryCards({
 								w={12}
 								h={12}
 								style={{
-									backgroundColor: category.color,
+									backgroundColor: colorFor("category", category),
 									borderRadius: 4,
 									flexShrink: 0,
 								}}
@@ -94,7 +96,7 @@ export function CategoryCards({
 									}
 								/>
 								<Text size="xs" c="dimmed">
-									{category.color}
+									{colorFor("category", category)}
 								</Text>
 							</Group>
 						</Group>

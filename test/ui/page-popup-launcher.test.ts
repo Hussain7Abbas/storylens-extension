@@ -1237,3 +1237,26 @@ describe("AI form from a text pick", () => {
 		expect(panel().hidden).toBe(false);
 	});
 });
+
+describe("selection image intent", () => {
+	for (const ai of [false, true]) {
+		it(`forwards image generation only when Use AI is ${ai ? "on" : "off"}`, async () => {
+			const node = document.createElement("p");
+			node.textContent = "Rand";
+			document.body.append(node);
+			const chooser = await pick(node);
+			post(chooser, {
+				type: "storylens-selection-create",
+				kind: "keyword",
+				novelId: "novel-1",
+				ai,
+				generateImage: true,
+			});
+			const frame = popupFrame();
+			if (!frame) throw new Error("entry popup missing");
+			const query = new URL(frame.src).searchParams;
+			expect(query.get("generate")).toBe(ai ? "image" : null);
+			expect(query.has("aiContext")).toBe(ai);
+		});
+	}
+});

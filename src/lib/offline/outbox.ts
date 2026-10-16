@@ -13,6 +13,7 @@ import {
 	canManageLookups,
 	isModerator,
 } from "@/lib/auth/permissions";
+import { isKeywordEffect, type KeywordEffect } from "@/lib/keyword-effects";
 import {
 	allTables,
 	isOfflineUnavailable,
@@ -26,6 +27,7 @@ import { sameValue } from "@/lib/offline/rules/merge";
 import {
 	checkAliasNames,
 	checkAliasTranslation,
+	checkInitialVersionRange,
 	checkKeywordNames,
 	checkKeywordTranslation,
 	checkLookupDelete,
@@ -90,6 +92,8 @@ export class ValidationFailed extends Error {
 type MatchingType = "FULL" | "PARTIAL";
 
 export type KeywordValues = {
+	startingChapter?: number;
+	endingChapter?: number | null;
 	nameAr?: string | null;
 	nameEn?: string | null;
 	matchingType?: MatchingType;
@@ -156,6 +160,7 @@ export type ReplacementValues = {
 };
 
 export type LookupValues = {
+	effect?: KeywordEffect;
 	nameAr?: string | null;
 	nameEn?: string | null;
 	color: string;
@@ -799,6 +804,7 @@ async function enqueueKeyword(
 			nameEn: cleanName(input.values.nameEn) ?? null,
 		};
 		validate(checkKeywordNames(names, view?.keywords ?? []));
+		validate(checkInitialVersionRange(input.values));
 		linkedKeyword(ctx, view, undefined, names, input.translationKeywordId);
 		const entityId = newId();
 		const versionId = newId();
@@ -816,6 +822,8 @@ async function enqueueKeyword(
 			descriptionEn: cleanText(input.values.descriptionEn),
 			imageId: fileId ?? input.values.imageId ?? null,
 			versionId,
+			startingChapter: input.values.startingChapter,
+			endingChapter: input.values.endingChapter,
 			translationKeywordId: input.translationKeywordId,
 		});
 		const mutationId = await append(
@@ -1097,6 +1105,8 @@ async function enqueueAlias(
 }
 
 const BASE_VERSION_FIELDS = [
+	"startingChapter",
+	"endingChapter",
 	"description",
 	"descriptionAr",
 	"descriptionEn",
@@ -1386,7 +1396,16 @@ async function enqueueLookup(
 		input.entity === "keywordCategory" ? lookups.categories : lookups.natures;
 
 	if (input.op === "create") {
+		if (
+			input.entity === "keywordCategory" &&
+			input.values.effect !== undefined &&
+			!isKeywordEffect(input.values.effect)
+		)
+			throw new ValidationFailed("CATEGORY_EFFECT_INVALID");
 		const values = {
+			...(input.entity === "keywordCategory"
+				? { effect: input.values.effect ?? "NONE" }
+				: {}),
 			nameAr: cleanText(input.values.nameAr) ?? null,
 			nameEn: cleanText(input.values.nameEn) ?? null,
 			color: input.values.color,
@@ -1444,7 +1463,16 @@ async function enqueueLookup(
 	}
 
 	if (!row) throw new ValidationFailed("NOT_FOUND");
+	if (
+		input.entity === "keywordCategory" &&
+		input.changes.effect !== undefined &&
+		!isKeywordEffect(input.changes.effect)
+	)
+		throw new ValidationFailed("CATEGORY_EFFECT_INVALID");
 	const changes = defined({
+		...(input.entity === "keywordCategory"
+			? { effect: input.changes.effect }
+			: {}),
 		nameAr: cleanText(input.changes.nameAr),
 		nameEn: cleanText(input.changes.nameEn),
 		color: input.changes.color,
@@ -1634,6 +1662,8 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				matchingType: row.matchingType ?? "FULL",
 				fuzzyMatchArabicCharacters: row.fuzzyMatchArabicCharacters ?? true,
 				categoryId: base.categoryId ?? row.categoryId,
+				startingChapter: base.startingChapter ?? 0,
+				endingChapter: base.endingChapter ?? null,
 				natureId: base.natureId ?? row.natureId,
 				description: base.description ?? row.description ?? null,
 				descriptionAr: base.descriptionAr ?? row.descriptionAr ?? null,

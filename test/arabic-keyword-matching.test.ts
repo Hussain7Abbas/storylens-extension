@@ -12,11 +12,18 @@ import type {
 	RawKeywordAlias,
 } from "../src/types/content-data";
 
-const { applyContentProcessing } = await import(
+const { applyContentProcessing, removeExtensionMarkup } = await import(
 	"../src/utils/content-processor"
 );
 const { destroyKeywordTooltipPortal } = await import(
 	"../src/utils/keyword-tooltip"
+);
+const { setCategoryEffectsVisible } = await import(
+	"../src/utils/keyword-effects"
+);
+
+const { setPersonalColors, applyLookupColor } = await import(
+	"../src/utils/personal-colors"
 );
 
 const NOW = "2026-01-01T00:00:00.000Z";
@@ -25,6 +32,7 @@ const category = {
 	nameAr: "شخصية",
 	nameEn: "Character",
 	color: "#aa0000",
+	effect: "NONE",
 	description: null,
 	createdAt: NOW,
 	updatedAt: NOW,
@@ -168,6 +176,9 @@ function process(
 }
 
 afterEach(() => {
+	setPersonalColors(undefined);
+	setCategoryEffectsVisible(false);
+	removeExtensionMarkup();
 	destroyKeywordTooltipPortal();
 	document.body.replaceChildren();
 });
@@ -280,5 +291,152 @@ describe("Arabic diacritics (حركات)", () => {
 		expect(process("الْمَلِك", [], [replacement("ملك", "أمير")]).text).toBe(
 			"الْأمير",
 		);
+	});
+});
+
+// Effects decorate the existing colored highlight, including outside an initial range.
+describe("category effects preserve highlighting", () => {
+	for (const effect of [
+		"NONE",
+		"SPARKLES",
+		"HEAT",
+		"SHAKING",
+		"GLITCHING",
+		"FUTURE_EFFECT",
+	]) {
+		it(`keeps Arabic text, category color and nature indicator with ${effect}`, () => {
+			setCategoryEffectsVisible(true);
+			const row = keyword({ nameAr: "سيف الدين", nameEn: null });
+			const base = row.versions[0];
+			if (!base) throw new Error("base version missing");
+			row.versions[0] = {
+				...base,
+				startingChapter: 12,
+				endingChapter: 24,
+				category: { ...category, effect },
+			};
+			const original = "وصل سيف الدين ثم سيف الدين";
+			expect(process(original, [row]).text).toBe(original);
+			const anchors = [
+				...document.querySelectorAll<HTMLElement>(".storylens-keyword"),
+			];
+			expect(anchors).toHaveLength(2);
+			for (const anchor of anchors) {
+				expect(anchor.style.color).toBe(category.color);
+				expect(anchor.style.getPropertyPriority("color")).toBe("important");
+				expect(
+					anchor.querySelector(".storylens-nature-indicator"),
+				).not.toBeNull();
+				expect(anchor.textContent).toBe("سيف الدين");
+				expect(anchor.dataset.storylensEffect).toBe(
+					effect === "NONE" || effect === "FUTURE_EFFECT" ? undefined : effect,
+				);
+				const particles = anchor.querySelectorAll(".storylens-effect-particle");
+				expect(particles.length).toBe(effect === "SPARKLES" ? 8 : 0);
+				for (const particle of particles)
+					expect(particle.getAttribute("aria-hidden")).toBe("true");
+				expect(anchor.querySelectorAll(".storylens-effect-smoke")).toHaveLength(
+					effect === "HEAT" ? 3 : 0,
+				);
+				expect(
+					anchor.querySelectorAll(".storylens-effect-pixels"),
+				).toHaveLength(effect === "GLITCHING" ? 1 : 0);
+			}
+			expect(
+				document.querySelectorAll("#storylens-keyword-effect-filters").length,
+			).toBe(effect === "HEAT" || effect === "GLITCHING" ? 1 : 0);
+			removeExtensionMarkup();
+			expect(document.querySelector("article")?.textContent).toBe(original);
+			expect(
+				document.querySelector("#storylens-keyword-effect-filters"),
+			).toBeNull();
+		});
+	}
+
+	it("keeps effects off by default and toggles existing text without rebuilding it", () => {
+		const row = keyword({ nameAr: "سيف الدين", nameEn: null });
+		const base = row.versions[0];
+		if (!base) throw new Error("base version missing");
+		row.versions[0] = {
+			...base,
+			category: { ...category, effect: "SPARKLES" },
+		};
+		process("وصل سيف الدين", [row]);
+		const anchor = document.querySelector<HTMLElement>(".storylens-keyword");
+		if (!anchor) throw new Error("keyword missing");
+		const text = [...anchor.childNodes].find((node) => node.nodeType === 3);
+		if (!text) throw new Error("keyword text missing");
+		expect(anchor.dataset.storylensEffect).toBeUndefined();
+		expect(
+			anchor.querySelectorAll("[data-storylens-effect-decoration]"),
+		).toHaveLength(0);
+		setCategoryEffectsVisible(true);
+		expect(anchor.dataset.storylensEffect).toBe("SPARKLES");
+		expect(anchor.querySelectorAll(".storylens-effect-particle")).toHaveLength(
+			8,
+		);
+		setCategoryEffectsVisible(true);
+		expect(anchor.querySelectorAll(".storylens-effect-particle")).toHaveLength(
+			8,
+		);
+		setCategoryEffectsVisible(false);
+		expect(anchor.dataset.storylensEffect).toBeUndefined();
+		expect(
+			anchor.querySelectorAll("[data-storylens-effect-decoration]"),
+		).toHaveLength(0);
+		expect(document.querySelector(".storylens-keyword")).toBe(anchor);
+		expect([...anchor.childNodes]).toContain(text);
+		expect(anchor.textContent).toBe("سيف الدين");
+	});
+});
+
+describe("personal lookup color rendering", () => {
+	it("prioritizes personal colors on keywords, aliases and nature markers, then restores the originals in place", () => {
+		const row = keyword({
+			nameAr: "سيف الدين",
+			nameEn: null,
+			aliases: [alias({ id: "alias-color", nameAr: "البطل" })],
+		});
+		setPersonalColors({
+			category: { [category.id]: "#123456" },
+			nature: { [nature.id]: "#654321" },
+		});
+		process("سيف الدين والبطل", [row]);
+		const anchors = [
+			...document.querySelectorAll<HTMLElement>(".storylens-keyword"),
+		];
+		expect(anchors.length).toBeGreaterThan(0);
+		const text = anchors.map((anchor) => anchor.textContent);
+		for (const anchor of anchors) {
+			expect(anchor.style.color).toBe("#123456");
+			expect(
+				(anchor.querySelector(".storylens-nature-indicator") as HTMLElement)
+					.style.backgroundColor,
+			).toBe("#654321");
+		}
+		setPersonalColors(undefined);
+		for (const anchor of anchors) {
+			expect(anchor.style.color).toBe(category.color);
+			expect(
+				(anchor.querySelector(".storylens-nature-indicator") as HTMLElement)
+					.style.backgroundColor,
+			).toBe(nature.color);
+		}
+		expect([...document.querySelectorAll(".storylens-keyword")]).toEqual(
+			anchors,
+		);
+		expect(anchors.map((anchor) => anchor.textContent)).toEqual(text);
+	});
+	it("applies personal colors to tooltip metadata and live changes without replacing Arabic text", () => {
+		const node = document.createElement("span");
+		node.textContent = "شخصية";
+		document.body.append(node);
+		applyLookupColor(node, "category", category);
+		const text = node.firstChild;
+		setPersonalColors({ category: { [category.id]: "#abcdef" }, nature: {} });
+		expect(node.style.color).toBe("#abcdef");
+		expect(node.firstChild).toBe(text);
+		setPersonalColors(undefined);
+		expect(node.style.color).toBe(category.color);
 	});
 });

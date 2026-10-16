@@ -40,6 +40,7 @@ import {
 import { UnsentDependants } from "@/components/unsent-dependants";
 import { trackEvent } from "@/lib/analytics/client";
 import { useIsModerator } from "@/lib/auth";
+import type { GeneratedCharacterImage } from "@/lib/desktop-client/character-image-job";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
@@ -72,7 +73,7 @@ import {
 	nameKey,
 } from "@/utils/translation";
 
-type StackFrame =
+type StackFrame = (
 	| {
 			mode: "keyword-add";
 			initialText?: string;
@@ -107,7 +108,12 @@ type StackFrame =
 			keyword: GetKeywords200DataItemVersionsItem;
 			parentKeyword: GetKeywords200DataItem;
 			generateImage?: boolean;
-	  };
+	  }
+) & {
+	generatedImage?: GeneratedCharacterImage;
+	imageError?: string;
+	suggestionError?: string;
+};
 
 interface ColoringFormProps {
 	frame: StackFrame;
@@ -252,6 +258,8 @@ type KeywordFormValues = {
 	descriptionAr: string;
 	descriptionEn: string;
 	imageId?: string;
+	startingChapter: number | "";
+	endingChapter: number | "";
 };
 
 function KeywordForm({
@@ -266,7 +274,9 @@ function KeywordForm({
 	const { t } = useTranslation();
 	const language = useLanguage();
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imageFile, setImageFile] = useState<File | null>(
+		frame.generatedImage?.file ?? null,
+	);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -286,6 +296,8 @@ function KeywordForm({
 	// The reader's own language opens first; the other tab carries Link.
 	const other = otherLanguage(language);
 	const [tab, setTab] = useState<Language>(language);
+
+	const advanceSection = useRef<HTMLDetailsElement>(null);
 
 	const baseVersion = keyword?.versions.length
 		? [...keyword.versions].sort(
@@ -345,10 +357,29 @@ function KeywordForm({
 				keywordDescriptionIn(baseVersion, "en") ??
 				(language === "en" ? (suggestion?.description ?? "") : ""),
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
+			startingChapter: Number(baseVersion?.startingChapter ?? 0),
+			endingChapter:
+				baseVersion?.endingChapter == null
+					? ""
+					: Number(baseVersion.endingChapter),
 		},
 		validate: {
 			nameAr: (_value, values) => missingName(values),
 			nameEn: (_value, values) => missingName(values),
+			startingChapter: (value) =>
+				typeof value === "number" &&
+				Number.isInteger(value) &&
+				value >= 0 &&
+				value <= 2147483647
+					? null
+					: t("coloring.invalidChapter"),
+			endingChapter: (value, values) =>
+				value === "" ||
+				(Number.isInteger(value) &&
+					value >= Number(values.startingChapter) &&
+					value <= 2147483647)
+					? null
+					: t("coloring.invalidRange"),
 			categoryId: (v) => (!v ? t("home.categoryRequired") : null),
 			natureId: (v) => (!v ? t("home.natureRequired") : null),
 		},
@@ -386,7 +417,7 @@ function KeywordForm({
 				setFieldValue("categoryId", translation.categoryId ?? "");
 				setFieldValue("natureId", translation.natureId ?? "");
 				setFieldValue("imageId", translation.imageId ?? undefined);
-				setImageFile(null);
+				if (!baseline) setImageFile(null);
 				setLinkedImageUrl(translation.imageUrl);
 			};
 			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
@@ -429,6 +460,10 @@ function KeywordForm({
 		try {
 			if (frame.mode === "keyword-add") {
 				await createMutation.mutateAsync({
+					startingChapter:
+						values.startingChapter === "" ? 0 : values.startingChapter,
+					endingChapter:
+						values.endingChapter === "" ? null : values.endingChapter,
 					// Each tab saves its own language's name; an empty tab saves nothing.
 					nameAr: values.nameAr.trim() || null,
 					nameEn: values.nameEn.trim() || null,
@@ -496,6 +531,11 @@ function KeywordForm({
 					source: translationId === suggestedTranslation ? "ai" : "manual",
 				});
 			}
+			if (frame.mode === "keyword-add")
+				trackEvent("keyword_range_saved", {
+					custom_start: values.startingChapter !== 0,
+					has_end: values.endingChapter !== "",
+				});
 			form.reset();
 			setImageFile(null);
 			onClose();
@@ -509,7 +549,15 @@ function KeywordForm({
 
 	return (
 		<Stack gap="xs" p="xs">
-			<form onSubmit={form.onSubmit(handleSubmit)}>
+			<form
+				onSubmit={form.onSubmit(handleSubmit, (errors) => {
+					if (
+						(errors.startingChapter || errors.endingChapter) &&
+						advanceSection.current
+					)
+						advanceSection.current.open = true;
+				})}
+			>
 				<Stack gap="xs">
 					<LanguageTabs
 						language={language}
@@ -619,6 +667,8 @@ function KeywordForm({
 									clearable
 								/>
 								<GenerateImageButton
+									initialError={frame.imageError}
+									initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 									novelId={selectedNovelId}
 									name={nameIn(form.values, item)}
 									otherNames={keyword?.aliases.flatMap(aliasMatchNames) ?? []}
@@ -648,6 +698,31 @@ function KeywordForm({
 							</>
 						)}
 					/>
+					{frame.mode === "keyword-add" && (
+						<details ref={advanceSection}>
+							<summary>{t("coloring.advance")}</summary>
+							<Group grow align="flex-start" mt="xs">
+								<NumberInput
+									label={t("coloring.startingChapter")}
+									min={0}
+									max={2147483647}
+									allowDecimal={false}
+									allowNegative={false}
+									{...form.getInputProps("startingChapter")}
+								/>
+								<NumberInput
+									label={t("coloring.endingChapter")}
+									description={t("coloring.noEndingChapter")}
+									inputWrapperOrder={["label", "input", "description", "error"]}
+									min={0}
+									max={2147483647}
+									allowDecimal={false}
+									allowNegative={false}
+									{...form.getInputProps("endingChapter")}
+								/>
+							</Group>
+						</details>
+					)}
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">
@@ -766,7 +841,9 @@ function AliasForm({
 }) {
 	const { t } = useTranslation();
 	const language = useLanguage();
-	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imageFile, setImageFile] = useState<File | null>(
+		frame.generatedImage?.file ?? null,
+	);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -867,7 +944,7 @@ function AliasForm({
 				setFieldValue("categoryId", translation.categoryId);
 				setFieldValue("natureId", translation.natureId);
 				setFieldValue("imageId", translation.imageId ?? undefined);
-				setImageFile(null);
+				if (!baseline) setImageFile(null);
 				setLinkedImageUrl(translation.imageUrl);
 			};
 			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
@@ -1102,6 +1179,8 @@ function AliasForm({
 									clearable
 								/>
 								<GenerateImageButton
+									initialError={frame.imageError}
+									initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 									novelId={selectedNovelId}
 									name={nameIn(form.values, item)}
 									otherNames={[nameIn(frame.parentKeyword, language)]}
@@ -1246,7 +1325,9 @@ function VersionForm({
 	const { t } = useTranslation();
 	const language = useLanguage();
 	const isModerator = useIsModerator();
-	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imageFile, setImageFile] = useState<File | null>(
+		frame.generatedImage?.file ?? null,
+	);
 	const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 	const [uploadError, setUploadError] = useState<string | null>(null);
 	const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -1500,6 +1581,8 @@ function VersionForm({
 						clearable
 					/>
 					<GenerateImageButton
+						initialError={frame.imageError}
+						initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 						novelId={selectedNovelId}
 						name={nameIn(frame.parentKeyword, language)}
 						otherNames={frame.parentKeyword.aliases.flatMap(aliasMatchNames)}
@@ -1645,8 +1728,14 @@ function ColoringFormContent({
 }
 
 export function ColoringForm(props: Parameters<typeof ColoringFormContent>[0]) {
+	const { t } = useTranslation();
 	return (
 		<FormPage title="ColoringForm" onClose={props.onClose}>
+			{props.frame.suggestionError && (
+				<Alert color="red">
+					{t("coloring.aiFailed")}: {props.frame.suggestionError}
+				</Alert>
+			)}
 			<ColoringFormContent {...props} />
 		</FormPage>
 	);

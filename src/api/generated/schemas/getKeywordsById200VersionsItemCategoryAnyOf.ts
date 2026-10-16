@@ -17,6 +17,7 @@ export type GetKeywordsById200VersionsItemCategoryAnyOf = {
 	nameEn: GetKeywordsById200VersionsItemCategoryAnyOfNameEn;
 	nameAr: GetKeywordsById200VersionsItemCategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: GetKeywordsById200VersionsItemCategoryAnyOfDescription;
 	createdAt: GetKeywordsById200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: GetKeywordsById200VersionsItemCategoryAnyOfUpdatedAt;

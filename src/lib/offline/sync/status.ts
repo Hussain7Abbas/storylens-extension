@@ -8,6 +8,7 @@ import {
 import { getMeta, type RunnerState } from "@/lib/offline/meta";
 import { isOnline } from "@/lib/offline/online-status";
 import type { Mutation } from "@/lib/offline/types";
+import { readColorPreferences } from "@/lib/personal-colors/background";
 import { TROUBLE_ATTEMPTS } from "./outcome";
 
 export type SyncStatus = {
@@ -104,21 +105,30 @@ export async function getSyncStatus(
 		db.novelSync.toArray(),
 		getMeta("lastRunError", db),
 	]);
+	const colors = user ? await readColorPreferences(user.id) : undefined;
+	const personalPending = Object.keys(colors?.pending ?? {}).length;
 	const errors = { ...pullErrors };
+	if (colors?.syncError)
+		errors.personalColors = {
+			message: "Personal colors could not be synced",
+			at: 0,
+		};
 	for (const sync of novelSync) {
 		if (sync.removedOnServer || !sync.lastPullError)
 			delete errors[`novel:${sync.novelId}`];
 		else if (sync.lastPullError && !errors[`novel:${sync.novelId}`])
 			errors[`novel:${sync.novelId}`] = { message: sync.lastPullError, at: 0 };
 	}
+	const derived = deriveStatus(mutations, {
+		userId: user?.id,
+		runner: !online ? "offline" : (runner?.state ?? "idle"),
+		online,
+		lastPushAt,
+		lastPullAt,
+	});
+	derived.pending += personalPending;
 	return {
-		...deriveStatus(mutations, {
-			userId: user?.id,
-			runner: !online ? "offline" : (runner?.state ?? "idle"),
-			online,
-			lastPushAt,
-			lastPullAt,
-		}),
+		...derived,
 		pullIssues: Object.entries(errors).map(([unit, error]) => ({
 			unit,
 			...error,

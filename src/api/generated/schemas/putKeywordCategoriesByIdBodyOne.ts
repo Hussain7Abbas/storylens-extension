@@ -7,6 +7,7 @@
  */
 
 import type { PutKeywordCategoriesByIdBodyOneDescription } from "./putKeywordCategoriesByIdBodyOneDescription";
+import type { PutKeywordCategoriesByIdBodyOneEffect } from "./putKeywordCategoriesByIdBodyOneEffect";
 import type { PutKeywordCategoriesByIdBodyOneNameAr } from "./putKeywordCategoriesByIdBodyOneNameAr";
 import type { PutKeywordCategoriesByIdBodyOneNameEn } from "./putKeywordCategoriesByIdBodyOneNameEn";
 
@@ -18,6 +19,7 @@ export type PutKeywordCategoriesByIdBodyOne = {
 	nameAr?: PutKeywordCategoriesByIdBodyOneNameAr;
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color?: string;
+	effect?: PutKeywordCategoriesByIdBodyOneEffect;
 	/** @nullable */
 	description?: PutKeywordCategoriesByIdBodyOneDescription;
 };

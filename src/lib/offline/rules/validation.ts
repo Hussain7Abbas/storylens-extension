@@ -21,6 +21,8 @@ export type ValidationCode =
 	| "REPLACEMENT_EXISTS"
 	| "REPLACEMENT_BIDIRECTIONAL"
 	| "VERSION_CHAPTER_REQUIRED"
+	| "VERSION_RANGE_INVALID"
+	| "CATEGORY_EFFECT_INVALID"
 	| "VERSION_NOT_AFTER_LATEST"
 	| "VERSION_ONLY_PROTECTED"
 	| "VERSION_BASE_PROTECTED"
@@ -131,15 +133,13 @@ export function versionStart(
 	return values.currentChapter ?? null;
 }
 
-/** The open (latest) version the server closes when a new one is added. */
-export function latestOpenVersion(
+/** The latest version, including one with an explicit end, the server may close when a new one is added. */
+export function latestVersion(
 	versions: VersionRow[],
 	exceptId?: string,
 ): VersionRow | undefined {
 	return versions
-		.filter(
-			(version) => version.endingChapter === null && version.id !== exceptId,
-		)
+		.filter((version) => version.id !== exceptId)
 		.sort(
 			(left, right) =>
 				Number(right.startingChapter) - Number(left.startingChapter),
@@ -148,7 +148,7 @@ export function latestOpenVersion(
 
 /**
  * Backend version POST: readers need their current chapter, and a new version
- * must start after the latest open one.
+ * must start after the latest one, including a version with a finite end.
  */
 export function checkVersionCreate(
 	values: { currentChapter?: number | null; startingChapter?: number | null },
@@ -157,7 +157,7 @@ export function checkVersionCreate(
 ): ValidationCode | null {
 	const start = versionStart(values, moderator);
 	if (start === null) return "VERSION_CHAPTER_REQUIRED";
-	const latest = latestOpenVersion(versions);
+	const latest = latestVersion(versions);
 	if (latest && start <= Number(latest.startingChapter))
 		return "VERSION_NOT_AFTER_LATEST";
 	return null;
@@ -233,4 +233,19 @@ export function checkAliasTranslation(
 	if (target.id && source.id === target.id) return "TRANSLATION_SELF";
 	if (source.keywordId !== target.keywordId) return "TRANSLATION_OTHER_KEYWORD";
 	return translatedNames(target, source);
+}
+
+/** New keyword base range, matching the reader API. */
+export function checkInitialVersionRange(values: {
+	startingChapter?: number;
+	endingChapter?: number | null;
+}): ValidationCode | null {
+	const start = values.startingChapter ?? 0;
+	const end = values.endingChapter;
+	return !Number.isInteger(start) ||
+		start < 0 ||
+		start > 2147483647 ||
+		(end != null && (!Number.isInteger(end) || end < start || end > 2147483647))
+		? "VERSION_RANGE_INVALID"
+		: null;
 }

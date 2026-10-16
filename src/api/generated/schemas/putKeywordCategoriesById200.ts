@@ -17,6 +17,7 @@ export type PutKeywordCategoriesById200 = {
 	nameEn: PutKeywordCategoriesById200NameEn;
 	nameAr: PutKeywordCategoriesById200NameAr;
 	color: string;
+	effect: string;
 	description: PutKeywordCategoriesById200Description;
 	createdAt: PutKeywordCategoriesById200CreatedAt;
 	updatedAt: PutKeywordCategoriesById200UpdatedAt;

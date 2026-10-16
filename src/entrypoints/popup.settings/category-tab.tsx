@@ -2,12 +2,14 @@ import { Box, Button, Stack, Tooltip } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchInput } from "@/components/search-input";
+import { useIsModerator } from "@/lib/auth";
 import type { KeywordCategory } from "@/types/models";
 import { CategoryCards } from "./category-cards";
 import { CategoryForm, type CategoryFormModesType } from "./category-form";
 
 export function CategoryTab() {
 	const { t } = useTranslation();
+	const isModerator = useIsModerator();
 	const [formMode, setFormMode] = useState<CategoryFormModesType>(undefined);
 	const [category, setCategory] = useState<KeywordCategory | undefined>();
 	const [search, setSearch] = useState("");
@@ -27,17 +29,19 @@ export function CategoryTab() {
 
 	return (
 		<Stack gap="xs" pt="xs">
-			<Tooltip label={t("settings.addCategory")} withArrow openDelay={350}>
-				<Button
-					variant="light"
-					onClick={() => {
-						setCategory(undefined);
-						setFormMode("add");
-					}}
-				>
-					{t("settings.addCategory")}
-				</Button>
-			</Tooltip>
+			{isModerator && (
+				<Tooltip label={t("settings.addCategory")} withArrow openDelay={350}>
+					<Button
+						variant="light"
+						onClick={() => {
+							setCategory(undefined);
+							setFormMode("add");
+						}}
+					>
+						{t("settings.addCategory")}
+					</Button>
+				</Tooltip>
+			)}
 
 			<Box
 				pos="sticky"

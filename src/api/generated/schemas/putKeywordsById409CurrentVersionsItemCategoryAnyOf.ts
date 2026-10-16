@@ -17,6 +17,7 @@ export type PutKeywordsById409CurrentVersionsItemCategoryAnyOf = {
 	nameEn: PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: PutKeywordsById409CurrentVersionsItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById409CurrentVersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordsById409CurrentVersionsItemCategoryAnyOfUpdatedAt;

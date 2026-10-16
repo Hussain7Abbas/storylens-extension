@@ -540,3 +540,204 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 	font-size: 0.65em;
 	color: var(--sl-tooltip-muted);
 }
+
+/* Optional category decorations. Text stays intact for copying, matching and Arabic shaping. */
+.storylens-keyword[data-storylens-effect] {
+	--sl-effect-cyan: #43edff;
+	--sl-effect-magenta: #fd4fbd;
+	transform: translate(0, 0) rotate(0deg) skewX(0deg) scale(1);
+	transform-origin: center;
+}
+.storylens-keyword [data-storylens-effect-decoration] {
+	position: absolute;
+	pointer-events: none;
+	user-select: none;
+}
+.storylens-keyword[data-storylens-effect="SPARKLES"]
+	.storylens-effect-particle {
+	background: currentColor;
+	width: var(--sl-effect-size);
+	height: var(--sl-effect-size);
+	inset-inline-start: var(--sl-effect-x);
+	top: var(--sl-effect-y);
+	opacity: 0;
+	clip-path: polygon(
+		50% 0,
+		62% 36%,
+		100% 50%,
+		62% 64%,
+		50% 100%,
+		38% 64%,
+		0 50%,
+		38% 36%
+	);
+	animation: storylens-category-sparkle 1.15s ease-out var(--sl-effect-delay)
+		infinite;
+}
+@keyframes storylens-category-sparkle {
+	0% {
+		opacity: 0;
+		transform: translateY(3px) scale(0.2) rotate(-20deg);
+	}
+	18% {
+		opacity: 0.95;
+		transform: translateY(-2px) scale(1.15) rotate(0deg);
+	}
+	65%,
+	100% {
+		opacity: 0;
+		transform: translateY(-18px) scale(0.15) rotate(35deg);
+	}
+}
+.storylens-keyword[data-storylens-effect="HEAT"] {
+	filter: url(#storylens-keyword-heat-filter);
+	animation: storylens-category-heat 1.15s ease-in-out infinite;
+}
+@keyframes storylens-category-heat {
+	0%,
+	100% {
+		transform: skewX(-1.5deg) scaleY(1);
+	}
+	35% {
+		transform: skewX(2deg) scaleY(1.025);
+	}
+	70% {
+		transform: skewX(-0.5deg) scaleY(1.04);
+	}
+}
+.storylens-keyword[data-storylens-effect="HEAT"] .storylens-effect-smoke {
+	inset-inline-start: var(--sl-effect-x);
+	top: 10%;
+	width: 0.38em;
+	height: 0.75em;
+	border-radius: 50%;
+	background: radial-gradient(ellipse, currentColor 0%, transparent 70%);
+	filter: blur(0.07em);
+	opacity: 0;
+	animation: storylens-category-smoke 1.25s ease-out var(--sl-effect-delay)
+		infinite;
+}
+@keyframes storylens-category-smoke {
+	0% {
+		opacity: 0;
+		transform: translate(0, 0) scale(0.35, 0.5);
+	}
+	22% {
+		opacity: 0.28;
+	}
+	60% {
+		opacity: 0.12;
+		transform: translate(0.15em, -0.75em) scale(1, 1.3);
+	}
+	100% {
+		opacity: 0;
+		transform: translate(-0.2em, -1.4em) scale(1.6, 1.6);
+	}
+}
+.storylens-keyword[data-storylens-effect="SHAKING"] {
+	animation: storylens-category-tremor 0.72s steps(1, end) infinite;
+}
+@keyframes storylens-category-tremor {
+	0%,
+	12%,
+	24%,
+	36%,
+	48%,
+	60%,
+	72% {
+		transform: translateX(-2px) rotate(-1.4deg) skewX(-2deg);
+	}
+	6%,
+	18%,
+	30%,
+	42%,
+	54%,
+	66%,
+	78% {
+		transform: translateX(2px) rotate(1.4deg) skewX(2deg);
+	}
+	84%,
+	100% {
+		transform: translateX(0) rotate(0deg) skewX(0deg);
+	}
+}
+.storylens-keyword[data-storylens-effect="GLITCHING"] {
+	filter: url(#storylens-keyword-glitch-filter);
+	animation: storylens-category-glitch 1.6s steps(1, end) infinite;
+}
+@keyframes storylens-category-glitch {
+	0%,
+	16%,
+	48%,
+	64%,
+	100% {
+		transform: translateX(0) skewX(0deg);
+		text-shadow: none;
+	}
+	8%,
+	56% {
+		transform: translateX(-1px) skewX(-2deg);
+		text-shadow:
+			2px 0 1px var(--sl-effect-cyan),
+			-2px 0 1px var(--sl-effect-magenta);
+	}
+	12%,
+	60% {
+		transform: translateX(1px) skewX(2deg);
+		text-shadow:
+			-2px 0 1px var(--sl-effect-cyan),
+			2px 0 1px var(--sl-effect-magenta);
+	}
+}
+.storylens-keyword[data-storylens-effect="GLITCHING"] .storylens-effect-pixels {
+	inset: 5% -3px;
+	background:
+		linear-gradient(var(--sl-effect-cyan), var(--sl-effect-cyan)) 8% 14% / 23%
+		3px,
+		linear-gradient(var(--sl-effect-magenta), var(--sl-effect-magenta)) 92% 38%
+		/ 28% 2px,
+		linear-gradient(var(--sl-effect-cyan), var(--sl-effect-cyan)) 45% 62% / 32%
+		3px,
+		linear-gradient(var(--sl-effect-magenta), var(--sl-effect-magenta)) 24% 85%
+		/ 18% 2px;
+	background-repeat: no-repeat;
+	mask-image: repeating-linear-gradient(
+		to right,
+		#000 0 4px,
+		transparent 4px 6px
+	);
+	opacity: 0;
+	animation: storylens-category-pixels 1.6s steps(1, end) infinite;
+}
+@keyframes storylens-category-pixels {
+	0%,
+	16%,
+	48%,
+	64%,
+	100% {
+		opacity: 0;
+		transform: translateX(0);
+	}
+	8%,
+	56% {
+		opacity: 0.8;
+		transform: translateX(-3px);
+	}
+	12%,
+	60% {
+		opacity: 0.6;
+		transform: translateX(3px);
+	}
+}
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+	.storylens-keyword[data-storylens-effect] {
+		animation: none !important;
+		transform: none !important;
+		filter: none !important;
+		text-shadow: none !important;
+	}
+	.storylens-keyword [data-storylens-effect-decoration] {
+		display: none;
+		animation: none;
+	}
+}

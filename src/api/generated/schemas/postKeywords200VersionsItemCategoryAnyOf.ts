@@ -17,6 +17,7 @@ export type PostKeywords200VersionsItemCategoryAnyOf = {
 	nameEn: PostKeywords200VersionsItemCategoryAnyOfNameEn;
 	nameAr: PostKeywords200VersionsItemCategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: PostKeywords200VersionsItemCategoryAnyOfDescription;
 	createdAt: PostKeywords200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PostKeywords200VersionsItemCategoryAnyOfUpdatedAt;

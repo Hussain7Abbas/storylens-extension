@@ -1,7 +1,4 @@
-import {
-	latestOpenVersion,
-	versionStart,
-} from "@/lib/offline/rules/validation";
+import { latestVersion, versionStart } from "@/lib/offline/rules/validation";
 import type {
 	AliasRow,
 	AssembledKeyword,
@@ -128,7 +125,13 @@ const VERSION_FIELDS = [
 	"imageId",
 ] as const;
 const REPLACEMENT_FIELDS = ["from", "to", "matchingType"] as const;
-const LOOKUP_FIELDS = ["nameAr", "nameEn", "color", "description"] as const;
+const LOOKUP_FIELDS = [
+	"nameAr",
+	"nameEn",
+	"color",
+	"description",
+	"effect",
+] as const;
 
 /** Keeps an embedded image while its ID is unchanged; a new or queued image shows once synced. */
 function withImage<T extends { imageId: unknown; image: unknown }>(
@@ -175,6 +178,7 @@ export function projectLookups({
 				nameEn: null,
 				description: null,
 				color: "#000000",
+				...(mutation.entity === "keywordCategory" ? { effect: "NONE" } : {}),
 				createdAt: iso(mutation.createdAt),
 				...existing,
 				...changes,
@@ -431,8 +435,10 @@ function applyKeyword(
 			...pick(localizedPatch(mutation.patch), BASE_VERSION_FIELDS),
 			id: versionId,
 			keywordId: mutation.entityId,
-			startingChapter: 0,
-			endingChapter: null,
+			startingChapter:
+				(mutation.patch.startingChapter as number | undefined) ?? 0,
+			endingChapter:
+				(mutation.patch.endingChapter as number | null | undefined) ?? null,
 			createdById: version?.createdById ?? mutation.userId,
 		} as VersionRow);
 		markState(work.states, versionId, stateOf(mutation));
@@ -536,8 +542,12 @@ function applyVersion(work: Working, mutation: Mutation): boolean {
 		const siblings = [...work.versions.values()].filter(
 			(version) => version.keywordId === keywordId,
 		);
-		const latest = latestOpenVersion(siblings, mutation.entityId);
-		if (latest && start > Number(latest.startingChapter)) {
+		const latest = latestVersion(siblings, mutation.entityId);
+		if (
+			latest &&
+			start > Number(latest.startingChapter) &&
+			(latest.endingChapter == null || Number(latest.endingChapter) >= start)
+		) {
 			work.versions.set(latest.id, { ...latest, endingChapter: start - 1 });
 		}
 	}

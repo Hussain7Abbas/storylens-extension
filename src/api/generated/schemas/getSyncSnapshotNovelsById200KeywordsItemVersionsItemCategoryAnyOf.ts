@@ -18,6 +18,7 @@ export type GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOf =
 		nameEn: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameEn;
 		nameAr: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameAr;
 		color: string;
+		effect: string;
 		description: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfDescription;
 		createdAt: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfCreatedAt;
 		updatedAt: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfUpdatedAt;

@@ -17,12 +17,14 @@ import type {
 import type { PullMode } from "@/lib/offline/sync/pull";
 import type { SyncReason, SyncRunSummary } from "@/lib/offline/sync/runner";
 import type { SyncStatus } from "@/lib/offline/sync/status";
+import type { ColorChange } from "@/lib/personal-colors/types";
 import type { currentNovelMeta } from "@/types";
 import type { ApiProxyRequest, ApiProxyResponse } from "@/types/api-proxy";
 import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	savePersonalColor(data: ColorChange & { userId: string }): void;
 	createPageReplacement(data: PageReplacementInput): PageReplacementReply;
 	executeAiPrompt(data: AiPromptInput): AiReply<string>;
 	generateAiImage(data: AiImageInput): AiReply<GeneratedImage>;

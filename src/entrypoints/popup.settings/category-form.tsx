@@ -3,17 +3,23 @@ import {
 	Alert,
 	Button,
 	Group,
+	Select,
 	Stack,
+	Text,
 	Textarea,
 	TextInput,
 	Tooltip,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { Trash2 as IconTrash } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
+import { trackEvent } from "@/lib/analytics/client";
+import { useIsModerator } from "@/lib/auth";
+import { KEYWORD_EFFECTS, parseKeywordEffect } from "@/lib/keyword-effects";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import { lookupFormChanges } from "@/lib/offline/form-changes";
@@ -22,6 +28,7 @@ import {
 	useOfflineCategoryMutations,
 } from "@/lib/offline/hooks";
 import type { KeywordCategory } from "@/types/models";
+import { PersonalColorEditor } from "./personal-color-editor";
 
 export type CategoryFormModesType = "add" | "edit" | undefined;
 
@@ -38,11 +45,14 @@ function CategoryFormContent({
 	...props
 }: CategoryFormProps) {
 	const { t } = useTranslation();
+	const isModerator = useIsModerator();
+	const [personalDirty, setPersonalDirty] = useState(false);
 	const form = useForm<CategoryFormValues>({
 		initialValues: {
 			nameEn: category?.nameEn || "",
 			nameAr: category?.nameAr || "",
 			color: category?.color || "#000000",
+			effect: parseKeywordEffect(category?.effect),
 			description: category?.description || "",
 		},
 		validate: {
@@ -56,6 +66,7 @@ function CategoryFormContent({
 		useOfflineCategoryMutations();
 
 	const handleSubmit = (values: CategoryFormValues) => {
+		if (!isModerator) return;
 		const payload: CategoryFormValues = {
 			...values,
 			// An empty value clears a saved description.
@@ -66,6 +77,9 @@ function CategoryFormContent({
 			createMutation.mutate(payload, {
 				onSuccess: async () => {
 					await refreshContent();
+					trackEvent("category_effect_saved", {
+						effect: payload.effect ?? "NONE",
+					});
 					form.reset();
 					onClose();
 				},
@@ -74,7 +88,10 @@ function CategoryFormContent({
 		}
 
 		if (mode === "edit" && category?.id) {
-			const changes = lookupFormChanges(category, payload);
+			const changes = lookupFormChanges(
+				{ ...category, effect: parseKeywordEffect(category.effect) },
+				payload,
+			);
 			if (!changes) {
 				onClose();
 				return;
@@ -88,6 +105,10 @@ function CategoryFormContent({
 				{
 					onSuccess: async () => {
 						await refreshContent();
+						if (changes.changes.effect !== undefined)
+							trackEvent("category_effect_saved", {
+								effect: payload.effect ?? "NONE",
+							});
 						form.reset();
 						onClose();
 					},
@@ -97,6 +118,7 @@ function CategoryFormContent({
 	};
 
 	const handleDelete = () => {
+		if (!isModerator) return;
 		if (category?.id) {
 			deleteMutation.mutate(category.id, {
 				onSuccess: async () => {
@@ -108,7 +130,7 @@ function CategoryFormContent({
 		}
 	};
 
-	useLauncherWork({ dirty: form.isDirty() });
+	useLauncherWork({ dirty: (isModerator && form.isDirty()) || personalDirty });
 
 	const isPending =
 		createMutation.isPending ||
@@ -116,76 +138,101 @@ function CategoryFormContent({
 		deleteMutation.isPending;
 
 	return (
-		<form onSubmit={form.onSubmit(handleSubmit)} {...props}>
-			<Stack gap="xs" p="xs">
-				<TextInput
-					label={t("settings.nameEn")}
-					{...form.getInputProps("nameEn")}
-					required
+		<Stack gap="lg">
+			{mode === "edit" && category && (
+				<PersonalColorEditor
+					kind="category"
+					row={category}
+					onDirtyChange={setPersonalDirty}
 				/>
+			)}
+			{isModerator && (
+				<form onSubmit={form.onSubmit(handleSubmit)} {...props}>
+					<Stack gap="xs" p="xs">
+						<Text fw={600}>{t("settings.originalDetails")}</Text>
+						<Text size="sm" c="dimmed">
+							{t("settings.originalDetailsHint")}
+						</Text>
+						<TextInput
+							label={t("settings.nameEn")}
+							{...form.getInputProps("nameEn")}
+							required
+						/>
 
-				<TextInput
-					label={t("settings.nameAr")}
-					{...form.getInputProps("nameAr")}
-					dir="rtl"
-				/>
+						<TextInput
+							label={t("settings.nameAr")}
+							{...form.getInputProps("nameAr")}
+							dir="rtl"
+						/>
 
-				<ColorInput
-					label={t("settings.color")}
-					{...form.getInputProps("color")}
-					required
-				/>
+						<ColorInput
+							label={t("settings.originalColor")}
+							{...form.getInputProps("color")}
+							required
+						/>
 
-				<Textarea
-					label={t("settings.description")}
-					description={t("settings.descriptionHint")}
-					autosize
-					minRows={2}
-					maxRows={5}
-					maxLength={1000}
-					{...form.getInputProps("description")}
-				/>
+						<Select
+							label={t("settings.effect")}
+							description={t("settings.effectHint")}
+							data={KEYWORD_EFFECTS.map((value) => ({
+								value,
+								label: t(`settings.effects.${value}`),
+							}))}
+							allowDeselect={false}
+							{...form.getInputProps("effect")}
+						/>
+						<Textarea
+							label={t("settings.description")}
+							description={t("settings.descriptionHint")}
+							autosize
+							minRows={2}
+							maxRows={5}
+							maxLength={1000}
+							{...form.getInputProps("description")}
+						/>
 
-				{(createMutation.isError || updateMutation.isError) && (
-					<Alert color="red">
-						{offlineErrorMessage(
-							createMutation.error ?? updateMutation.error,
-							t,
+						{(createMutation.isError || updateMutation.isError) && (
+							<Alert color="red">
+								{offlineErrorMessage(
+									createMutation.error ?? updateMutation.error,
+									t,
+								)}
+							</Alert>
 						)}
-					</Alert>
-				)}
 
-				<Group justify="space-between" mt="md">
-					{mode === "edit" ? (
-						<Tooltip label={t("_.delete")} withArrow openDelay={350}>
-							<ActionIcon
-								aria-label={t("_.delete")}
-								variant="transparent"
-								color="red"
-								size="lg"
-								onClick={handleDelete}
-							>
-								<IconTrash />
-							</ActionIcon>
-						</Tooltip>
-					) : (
-						<span />
-					)}
-					<Group>
-						<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
-							<Button variant="outline" onClick={onClose}>
-								{t("_.cancel")}
-							</Button>
-						</Tooltip>
-						<Tooltip label={t("_.save")} withArrow openDelay={350}>
-							<Button type="submit" loading={isPending}>
-								{t("_.save")}
-							</Button>
-						</Tooltip>
-					</Group>
-				</Group>
-			</Stack>
-		</form>
+						<Group justify="space-between" mt="md">
+							{mode === "edit" ? (
+								<Tooltip label={t("_.delete")} withArrow openDelay={350}>
+									<ActionIcon
+										aria-label={t("_.delete")}
+										variant="transparent"
+										color="red"
+										size="lg"
+										onClick={handleDelete}
+									>
+										<IconTrash />
+									</ActionIcon>
+								</Tooltip>
+							) : (
+								<span />
+							)}
+							<Group>
+								<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
+									<Button variant="outline" onClick={onClose}>
+										{t("_.cancel")}
+									</Button>
+								</Tooltip>
+								<Tooltip label={t("_.save")} withArrow openDelay={350}>
+									<Button type="submit" loading={isPending}>
+										{t("_.save")}
+									</Button>
+								</Tooltip>
+							</Group>
+						</Group>
+					</Stack>
+				</form>
+			)}
+		</Stack>
 	);
 }
 

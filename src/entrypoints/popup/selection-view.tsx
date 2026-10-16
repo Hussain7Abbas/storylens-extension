@@ -43,10 +43,12 @@ export function SelectionView() {
 	}, []);
 	const canMutate = useCanMutateKeywords();
 	const availability = useAiAvailability("keyword_suggestion");
+	const imageAvailability = useAiAvailability("character_image");
 	const configured = availability.ok;
 	const { novels } = useCachedNovelsList();
 	const { selectedNovel, setSelectedNovel } = useDetectedNovel(novels, novels);
 	const [ai, setAi] = useState(false);
+	const [generateImage, setGenerateImage] = useState(false);
 	const [kind, setKind] = useState<"keyword" | "alias" | "version">("keyword");
 	const [parent, setParent] = useState<GetKeywords200DataItem>();
 	function choose(action: typeof kind) {
@@ -64,6 +66,8 @@ export function SelectionView() {
 				novelId: selectedNovel.id,
 				parentId: parent?.id,
 				ai: ai && configured,
+				generateImage:
+					ai && configured && generateImage && imageAvailability.ok,
 			},
 			"*",
 		);
@@ -123,21 +127,60 @@ export function SelectionView() {
 					);
 				})}
 			</Group>
-			<Tooltip
-				label={
-					configured ? t("selection.aiHelp") : t(availabilityKey(availability))
-				}
-			>
-				<Switch
+			<Group gap="sm" wrap="nowrap" align="flex-start">
+				<Tooltip
 					label={
-						<>
-							{t("selection.ai")} <AiPrice feature="keyword_suggestion" />
-						</>
+						configured
+							? t("selection.aiHelp")
+							: t(availabilityKey(availability))
 					}
-					checked={ai}
-					onChange={(event) => setAi(event.currentTarget.checked)}
-				/>
-			</Tooltip>
+				>
+					<Switch
+						miw={0}
+						label={
+							<>
+								{t("selection.ai")} <AiPrice feature="keyword_suggestion" />
+							</>
+						}
+						checked={ai}
+						onChange={(event) => {
+							setAi(event.currentTarget.checked);
+							if (!event.currentTarget.checked) setGenerateImage(false);
+						}}
+					/>
+				</Tooltip>
+				<Tooltip
+					label={
+						!ai
+							? t("selection.imageNeedsAi")
+							: !configured
+								? t(availabilityKey(availability))
+								: !imageAvailability.ok
+									? t(availabilityKey(imageAvailability))
+									: t("selection.imageHelp")
+					}
+					multiline
+					maw={260}
+				>
+					<span style={{ minWidth: 0 }}>
+						<Switch
+							label={
+								<>
+									{t("selection.generateImage")}{" "}
+									<AiPrice feature="character_image" />
+								</>
+							}
+							checked={
+								ai && configured && imageAvailability.ok && generateImage
+							}
+							disabled={!ai || !configured || !imageAvailability.ok}
+							onChange={(event) =>
+								setGenerateImage(event.currentTarget.checked)
+							}
+						/>
+					</span>
+				</Tooltip>
+			</Group>
 			{ai && !configured && (
 				<Text size="xs" c="dimmed">
 					{t(availabilityKey(availability))} <GetLensesLink />

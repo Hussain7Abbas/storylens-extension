@@ -69,6 +69,8 @@ export async function ensureNovelContext(input: {
 	settings?: DesktopSettings;
 	source?: AiSource;
 	parentFeature?: AiFeature;
+	/** Other actions starting with this one whose lens budgets must be preserved. */
+	additionalParentFeatures?: readonly AiFeature[];
 	signal: AbortSignal;
 }): Promise<string> {
 	const novel = await loadNovel(input.novelId, input.language).catch(
@@ -88,9 +90,14 @@ export async function ensureNovelContext(input: {
 			const research =
 				state.pricing?.features.find((row) => row.key === "novel_context")
 					?.lenses ?? 0;
-			const parent =
-				state.pricing?.features.find((row) => row.key === input.parentFeature)
-					?.lenses ?? 0;
+			const parentFeatures = new Set<string | undefined>([
+				input.parentFeature,
+				...(input.additionalParentFeatures ?? []),
+			]);
+			const parent = (state.pricing?.features ?? []).reduce(
+				(total, row) => total + (parentFeatures.has(row.key) ? row.lenses : 0),
+				0,
+			);
 			const cached = (await browser.storage.local.get(LENS_BALANCE_KEY))[
 				LENS_BALANCE_KEY
 			] as BalanceCache | undefined;

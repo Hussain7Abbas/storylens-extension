@@ -1546,13 +1546,20 @@ function createLauncher(locale: string): Launcher {
 						data.kind !== "alias" &&
 						data.kind !== "version") ||
 					typeof data.novelId !== "string" ||
-					typeof data.ai !== "boolean"
+					typeof data.ai !== "boolean" ||
+					("generateImage" in data && typeof data.generateImage !== "boolean")
 				)
 					return;
 				const extra: Record<string, string> = {
 					create: data.kind,
 					novelId: data.novelId,
 				};
+				const generateImage =
+					data.ai &&
+					!!context &&
+					"generateImage" in data &&
+					data.generateImage === true;
+				if (generateImage) extra.generate = "image";
 				if (data.kind !== "keyword") {
 					if (!("parentId" in data) || typeof data.parentId !== "string")
 						return;
@@ -1561,6 +1568,7 @@ function createLauncher(locale: string): Launcher {
 				trackEvent("selection_create_requested", {
 					kind: data.kind,
 					ai: data.ai,
+					generate_image: generateImage,
 				});
 				window.removeEventListener("message", receive);
 				// The form waits for its AI answer out of sight, then opens.

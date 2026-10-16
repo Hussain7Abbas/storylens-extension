@@ -13,6 +13,7 @@ export const category: EnrichedCategory = {
 	nameEn: "Character",
 	nameAr: "شخصية",
 	color: "#aa0000",
+	effect: "NONE",
 	description: null,
 	createdAt: NOW,
 	updatedAt: NOW,
@@ -102,7 +103,7 @@ export function alias(
 	};
 }
 
-/** A keyword whose base version (chapter 0) carries the category and nature. */
+/** A keyword whose default base version (chapter 0) carries the category and nature. */
 export function keyword(values: Partial<RawKeyword> = {}): RawKeyword {
 	return {
 		id: "keyword-1",

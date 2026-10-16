@@ -18,6 +18,7 @@ export type GetKeywordCategoriesById200 = {
 	nameEn: GetKeywordCategoriesById200NameEn;
 	nameAr: GetKeywordCategoriesById200NameAr;
 	color: string;
+	effect: string;
 	description: GetKeywordCategoriesById200Description;
 	createdAt: GetKeywordCategoriesById200CreatedAt;
 	updatedAt: GetKeywordCategoriesById200UpdatedAt;

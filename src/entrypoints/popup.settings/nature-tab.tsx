@@ -2,12 +2,14 @@ import { Box, Button, Stack, Tooltip } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchInput } from "@/components/search-input";
+import { useIsModerator } from "@/lib/auth";
 import type { KeywordNature } from "@/types/models";
 import { NatureCards } from "./nature-cards";
 import { NatureForm, type NatureFormModesType } from "./nature-form";
 
 export function NatureTab() {
 	const { t } = useTranslation();
+	const isModerator = useIsModerator();
 	const [formMode, setFormMode] = useState<NatureFormModesType>(undefined);
 	const [nature, setNature] = useState<KeywordNature | undefined>();
 	const [search, setSearch] = useState("");
@@ -27,17 +29,19 @@ export function NatureTab() {
 
 	return (
 		<Stack gap="xs" pt="xs">
-			<Tooltip label={t("settings.addNature")} withArrow openDelay={350}>
-				<Button
-					variant="light"
-					onClick={() => {
-						setNature(undefined);
-						setFormMode("add");
-					}}
-				>
-					{t("settings.addNature")}
-				</Button>
-			</Tooltip>
+			{isModerator && (
+				<Tooltip label={t("settings.addNature")} withArrow openDelay={350}>
+					<Button
+						variant="light"
+						onClick={() => {
+							setNature(undefined);
+							setFormMode("add");
+						}}
+					>
+						{t("settings.addNature")}
+					</Button>
+				</Tooltip>
+			)}
 
 			<Box
 				pos="sticky"

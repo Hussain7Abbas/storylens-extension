@@ -17,6 +17,7 @@ export type PutKeywordAliasesById409CurrentCategoryAnyOf = {
 	nameEn: PutKeywordAliasesById409CurrentCategoryAnyOfNameEn;
 	nameAr: PutKeywordAliasesById409CurrentCategoryAnyOfNameAr;
 	color: string;
+	effect: string;
 	description: PutKeywordAliasesById409CurrentCategoryAnyOfDescription;
 	createdAt: PutKeywordAliasesById409CurrentCategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordAliasesById409CurrentCategoryAnyOfUpdatedAt;

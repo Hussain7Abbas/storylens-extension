@@ -58,6 +58,10 @@
 		"researchCost": "+{{lenses}} للبحث عن سياق هذه الرواية أولًا"
 	},
 	"coloring": {
+		"advance": "متقدم",
+		"noEndingChapter": "اتركه فارغاً لعدم تحديد فصل نهاية",
+		"invalidChapter": "أدخل رقم فصل صحيحاً غير سالب",
+		"invalidRange": "يجب أن يكون فصل النهاية مساوياً لفصل البداية أو بعده",
 		"addAlias": "إضافة اسم بديل",
 		"addVersion": "إضافة نسخة",
 		"aiFailed": "فشل اقتراح الذكاء الاصطناعي",
@@ -282,6 +286,8 @@
 		"downloadForOffline": "تنزيل للاستخدام دون اتصال",
 		"downloadRequiresOnline": "اتصل بالإنترنت لتنزيل الروايات",
 		"errors": {
+			"VERSION_RANGE_INVALID": "استخدم أرقام فصول صحيحة غير سالبة، مع فصل نهاية مساوٍ للبداية أو بعدها",
+			"CATEGORY_EFFECT_INVALID": "اختر تأثيراً مدعوماً",
 			"ALIAS_NAME_TAKEN": "اسم الاسم المستعار موجود بالفعل لهذه الكلمة المفتاحية",
 			"CATEGORY_IN_USE": "هذه الفئة مستخدمة في كلمات مفتاحية",
 			"IMAGE_TOO_LARGE": "يجب ألا يتجاوز حجم الصورة 10 ميغابايت",
@@ -359,6 +365,9 @@
 		"toRequired": "حقل \"إلى\" مطلوب"
 	},
 	"selection": {
+		"generateImage": "توليد صورة",
+		"imageNeedsAi": "فعّل استخدام الذكاء الاصطناعي لتوليد صورة",
+		"imageHelp": "توليد صورة بالتزامن مع اقتراح التفاصيل باستخدام النص المحدد وسياقه",
 		"ai": "استخدام الذكاء الاصطناعي",
 		"aiHelp": "اقتراح التفاصيل باستخدام النص المحيط",
 		"alias": "اسم بديل",
@@ -373,12 +382,21 @@
 		"version": "نسخة"
 	},
 	"settings": {
+		"effect": "التأثير",
+		"effectHint": "يضيف تأثيرًا مع الإبقاء على تمييز الكلمة المعتاد.",
+		"effects": {
+			"NONE": "بدون",
+			"SPARKLES": "بريق",
+			"HEAT": "حرارة",
+			"SHAKING": "اهتزاز",
+			"GLITCHING": "تشويش"
+		},
 		"aboutStoryLens": "حول Story Lens",
 		"actions": "الإجراءات",
 		"addCategory": "إضافة فئة",
 		"addNature": "إضافة طبيعة",
 		"appearance": {
-			"description": "خصّص الخط المعروض في تلميحات الكلمات المفتاحية.",
+			"description": "خصّص تلميحات الكلمات المفتاحية وتأثيرات التصنيفات.",
 			"fontDefault": "افتراضي",
 			"fontFace": "الخط",
 			"fontSize": "حجم الخط",
@@ -388,7 +406,9 @@
 			"showTooltip": "إظهار التلميح",
 			"onHover": "عند التمرير",
 			"onClick": "عند النقر",
-			"title": "مظهر التلميح"
+			"title": "مظهر القراءة",
+			"categoryEffectsDescription": "تحريك الكلمات المظللة باستخدام تأثيرات تصنيفاتها.",
+			"showCategoryEffects": "إظهار تأثيرات التصنيفات"
 		},
 		"cancel": "إلغاء",
 		"categories": "الفئات",
@@ -421,7 +441,15 @@
 		"usageAnalytics": "إحصاءات استخدام مجهولة",
 		"usageAnalyticsDescription": "إرسال بيانات استخدام مجهولة إلى Google Analytics للمساعدة في تحسين Story Lens. لا يتم إرسال محتوى الصفحات أو بيانات الحساب.",
 		"version": "الإصدار",
-		"website": "الموقع"
+		"website": "الموقع",
+		"originalColor": "اللون الأصلي",
+		"personalColor": "لونك الشخصي",
+		"personalColorHint": "لونك له الأولوية ويتبع حسابك عبر الأجهزة. امسحه لاستخدام اللون الأصلي.",
+		"clearPersonalColor": "استخدام اللون الأصلي",
+		"personalColorSaveFailed": "تعذّر حفظ لونك. حاول مجدداً.",
+		"personalColorPending": "حُفظ على هذا الجهاز. بانتظار مزامنة ألوانك.",
+		"originalDetails": "التفاصيل المشتركة",
+		"originalDetailsHint": "التغييرات هنا تظهر للجميع."
 	},
 	"sync": {
 		"allSynced": "كل شيء متزامن.",
@@ -545,7 +573,8 @@
 		"reviewDetails": "عرض تفاصيل المزامنة",
 		"unit": {
 			"catalogue": "قائمة الروايات",
-			"lookups": "الفئات والطبائع"
+			"lookups": "الفئات والطبائع",
+			"personalColors": "ألوانك الشخصية"
 		}
 	},
 	"tabs": {

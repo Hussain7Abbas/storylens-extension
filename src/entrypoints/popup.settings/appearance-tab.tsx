@@ -3,6 +3,7 @@ import {
 	SegmentedControl,
 	Select,
 	Stack,
+	Switch,
 	Text,
 	Title,
 } from "@mantine/core";
@@ -24,6 +25,7 @@ import {
 	fontFaceAtom,
 	fontSizeAtom,
 	nightLightLevelAtom,
+	showCategoryEffectsAtom,
 	tooltipTriggerAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
@@ -34,6 +36,9 @@ export function AppearanceTab() {
 	const [fontSize, setFontSize] = useAtom(fontSizeAtom);
 	const [tooltipTrigger, setTooltipTrigger] = useAtom(tooltipTriggerAtom);
 	const [nightLightLevel, setNightLightLevel] = useAtom(nightLightLevelAtom);
+	const [showCategoryEffects, setShowCategoryEffects] = useAtom(
+		showCategoryEffectsAtom,
+	);
 	const direction = useAtomValue(localeAtom) === "ar" ? "rtl" : "ltr";
 	// One event per adjustment, not one per step of a drag or key press.
 	const trackNightLightLevel = useDebouncedCallback(
@@ -71,6 +76,18 @@ export function AppearanceTab() {
 					}}
 				/>
 			</Input.Wrapper>
+
+			<Switch
+				role="switch"
+				label={t("settings.appearance.showCategoryEffects")}
+				description={t("settings.appearance.categoryEffectsDescription")}
+				checked={showCategoryEffects}
+				onChange={(event) => {
+					const enabled = event.currentTarget.checked;
+					setShowCategoryEffects(enabled);
+					trackEvent("category_effects_visibility_changed", { enabled });
+				}}
+			/>
 
 			<Select
 				label={t("settings.appearance.fontFace")}

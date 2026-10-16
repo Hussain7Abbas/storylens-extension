@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-13
+Last updated: 2026-10-16
 
 ## Store listing
 
@@ -57,7 +57,7 @@ Use the [English](store/data-disclosure.txt) or [Arabic](store/data-disclosure.a
 
 | Data category | Use and transmission |
 | --- | --- |
-| Account identifiers and authentication | Session stored locally; account services on the Story Lens API. Website handles sign-in. |
+| Account identifiers and authentication | Session stored locally; account services on the Story Lens API. Website handles sign-in. Personal category/nature color preferences sync to the same account through the API. |
 | Reference content | Catalogue data downloaded locally; contributed keywords, notes and replacements synchronize to the shared API. |
 | Website content | Requested Cloud actions send relevant page/chapter text, names, descriptions, prompts and page outlines through the developer API to OpenRouter/providers; novel research uses Exa. Desktop uses the paired companion. Cloud content is not retained in usage records; separately saved references/images are. |
 | User activity and supported-site hostnames | Pseudonymous feature events and detected reading-site hostnames can reach Google Analytics if configured; the user preference controls analytics. Disclose web history because a hostname identifies a visited site. |
@@ -92,3 +92,7 @@ For release steps see [the publishing runbook](../../docs/publishing.md). New li
 2026-10-12 tooltip actions — Attached action boxes and tabs flip together to the edge nearest the hovered word. Added parent-scoped alias/version creation, page-picked alias names, direct page-picked replacements with offline saving and immediate refresh, and contextual Info / Original tabs. Package version and store submission status are unchanged.
 
 2026-10-13 tooltip styling — Action buttons appear as separate floating islands in a transparent container. Transparent gaps retain the shared hover area, keeping the tooltip open when crossing between buttons. Tooltip details now keep a fixed 420 px width, shrink to fit narrow viewports, and wrap all text and tab labels.
+
+2026-10-16 category effects — Appearance now offers **Show categories effects**, off by default and applied immediately to open reading tabs. Enabled effects use denser sparkles, faster heat with rising smoke, rapid horizontal tremors and neon pixel glitches. Reduced motion and forced colors preserve plain highlights. Package version and store submission status are unchanged.
+
+2026-10-16 personal colors — Guests, readers and moderators can save account-specific category/nature colors and clear them to use original colors. Personal colors take priority and synchronize across devices, with offline caching and retry. Only moderators edit shared original colors. No permissions, package version or store submission status changed.

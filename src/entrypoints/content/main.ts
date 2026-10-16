@@ -5,12 +5,18 @@ import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
 import { CHAPTER_TEXT_CHARS } from "@/lib/desktop-client/chapter-extraction";
 import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
+import { SHOW_CATEGORY_EFFECTS_KEY } from "@/lib/keyword-effects";
 import { pageAiTasks, parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
+import {
+	parseColorPreferences,
+	personalColorsKey,
+} from "@/lib/personal-colors/types";
 import { TOOLTIP_TRIGGER_KEY } from "@/lib/tooltip-trigger";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { findContentRoot } from "@/utils/content-processor";
+import { setCategoryEffectsVisible } from "@/utils/keyword-effects";
 import {
 	setTooltipFontFace,
 	setTooltipFontSize,
@@ -19,6 +25,7 @@ import {
 	setTooltipUser,
 } from "@/utils/keyword-tooltip";
 import { readPageText } from "@/utils/page-text";
+import { setPersonalColors } from "@/utils/personal-colors";
 import { processDetectedNovel } from "@/utils/process-detected-novel";
 import { sanitizePageHtml } from "@/utils/sanitize-page-html";
 import { getAllNovelData } from "@/utils/site-detection";
@@ -194,11 +201,26 @@ export async function runContentScript(
 		"storylens-font-face",
 		"storylens-font-size",
 		TOOLTIP_TRIGGER_KEY,
+		SHOW_CATEGORY_EFFECTS_KEY,
 	]);
 	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
 	setTooltipTrigger(stored[TOOLTIP_TRIGGER_KEY]);
+	setCategoryEffectsVisible(stored[SHOW_CATEGORY_EFFECTS_KEY]);
 	// Tooltip Edit buttons follow the reader's per-row permissions.
 	setTooltipUser(parseStoredAuth(stored[AUTH_STORAGE_KEY]).user);
+	let colorOwner = "";
+	let colorLoad = 0;
+	const loadPersonalColors = async (rawAuth: unknown) => {
+		const revision = ++colorLoad;
+		colorOwner = parseStoredAuth(rawAuth).user?.id ?? "";
+		setPersonalColors(undefined);
+		if (!colorOwner) return;
+		const key = personalColorsKey(colorOwner);
+		const saved = await browser.storage.local.get(key);
+		if (colorLoad === revision)
+			setPersonalColors(parseColorPreferences(saved[key]).colors);
+	};
+	await loadPersonalColors(stored[AUTH_STORAGE_KEY]);
 	if (typeof stored["storylens-locale"] === "string") {
 		currentLocale = stored["storylens-locale"];
 		setTooltipLocale(currentLocale);
@@ -212,11 +234,21 @@ export async function runContentScript(
 
 	browser.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
+		if (SHOW_CATEGORY_EFFECTS_KEY in changes) {
+			setCategoryEffectsVisible(changes[SHOW_CATEGORY_EFFECTS_KEY].newValue);
+		}
 		if (TOOLTIP_TRIGGER_KEY in changes) {
 			setTooltipTrigger(changes[TOOLTIP_TRIGGER_KEY].newValue);
 		}
 		if (AUTH_STORAGE_KEY in changes) {
 			setTooltipUser(parseStoredAuth(changes[AUTH_STORAGE_KEY].newValue).user);
+			void loadPersonalColors(changes[AUTH_STORAGE_KEY].newValue);
+		} else if (colorOwner && personalColorsKey(colorOwner) in changes) {
+			++colorLoad;
+			setPersonalColors(
+				parseColorPreferences(changes[personalColorsKey(colorOwner)].newValue)
+					.colors,
+			);
 		}
 		if (PAGE_POPUP_VISIBLE_KEY in changes) {
 			pagePopupVisible = changes[PAGE_POPUP_VISIBLE_KEY].newValue !== false;
