@@ -106,7 +106,12 @@
 		"updateFailed": "Failed to update keyword",
 		"version": "Version",
 		"versionChapterRange": "Chapter range",
-		"versions": "Versions"
+		"versions": "Versions",
+		"wordVfx": "Word VFX",
+		"wordVfxHint": "Applies only to this keyword or alias, independently of its category.",
+		"wordVfxColor": "Word VFX color",
+		"wordVfxColorHint": "Leave empty to use this keyword or alias’s highlight color.",
+		"inheritWordColor": "Inherit word color"
 	},
 	"dataTable": {
 		"noRecords": "There is no records to show",
@@ -306,7 +311,9 @@
 			"VERSION_BASE_PROTECTED": "The base version of a keyword cannot be deleted",
 			"VERSION_CHAPTER_REQUIRED": "Open a chapter first: a version starts at your current chapter",
 			"VERSION_NOT_AFTER_LATEST": "A new version must start after the latest version",
-			"VERSION_ONLY_PROTECTED": "The only version of a keyword cannot be deleted"
+			"VERSION_ONLY_PROTECTED": "The only version of a keyword cannot be deleted",
+			"WORD_VFX_INVALID": "Choose a supported word VFX",
+			"WORD_VFX_COLOR_INVALID": "Choose a valid hex color or inherit the word color"
 		},
 		"notAvailableOffline": "Not available offline. Download this novel while online to use it offline.",
 		"novelDownloaded": "Novel downloaded for offline use",
@@ -378,8 +385,6 @@
 		"version": "Version"
 	},
 	"settings": {
-		"effect": "Effect",
-		"effectHint": "Adds an effect on top of the normal highlighting.",
 		"effects": {
 			"NONE": "None",
 			"SPARKLES": "Sparkles",
@@ -392,7 +397,7 @@
 		"addCategory": "Add Category",
 		"addNature": "Add Nature",
 		"appearance": {
-			"description": "Customize keyword tooltips and category effects.",
+			"description": "Customize keyword tooltips and word VFX.",
 			"fontDefault": "Default",
 			"fontFace": "Font",
 			"fontSize": "Font Size",
@@ -403,8 +408,8 @@
 			"onHover": "On hover",
 			"onClick": "On click",
 			"title": "Reading Appearance",
-			"categoryEffectsDescription": "Animate highlighted words using their category effects.",
-			"showCategoryEffects": "Show categories effects"
+			"showWordVfx": "Show word VFX",
+			"wordVfxDescription": "Animate highlighted words using their individual Word VFX."
 		},
 		"cancel": "Cancel",
 		"categories": "Categories",

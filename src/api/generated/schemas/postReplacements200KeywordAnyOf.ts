@@ -12,6 +12,8 @@ import type { PostReplacements200KeywordAnyOfMatchingType } from "./postReplacem
 import type { PostReplacements200KeywordAnyOfNameAr } from "./postReplacements200KeywordAnyOfNameAr";
 import type { PostReplacements200KeywordAnyOfNameEn } from "./postReplacements200KeywordAnyOfNameEn";
 import type { PostReplacements200KeywordAnyOfUpdatedAt } from "./postReplacements200KeywordAnyOfUpdatedAt";
+import type { PostReplacements200KeywordAnyOfWordVfx } from "./postReplacements200KeywordAnyOfWordVfx";
+import type { PostReplacements200KeywordAnyOfWordVfxColor } from "./postReplacements200KeywordAnyOfWordVfxColor";
 
 export type PostReplacements200KeywordAnyOf = {
 	id: string;
@@ -19,6 +21,8 @@ export type PostReplacements200KeywordAnyOf = {
 	nameEn: PostReplacements200KeywordAnyOfNameEn;
 	matchingType: PostReplacements200KeywordAnyOfMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PostReplacements200KeywordAnyOfWordVfx;
+	wordVfxColor: PostReplacements200KeywordAnyOfWordVfxColor;
 	novelId: string;
 	createdById: PostReplacements200KeywordAnyOfCreatedById;
 	createdAt: PostReplacements200KeywordAnyOfCreatedAt;

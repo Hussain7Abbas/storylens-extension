@@ -21,6 +21,8 @@ import type { PutKeywordAliasesById200NameEn } from "./putKeywordAliasesById200N
 import type { PutKeywordAliasesById200Nature } from "./putKeywordAliasesById200Nature";
 import type { PutKeywordAliasesById200NatureId } from "./putKeywordAliasesById200NatureId";
 import type { PutKeywordAliasesById200UpdatedAt } from "./putKeywordAliasesById200UpdatedAt";
+import type { PutKeywordAliasesById200WordVfx } from "./putKeywordAliasesById200WordVfx";
+import type { PutKeywordAliasesById200WordVfxColor } from "./putKeywordAliasesById200WordVfxColor";
 
 export type PutKeywordAliasesById200 = {
 	id: string;
@@ -31,6 +33,8 @@ export type PutKeywordAliasesById200 = {
 	descriptionEn: PutKeywordAliasesById200DescriptionEn;
 	matchingType: PutKeywordAliasesById200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutKeywordAliasesById200WordVfx;
+	wordVfxColor: PutKeywordAliasesById200WordVfxColor;
 	overrideStyle: boolean;
 	categoryId: PutKeywordAliasesById200CategoryId;
 	natureId: PutKeywordAliasesById200NatureId;

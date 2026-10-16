@@ -12,6 +12,8 @@ import type { GetReplacementsById200KeywordAnyOfMatchingType } from "./getReplac
 import type { GetReplacementsById200KeywordAnyOfNameAr } from "./getReplacementsById200KeywordAnyOfNameAr";
 import type { GetReplacementsById200KeywordAnyOfNameEn } from "./getReplacementsById200KeywordAnyOfNameEn";
 import type { GetReplacementsById200KeywordAnyOfUpdatedAt } from "./getReplacementsById200KeywordAnyOfUpdatedAt";
+import type { GetReplacementsById200KeywordAnyOfWordVfx } from "./getReplacementsById200KeywordAnyOfWordVfx";
+import type { GetReplacementsById200KeywordAnyOfWordVfxColor } from "./getReplacementsById200KeywordAnyOfWordVfxColor";
 
 export type GetReplacementsById200KeywordAnyOf = {
 	id: string;
@@ -19,6 +21,8 @@ export type GetReplacementsById200KeywordAnyOf = {
 	nameEn: GetReplacementsById200KeywordAnyOfNameEn;
 	matchingType: GetReplacementsById200KeywordAnyOfMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: GetReplacementsById200KeywordAnyOfWordVfx;
+	wordVfxColor: GetReplacementsById200KeywordAnyOfWordVfxColor;
 	novelId: string;
 	createdById: GetReplacementsById200KeywordAnyOfCreatedById;
 	createdAt: GetReplacementsById200KeywordAnyOfCreatedAt;

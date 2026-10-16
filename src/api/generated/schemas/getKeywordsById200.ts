@@ -17,6 +17,8 @@ import type { GetKeywordsById200Novel } from "./getKeywordsById200Novel";
 import type { GetKeywordsById200ReplacementsItem } from "./getKeywordsById200ReplacementsItem";
 import type { GetKeywordsById200UpdatedAt } from "./getKeywordsById200UpdatedAt";
 import type { GetKeywordsById200VersionsItem } from "./getKeywordsById200VersionsItem";
+import type { GetKeywordsById200WordVfx } from "./getKeywordsById200WordVfx";
+import type { GetKeywordsById200WordVfxColor } from "./getKeywordsById200WordVfxColor";
 
 export type GetKeywordsById200 = {
 	id: string;
@@ -24,6 +26,8 @@ export type GetKeywordsById200 = {
 	nameEn: GetKeywordsById200NameEn;
 	matchingType: GetKeywordsById200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: GetKeywordsById200WordVfx;
+	wordVfxColor: GetKeywordsById200WordVfxColor;
 	novelId: string;
 	createdById: GetKeywordsById200CreatedById;
 	createdAt: GetKeywordsById200CreatedAt;

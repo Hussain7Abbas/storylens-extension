@@ -12,6 +12,8 @@ import type { PutReplacementsById409CurrentKeywordAnyOfMatchingType } from "./pu
 import type { PutReplacementsById409CurrentKeywordAnyOfNameAr } from "./putReplacementsById409CurrentKeywordAnyOfNameAr";
 import type { PutReplacementsById409CurrentKeywordAnyOfNameEn } from "./putReplacementsById409CurrentKeywordAnyOfNameEn";
 import type { PutReplacementsById409CurrentKeywordAnyOfUpdatedAt } from "./putReplacementsById409CurrentKeywordAnyOfUpdatedAt";
+import type { PutReplacementsById409CurrentKeywordAnyOfWordVfx } from "./putReplacementsById409CurrentKeywordAnyOfWordVfx";
+import type { PutReplacementsById409CurrentKeywordAnyOfWordVfxColor } from "./putReplacementsById409CurrentKeywordAnyOfWordVfxColor";
 
 export type PutReplacementsById409CurrentKeywordAnyOf = {
 	id: string;
@@ -19,6 +21,8 @@ export type PutReplacementsById409CurrentKeywordAnyOf = {
 	nameEn: PutReplacementsById409CurrentKeywordAnyOfNameEn;
 	matchingType: PutReplacementsById409CurrentKeywordAnyOfMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutReplacementsById409CurrentKeywordAnyOfWordVfx;
+	wordVfxColor: PutReplacementsById409CurrentKeywordAnyOfWordVfxColor;
 	novelId: string;
 	createdById: PutReplacementsById409CurrentKeywordAnyOfCreatedById;
 	createdAt: PutReplacementsById409CurrentKeywordAnyOfCreatedAt;

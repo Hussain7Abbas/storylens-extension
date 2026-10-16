@@ -31,6 +31,7 @@ import type {
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
+import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
 import {
@@ -42,6 +43,13 @@ import { trackEvent } from "@/lib/analytics/client";
 import { useIsModerator } from "@/lib/auth";
 import type { GeneratedCharacterImage } from "@/lib/desktop-client/character-image-job";
 import type { KeywordSuggestion } from "@/lib/desktop-client/keyword-suggestion";
+import {
+	hasWordVfxColor,
+	KEYWORD_EFFECTS,
+	type KeywordEffect,
+	parseKeywordEffect,
+	parseWordVfxColor,
+} from "@/lib/keyword-effects";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
@@ -253,6 +261,8 @@ type KeywordFormValues = {
 	nameEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: KeywordEffect;
+	wordVfxColor: string;
 	categoryId: string;
 	natureId: string;
 	descriptionAr: string;
@@ -348,6 +358,8 @@ function KeywordForm({
 			nameEn: storedName("en"),
 			matchingType: keyword?.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
+			wordVfx: parseKeywordEffect(keyword?.wordVfx),
+			wordVfxColor: parseWordVfxColor(keyword?.wordVfxColor) ?? "",
 			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
 			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
 			descriptionAr:
@@ -364,6 +376,8 @@ function KeywordForm({
 					: Number(baseVersion.endingChapter),
 		},
 		validate: {
+			wordVfxColor: (value) =>
+				!value || parseWordVfxColor(value) ? null : t("settings.invalidColor"),
 			nameAr: (_value, values) => missingName(values),
 			nameEn: (_value, values) => missingName(values),
 			startingChapter: (value) =>
@@ -469,6 +483,8 @@ function KeywordForm({
 					nameEn: values.nameEn.trim() || null,
 					matchingType: values.matchingType,
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
+					wordVfx: values.wordVfx,
+					wordVfxColor: values.wordVfxColor || null,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					descriptionAr: values.descriptionAr || null,
@@ -487,13 +503,19 @@ function KeywordForm({
 							matchingType: keyword.matchingType,
 							fuzzyMatchArabicCharacters:
 								keyword.fuzzyMatchArabicCharacters ?? true,
+							wordVfx: parseKeywordEffect(keyword.wordVfx),
+							wordVfxColor: parseWordVfxColor(keyword.wordVfxColor),
 							categoryId: baseVersion?.categoryId ?? "",
 							natureId: baseVersion?.natureId ?? "",
 							descriptionAr: keywordDescriptionIn(baseVersion, "ar"),
 							descriptionEn: keywordDescriptionIn(baseVersion, "en"),
 							imageId: baseVersion?.imageId ?? null,
 						},
-						{ ...values, imageId: values.imageId ?? null },
+						{
+							...values,
+							wordVfxColor: values.wordVfxColor || null,
+							imageId: values.imageId ?? null,
+						},
 					);
 				if (keywordChanges || translationId) {
 					await updateMutation.mutateAsync({
@@ -536,6 +558,16 @@ function KeywordForm({
 					custom_start: values.startingChapter !== 0,
 					has_end: values.endingChapter !== "",
 				});
+			if (
+				frame.mode === "keyword-add" ||
+				parseKeywordEffect(keyword?.wordVfx) !== values.wordVfx ||
+				parseWordVfxColor(keyword?.wordVfxColor) !==
+					(values.wordVfxColor || null)
+			)
+				trackEvent("word_vfx_saved", {
+					kind: "keyword",
+					effect: values.wordVfx,
+				});
 			form.reset();
 			setImageFile(null);
 			onClose();
@@ -552,7 +584,9 @@ function KeywordForm({
 			<form
 				onSubmit={form.onSubmit(handleSubmit, (errors) => {
 					if (
-						(errors.startingChapter || errors.endingChapter) &&
+						(errors.startingChapter ||
+							errors.endingChapter ||
+							errors.wordVfxColor) &&
 						advanceSection.current
 					)
 						advanceSection.current.open = true;
@@ -698,31 +732,73 @@ function KeywordForm({
 							</>
 						)}
 					/>
-					{frame.mode === "keyword-add" && (
-						<details ref={advanceSection}>
-							<summary>{t("coloring.advance")}</summary>
-							<Group grow align="flex-start" mt="xs">
-								<NumberInput
-									label={t("coloring.startingChapter")}
-									min={0}
-									max={2147483647}
-									allowDecimal={false}
-									allowNegative={false}
-									{...form.getInputProps("startingChapter")}
+					<details ref={advanceSection}>
+						<summary>{t("coloring.advance")}</summary>
+						<Stack gap="xs" mt="xs">
+							<Select
+								label={t("coloring.wordVfx")}
+								description={t("coloring.wordVfxHint")}
+								data={KEYWORD_EFFECTS.map((value) => ({
+									value,
+									label: t(`settings.effects.${value}`),
+								}))}
+								allowDeselect={false}
+								{...form.getInputProps("wordVfx")}
+								onChange={(value) => {
+									form.setFieldValue("wordVfx", parseKeywordEffect(value));
+									if (!hasWordVfxColor(value))
+										form.setFieldValue("wordVfxColor", "");
+								}}
+							/>
+							{hasWordVfxColor(form.values.wordVfx) && (
+								<ColorInput
+									label={t("coloring.wordVfxColor")}
+									description={t("coloring.wordVfxColorHint")}
+									placeholder={t("coloring.inheritWordColor")}
+									{...form.getInputProps("wordVfxColor")}
+									rightSection={
+										form.values.wordVfxColor ? (
+											<ActionIcon
+												type="button"
+												variant="subtle"
+												aria-label={t("coloring.inheritWordColor")}
+												onClick={() => form.setFieldValue("wordVfxColor", "")}
+											>
+												<IconTrash size={14} aria-hidden />
+											</ActionIcon>
+										) : undefined
+									}
 								/>
-								<NumberInput
-									label={t("coloring.endingChapter")}
-									description={t("coloring.noEndingChapter")}
-									inputWrapperOrder={["label", "input", "description", "error"]}
-									min={0}
-									max={2147483647}
-									allowDecimal={false}
-									allowNegative={false}
-									{...form.getInputProps("endingChapter")}
-								/>
-							</Group>
-						</details>
-					)}
+							)}
+							{frame.mode === "keyword-add" && (
+								<Group grow align="flex-start" mt="xs">
+									<NumberInput
+										label={t("coloring.startingChapter")}
+										min={0}
+										max={2147483647}
+										allowDecimal={false}
+										allowNegative={false}
+										{...form.getInputProps("startingChapter")}
+									/>
+									<NumberInput
+										label={t("coloring.endingChapter")}
+										description={t("coloring.noEndingChapter")}
+										inputWrapperOrder={[
+											"label",
+											"input",
+											"description",
+											"error",
+										]}
+										min={0}
+										max={2147483647}
+										allowDecimal={false}
+										allowNegative={false}
+										{...form.getInputProps("endingChapter")}
+									/>
+								</Group>
+							)}
+						</Stack>
+					</details>
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">
@@ -824,6 +900,8 @@ type AliasFormValues = {
 	descriptionEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: KeywordEffect;
+	wordVfxColor: string;
 	categoryId: string | null;
 	natureId: string | null;
 	imageId?: string;
@@ -839,6 +917,7 @@ function AliasForm({
 	selectedNovelId: string;
 	onClose: () => void;
 }) {
+	const advanceSection = useRef<HTMLDetailsElement>(null);
 	const { t } = useTranslation();
 	const language = useLanguage();
 	const [imageFile, setImageFile] = useState<File | null>(
@@ -907,12 +986,16 @@ function AliasForm({
 				(language === "en" ? (suggestion?.description ?? "") : ""),
 			matchingType: alias?.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
+			wordVfx: parseKeywordEffect(alias?.wordVfx),
+			wordVfxColor: parseWordVfxColor(alias?.wordVfxColor) ?? "",
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
 			imageId: (alias?.imageId as string | undefined) ?? undefined,
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
 		validate: {
+			wordVfxColor: (value) =>
+				!value || parseWordVfxColor(value) ? null : t("settings.invalidColor"),
 			nameAr: (_value, values) => missingName(values),
 			nameEn: (_value, values) => missingName(values),
 		},
@@ -990,6 +1073,8 @@ function AliasForm({
 					descriptionEn: values.descriptionEn || null,
 					matchingType: values.matchingType,
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
+					wordVfx: values.wordVfx,
+					wordVfxColor: values.wordVfxColor || null,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					imageId: values.imageId ?? null,
@@ -1006,6 +1091,8 @@ function AliasForm({
 					descriptionEn: keywordDescriptionIn(alias, "en"),
 					matchingType: alias.matchingType,
 					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
+					wordVfx: parseKeywordEffect(alias.wordVfx),
+					wordVfxColor: parseWordVfxColor(alias.wordVfxColor),
 					categoryId: alias.categoryId ?? null,
 					natureId: alias.natureId ?? null,
 					imageId: alias.imageId ?? null,
@@ -1013,6 +1100,7 @@ function AliasForm({
 				};
 				const changes = aliasFormChanges(initial, {
 					...values,
+					wordVfxColor: values.wordVfxColor || null,
 					imageId: values.imageId ?? null,
 				});
 				if (changes || image || translationId) {
@@ -1043,6 +1131,12 @@ function AliasForm({
 					source: translationId === suggestedTranslation ? "ai" : "manual",
 				});
 			}
+			if (
+				frame.mode === "alias-add" ||
+				parseKeywordEffect(alias?.wordVfx) !== values.wordVfx ||
+				parseWordVfxColor(alias?.wordVfxColor) !== (values.wordVfxColor || null)
+			)
+				trackEvent("word_vfx_saved", { kind: "alias", effect: values.wordVfx });
 			form.reset();
 			setImageFile(null);
 			onClose();
@@ -1071,7 +1165,12 @@ function AliasForm({
 					</Text>
 				</Group>
 			</Alert>
-			<form onSubmit={form.onSubmit(handleSubmit)}>
+			<form
+				onSubmit={form.onSubmit(handleSubmit, (errors) => {
+					if (errors.wordVfxColor && advanceSection.current)
+						advanceSection.current.open = true;
+				})}
+			>
 				<Stack gap="xs">
 					<LanguageTabs
 						language={language}
@@ -1217,6 +1316,46 @@ function AliasForm({
 							</>
 						)}
 					/>
+					<details ref={advanceSection}>
+						<summary>{t("coloring.advance")}</summary>
+						<Stack gap="xs" mt="xs">
+							<Select
+								label={t("coloring.wordVfx")}
+								description={t("coloring.wordVfxHint")}
+								data={KEYWORD_EFFECTS.map((value) => ({
+									value,
+									label: t(`settings.effects.${value}`),
+								}))}
+								allowDeselect={false}
+								{...form.getInputProps("wordVfx")}
+								onChange={(value) => {
+									form.setFieldValue("wordVfx", parseKeywordEffect(value));
+									if (!hasWordVfxColor(value))
+										form.setFieldValue("wordVfxColor", "");
+								}}
+							/>
+							{hasWordVfxColor(form.values.wordVfx) && (
+								<ColorInput
+									label={t("coloring.wordVfxColor")}
+									description={t("coloring.wordVfxColorHint")}
+									placeholder={t("coloring.inheritWordColor")}
+									{...form.getInputProps("wordVfxColor")}
+									rightSection={
+										form.values.wordVfxColor ? (
+											<ActionIcon
+												type="button"
+												variant="subtle"
+												aria-label={t("coloring.inheritWordColor")}
+												onClick={() => form.setFieldValue("wordVfxColor", "")}
+											>
+												<IconTrash size={14} aria-hidden />
+											</ActionIcon>
+										) : undefined
+									}
+								/>
+							)}
+						</Stack>
+					</details>
 					{uploadError && <Alert color="red">{uploadError}</Alert>}
 					{createMutation.isError && (
 						<Alert color="red">

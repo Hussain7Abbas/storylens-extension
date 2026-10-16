@@ -17,6 +17,7 @@ export type PutKeywordCategoriesById409Current = {
 	nameEn: PutKeywordCategoriesById409CurrentNameEn;
 	nameAr: PutKeywordCategoriesById409CurrentNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PutKeywordCategoriesById409CurrentDescription;
 	createdAt: PutKeywordCategoriesById409CurrentCreatedAt;

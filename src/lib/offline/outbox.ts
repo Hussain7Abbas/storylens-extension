@@ -13,7 +13,12 @@ import {
 	canManageLookups,
 	isModerator,
 } from "@/lib/auth/permissions";
-import { isKeywordEffect, type KeywordEffect } from "@/lib/keyword-effects";
+import {
+	isKeywordEffect,
+	type KeywordEffect,
+	parseKeywordEffect,
+	parseWordVfxColor,
+} from "@/lib/keyword-effects";
 import {
 	allTables,
 	isOfflineUnavailable,
@@ -98,6 +103,8 @@ export type KeywordValues = {
 	nameEn?: string | null;
 	matchingType?: MatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: KeywordEffect;
+	wordVfxColor?: string | null;
 	categoryId: string;
 	natureId: string;
 	description?: string | null;
@@ -121,7 +128,12 @@ export type AliasTranslationLink = {
 };
 export type KeywordFields = Pick<
 	KeywordValues,
-	"nameAr" | "nameEn" | "matchingType" | "fuzzyMatchArabicCharacters"
+	| "nameAr"
+	| "nameEn"
+	| "matchingType"
+	| "fuzzyMatchArabicCharacters"
+	| "wordVfx"
+	| "wordVfxColor"
 >;
 
 export type AliasValues = {
@@ -132,6 +144,8 @@ export type AliasValues = {
 	descriptionEn?: string | null;
 	matchingType?: MatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: KeywordEffect;
+	wordVfxColor?: string | null;
 	overrideStyle?: boolean;
 	categoryId?: string | null;
 	natureId?: string | null;
@@ -796,6 +810,17 @@ async function enqueueKeyword(
 	ctx: Context,
 	input: Extract<EnqueueInput, { entity: "keyword" }>,
 ): Promise<EnqueueResult> {
+	if (input.op !== "delete") {
+		const fields = input.op === "create" ? input.values : input.changes;
+		if (fields.wordVfx !== undefined && !isKeywordEffect(fields.wordVfx))
+			throw new ValidationFailed("WORD_VFX_INVALID");
+		if (
+			fields.wordVfxColor !== undefined &&
+			fields.wordVfxColor !== null &&
+			parseWordVfxColor(fields.wordVfxColor) === null
+		)
+			throw new ValidationFailed("WORD_VFX_COLOR_INVALID");
+	}
 	if (input.op === "create") {
 		assert(canCreate(ctx.user), () => new PermissionDenied());
 		const { view } = await readViews(ctx, input.novelId);
@@ -815,6 +840,8 @@ async function enqueueKeyword(
 			matchingType: input.values.matchingType ?? "FULL",
 			fuzzyMatchArabicCharacters:
 				input.values.fuzzyMatchArabicCharacters ?? true,
+			wordVfx: input.values.wordVfx ?? "NONE",
+			wordVfxColor: input.values.wordVfxColor ?? null,
 			categoryId: input.values.categoryId,
 			natureId: input.values.natureId,
 			description: cleanText(input.values.description),
@@ -884,6 +911,8 @@ async function enqueueKeyword(
 		nameEn: cleanName(input.changes.nameEn),
 		matchingType: input.changes.matchingType,
 		fuzzyMatchArabicCharacters: input.changes.fuzzyMatchArabicCharacters,
+		wordVfx: input.changes.wordVfx,
+		wordVfxColor: input.changes.wordVfxColor,
 	}) as Partial<KeywordFields>;
 	const { patch, base } = diffChanges(changes, input.seen, keyword);
 	linkedKeyword(
@@ -932,6 +961,8 @@ const ALIAS_FIELDS = [
 	"descriptionEn",
 	"matchingType",
 	"fuzzyMatchArabicCharacters",
+	"wordVfx",
+	"wordVfxColor",
 	"overrideStyle",
 	"categoryId",
 	"natureId",
@@ -947,6 +978,8 @@ function aliasValues(values: Partial<AliasValues>): Row {
 		descriptionEn: cleanText(values.descriptionEn),
 		matchingType: values.matchingType,
 		fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
+		wordVfx: values.wordVfx,
+		wordVfxColor: values.wordVfxColor,
 		overrideStyle: values.overrideStyle,
 		categoryId: values.categoryId,
 		natureId: values.natureId,
@@ -958,6 +991,17 @@ async function enqueueAlias(
 	ctx: Context,
 	input: Extract<EnqueueInput, { entity: "keywordAlias" }>,
 ): Promise<EnqueueResult> {
+	if (input.op !== "delete") {
+		const fields = input.op === "create" ? input.values : input.changes;
+		if (fields.wordVfx !== undefined && !isKeywordEffect(fields.wordVfx))
+			throw new ValidationFailed("WORD_VFX_INVALID");
+		if (
+			fields.wordVfxColor !== undefined &&
+			fields.wordVfxColor !== null &&
+			parseWordVfxColor(fields.wordVfxColor) === null
+		)
+			throw new ValidationFailed("WORD_VFX_COLOR_INVALID");
+	}
 	if (input.op === "create") {
 		const novelId = await locateNovel(ctx, "keyword", input.keywordId);
 		const { view } = await readViews(ctx, novelId);
@@ -985,6 +1029,8 @@ async function enqueueAlias(
 				: { description: null }),
 			matchingType: "FULL",
 			fuzzyMatchArabicCharacters: true,
+			wordVfx: "NONE",
+			wordVfxColor: null,
 			overrideStyle: false,
 			categoryId: null,
 			natureId: null,
@@ -1661,6 +1707,8 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				nameEn: row.nameEn ?? null,
 				matchingType: row.matchingType ?? "FULL",
 				fuzzyMatchArabicCharacters: row.fuzzyMatchArabicCharacters ?? true,
+				wordVfx: parseKeywordEffect(row.wordVfx),
+				wordVfxColor: parseWordVfxColor(row.wordVfxColor),
 				categoryId: base.categoryId ?? row.categoryId,
 				startingChapter: base.startingChapter ?? 0,
 				endingChapter: base.endingChapter ?? null,

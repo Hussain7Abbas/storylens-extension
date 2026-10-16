@@ -17,6 +17,7 @@ export type GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOf = {
 	nameEn: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameEn;
 	nameAr: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfDescription;
 	createdAt: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfCreatedAt;

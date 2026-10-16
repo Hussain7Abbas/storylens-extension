@@ -17,6 +17,7 @@ export type GetKeywordAliases200DataItemCategoryAnyOf = {
 	nameEn: GetKeywordAliases200DataItemCategoryAnyOfNameEn;
 	nameAr: GetKeywordAliases200DataItemCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetKeywordAliases200DataItemCategoryAnyOfDescription;
 	createdAt: GetKeywordAliases200DataItemCategoryAnyOfCreatedAt;

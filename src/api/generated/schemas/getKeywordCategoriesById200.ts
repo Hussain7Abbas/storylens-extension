@@ -18,6 +18,7 @@ export type GetKeywordCategoriesById200 = {
 	nameEn: GetKeywordCategoriesById200NameEn;
 	nameAr: GetKeywordCategoriesById200NameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetKeywordCategoriesById200Description;
 	createdAt: GetKeywordCategoriesById200CreatedAt;

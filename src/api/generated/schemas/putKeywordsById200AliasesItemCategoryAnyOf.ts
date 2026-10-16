@@ -17,6 +17,7 @@ export type PutKeywordsById200AliasesItemCategoryAnyOf = {
 	nameEn: PutKeywordsById200AliasesItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById200AliasesItemCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PutKeywordsById200AliasesItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById200AliasesItemCategoryAnyOfCreatedAt;

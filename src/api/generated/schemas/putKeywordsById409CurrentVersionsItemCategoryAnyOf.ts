@@ -17,6 +17,7 @@ export type PutKeywordsById409CurrentVersionsItemCategoryAnyOf = {
 	nameEn: PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PutKeywordsById409CurrentVersionsItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById409CurrentVersionsItemCategoryAnyOfCreatedAt;

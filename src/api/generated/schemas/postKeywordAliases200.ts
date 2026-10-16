@@ -21,6 +21,8 @@ import type { PostKeywordAliases200NameEn } from "./postKeywordAliases200NameEn"
 import type { PostKeywordAliases200Nature } from "./postKeywordAliases200Nature";
 import type { PostKeywordAliases200NatureId } from "./postKeywordAliases200NatureId";
 import type { PostKeywordAliases200UpdatedAt } from "./postKeywordAliases200UpdatedAt";
+import type { PostKeywordAliases200WordVfx } from "./postKeywordAliases200WordVfx";
+import type { PostKeywordAliases200WordVfxColor } from "./postKeywordAliases200WordVfxColor";
 
 export type PostKeywordAliases200 = {
 	id: string;
@@ -31,6 +33,8 @@ export type PostKeywordAliases200 = {
 	descriptionEn: PostKeywordAliases200DescriptionEn;
 	matchingType: PostKeywordAliases200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PostKeywordAliases200WordVfx;
+	wordVfxColor: PostKeywordAliases200WordVfxColor;
 	overrideStyle: boolean;
 	categoryId: PostKeywordAliases200CategoryId;
 	natureId: PostKeywordAliases200NatureId;

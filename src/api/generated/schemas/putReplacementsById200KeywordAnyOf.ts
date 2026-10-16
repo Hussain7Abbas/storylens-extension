@@ -12,6 +12,8 @@ import type { PutReplacementsById200KeywordAnyOfMatchingType } from "./putReplac
 import type { PutReplacementsById200KeywordAnyOfNameAr } from "./putReplacementsById200KeywordAnyOfNameAr";
 import type { PutReplacementsById200KeywordAnyOfNameEn } from "./putReplacementsById200KeywordAnyOfNameEn";
 import type { PutReplacementsById200KeywordAnyOfUpdatedAt } from "./putReplacementsById200KeywordAnyOfUpdatedAt";
+import type { PutReplacementsById200KeywordAnyOfWordVfx } from "./putReplacementsById200KeywordAnyOfWordVfx";
+import type { PutReplacementsById200KeywordAnyOfWordVfxColor } from "./putReplacementsById200KeywordAnyOfWordVfxColor";
 
 export type PutReplacementsById200KeywordAnyOf = {
 	id: string;
@@ -19,6 +21,8 @@ export type PutReplacementsById200KeywordAnyOf = {
 	nameEn: PutReplacementsById200KeywordAnyOfNameEn;
 	matchingType: PutReplacementsById200KeywordAnyOfMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutReplacementsById200KeywordAnyOfWordVfx;
+	wordVfxColor: PutReplacementsById200KeywordAnyOfWordVfxColor;
 	novelId: string;
 	createdById: PutReplacementsById200KeywordAnyOfCreatedById;
 	createdAt: PutReplacementsById200KeywordAnyOfCreatedAt;

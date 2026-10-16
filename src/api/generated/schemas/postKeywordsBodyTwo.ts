@@ -15,6 +15,8 @@ import type { PostKeywordsBodyTwoMatchingType } from "./postKeywordsBodyTwoMatch
 import type { PostKeywordsBodyTwoNameAr } from "./postKeywordsBodyTwoNameAr";
 import type { PostKeywordsBodyTwoNameEn } from "./postKeywordsBodyTwoNameEn";
 import type { PostKeywordsBodyTwoStartingChapter } from "./postKeywordsBodyTwoStartingChapter";
+import type { PostKeywordsBodyTwoWordVfx } from "./postKeywordsBodyTwoWordVfx";
+import type { PostKeywordsBodyTwoWordVfxColor } from "./postKeywordsBodyTwoWordVfxColor";
 
 export type PostKeywordsBodyTwo = {
 	id: string;
@@ -38,6 +40,9 @@ export type PostKeywordsBodyTwo = {
 	descriptionEn?: PostKeywordsBodyTwoDescriptionEn;
 	matchingType?: PostKeywordsBodyTwoMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: PostKeywordsBodyTwoWordVfx;
+	/** @nullable */
+	wordVfxColor?: PostKeywordsBodyTwoWordVfxColor;
 	novelId: string;
 	categoryId: string;
 	natureId: string;

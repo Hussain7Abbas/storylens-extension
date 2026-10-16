@@ -17,6 +17,7 @@ export type DeleteKeywordCategoriesById200 = {
 	nameEn: DeleteKeywordCategoriesById200NameEn;
 	nameAr: DeleteKeywordCategoriesById200NameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: DeleteKeywordCategoriesById200Description;
 	createdAt: DeleteKeywordCategoriesById200CreatedAt;

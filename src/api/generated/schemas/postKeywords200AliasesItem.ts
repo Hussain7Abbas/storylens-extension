@@ -21,6 +21,8 @@ import type { PostKeywords200AliasesItemNameEn } from "./postKeywords200AliasesI
 import type { PostKeywords200AliasesItemNature } from "./postKeywords200AliasesItemNature";
 import type { PostKeywords200AliasesItemNatureId } from "./postKeywords200AliasesItemNatureId";
 import type { PostKeywords200AliasesItemUpdatedAt } from "./postKeywords200AliasesItemUpdatedAt";
+import type { PostKeywords200AliasesItemWordVfx } from "./postKeywords200AliasesItemWordVfx";
+import type { PostKeywords200AliasesItemWordVfxColor } from "./postKeywords200AliasesItemWordVfxColor";
 
 export type PostKeywords200AliasesItem = {
 	id: string;
@@ -31,6 +33,8 @@ export type PostKeywords200AliasesItem = {
 	descriptionEn: PostKeywords200AliasesItemDescriptionEn;
 	matchingType: PostKeywords200AliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PostKeywords200AliasesItemWordVfx;
+	wordVfxColor: PostKeywords200AliasesItemWordVfxColor;
 	overrideStyle: boolean;
 	categoryId: PostKeywords200AliasesItemCategoryId;
 	natureId: PostKeywords200AliasesItemNatureId;

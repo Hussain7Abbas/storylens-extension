@@ -21,6 +21,8 @@ import type { PutKeywordsById409CurrentAliasesItemNameEn } from "./putKeywordsBy
 import type { PutKeywordsById409CurrentAliasesItemNature } from "./putKeywordsById409CurrentAliasesItemNature";
 import type { PutKeywordsById409CurrentAliasesItemNatureId } from "./putKeywordsById409CurrentAliasesItemNatureId";
 import type { PutKeywordsById409CurrentAliasesItemUpdatedAt } from "./putKeywordsById409CurrentAliasesItemUpdatedAt";
+import type { PutKeywordsById409CurrentAliasesItemWordVfx } from "./putKeywordsById409CurrentAliasesItemWordVfx";
+import type { PutKeywordsById409CurrentAliasesItemWordVfxColor } from "./putKeywordsById409CurrentAliasesItemWordVfxColor";
 
 export type PutKeywordsById409CurrentAliasesItem = {
 	id: string;
@@ -31,6 +33,8 @@ export type PutKeywordsById409CurrentAliasesItem = {
 	descriptionEn: PutKeywordsById409CurrentAliasesItemDescriptionEn;
 	matchingType: PutKeywordsById409CurrentAliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutKeywordsById409CurrentAliasesItemWordVfx;
+	wordVfxColor: PutKeywordsById409CurrentAliasesItemWordVfxColor;
 	overrideStyle: boolean;
 	categoryId: PutKeywordsById409CurrentAliasesItemCategoryId;
 	natureId: PutKeywordsById409CurrentAliasesItemNatureId;

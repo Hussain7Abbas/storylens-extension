@@ -5,7 +5,7 @@ import { AUTH_STORAGE_KEY, parseStoredAuth } from "@/lib/auth/auth-storage";
 import { CHAPTER_TEXT_CHARS } from "@/lib/desktop-client/chapter-extraction";
 import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
-import { SHOW_CATEGORY_EFFECTS_KEY } from "@/lib/keyword-effects";
+import { SHOW_WORD_VFX_KEY } from "@/lib/keyword-effects";
 import { pageAiTasks, parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import {
@@ -16,7 +16,7 @@ import { TOOLTIP_TRIGGER_KEY } from "@/lib/tooltip-trigger";
 import type { currentNovelMeta } from "@/types";
 import type { websiteSelector as WebsiteSelector } from "@/types/configs";
 import { findContentRoot } from "@/utils/content-processor";
-import { setCategoryEffectsVisible } from "@/utils/keyword-effects";
+import { setWordVfxVisible } from "@/utils/keyword-effects";
 import {
 	setTooltipFontFace,
 	setTooltipFontSize,
@@ -201,11 +201,11 @@ export async function runContentScript(
 		"storylens-font-face",
 		"storylens-font-size",
 		TOOLTIP_TRIGGER_KEY,
-		SHOW_CATEGORY_EFFECTS_KEY,
+		SHOW_WORD_VFX_KEY,
 	]);
 	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
 	setTooltipTrigger(stored[TOOLTIP_TRIGGER_KEY]);
-	setCategoryEffectsVisible(stored[SHOW_CATEGORY_EFFECTS_KEY]);
+	setWordVfxVisible(stored[SHOW_WORD_VFX_KEY]);
 	// Tooltip Edit buttons follow the reader's per-row permissions.
 	setTooltipUser(parseStoredAuth(stored[AUTH_STORAGE_KEY]).user);
 	let colorOwner = "";
@@ -234,8 +234,8 @@ export async function runContentScript(
 
 	browser.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
-		if (SHOW_CATEGORY_EFFECTS_KEY in changes) {
-			setCategoryEffectsVisible(changes[SHOW_CATEGORY_EFFECTS_KEY].newValue);
+		if (SHOW_WORD_VFX_KEY in changes) {
+			setWordVfxVisible(changes[SHOW_WORD_VFX_KEY].newValue);
 		}
 		if (TOOLTIP_TRIGGER_KEY in changes) {
 			setTooltipTrigger(changes[TOOLTIP_TRIGGER_KEY].newValue);

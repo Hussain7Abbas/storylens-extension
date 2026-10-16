@@ -1,6 +1,8 @@
 import {
+	hasWordVfxColor,
 	parseKeywordEffect,
-	parseShowCategoryEffects,
+	parseShowWordVfx,
+	parseWordVfxColor,
 } from "@/lib/keyword-effects";
 
 const FILTERS_ID = "storylens-keyword-effect-filters";
@@ -108,7 +110,19 @@ function decoration(anchor: HTMLElement, className: string): HTMLSpanElement {
 }
 
 /** Empty decorations preserve copying, matching, selection, tooltips and Arabic shaping. */
-export function applyKeywordEffect(anchor: HTMLElement, value: unknown): void {
+export function applyKeywordEffect(
+	anchor: HTMLElement,
+	value: unknown,
+	colorValue?: unknown,
+): void {
+	const color = hasWordVfxColor(value) ? parseWordVfxColor(colorValue) : null;
+	if (color) {
+		anchor.dataset.storylensWordVfxColor = color;
+		anchor.style.setProperty("--sl-word-vfx-color", color);
+	} else {
+		delete anchor.dataset.storylensWordVfxColor;
+		anchor.style.removeProperty("--sl-word-vfx-color");
+	}
 	for (const child of anchor.querySelectorAll(
 		":scope > [data-storylens-effect-decoration]",
 	))
@@ -116,11 +130,11 @@ export function applyKeywordEffect(anchor: HTMLElement, value: unknown): void {
 	delete anchor.dataset.storylensEffect;
 	const effect = parseKeywordEffect(value);
 	if (effect === "NONE") {
-		delete anchor.dataset.storylensCategoryEffect;
+		delete anchor.dataset.storylensWordVfx;
 		return;
 	}
-	// Remember the category independently of whether this reader wants motion.
-	anchor.dataset.storylensCategoryEffect = effect;
+	// Remember the word effect independently of whether this reader wants motion.
+	anchor.dataset.storylensWordVfx = effect;
 	if (!effectsVisible) return;
 	anchor.dataset.storylensEffect = effect;
 	if (effect === "HEAT" || effect === "GLITCHING") ensureFilter(effect);
@@ -145,14 +159,15 @@ export function applyKeywordEffect(anchor: HTMLElement, value: unknown): void {
 }
 
 /** Toggle decorations on existing anchors; never remove or rebuild their text. */
-export function setCategoryEffectsVisible(value: unknown): void {
-	effectsVisible = parseShowCategoryEffects(value);
+export function setWordVfxVisible(value: unknown): void {
+	effectsVisible = parseShowWordVfx(value);
 	for (const anchor of document.querySelectorAll<HTMLElement>(
-		".storylens-keyword[data-storylens-category-effect], .storylens-keyword[data-storylens-effect]",
+		".storylens-keyword[data-storylens-word-vfx], .storylens-keyword[data-storylens-effect]",
 	))
 		applyKeywordEffect(
 			anchor,
-			anchor.dataset.storylensCategoryEffect ?? anchor.dataset.storylensEffect,
+			anchor.dataset.storylensWordVfx ?? anchor.dataset.storylensEffect,
+			anchor.dataset.storylensWordVfxColor,
 		);
 	if (!effectsVisible) clearKeywordEffects();
 }

@@ -87,6 +87,8 @@ export function alias(
 				? values.description
 				: null,
 		matchingType: "FULL",
+		wordVfx: "NONE",
+		wordVfxColor: null,
 		overrideStyle: false,
 		categoryId: null,
 		natureId: null,
@@ -110,6 +112,8 @@ export function keyword(values: Partial<RawKeyword> = {}): RawKeyword {
 		nameAr: null,
 		nameEn: "Keyword",
 		matchingType: "FULL",
+		wordVfx: "NONE",
+		wordVfxColor: null,
 		novelId: "novel-1",
 		createdById: null,
 		createdAt: NOW,

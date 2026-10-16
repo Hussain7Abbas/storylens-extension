@@ -410,7 +410,7 @@ function createKeywordElement(
 	natureIndicator.setAttribute("aria-hidden", "true");
 	span.append(natureIndicator);
 	span.append(document.createTextNode(matchedText));
-	applyKeywordEffect(span, keyword.category.effect);
+	applyKeywordEffect(span, keyword.wordVfx, keyword.wordVfxColor);
 
 	const rawCtx = rawContextLookup.get(keyword.id);
 	if (rawCtx) {

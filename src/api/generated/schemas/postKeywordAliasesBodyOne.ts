@@ -15,6 +15,8 @@ import type { PostKeywordAliasesBodyOneMatchingType } from "./postKeywordAliases
 import type { PostKeywordAliasesBodyOneNameAr } from "./postKeywordAliasesBodyOneNameAr";
 import type { PostKeywordAliasesBodyOneNameEn } from "./postKeywordAliasesBodyOneNameEn";
 import type { PostKeywordAliasesBodyOneNatureId } from "./postKeywordAliasesBodyOneNatureId";
+import type { PostKeywordAliasesBodyOneWordVfx } from "./postKeywordAliasesBodyOneWordVfx";
+import type { PostKeywordAliasesBodyOneWordVfxColor } from "./postKeywordAliasesBodyOneWordVfxColor";
 
 export type PostKeywordAliasesBodyOne = {
 	id: string;
@@ -31,6 +33,9 @@ export type PostKeywordAliasesBodyOne = {
 	descriptionEn?: PostKeywordAliasesBodyOneDescriptionEn;
 	matchingType?: PostKeywordAliasesBodyOneMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: PostKeywordAliasesBodyOneWordVfx;
+	/** @nullable */
+	wordVfxColor?: PostKeywordAliasesBodyOneWordVfxColor;
 	/** @nullable */
 	categoryId?: PostKeywordAliasesBodyOneCategoryId;
 	/** @nullable */

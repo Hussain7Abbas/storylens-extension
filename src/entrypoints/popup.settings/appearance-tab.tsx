@@ -25,7 +25,7 @@ import {
 	fontFaceAtom,
 	fontSizeAtom,
 	nightLightLevelAtom,
-	showCategoryEffectsAtom,
+	showWordVfxAtom,
 	tooltipTriggerAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
@@ -36,9 +36,7 @@ export function AppearanceTab() {
 	const [fontSize, setFontSize] = useAtom(fontSizeAtom);
 	const [tooltipTrigger, setTooltipTrigger] = useAtom(tooltipTriggerAtom);
 	const [nightLightLevel, setNightLightLevel] = useAtom(nightLightLevelAtom);
-	const [showCategoryEffects, setShowCategoryEffects] = useAtom(
-		showCategoryEffectsAtom,
-	);
+	const [showWordVfx, setShowWordVfx] = useAtom(showWordVfxAtom);
 	const direction = useAtomValue(localeAtom) === "ar" ? "rtl" : "ltr";
 	// One event per adjustment, not one per step of a drag or key press.
 	const trackNightLightLevel = useDebouncedCallback(
@@ -79,13 +77,13 @@ export function AppearanceTab() {
 
 			<Switch
 				role="switch"
-				label={t("settings.appearance.showCategoryEffects")}
-				description={t("settings.appearance.categoryEffectsDescription")}
-				checked={showCategoryEffects}
+				label={t("settings.appearance.showWordVfx")}
+				description={t("settings.appearance.wordVfxDescription")}
+				checked={showWordVfx}
 				onChange={(event) => {
 					const enabled = event.currentTarget.checked;
-					setShowCategoryEffects(enabled);
-					trackEvent("category_effects_visibility_changed", { enabled });
+					setShowWordVfx(enabled);
+					trackEvent("word_vfx_visibility_changed", { enabled });
 				}}
 			/>
 

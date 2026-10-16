@@ -2,8 +2,8 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { FONT_SIZE_DEFAULT, parseFontSize } from "@/lib/font-size";
 import {
-	parseShowCategoryEffects,
-	SHOW_CATEGORY_EFFECTS_KEY,
+	parseShowWordVfx,
+	SHOW_WORD_VFX_KEY,
 } from "@/lib/keyword-effects";
 import {
 	NIGHT_LIGHT_DEFAULT_LEVEL,
@@ -18,16 +18,16 @@ import {
 export const APPEARANCE_FONT_FACE_KEY = "storylens-font-face";
 export const APPEARANCE_FONT_SIZE_KEY = "storylens-font-size";
 
-const storedShowCategoryEffectsAtom = atomWithStorage<boolean>(
-	SHOW_CATEGORY_EFFECTS_KEY,
+const storedShowWordVfxAtom = atomWithStorage<boolean>(
+	SHOW_WORD_VFX_KEY,
 	false,
 	undefined,
 	{ getOnInit: true },
 );
-export const showCategoryEffectsAtom = atom(
-	(get) => parseShowCategoryEffects(get(storedShowCategoryEffectsAtom)),
+export const showWordVfxAtom = atom(
+	(get) => parseShowWordVfx(get(storedShowWordVfxAtom)),
 	(_get, set, visible: boolean) =>
-		set(storedShowCategoryEffectsAtom, parseShowCategoryEffects(visible)),
+		set(storedShowWordVfxAtom, parseShowWordVfx(visible)),
 );
 
 const storedTooltipTriggerAtom = atomWithStorage<TooltipTrigger>(

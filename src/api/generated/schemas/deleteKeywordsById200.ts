@@ -12,6 +12,8 @@ import type { DeleteKeywordsById200MatchingType } from "./deleteKeywordsById200M
 import type { DeleteKeywordsById200NameAr } from "./deleteKeywordsById200NameAr";
 import type { DeleteKeywordsById200NameEn } from "./deleteKeywordsById200NameEn";
 import type { DeleteKeywordsById200UpdatedAt } from "./deleteKeywordsById200UpdatedAt";
+import type { DeleteKeywordsById200WordVfx } from "./deleteKeywordsById200WordVfx";
+import type { DeleteKeywordsById200WordVfxColor } from "./deleteKeywordsById200WordVfxColor";
 
 export type DeleteKeywordsById200 = {
 	id: string;
@@ -19,6 +21,8 @@ export type DeleteKeywordsById200 = {
 	nameEn: DeleteKeywordsById200NameEn;
 	matchingType: DeleteKeywordsById200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: DeleteKeywordsById200WordVfx;
+	wordVfxColor: DeleteKeywordsById200WordVfxColor;
 	novelId: string;
 	createdById: DeleteKeywordsById200CreatedById;
 	createdAt: DeleteKeywordsById200CreatedAt;

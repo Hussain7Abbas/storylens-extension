@@ -18,9 +18,7 @@ const { applyContentProcessing, removeExtensionMarkup } = await import(
 const { destroyKeywordTooltipPortal } = await import(
 	"../src/utils/keyword-tooltip"
 );
-const { setCategoryEffectsVisible } = await import(
-	"../src/utils/keyword-effects"
-);
+const { setWordVfxVisible } = await import("../src/utils/keyword-effects");
 
 const { setPersonalColors, applyLookupColor } = await import(
 	"../src/utils/personal-colors"
@@ -52,6 +50,8 @@ function keyword(values: Partial<RawKeyword> = {}): RawKeyword {
 		nameAr: null,
 		nameEn: "Keyword",
 		matchingType: "FULL",
+		wordVfx: "NONE",
+		wordVfxColor: null,
 		fuzzyMatchArabicCharacters: true,
 		novelId: "novel-1",
 		createdById: null,
@@ -91,6 +91,8 @@ function alias(
 		descriptionAr: null,
 		descriptionEn: null,
 		matchingType: "FULL",
+		wordVfx: "NONE",
+		wordVfxColor: null,
 		fuzzyMatchArabicCharacters: true,
 		overrideStyle: false,
 		categoryId: null,
@@ -177,7 +179,7 @@ function process(
 
 afterEach(() => {
 	setPersonalColors(undefined);
-	setCategoryEffectsVisible(false);
+	setWordVfxVisible(false);
 	removeExtensionMarkup();
 	destroyKeywordTooltipPortal();
 	document.body.replaceChildren();
@@ -295,7 +297,71 @@ describe("Arabic diacritics (حركات)", () => {
 });
 
 // Effects decorate the existing colored highlight, including outside an initial range.
-describe("category effects preserve highlighting", () => {
+describe("word VFX preserve highlighting", () => {
+	it("does not spread category or keyword effects to other words or aliases", () => {
+		setWordVfxVisible(true);
+		const parent = keyword({
+			nameEn: "Mira",
+			nameAr: "Mira",
+			wordVfx: "SPARKLES",
+			aliases: [
+				alias({ id: "alias-effect", nameEn: "Sword", wordVfx: "HEAT" }),
+				alias({ id: "alias-plain", nameEn: "Hero" }),
+			],
+		});
+		const sibling = keyword({ id: "sibling", nameEn: "Leo", nameAr: "Leo" });
+		for (const row of [parent, sibling]) {
+			const base = row.versions[0];
+			if (!base) throw new Error("base missing");
+			row.versions[0] = {
+				...base,
+				category: { ...category, effect: "GLITCHING" },
+			};
+		}
+		process("Mira Sword Hero Leo", [parent, sibling]);
+		const words = [
+			...document.querySelectorAll<HTMLElement>(".storylens-keyword"),
+		];
+		expect(
+			words.map((word) => [word.textContent, word.dataset.storylensEffect]),
+		).toEqual([
+			["Mira", "SPARKLES"],
+			["Sword", "HEAT"],
+			["Hero", undefined],
+			["Leo", undefined],
+		]);
+	});
+
+	for (const effect of ["HEAT", "SPARKLES"] as const) {
+		it(`uses ${effect} tint independently and preserves it across visibility and personal color changes`, () => {
+			const row = keyword({
+				nameAr: "ميرا",
+				wordVfx: effect,
+				wordVfxColor: "#123456",
+			});
+			setWordVfxVisible(false);
+			process("وصلت ميرا", [row]);
+			const anchor = document.querySelector<HTMLElement>(".storylens-keyword");
+			if (!anchor) throw new Error("word missing");
+			const text = anchor.textContent;
+			expect(anchor.style.getPropertyValue("--sl-word-vfx-color")).toBe(
+				"#123456",
+			);
+			expect(anchor.dataset.storylensEffect).toBeUndefined();
+			setWordVfxVisible(true);
+			expect(anchor.style.color).toBe(category.color);
+			expect(anchor.dataset.storylensEffect).toBe(effect);
+			anchor.style.color = "#abcdef";
+			setWordVfxVisible(false);
+			setWordVfxVisible(true);
+			expect(anchor.style.getPropertyValue("--sl-word-vfx-color")).toBe(
+				"#123456",
+			);
+			expect(anchor.style.color).toBe("#abcdef");
+			expect(anchor.textContent).toBe(text);
+		});
+	}
+
 	for (const effect of [
 		"NONE",
 		"SPARKLES",
@@ -305,8 +371,12 @@ describe("category effects preserve highlighting", () => {
 		"FUTURE_EFFECT",
 	]) {
 		it(`keeps Arabic text, category color and nature indicator with ${effect}`, () => {
-			setCategoryEffectsVisible(true);
-			const row = keyword({ nameAr: "سيف الدين", nameEn: null });
+			setWordVfxVisible(true);
+			const row = keyword({
+				nameAr: "سيف الدين",
+				nameEn: null,
+				wordVfx: effect as RawKeyword["wordVfx"],
+			});
 			const base = row.versions[0];
 			if (!base) throw new Error("base version missing");
 			row.versions[0] = {
@@ -354,7 +424,11 @@ describe("category effects preserve highlighting", () => {
 	}
 
 	it("keeps effects off by default and toggles existing text without rebuilding it", () => {
-		const row = keyword({ nameAr: "سيف الدين", nameEn: null });
+		const row = keyword({
+			nameAr: "سيف الدين",
+			nameEn: null,
+			wordVfx: "SPARKLES",
+		});
 		const base = row.versions[0];
 		if (!base) throw new Error("base version missing");
 		row.versions[0] = {
@@ -370,16 +444,16 @@ describe("category effects preserve highlighting", () => {
 		expect(
 			anchor.querySelectorAll("[data-storylens-effect-decoration]"),
 		).toHaveLength(0);
-		setCategoryEffectsVisible(true);
+		setWordVfxVisible(true);
 		expect(anchor.dataset.storylensEffect).toBe("SPARKLES");
 		expect(anchor.querySelectorAll(".storylens-effect-particle")).toHaveLength(
 			8,
 		);
-		setCategoryEffectsVisible(true);
+		setWordVfxVisible(true);
 		expect(anchor.querySelectorAll(".storylens-effect-particle")).toHaveLength(
 			8,
 		);
-		setCategoryEffectsVisible(false);
+		setWordVfxVisible(false);
 		expect(anchor.dataset.storylensEffect).toBeUndefined();
 		expect(
 			anchor.querySelectorAll("[data-storylens-effect-decoration]"),

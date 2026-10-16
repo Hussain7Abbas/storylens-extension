@@ -9,6 +9,8 @@
 import type { PutKeywordsByIdBodyOneMatchingType } from "./putKeywordsByIdBodyOneMatchingType";
 import type { PutKeywordsByIdBodyOneNameAr } from "./putKeywordsByIdBodyOneNameAr";
 import type { PutKeywordsByIdBodyOneNameEn } from "./putKeywordsByIdBodyOneNameEn";
+import type { PutKeywordsByIdBodyOneWordVfx } from "./putKeywordsByIdBodyOneWordVfx";
+import type { PutKeywordsByIdBodyOneWordVfxColor } from "./putKeywordsByIdBodyOneWordVfxColor";
 
 export type PutKeywordsByIdBodyOne = {
 	baseUpdatedAt: string;
@@ -18,5 +20,8 @@ export type PutKeywordsByIdBodyOne = {
 	nameEn?: PutKeywordsByIdBodyOneNameEn;
 	matchingType?: PutKeywordsByIdBodyOneMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: PutKeywordsByIdBodyOneWordVfx;
+	/** @nullable */
+	wordVfxColor?: PutKeywordsByIdBodyOneWordVfxColor;
 	translationKeywordId?: string;
 };

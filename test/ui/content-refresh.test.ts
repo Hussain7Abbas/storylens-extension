@@ -9,7 +9,7 @@ import {
 	it,
 } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
-import { SHOW_CATEGORY_EFFECTS_KEY } from "../../src/lib/keyword-effects";
+import { SHOW_WORD_VFX_KEY } from "../../src/lib/keyword-effects";
 import { TOOLTIP_TRIGGER_KEY } from "../../src/lib/tooltip-trigger";
 import type { NovelContentData } from "../../src/types/content-data";
 import { fakeBrowser, resetFakeBrowser } from "../helpers/fake-browser";
@@ -33,7 +33,7 @@ const { setPagePopupLauncher } = await import(
 const { applyContentProcessing, removeExtensionMarkup } = await import(
 	"../../src/utils/content-processor"
 );
-const { applyKeywordEffect, setCategoryEffectsVisible } = await import(
+const { applyKeywordEffect, setWordVfxVisible } = await import(
 	"../../src/utils/keyword-effects"
 );
 
@@ -100,7 +100,7 @@ beforeEach(async () => {
 	if (!started) {
 		await fakeBrowser.storage.local.set({
 			[TOOLTIP_TRIGGER_KEY]: "hover",
-			[SHOW_CATEGORY_EFFECTS_KEY]: true,
+			[SHOW_WORD_VFX_KEY]: true,
 		});
 		await runContentScript({ addEventListener() {} } as unknown as Parameters<
 			typeof runContentScript
@@ -115,7 +115,7 @@ beforeEach(async () => {
 	expect(root.querySelector(".storylens-keyword")?.textContent).toBe("أمل");
 });
 afterEach(() => {
-	setCategoryEffectsVisible(false);
+	setWordVfxVisible(false);
 	removeExtensionMarkup();
 	setPagePopupLauncher(false, "en");
 	runtime.sendMessage = originalSend;
@@ -150,16 +150,16 @@ describe("page highlight refresh", () => {
 		applyKeywordEffect(anchor, "HEAT");
 		expect(anchor.dataset.storylensEffect).toBe("HEAT");
 		expect(anchor.querySelectorAll(".storylens-effect-smoke")).toHaveLength(3);
-		await fakeBrowser.storage.local.set({ [SHOW_CATEGORY_EFFECTS_KEY]: false });
+		await fakeBrowser.storage.local.set({ [SHOW_WORD_VFX_KEY]: false });
 		expect(anchor.dataset.storylensEffect).toBeUndefined();
 		expect(
 			document.getElementById("storylens-keyword-effect-filters"),
 		).toBeNull();
-		await fakeBrowser.storage.local.set({ [SHOW_CATEGORY_EFFECTS_KEY]: true });
+		await fakeBrowser.storage.local.set({ [SHOW_WORD_VFX_KEY]: true });
 		expect(anchor.dataset.storylensEffect).toBe("HEAT");
 		expect(root.querySelector(".storylens-keyword")).toBe(anchor);
 		expect(anchor.textContent).toBe("أمل");
-		await fakeBrowser.storage.local.remove(SHOW_CATEGORY_EFFECTS_KEY);
+		await fakeBrowser.storage.local.remove(SHOW_WORD_VFX_KEY);
 		expect(anchor.dataset.storylensEffect).toBeUndefined();
 	});
 

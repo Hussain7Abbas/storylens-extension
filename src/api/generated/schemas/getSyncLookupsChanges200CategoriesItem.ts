@@ -17,6 +17,7 @@ export type GetSyncLookupsChanges200CategoriesItem = {
 	nameEn: GetSyncLookupsChanges200CategoriesItemNameEn;
 	nameAr: GetSyncLookupsChanges200CategoriesItemNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetSyncLookupsChanges200CategoriesItemDescription;
 	createdAt: GetSyncLookupsChanges200CategoriesItemCreatedAt;

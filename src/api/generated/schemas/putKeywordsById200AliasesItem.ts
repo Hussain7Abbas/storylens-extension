@@ -21,6 +21,8 @@ import type { PutKeywordsById200AliasesItemNameEn } from "./putKeywordsById200Al
 import type { PutKeywordsById200AliasesItemNature } from "./putKeywordsById200AliasesItemNature";
 import type { PutKeywordsById200AliasesItemNatureId } from "./putKeywordsById200AliasesItemNatureId";
 import type { PutKeywordsById200AliasesItemUpdatedAt } from "./putKeywordsById200AliasesItemUpdatedAt";
+import type { PutKeywordsById200AliasesItemWordVfx } from "./putKeywordsById200AliasesItemWordVfx";
+import type { PutKeywordsById200AliasesItemWordVfxColor } from "./putKeywordsById200AliasesItemWordVfxColor";
 
 export type PutKeywordsById200AliasesItem = {
 	id: string;
@@ -31,6 +33,8 @@ export type PutKeywordsById200AliasesItem = {
 	descriptionEn: PutKeywordsById200AliasesItemDescriptionEn;
 	matchingType: PutKeywordsById200AliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutKeywordsById200AliasesItemWordVfx;
+	wordVfxColor: PutKeywordsById200AliasesItemWordVfxColor;
 	overrideStyle: boolean;
 	categoryId: PutKeywordsById200AliasesItemCategoryId;
 	natureId: PutKeywordsById200AliasesItemNatureId;

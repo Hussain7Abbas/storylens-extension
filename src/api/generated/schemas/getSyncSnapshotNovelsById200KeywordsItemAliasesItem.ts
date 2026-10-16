@@ -21,6 +21,8 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNameEn } from "
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNature } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemNature";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNatureId } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemNatureId";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemUpdatedAt } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemUpdatedAt";
+import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfx } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfx";
+import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfxColor } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfxColor";
 
 export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItem = {
 	id: string;
@@ -31,6 +33,8 @@ export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItem = {
 	descriptionEn: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionEn;
 	matchingType: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfx;
+	wordVfxColor: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfxColor;
 	overrideStyle: boolean;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryId;
 	natureId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNatureId;

@@ -17,6 +17,7 @@ export type GetKeywordCategories200DataItem = {
 	nameEn: GetKeywordCategories200DataItemNameEn;
 	nameAr: GetKeywordCategories200DataItemNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetKeywordCategories200DataItemDescription;
 	createdAt: GetKeywordCategories200DataItemCreatedAt;

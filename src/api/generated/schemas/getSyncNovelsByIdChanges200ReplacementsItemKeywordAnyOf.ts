@@ -12,6 +12,8 @@ import type { GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfMatchingTyp
 import type { GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfNameAr } from "./getSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfNameAr";
 import type { GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfNameEn } from "./getSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfNameEn";
 import type { GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfUpdatedAt } from "./getSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfUpdatedAt";
+import type { GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfx } from "./getSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfx";
+import type { GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfxColor } from "./getSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfxColor";
 
 export type GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOf = {
 	id: string;
@@ -19,6 +21,8 @@ export type GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOf = {
 	nameEn: GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfNameEn;
 	matchingType: GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfx;
+	wordVfxColor: GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfxColor;
 	novelId: string;
 	createdById: GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfCreatedById;
 	createdAt: GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfCreatedAt;

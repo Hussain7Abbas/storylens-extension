@@ -15,6 +15,8 @@ import type { PutKeywordAliasesByIdBodyThreeMatchingType } from "./putKeywordAli
 import type { PutKeywordAliasesByIdBodyThreeNameAr } from "./putKeywordAliasesByIdBodyThreeNameAr";
 import type { PutKeywordAliasesByIdBodyThreeNameEn } from "./putKeywordAliasesByIdBodyThreeNameEn";
 import type { PutKeywordAliasesByIdBodyThreeNatureId } from "./putKeywordAliasesByIdBodyThreeNatureId";
+import type { PutKeywordAliasesByIdBodyThreeWordVfx } from "./putKeywordAliasesByIdBodyThreeWordVfx";
+import type { PutKeywordAliasesByIdBodyThreeWordVfxColor } from "./putKeywordAliasesByIdBodyThreeWordVfxColor";
 
 export type PutKeywordAliasesByIdBodyThree = {
 	baseUpdatedAt: string;
@@ -30,6 +32,9 @@ export type PutKeywordAliasesByIdBodyThree = {
 	descriptionEn?: PutKeywordAliasesByIdBodyThreeDescriptionEn;
 	matchingType?: PutKeywordAliasesByIdBodyThreeMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: PutKeywordAliasesByIdBodyThreeWordVfx;
+	/** @nullable */
+	wordVfxColor?: PutKeywordAliasesByIdBodyThreeWordVfxColor;
 	/** @nullable */
 	categoryId?: PutKeywordAliasesByIdBodyThreeCategoryId;
 	/** @nullable */

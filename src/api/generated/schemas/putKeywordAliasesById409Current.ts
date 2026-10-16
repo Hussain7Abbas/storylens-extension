@@ -21,6 +21,8 @@ import type { PutKeywordAliasesById409CurrentNameEn } from "./putKeywordAliasesB
 import type { PutKeywordAliasesById409CurrentNature } from "./putKeywordAliasesById409CurrentNature";
 import type { PutKeywordAliasesById409CurrentNatureId } from "./putKeywordAliasesById409CurrentNatureId";
 import type { PutKeywordAliasesById409CurrentUpdatedAt } from "./putKeywordAliasesById409CurrentUpdatedAt";
+import type { PutKeywordAliasesById409CurrentWordVfx } from "./putKeywordAliasesById409CurrentWordVfx";
+import type { PutKeywordAliasesById409CurrentWordVfxColor } from "./putKeywordAliasesById409CurrentWordVfxColor";
 
 export type PutKeywordAliasesById409Current = {
 	id: string;
@@ -31,6 +33,8 @@ export type PutKeywordAliasesById409Current = {
 	descriptionEn: PutKeywordAliasesById409CurrentDescriptionEn;
 	matchingType: PutKeywordAliasesById409CurrentMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutKeywordAliasesById409CurrentWordVfx;
+	wordVfxColor: PutKeywordAliasesById409CurrentWordVfxColor;
 	overrideStyle: boolean;
 	categoryId: PutKeywordAliasesById409CurrentCategoryId;
 	natureId: PutKeywordAliasesById409CurrentNatureId;

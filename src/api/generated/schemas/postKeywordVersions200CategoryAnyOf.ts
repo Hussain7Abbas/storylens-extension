@@ -17,6 +17,7 @@ export type PostKeywordVersions200CategoryAnyOf = {
 	nameEn: PostKeywordVersions200CategoryAnyOfNameEn;
 	nameAr: PostKeywordVersions200CategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PostKeywordVersions200CategoryAnyOfDescription;
 	createdAt: PostKeywordVersions200CategoryAnyOfCreatedAt;

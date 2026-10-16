@@ -189,3 +189,161 @@ describe("category effects through offline sync", () => {
 		expect(env.api.categories.get(category.entityId)?.effect).toBe("NONE");
 	});
 });
+
+describe("word VFX through offline sync", () => {
+	it("keeps keyword and aliases independent across create, partial edit, pull and clearing", async () => {
+		const parent = await enqueue(
+			{
+				entity: "keyword",
+				op: "create",
+				novelId: env.novel.id,
+				values: { ...values(), wordVfx: "SPARKLES" },
+			},
+			{ db: env.db },
+		);
+		const child = await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "create",
+				keywordId: parent.entityId,
+				values: { nameEn: "The Sword", wordVfx: "HEAT" },
+			},
+			{ db: env.db },
+		);
+		const plain = await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "create",
+				keywordId: parent.entityId,
+				values: { nameEn: "Plain alias" },
+			},
+			{ db: env.db },
+		);
+		expect((await view()).keywords[0]).toMatchObject({ wordVfx: "SPARKLES" });
+		expect(
+			(await view()).keywords[0]?.aliases.find((a) => a.id === child.entityId)
+				?.wordVfx,
+		).toBe("HEAT");
+		expect(
+			(await view()).keywords[0]?.aliases.find((a) => a.id === plain.entityId)
+				?.wordVfx,
+		).toBe("NONE");
+		await run();
+		expect(await env.db.mutations.count()).toBe(0);
+		await enqueue(
+			{
+				entity: "keyword",
+				op: "update",
+				id: parent.entityId,
+				changes: { wordVfx: "GLITCHING" },
+			},
+			{ db: env.db },
+		);
+		await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "update",
+				id: child.entityId,
+				changes: { wordVfx: "NONE" },
+			},
+			{ db: env.db },
+		);
+		await run();
+		await pull();
+		expect((await view()).keywords[0]?.wordVfx).toBe("GLITCHING");
+		expect(
+			(await view()).keywords[0]?.aliases.find((a) => a.id === child.entityId)
+				?.wordVfx,
+		).toBe("NONE");
+		expect(env.api.keywords.get(parent.entityId)?.wordVfx).toBe("GLITCHING");
+		expect(env.api.aliases.get(child.entityId)?.wordVfx).toBe("NONE");
+		await enqueue(
+			{
+				entity: "keyword",
+				op: "update",
+				id: parent.entityId,
+				changes: { matchingType: "PARTIAL" },
+			},
+			{ db: env.db },
+		);
+		await run();
+		await pull();
+		expect((await view()).keywords[0]?.wordVfx).toBe("GLITCHING");
+	});
+});
+
+describe("word VFX colors through offline sync", () => {
+	it("projects, syncs, preserves and clears independent nullable hex colors", async () => {
+		const parent = await enqueue(
+			{
+				entity: "keyword",
+				op: "create",
+				novelId: env.novel.id,
+				values: { ...values(), wordVfx: "SPARKLES", wordVfxColor: "#123456" },
+			},
+			{ db: env.db },
+		);
+		const alias = await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "create",
+				keywordId: parent.entityId,
+				values: { nameEn: "Sword", wordVfx: "HEAT", wordVfxColor: "#abcdef" },
+			},
+			{ db: env.db },
+		);
+		expect((await view()).keywords[0]?.wordVfxColor).toBe("#123456");
+		expect((await view()).keywords[0]?.aliases[0]?.wordVfxColor).toBe(
+			"#abcdef",
+		);
+		await run();
+		await pull();
+		expect(env.api.keywords.get(parent.entityId)?.wordVfxColor).toBe("#123456");
+		expect(env.api.aliases.get(alias.entityId)?.wordVfxColor).toBe("#abcdef");
+		await enqueue(
+			{
+				entity: "keyword",
+				op: "update",
+				id: parent.entityId,
+				changes: { matchingType: "PARTIAL" },
+			},
+			{ db: env.db },
+		);
+		await enqueue(
+			{
+				entity: "keywordAlias",
+				op: "update",
+				id: alias.entityId,
+				changes: { wordVfxColor: null },
+			},
+			{ db: env.db },
+		);
+		await run();
+		await pull();
+		expect((await view()).keywords[0]?.wordVfxColor).toBe("#123456");
+		expect((await view()).keywords[0]?.aliases[0]?.wordVfxColor).toBeNull();
+		await expect(
+			enqueue(
+				{
+					entity: "keyword",
+					op: "update",
+					id: parent.entityId,
+					changes: { wordVfxColor: "red" },
+				},
+				{ db: env.db },
+			),
+		).rejects.toBeInstanceOf(ValidationFailed);
+		await expect(
+			enqueue(
+				{
+					entity: "keywordAlias",
+					op: "update",
+					id: alias.entityId,
+					changes: { wordVfxColor: "#123" },
+				},
+				{ db: env.db },
+			),
+		).rejects.toBeInstanceOf(ValidationFailed);
+		expect(await env.db.mutations.count()).toBe(0);
+	});
+});

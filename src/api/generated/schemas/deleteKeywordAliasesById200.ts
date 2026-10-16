@@ -18,6 +18,8 @@ import type { DeleteKeywordAliasesById200NameAr } from "./deleteKeywordAliasesBy
 import type { DeleteKeywordAliasesById200NameEn } from "./deleteKeywordAliasesById200NameEn";
 import type { DeleteKeywordAliasesById200NatureId } from "./deleteKeywordAliasesById200NatureId";
 import type { DeleteKeywordAliasesById200UpdatedAt } from "./deleteKeywordAliasesById200UpdatedAt";
+import type { DeleteKeywordAliasesById200WordVfx } from "./deleteKeywordAliasesById200WordVfx";
+import type { DeleteKeywordAliasesById200WordVfxColor } from "./deleteKeywordAliasesById200WordVfxColor";
 
 export type DeleteKeywordAliasesById200 = {
 	id: string;
@@ -28,6 +30,8 @@ export type DeleteKeywordAliasesById200 = {
 	descriptionEn: DeleteKeywordAliasesById200DescriptionEn;
 	matchingType: DeleteKeywordAliasesById200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: DeleteKeywordAliasesById200WordVfx;
+	wordVfxColor: DeleteKeywordAliasesById200WordVfxColor;
 	overrideStyle: boolean;
 	categoryId: DeleteKeywordAliasesById200CategoryId;
 	natureId: DeleteKeywordAliasesById200NatureId;

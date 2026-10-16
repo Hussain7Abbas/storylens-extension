@@ -17,6 +17,7 @@ export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOf = {
 	nameEn: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameEn;
 	nameAr: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfDescription;
 	createdAt: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfCreatedAt;

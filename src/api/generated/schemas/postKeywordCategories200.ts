@@ -17,6 +17,7 @@ export type PostKeywordCategories200 = {
 	nameEn: PostKeywordCategories200NameEn;
 	nameAr: PostKeywordCategories200NameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PostKeywordCategories200Description;
 	createdAt: PostKeywordCategories200CreatedAt;

@@ -9,6 +9,8 @@
 import type { PutKeywordsByIdBodyThreeMatchingType } from "./putKeywordsByIdBodyThreeMatchingType";
 import type { PutKeywordsByIdBodyThreeNameAr } from "./putKeywordsByIdBodyThreeNameAr";
 import type { PutKeywordsByIdBodyThreeNameEn } from "./putKeywordsByIdBodyThreeNameEn";
+import type { PutKeywordsByIdBodyThreeWordVfx } from "./putKeywordsByIdBodyThreeWordVfx";
+import type { PutKeywordsByIdBodyThreeWordVfxColor } from "./putKeywordsByIdBodyThreeWordVfxColor";
 
 export type PutKeywordsByIdBodyThree = {
 	baseUpdatedAt: string;
@@ -18,5 +20,8 @@ export type PutKeywordsByIdBodyThree = {
 	nameEn?: PutKeywordsByIdBodyThreeNameEn;
 	matchingType?: PutKeywordsByIdBodyThreeMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: PutKeywordsByIdBodyThreeWordVfx;
+	/** @nullable */
+	wordVfxColor?: PutKeywordsByIdBodyThreeWordVfxColor;
 	translationKeywordId?: string;
 };

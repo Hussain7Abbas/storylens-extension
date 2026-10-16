@@ -3,7 +3,6 @@ import {
 	Alert,
 	Button,
 	Group,
-	Select,
 	Stack,
 	Text,
 	Textarea,
@@ -17,9 +16,7 @@ import { useTranslation } from "react-i18next";
 import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { useRefreshContentScript } from "@/hooks/useRefreshContentScript";
-import { trackEvent } from "@/lib/analytics/client";
 import { useIsModerator } from "@/lib/auth";
-import { KEYWORD_EFFECTS, parseKeywordEffect } from "@/lib/keyword-effects";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import { lookupFormChanges } from "@/lib/offline/form-changes";
@@ -52,7 +49,6 @@ function CategoryFormContent({
 			nameEn: category?.nameEn || "",
 			nameAr: category?.nameAr || "",
 			color: category?.color || "#000000",
-			effect: parseKeywordEffect(category?.effect),
 			description: category?.description || "",
 		},
 		validate: {
@@ -77,9 +73,6 @@ function CategoryFormContent({
 			createMutation.mutate(payload, {
 				onSuccess: async () => {
 					await refreshContent();
-					trackEvent("category_effect_saved", {
-						effect: payload.effect ?? "NONE",
-					});
 					form.reset();
 					onClose();
 				},
@@ -88,10 +81,7 @@ function CategoryFormContent({
 		}
 
 		if (mode === "edit" && category?.id) {
-			const changes = lookupFormChanges(
-				{ ...category, effect: parseKeywordEffect(category.effect) },
-				payload,
-			);
+			const changes = lookupFormChanges(category, payload);
 			if (!changes) {
 				onClose();
 				return;
@@ -105,10 +95,6 @@ function CategoryFormContent({
 				{
 					onSuccess: async () => {
 						await refreshContent();
-						if (changes.changes.effect !== undefined)
-							trackEvent("category_effect_saved", {
-								effect: payload.effect ?? "NONE",
-							});
 						form.reset();
 						onClose();
 					},
@@ -171,16 +157,6 @@ function CategoryFormContent({
 							required
 						/>
 
-						<Select
-							label={t("settings.effect")}
-							description={t("settings.effectHint")}
-							data={KEYWORD_EFFECTS.map((value) => ({
-								value,
-								label: t(`settings.effects.${value}`),
-							}))}
-							allowDeselect={false}
-							{...form.getInputProps("effect")}
-						/>
 						<Textarea
 							label={t("settings.description")}
 							description={t("settings.descriptionHint")}

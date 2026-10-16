@@ -555,7 +555,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 }
 .storylens-keyword[data-storylens-effect="SPARKLES"]
 	.storylens-effect-particle {
-	background: currentColor;
+	background: var(--sl-word-vfx-color, currentColor);
 	width: var(--sl-effect-size);
 	height: var(--sl-effect-size);
 	inset-inline-start: var(--sl-effect-x);
@@ -611,7 +611,11 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 	width: 0.38em;
 	height: 0.75em;
 	border-radius: 50%;
-	background: radial-gradient(ellipse, currentColor 0%, transparent 70%);
+	background: radial-gradient(
+		ellipse,
+		var(--sl-word-vfx-color, currentColor) 0%,
+		transparent 70%
+	);
 	filter: blur(0.07em);
 	opacity: 0;
 	animation: storylens-category-smoke 1.25s ease-out var(--sl-effect-delay)

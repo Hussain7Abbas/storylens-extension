@@ -36,6 +36,8 @@ export type KeywordFormFields = {
 	nameEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx?: string;
+	wordVfxColor?: string | null;
 	categoryId: string;
 	natureId: string;
 	description?: string | null;
@@ -87,11 +89,15 @@ export function keywordFormChanges(
 				...names(initial),
 				matchingType: initial.matchingType,
 				fuzzyMatchArabicCharacters: initial.fuzzyMatchArabicCharacters,
+				wordVfx: initial.wordVfx ?? "NONE",
+				wordVfxColor: initial.wordVfxColor ?? null,
 			},
 			{
 				...names(values),
 				matchingType: values.matchingType,
 				fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
+				wordVfx: values.wordVfx,
+				wordVfxColor: values.wordVfxColor,
 			},
 		),
 		baseVersion: diff(
@@ -117,6 +123,8 @@ export type AliasFormFields = {
 	nameEn: string;
 	matchingType: "FULL" | "PARTIAL";
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx?: string;
+	wordVfxColor?: string | null;
 	overrideStyle: boolean;
 	categoryId: string | null;
 	natureId: string | null;
@@ -135,6 +143,8 @@ export function aliasFormChanges(
 		...names(fields),
 		matchingType: fields.matchingType,
 		fuzzyMatchArabicCharacters: fields.fuzzyMatchArabicCharacters,
+		wordVfx: fields.wordVfx,
+		wordVfxColor: fields.wordVfxColor,
 		overrideStyle: fields.overrideStyle,
 		categoryId: fields.categoryId || null,
 		natureId: fields.natureId || null,

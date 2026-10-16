@@ -17,6 +17,7 @@ export type GetSyncSnapshotLookups200CategoriesItem = {
 	nameEn: GetSyncSnapshotLookups200CategoriesItemNameEn;
 	nameAr: GetSyncSnapshotLookups200CategoriesItemNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetSyncSnapshotLookups200CategoriesItemDescription;
 	createdAt: GetSyncSnapshotLookups200CategoriesItemCreatedAt;

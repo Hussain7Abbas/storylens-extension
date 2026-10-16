@@ -105,13 +105,11 @@ const {
 	APPEARANCE_FONT_SIZE_KEY,
 	fontSizeAtom,
 	nightLightLevelAtom,
-	showCategoryEffectsAtom,
+	showWordVfxAtom,
 	tooltipTriggerAtom,
 } = await import("../../src/store/appearance");
 const { TOOLTIP_TRIGGER_KEY } = await import("../../src/lib/tooltip-trigger");
-const { SHOW_CATEGORY_EFFECTS_KEY } = await import(
-	"../../src/lib/keyword-effects"
-);
+const { SHOW_WORD_VFX_KEY } = await import("../../src/lib/keyword-effects");
 
 type Env = Awaited<ReturnType<typeof setupEngine>>;
 let env: Env;
@@ -1209,6 +1207,138 @@ describe("language tabs in a character form", () => {
 		});
 	});
 
+	for (const kind of ["keyword", "alias"] as const) {
+		for (const mode of ["add", "edit"] as const) {
+			it(`saves independent Word VFX from collapsed Advance on ${kind} ${mode}`, async () => {
+				const parent = env.api.seedKeyword(
+					env.novel.id,
+					{
+						nameEn: "Mira",
+						categoryId: env.category.id,
+						natureId: env.nature.id,
+						wordVfx: "HEAT",
+					},
+					env.user.id,
+				);
+				const alias = env.api.seedAlias(parent.id, {
+					nameEn: "The Sword",
+					wordVfx: "SHAKING",
+					createdById: env.user.id,
+				});
+				const view = await openKeywordForm(
+					kind === "keyword" ? "New character" : "New alias",
+					kind,
+					kind === "alias" || mode === "edit" ? parent.id : undefined,
+					mode === "edit"
+						? kind === "keyword"
+							? parent.id
+							: alias.id
+						: undefined,
+				);
+				if (kind === "keyword" && mode === "add") await chooseStyles(view);
+				const section = view.getByText("coloring.advance").closest("details");
+				expect(section?.open).toBe(false);
+				const input = view.getByLabelText("coloring.wordVfx", {
+					selector: "input",
+				}) as HTMLInputElement;
+				expect(section?.contains(input)).toBe(true);
+				expect(input.value).toBe(
+					mode === "add"
+						? "settings.effects.NONE"
+						: kind === "keyword"
+							? "settings.effects.HEAT"
+							: "settings.effects.SHAKING",
+				);
+				if (section) section.open = true;
+				fireEvent.click(input);
+				const options = await view.findAllByRole("option", { hidden: true });
+				expect(
+					options.filter((option) =>
+						option.textContent?.startsWith("settings.effects."),
+					),
+				).toHaveLength(5);
+				fireEvent.click(
+					view.getByRole("option", {
+						name: "settings.effects.SPARKLES",
+						hidden: true,
+					}),
+				);
+				const color = view.getByLabelText("coloring.wordVfxColor", {
+					selector: "input",
+				}) as HTMLInputElement;
+				expect(color.value).toBe("");
+				fireEvent.change(color, { target: { value: "#A1b2C3" } });
+				const form = view
+					.getByRole("button", { name: "_.save" })
+					.closest("form");
+				if (!form) throw new Error("form missing");
+				setOnline(false);
+				fireEvent.submit(form);
+				await waitFor(async () =>
+					expect(await env.db.mutations.count()).toBe(1),
+				);
+				const mutation = (await env.db.mutations.toArray())[0];
+				expect(mutation?.entity).toBe(
+					kind === "keyword" ? "keyword" : "keywordAlias",
+				);
+				expect(mutation?.patch.wordVfx).toBe("SPARKLES");
+				expect(mutation?.patch.wordVfxColor).toBe("#A1b2C3");
+			});
+		}
+	}
+
+	for (const kind of ["keyword", "alias"] as const) {
+		it(`clears a saved ${kind} VFX color back to inheritance`, async () => {
+			const parent = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Mira",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+					wordVfx: "SPARKLES",
+					wordVfxColor: "#123456",
+				},
+				env.user.id,
+			);
+			const alias = env.api.seedAlias(parent.id, {
+				nameEn: "The Sword",
+				wordVfx: "HEAT",
+				wordVfxColor: "#abcdef",
+				createdById: env.user.id,
+			});
+			const view = await openKeywordForm(
+				"",
+				kind,
+				parent.id,
+				kind === "keyword" ? parent.id : alias.id,
+			);
+			const section = view.getByText("coloring.advance").closest("details");
+			if (section) section.open = true;
+			const color = view.getByLabelText("coloring.wordVfxColor", {
+				selector: "input",
+			}) as HTMLInputElement;
+			expect(color.value).toBe(kind === "keyword" ? "#123456" : "#abcdef");
+			const form = view.getByRole("button", { name: "_.save" }).closest("form");
+			if (!form) throw new Error("form missing");
+			fireEvent.change(color, { target: { value: "invalid" } });
+			setOnline(false);
+			fireEvent.submit(form);
+			await waitFor(() =>
+				expect(view.getByText("settings.invalidColor")).toBeTruthy(),
+			);
+			expect(await env.db.mutations.count()).toBe(0);
+			fireEvent.click(
+				view.getByRole("button", { name: "coloring.inheritWordColor" }),
+			);
+			expect(color.value).toBe("");
+			fireEvent.submit(form);
+			await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+			expect((await env.db.mutations.toArray())[0]?.patch).toEqual({
+				wordVfxColor: null,
+			});
+		});
+	}
+
 	it("starts a hover image request once when the source becomes ready", async () => {
 		const previousUrl = window.location.href;
 		const runtime = fakeBrowser.runtime as { sendMessage: unknown };
@@ -1681,17 +1811,17 @@ describe("appearance settings", () => {
 		document.documentElement.removeAttribute("dir");
 	});
 
-	it("starts category effects off and persists the reader's switch choice", () => {
+	it("starts word VFX off and persists the reader's switch choice", () => {
 		const { view, store } = renderAppearanceTab();
 		const toggle = view.getByRole("switch", {
-			name: /^settings\.appearance\.showCategoryEffects/,
+			name: /^settings\.appearance\.showWordVfx/,
 		}) as HTMLInputElement;
 		expect(toggle.checked).toBe(false);
 		fireEvent.click(toggle);
-		expect(store.get(showCategoryEffectsAtom)).toBe(true);
-		expect(window.localStorage.getItem(SHOW_CATEGORY_EFFECTS_KEY)).toBe("true");
+		expect(store.get(showWordVfxAtom)).toBe(true);
+		expect(window.localStorage.getItem(SHOW_WORD_VFX_KEY)).toBe("true");
 		fireEvent.click(toggle);
-		expect(store.get(showCategoryEffectsAtom)).toBe(false);
+		expect(store.get(showWordVfxAtom)).toBe(false);
 	});
 
 	it("defaults to On click and saves the selected tooltip trigger", () => {
@@ -1724,17 +1854,17 @@ describe("appearance settings", () => {
 		expect(await load("tooltip-trigger-invalid")).toBe("click");
 	});
 
-	it("loads saved category effects before mirroring and rejects non-boolean values", async () => {
+	it("loads saved word VFX before mirroring and rejects non-boolean values", async () => {
 		const load = async (suffix: string) => {
 			const path = `../../src/store/appearance.ts?${suffix}`;
-			const { showCategoryEffectsAtom: atom } = (await import(
+			const { showWordVfxAtom: atom } = (await import(
 				path
 			)) as typeof import("../../src/store/appearance");
 			return createStore().get(atom);
 		};
-		window.localStorage.setItem(SHOW_CATEGORY_EFFECTS_KEY, "true");
+		window.localStorage.setItem(SHOW_WORD_VFX_KEY, "true");
 		expect(await load("category-effects-saved")).toBe(true);
-		window.localStorage.setItem(SHOW_CATEGORY_EFFECTS_KEY, '"true"');
+		window.localStorage.setItem(SHOW_WORD_VFX_KEY, '"true"');
 		expect(await load("category-effects-invalid")).toBe(false);
 	});
 
@@ -2587,11 +2717,10 @@ describe("parallel selection suggestions and images", () => {
 	});
 });
 
-describe("category effect form", () => {
-	it("offers five effects and saves the chosen decoration through the outbox", async () => {
+describe("category form", () => {
+	it("does not offer category-wide effects", async () => {
 		env = await setupEngine({ moderator: true });
 		store.set(authStateAtom, { user: env.user, token: "token-reader-1" });
-		await pullLookups({ db: env.db, token: "token-reader-1" });
 		const { CategoryForm } = await import(
 			"../../src/entrypoints/popup.settings/category-form"
 		);
@@ -2603,37 +2732,8 @@ describe("category effect form", () => {
 			),
 			{ wrapper },
 		);
-		const effect = view.getByLabelText("settings.effect", {
-			selector: "input",
-		}) as HTMLInputElement;
-		expect(effect.value).toBe("settings.effects.NONE");
-		fireEvent.click(effect);
-		const options = await view.findAllByRole("option", { hidden: true });
-		expect(options.map((option) => option.textContent)).toEqual([
-			"settings.effects.NONE",
-			"settings.effects.SPARKLES",
-			"settings.effects.HEAT",
-			"settings.effects.SHAKING",
-			"settings.effects.GLITCHING",
-		]);
-		fireEvent.click(
-			view.getByRole("option", {
-				name: "settings.effects.SPARKLES",
-				hidden: true,
-			}),
-		);
-		fireEvent.change(
-			view.getByLabelText(/settings.nameEn/, { selector: "input" }),
-			{ target: { value: "Magic" } },
-		);
-		const form = view.getByRole("button", { name: "_.save" }).closest("form");
-		if (!form) throw new Error("category form missing");
-		setOnline(false);
-		fireEvent.submit(form);
-		await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
-		expect((await env.db.mutations.toArray())[0]?.patch.effect).toBe(
-			"SPARKLES",
-		);
+		expect(view.queryByLabelText("settings.effect")).toBeNull();
+		expect(view.queryByLabelText("coloring.wordVfx")).toBeNull();
 	});
 });
 

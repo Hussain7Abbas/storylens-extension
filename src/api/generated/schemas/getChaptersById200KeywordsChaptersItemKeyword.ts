@@ -12,6 +12,8 @@ import type { GetChaptersById200KeywordsChaptersItemKeywordMatchingType } from "
 import type { GetChaptersById200KeywordsChaptersItemKeywordNameAr } from "./getChaptersById200KeywordsChaptersItemKeywordNameAr";
 import type { GetChaptersById200KeywordsChaptersItemKeywordNameEn } from "./getChaptersById200KeywordsChaptersItemKeywordNameEn";
 import type { GetChaptersById200KeywordsChaptersItemKeywordUpdatedAt } from "./getChaptersById200KeywordsChaptersItemKeywordUpdatedAt";
+import type { GetChaptersById200KeywordsChaptersItemKeywordWordVfx } from "./getChaptersById200KeywordsChaptersItemKeywordWordVfx";
+import type { GetChaptersById200KeywordsChaptersItemKeywordWordVfxColor } from "./getChaptersById200KeywordsChaptersItemKeywordWordVfxColor";
 
 export type GetChaptersById200KeywordsChaptersItemKeyword = {
 	id: string;
@@ -19,6 +21,8 @@ export type GetChaptersById200KeywordsChaptersItemKeyword = {
 	nameEn: GetChaptersById200KeywordsChaptersItemKeywordNameEn;
 	matchingType: GetChaptersById200KeywordsChaptersItemKeywordMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: GetChaptersById200KeywordsChaptersItemKeywordWordVfx;
+	wordVfxColor: GetChaptersById200KeywordsChaptersItemKeywordWordVfxColor;
 	novelId: string;
 	createdById: GetChaptersById200KeywordsChaptersItemKeywordCreatedById;
 	createdAt: GetChaptersById200KeywordsChaptersItemKeywordCreatedAt;

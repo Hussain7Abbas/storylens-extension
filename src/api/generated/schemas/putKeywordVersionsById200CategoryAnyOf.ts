@@ -17,6 +17,7 @@ export type PutKeywordVersionsById200CategoryAnyOf = {
 	nameEn: PutKeywordVersionsById200CategoryAnyOfNameEn;
 	nameAr: PutKeywordVersionsById200CategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PutKeywordVersionsById200CategoryAnyOfDescription;
 	createdAt: PutKeywordVersionsById200CategoryAnyOfCreatedAt;

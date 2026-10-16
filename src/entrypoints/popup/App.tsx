@@ -24,7 +24,7 @@ import { Navbar } from "@/components/navbar";
 import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { EXTRACTION_VIEW } from "@/lib/desktop-client/chapter-extraction";
-import { SHOW_CATEGORY_EFFECTS_KEY } from "@/lib/keyword-effects";
+import { SHOW_WORD_VFX_KEY } from "@/lib/keyword-effects";
 import { NIGHT_LIGHT_LEVEL_KEY } from "@/lib/night-light";
 import { isOfflineUnavailable, openOfflineDb } from "@/lib/offline/db";
 import { useOfflineInvalidation } from "@/lib/offline/hooks";
@@ -36,7 +36,7 @@ import {
 	fontFaceAtom,
 	fontSizeAtom,
 	nightLightLevelAtom,
-	showCategoryEffectsAtom,
+	showWordVfxAtom,
 	tooltipTriggerAtom,
 } from "@/store/appearance";
 import { localeAtom } from "@/store/locale";
@@ -133,7 +133,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const fontSize = useAtomValue(fontSizeAtom);
 	const tooltipTrigger = useAtomValue(tooltipTriggerAtom);
 	const nightLightLevel = useAtomValue(nightLightLevelAtom);
-	const showCategoryEffects = useAtomValue(showCategoryEffectsAtom);
+	const showWordVfx = useAtomValue(showWordVfxAtom);
 
 	// One client for the popup's lifetime: locale and font changes re-render App
 	// and must keep the cache and running mutations.
@@ -160,9 +160,9 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 
 	useEffect(() => {
 		void browser.storage.local.set({
-			[SHOW_CATEGORY_EFFECTS_KEY]: showCategoryEffects,
+			[SHOW_WORD_VFX_KEY]: showWordVfx,
 		});
-	}, [showCategoryEffects]);
+	}, [showWordVfx]);
 
 	useEffect(() => {
 		void browser.storage.local.set({

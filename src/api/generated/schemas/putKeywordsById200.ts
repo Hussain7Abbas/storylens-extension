@@ -14,6 +14,8 @@ import type { PutKeywordsById200NameAr } from "./putKeywordsById200NameAr";
 import type { PutKeywordsById200NameEn } from "./putKeywordsById200NameEn";
 import type { PutKeywordsById200UpdatedAt } from "./putKeywordsById200UpdatedAt";
 import type { PutKeywordsById200VersionsItem } from "./putKeywordsById200VersionsItem";
+import type { PutKeywordsById200WordVfx } from "./putKeywordsById200WordVfx";
+import type { PutKeywordsById200WordVfxColor } from "./putKeywordsById200WordVfxColor";
 
 export type PutKeywordsById200 = {
 	id: string;
@@ -21,6 +23,8 @@ export type PutKeywordsById200 = {
 	nameEn: PutKeywordsById200NameEn;
 	matchingType: PutKeywordsById200MatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PutKeywordsById200WordVfx;
+	wordVfxColor: PutKeywordsById200WordVfxColor;
 	novelId: string;
 	createdById: PutKeywordsById200CreatedById;
 	createdAt: PutKeywordsById200CreatedAt;

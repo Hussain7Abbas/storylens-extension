@@ -12,6 +12,8 @@ import type { PostKeywordsChapters200KeywordMatchingType } from "./postKeywordsC
 import type { PostKeywordsChapters200KeywordNameAr } from "./postKeywordsChapters200KeywordNameAr";
 import type { PostKeywordsChapters200KeywordNameEn } from "./postKeywordsChapters200KeywordNameEn";
 import type { PostKeywordsChapters200KeywordUpdatedAt } from "./postKeywordsChapters200KeywordUpdatedAt";
+import type { PostKeywordsChapters200KeywordWordVfx } from "./postKeywordsChapters200KeywordWordVfx";
+import type { PostKeywordsChapters200KeywordWordVfxColor } from "./postKeywordsChapters200KeywordWordVfxColor";
 
 export type PostKeywordsChapters200Keyword = {
 	id: string;
@@ -19,6 +21,8 @@ export type PostKeywordsChapters200Keyword = {
 	nameEn: PostKeywordsChapters200KeywordNameEn;
 	matchingType: PostKeywordsChapters200KeywordMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: PostKeywordsChapters200KeywordWordVfx;
+	wordVfxColor: PostKeywordsChapters200KeywordWordVfxColor;
 	novelId: string;
 	createdById: PostKeywordsChapters200KeywordCreatedById;
 	createdAt: PostKeywordsChapters200KeywordCreatedAt;

@@ -17,6 +17,7 @@ export type PostKeywordAliases200CategoryAnyOf = {
 	nameEn: PostKeywordAliases200CategoryAnyOfNameEn;
 	nameAr: PostKeywordAliases200CategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PostKeywordAliases200CategoryAnyOfDescription;
 	createdAt: PostKeywordAliases200CategoryAnyOfCreatedAt;

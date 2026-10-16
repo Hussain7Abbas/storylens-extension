@@ -17,6 +17,7 @@ export type PutKeywordAliasesById409CurrentCategoryAnyOf = {
 	nameEn: PutKeywordAliasesById409CurrentCategoryAnyOfNameEn;
 	nameAr: PutKeywordAliasesById409CurrentCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: PutKeywordAliasesById409CurrentCategoryAnyOfDescription;
 	createdAt: PutKeywordAliasesById409CurrentCategoryAnyOfCreatedAt;

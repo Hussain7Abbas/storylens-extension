@@ -3,6 +3,7 @@ import type {
 	GetKeywords200DataItemAliasesItem,
 	GetKeywords200DataItemVersionsItem,
 } from "@/api/generated/schemas";
+import { parseKeywordEffect, parseWordVfxColor } from "@/lib/keyword-effects";
 import type {
 	EnrichedCategory,
 	EnrichedKeyword,
@@ -172,6 +173,8 @@ export function enrichKeywords(
 			description: kwStyle.description,
 			matchingType: kw.matchingType,
 			fuzzyMatchArabicCharacters: kw.fuzzyMatchArabicCharacters ?? true,
+			wordVfx: parseKeywordEffect(kw.wordVfx),
+			wordVfxColor: parseWordVfxColor(kw.wordVfxColor),
 			categoryId: kwStyle.category.id,
 			natureId: kwStyle.nature.id,
 			imageId: kwStyle.imageId,
@@ -203,6 +206,8 @@ export function enrichKeywords(
 					description: aliasStyle.description,
 					matchingType: alias.matchingType,
 					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
+					wordVfx: parseKeywordEffect(alias.wordVfx),
+					wordVfxColor: parseWordVfxColor(alias.wordVfxColor),
 					categoryId: aliasStyle.category.id,
 					natureId: aliasStyle.nature.id,
 					imageId: aliasStyle.imageId,

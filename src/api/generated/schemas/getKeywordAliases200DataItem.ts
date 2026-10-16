@@ -21,6 +21,8 @@ import type { GetKeywordAliases200DataItemNameEn } from "./getKeywordAliases200D
 import type { GetKeywordAliases200DataItemNature } from "./getKeywordAliases200DataItemNature";
 import type { GetKeywordAliases200DataItemNatureId } from "./getKeywordAliases200DataItemNatureId";
 import type { GetKeywordAliases200DataItemUpdatedAt } from "./getKeywordAliases200DataItemUpdatedAt";
+import type { GetKeywordAliases200DataItemWordVfx } from "./getKeywordAliases200DataItemWordVfx";
+import type { GetKeywordAliases200DataItemWordVfxColor } from "./getKeywordAliases200DataItemWordVfxColor";
 
 export type GetKeywordAliases200DataItem = {
 	id: string;
@@ -31,6 +33,8 @@ export type GetKeywordAliases200DataItem = {
 	descriptionEn: GetKeywordAliases200DataItemDescriptionEn;
 	matchingType: GetKeywordAliases200DataItemMatchingType;
 	fuzzyMatchArabicCharacters: boolean;
+	wordVfx: GetKeywordAliases200DataItemWordVfx;
+	wordVfxColor: GetKeywordAliases200DataItemWordVfxColor;
 	overrideStyle: boolean;
 	categoryId: GetKeywordAliases200DataItemCategoryId;
 	natureId: GetKeywordAliases200DataItemNatureId;

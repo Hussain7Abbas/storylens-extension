@@ -17,6 +17,7 @@ export type GetKeywords200DataItemVersionsItemCategoryAnyOf = {
 	nameEn: GetKeywords200DataItemVersionsItemCategoryAnyOfNameEn;
 	nameAr: GetKeywords200DataItemVersionsItemCategoryAnyOfNameAr;
 	color: string;
+	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
 	description: GetKeywords200DataItemVersionsItemCategoryAnyOfDescription;
 	createdAt: GetKeywords200DataItemVersionsItemCategoryAnyOfCreatedAt;

@@ -15,6 +15,8 @@ import type { PutKeywordAliasesByIdBodyTwoMatchingType } from "./putKeywordAlias
 import type { PutKeywordAliasesByIdBodyTwoNameAr } from "./putKeywordAliasesByIdBodyTwoNameAr";
 import type { PutKeywordAliasesByIdBodyTwoNameEn } from "./putKeywordAliasesByIdBodyTwoNameEn";
 import type { PutKeywordAliasesByIdBodyTwoNatureId } from "./putKeywordAliasesByIdBodyTwoNatureId";
+import type { PutKeywordAliasesByIdBodyTwoWordVfx } from "./putKeywordAliasesByIdBodyTwoWordVfx";
+import type { PutKeywordAliasesByIdBodyTwoWordVfxColor } from "./putKeywordAliasesByIdBodyTwoWordVfxColor";
 
 export type PutKeywordAliasesByIdBodyTwo = {
 	baseUpdatedAt: string;
@@ -30,6 +32,9 @@ export type PutKeywordAliasesByIdBodyTwo = {
 	descriptionEn?: PutKeywordAliasesByIdBodyTwoDescriptionEn;
 	matchingType?: PutKeywordAliasesByIdBodyTwoMatchingType;
 	fuzzyMatchArabicCharacters?: boolean;
+	wordVfx?: PutKeywordAliasesByIdBodyTwoWordVfx;
+	/** @nullable */
+	wordVfxColor?: PutKeywordAliasesByIdBodyTwoWordVfxColor;
 	/** @nullable */
 	categoryId?: PutKeywordAliasesByIdBodyTwoCategoryId;
 	/** @nullable */
