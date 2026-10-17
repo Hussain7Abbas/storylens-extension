@@ -11,6 +11,8 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfD
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameAr } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameAr";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameEn } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameEn";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfUpdatedAt } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfUpdatedAt";
+import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfWordVfx } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfWordVfx";
+import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfWordVfxColor } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfWordVfxColor";
 
 export type GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOf =
 	{
@@ -18,8 +20,11 @@ export type GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOf =
 		nameEn: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameEn;
 		nameAr: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfNameAr;
 		color: string;
-		/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+		/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 		effect: string;
+		wordVfx: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfWordVfx;
+		wordVfxColor: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfWordVfxColor;
+		switchPositionWithNature: boolean;
 		description: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfDescription;
 		createdAt: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfCreatedAt;
 		updatedAt: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryAnyOfUpdatedAt;

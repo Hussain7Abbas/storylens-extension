@@ -14,6 +14,10 @@ import { LevelSlider } from "@/components/level-slider";
 import { trackEvent } from "@/lib/analytics/client";
 import { FONT_SIZE_MAX, FONT_SIZE_MIN } from "@/lib/font-size";
 import {
+	NATURE_CIRCLE_SIZE_MAX,
+	NATURE_CIRCLE_SIZE_MIN,
+} from "@/lib/nature-circle-size";
+import {
 	NIGHT_LIGHT_MAX_LEVEL,
 	NIGHT_LIGHT_MIN_LEVEL,
 	parseNightLightLevel,
@@ -24,6 +28,7 @@ import {
 	type FontFace,
 	fontFaceAtom,
 	fontSizeAtom,
+	natureCircleSizeAtom,
 	nightLightLevelAtom,
 	showWordVfxAtom,
 	tooltipTriggerAtom,
@@ -34,6 +39,7 @@ export function AppearanceTab() {
 	const { t } = useTranslation();
 	const [fontFace, setFontFace] = useAtom(fontFaceAtom);
 	const [fontSize, setFontSize] = useAtom(fontSizeAtom);
+	const [natureCircleSize, setNatureCircleSize] = useAtom(natureCircleSizeAtom);
 	const [tooltipTrigger, setTooltipTrigger] = useAtom(tooltipTriggerAtom);
 	const [nightLightLevel, setNightLightLevel] = useAtom(nightLightLevelAtom);
 	const [showWordVfx, setShowWordVfx] = useAtom(showWordVfxAtom);
@@ -74,6 +80,16 @@ export function AppearanceTab() {
 					}}
 				/>
 			</Input.Wrapper>
+
+			<LevelSlider
+				label={t("settings.appearance.natureCircleSize")}
+				direction={direction}
+				min={NATURE_CIRCLE_SIZE_MIN}
+				max={NATURE_CIRCLE_SIZE_MAX}
+				value={natureCircleSize}
+				onChange={setNatureCircleSize}
+				suffix="px"
+			/>
 
 			<Switch
 				role="switch"

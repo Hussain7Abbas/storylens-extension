@@ -9,6 +9,7 @@
 import type { GetKeywords200DataItemAliasesItem } from "./getKeywords200DataItemAliasesItem";
 import type { GetKeywords200DataItemCreatedAt } from "./getKeywords200DataItemCreatedAt";
 import type { GetKeywords200DataItemCreatedById } from "./getKeywords200DataItemCreatedById";
+import type { GetKeywords200DataItemMainThemeColor } from "./getKeywords200DataItemMainThemeColor";
 import type { GetKeywords200DataItemMatchingType } from "./getKeywords200DataItemMatchingType";
 import type { GetKeywords200DataItemNameAr } from "./getKeywords200DataItemNameAr";
 import type { GetKeywords200DataItemNameEn } from "./getKeywords200DataItemNameEn";
@@ -25,6 +26,7 @@ export type GetKeywords200DataItem = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetKeywords200DataItemWordVfx;
 	wordVfxColor: GetKeywords200DataItemWordVfxColor;
+	mainThemeColor: GetKeywords200DataItemMainThemeColor;
 	novelId: string;
 	createdById: GetKeywords200DataItemCreatedById;
 	createdAt: GetKeywords200DataItemCreatedAt;

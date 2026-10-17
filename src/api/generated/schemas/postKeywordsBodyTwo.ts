@@ -11,6 +11,7 @@ import type { PostKeywordsBodyTwoDescriptionAr } from "./postKeywordsBodyTwoDesc
 import type { PostKeywordsBodyTwoDescriptionEn } from "./postKeywordsBodyTwoDescriptionEn";
 import type { PostKeywordsBodyTwoEndingChapter } from "./postKeywordsBodyTwoEndingChapter";
 import type { PostKeywordsBodyTwoImageId } from "./postKeywordsBodyTwoImageId";
+import type { PostKeywordsBodyTwoMainThemeColor } from "./postKeywordsBodyTwoMainThemeColor";
 import type { PostKeywordsBodyTwoMatchingType } from "./postKeywordsBodyTwoMatchingType";
 import type { PostKeywordsBodyTwoNameAr } from "./postKeywordsBodyTwoNameAr";
 import type { PostKeywordsBodyTwoNameEn } from "./postKeywordsBodyTwoNameEn";
@@ -43,6 +44,8 @@ export type PostKeywordsBodyTwo = {
 	wordVfx?: PostKeywordsBodyTwoWordVfx;
 	/** @nullable */
 	wordVfxColor?: PostKeywordsBodyTwoWordVfxColor;
+	/** @nullable */
+	mainThemeColor?: PostKeywordsBodyTwoMainThemeColor;
 	novelId: string;
 	categoryId: string;
 	natureId: string;

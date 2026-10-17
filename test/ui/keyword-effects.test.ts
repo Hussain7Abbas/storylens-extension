@@ -129,3 +129,54 @@ test("disabling VFX cleans up observers and pending scroll resumption", async ()
 		document.documentElement.hasAttribute("data-storylens-vfx-paused"),
 	).toBe(false);
 });
+
+for (const [text, dir] of [
+	["Silver Blade", "ltr"],
+	["١٢ سيف الدين", "rtl"],
+] as const) {
+	test(`Glare follows ${dir} words, preserves text and obeys visibility tracking`, () => {
+		const anchor = document.createElement("span");
+		anchor.className = "storylens-keyword storylens-keyword-tooltip";
+		anchor.dir = dir === "ltr" ? "rtl" : "ltr";
+		const original = document.createTextNode(text);
+		anchor.append(original);
+		document.body.append(anchor);
+		applyKeywordEffect(anchor, "GLARE");
+		const beam = anchor.querySelector<HTMLElement>(".storylens-effect-glare");
+		expect(beam?.dir).toBe(dir);
+		expect(beam?.getAttribute("aria-hidden")).toBe("true");
+		expect(beam?.textContent).toBe("");
+		expect(anchor.firstChild).toBe(original);
+		expect(anchor.textContent).toBe(text);
+		expect(anchor.hasAttribute("data-storylens-effect-active")).toBe(false);
+		observers[0]?.intersect(anchor, true);
+		expect(anchor.hasAttribute("data-storylens-effect-active")).toBe(true);
+		expect(
+			document.getElementById("storylens-keyword-effect-filters"),
+		).toBeNull();
+		setWordVfxVisible(false);
+		expect(anchor.querySelector(".storylens-effect-glare")).toBeNull();
+		expect(anchor.textContent).toBe(text);
+		setWordVfxVisible(true);
+		expect(
+			anchor.querySelector(".storylens-effect-glare")?.getAttribute("dir"),
+		).toBe(dir);
+		applyKeywordEffect(anchor, "NONE");
+		expect(anchor.querySelector(".storylens-effect-glare")).toBeNull();
+	});
+}
+
+test("Heat and Glitch SVG timelines run at half their original speed", () => {
+	word("HEAT");
+	word("GLITCHING");
+	expect(
+		document
+			.querySelector("#storylens-keyword-heat-filter animate")
+			?.getAttribute("dur"),
+	).toBe("2.3s");
+	expect(
+		document
+			.querySelector("#storylens-keyword-glitch-filter animate")
+			?.getAttribute("dur"),
+	).toBe("3.2s");
+});

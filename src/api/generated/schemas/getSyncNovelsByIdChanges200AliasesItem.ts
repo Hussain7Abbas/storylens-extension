@@ -15,6 +15,7 @@ import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionAr } from "./getS
 import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionEn } from "./getSyncNovelsByIdChanges200AliasesItemDescriptionEn";
 import type { GetSyncNovelsByIdChanges200AliasesItemImage } from "./getSyncNovelsByIdChanges200AliasesItemImage";
 import type { GetSyncNovelsByIdChanges200AliasesItemImageId } from "./getSyncNovelsByIdChanges200AliasesItemImageId";
+import type { GetSyncNovelsByIdChanges200AliasesItemMainThemeColor } from "./getSyncNovelsByIdChanges200AliasesItemMainThemeColor";
 import type { GetSyncNovelsByIdChanges200AliasesItemMatchingType } from "./getSyncNovelsByIdChanges200AliasesItemMatchingType";
 import type { GetSyncNovelsByIdChanges200AliasesItemNameAr } from "./getSyncNovelsByIdChanges200AliasesItemNameAr";
 import type { GetSyncNovelsByIdChanges200AliasesItemNameEn } from "./getSyncNovelsByIdChanges200AliasesItemNameEn";
@@ -35,6 +36,7 @@ export type GetSyncNovelsByIdChanges200AliasesItem = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetSyncNovelsByIdChanges200AliasesItemWordVfx;
 	wordVfxColor: GetSyncNovelsByIdChanges200AliasesItemWordVfxColor;
+	mainThemeColor: GetSyncNovelsByIdChanges200AliasesItemMainThemeColor;
 	overrideStyle: boolean;
 	categoryId: GetSyncNovelsByIdChanges200AliasesItemCategoryId;
 	natureId: GetSyncNovelsByIdChanges200AliasesItemNatureId;

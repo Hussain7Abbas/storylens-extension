@@ -12,14 +12,19 @@ import type { GetKeywordCategoriesById200Description } from "./getKeywordCategor
 import type { GetKeywordCategoriesById200NameAr } from "./getKeywordCategoriesById200NameAr";
 import type { GetKeywordCategoriesById200NameEn } from "./getKeywordCategoriesById200NameEn";
 import type { GetKeywordCategoriesById200UpdatedAt } from "./getKeywordCategoriesById200UpdatedAt";
+import type { GetKeywordCategoriesById200WordVfx } from "./getKeywordCategoriesById200WordVfx";
+import type { GetKeywordCategoriesById200WordVfxColor } from "./getKeywordCategoriesById200WordVfxColor";
 
 export type GetKeywordCategoriesById200 = {
 	id: string;
 	nameEn: GetKeywordCategoriesById200NameEn;
 	nameAr: GetKeywordCategoriesById200NameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: GetKeywordCategoriesById200WordVfx;
+	wordVfxColor: GetKeywordCategoriesById200WordVfxColor;
+	switchPositionWithNature: boolean;
 	description: GetKeywordCategoriesById200Description;
 	createdAt: GetKeywordCategoriesById200CreatedAt;
 	updatedAt: GetKeywordCategoriesById200UpdatedAt;

@@ -11,6 +11,7 @@ import type { PutKeywordAliasesByIdBodyOneDescription } from "./putKeywordAliase
 import type { PutKeywordAliasesByIdBodyOneDescriptionAr } from "./putKeywordAliasesByIdBodyOneDescriptionAr";
 import type { PutKeywordAliasesByIdBodyOneDescriptionEn } from "./putKeywordAliasesByIdBodyOneDescriptionEn";
 import type { PutKeywordAliasesByIdBodyOneImageId } from "./putKeywordAliasesByIdBodyOneImageId";
+import type { PutKeywordAliasesByIdBodyOneMainThemeColor } from "./putKeywordAliasesByIdBodyOneMainThemeColor";
 import type { PutKeywordAliasesByIdBodyOneMatchingType } from "./putKeywordAliasesByIdBodyOneMatchingType";
 import type { PutKeywordAliasesByIdBodyOneNameAr } from "./putKeywordAliasesByIdBodyOneNameAr";
 import type { PutKeywordAliasesByIdBodyOneNameEn } from "./putKeywordAliasesByIdBodyOneNameEn";
@@ -35,6 +36,8 @@ export type PutKeywordAliasesByIdBodyOne = {
 	wordVfx?: PutKeywordAliasesByIdBodyOneWordVfx;
 	/** @nullable */
 	wordVfxColor?: PutKeywordAliasesByIdBodyOneWordVfxColor;
+	/** @nullable */
+	mainThemeColor?: PutKeywordAliasesByIdBodyOneMainThemeColor;
 	/** @nullable */
 	categoryId?: PutKeywordAliasesByIdBodyOneCategoryId;
 	/** @nullable */

@@ -11,14 +11,19 @@ import type { PutKeywordCategoriesById200Description } from "./putKeywordCategor
 import type { PutKeywordCategoriesById200NameAr } from "./putKeywordCategoriesById200NameAr";
 import type { PutKeywordCategoriesById200NameEn } from "./putKeywordCategoriesById200NameEn";
 import type { PutKeywordCategoriesById200UpdatedAt } from "./putKeywordCategoriesById200UpdatedAt";
+import type { PutKeywordCategoriesById200WordVfx } from "./putKeywordCategoriesById200WordVfx";
+import type { PutKeywordCategoriesById200WordVfxColor } from "./putKeywordCategoriesById200WordVfxColor";
 
 export type PutKeywordCategoriesById200 = {
 	id: string;
 	nameEn: PutKeywordCategoriesById200NameEn;
 	nameAr: PutKeywordCategoriesById200NameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PutKeywordCategoriesById200WordVfx;
+	wordVfxColor: PutKeywordCategoriesById200WordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PutKeywordCategoriesById200Description;
 	createdAt: PutKeywordCategoriesById200CreatedAt;
 	updatedAt: PutKeywordCategoriesById200UpdatedAt;

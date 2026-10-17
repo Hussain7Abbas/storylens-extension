@@ -227,7 +227,17 @@ export async function send(
 					updateBody(mutation) as PutKeywordCategoriesByIdBodyOne,
 					options,
 				),
-			delete: () => deleteKeywordCategoriesById(id, options),
+			delete: () =>
+				deleteKeywordCategoriesById(
+					id,
+					{
+						replacementId:
+							typeof mutation.patch.replacementId === "string"
+								? mutation.patch.replacementId
+								: undefined,
+					},
+					options,
+				),
 		},
 		keywordNature: {
 			create: () =>
@@ -241,7 +251,17 @@ export async function send(
 					updateBody(mutation) as PutKeywordNaturesByIdBodyOne,
 					options,
 				),
-			delete: () => deleteKeywordNaturesById(id, options),
+			delete: () =>
+				deleteKeywordNaturesById(
+					id,
+					{
+						replacementId:
+							typeof mutation.patch.replacementId === "string"
+								? mutation.patch.replacementId
+								: undefined,
+					},
+					options,
+				),
 		},
 		file: {
 			create: () => upload(mutation, options, db),

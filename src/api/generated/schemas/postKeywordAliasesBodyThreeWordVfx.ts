@@ -16,4 +16,5 @@ export const PostKeywordAliasesBodyThreeWordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

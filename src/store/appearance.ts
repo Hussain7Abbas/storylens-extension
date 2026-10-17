@@ -1,10 +1,12 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { FONT_SIZE_DEFAULT, parseFontSize } from "@/lib/font-size";
+import { parseShowWordVfx, SHOW_WORD_VFX_KEY } from "@/lib/keyword-effects";
 import {
-	parseShowWordVfx,
-	SHOW_WORD_VFX_KEY,
-} from "@/lib/keyword-effects";
+	NATURE_CIRCLE_SIZE_DEFAULT,
+	NATURE_CIRCLE_SIZE_KEY,
+	parseNatureCircleSize,
+} from "@/lib/nature-circle-size";
 import {
 	NIGHT_LIGHT_DEFAULT_LEVEL,
 	NIGHT_LIGHT_LEVEL_KEY,
@@ -77,4 +79,16 @@ export const nightLightLevelAtom = atomWithStorage<number>(
 	NIGHT_LIGHT_DEFAULT_LEVEL,
 	undefined,
 	{ getOnInit: true },
+);
+
+const storedNatureCircleSizeAtom = atomWithStorage<number>(
+	NATURE_CIRCLE_SIZE_KEY,
+	NATURE_CIRCLE_SIZE_DEFAULT,
+	undefined,
+	{ getOnInit: true },
+);
+export const natureCircleSizeAtom = atom(
+	(get) => parseNatureCircleSize(get(storedNatureCircleSizeAtom)),
+	(_get, set, size: number) =>
+		set(storedNatureCircleSizeAtom, parseNatureCircleSize(size)),
 );

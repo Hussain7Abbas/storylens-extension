@@ -11,14 +11,19 @@ import type { GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfDescription } 
 import type { GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameAr } from "./getSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameAr";
 import type { GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameEn } from "./getSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameEn";
 import type { GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfUpdatedAt } from "./getSyncNovelsByIdChanges200VersionsItemCategoryAnyOfUpdatedAt";
+import type { GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfWordVfx } from "./getSyncNovelsByIdChanges200VersionsItemCategoryAnyOfWordVfx";
+import type { GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfWordVfxColor } from "./getSyncNovelsByIdChanges200VersionsItemCategoryAnyOfWordVfxColor";
 
 export type GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOf = {
 	id: string;
 	nameEn: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameEn;
 	nameAr: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfWordVfx;
+	wordVfxColor: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfDescription;
 	createdAt: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: GetSyncNovelsByIdChanges200VersionsItemCategoryAnyOfUpdatedAt;

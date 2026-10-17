@@ -217,7 +217,11 @@ function useLookupMutations(entity: "keywordCategory" | "keywordNature") {
 		false,
 	);
 	const deleteMutation = useEnqueue(
-		(id: string) => ({ entity, op: "delete", id }),
+		(input: string | { id: string; replacementId?: string }) => ({
+			entity,
+			op: "delete",
+			...(typeof input === "string" ? { id: input } : input),
+		}),
 		false,
 		true,
 	);

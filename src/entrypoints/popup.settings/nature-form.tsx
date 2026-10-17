@@ -25,6 +25,7 @@ import {
 	useOfflineNatureMutations,
 } from "@/lib/offline/hooks";
 import type { KeywordNature } from "@/types/models";
+import { LookupDeleteDialog } from "./lookup-delete-dialog";
 import { PersonalColorEditor } from "./personal-color-editor";
 
 export type NatureFormModesType = "add" | "edit" | undefined;
@@ -44,6 +45,7 @@ function NatureFormContent({
 	const { t } = useTranslation();
 	const isModerator = useIsModerator();
 	const [personalDirty, setPersonalDirty] = useState(false);
+	const [deleting, setDeleting] = useState(false);
 	const form = useForm<NatureFormValues>({
 		initialValues: {
 			nameEn: nature?.nameEn || "",
@@ -96,19 +98,6 @@ function NatureFormContent({
 					},
 				},
 			);
-		}
-	};
-
-	const handleDelete = () => {
-		if (!isModerator) return;
-		if (nature?.id) {
-			deleteMutation.mutate(nature.id, {
-				onSuccess: async () => {
-					await refreshContent();
-					form.reset();
-					onClose();
-				},
-			});
 		}
 	};
 
@@ -180,7 +169,7 @@ function NatureFormContent({
 										variant="transparent"
 										color="red"
 										size="lg"
-										onClick={handleDelete}
+										onClick={() => setDeleting(true)}
 									>
 										<IconTrash />
 									</ActionIcon>
@@ -203,6 +192,19 @@ function NatureFormContent({
 						</Group>
 					</Stack>
 				</form>
+			)}
+			{deleting && nature && (
+				<LookupDeleteDialog
+					kind="nature"
+					id={nature.id}
+					onClose={() => setDeleting(false)}
+					onDeleted={async () => {
+						setDeleting(false);
+						await refreshContent();
+						form.reset();
+						onClose();
+					}}
+				/>
 			)}
 		</Stack>
 	);

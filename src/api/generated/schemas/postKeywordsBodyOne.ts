@@ -11,6 +11,7 @@ import type { PostKeywordsBodyOneDescriptionAr } from "./postKeywordsBodyOneDesc
 import type { PostKeywordsBodyOneDescriptionEn } from "./postKeywordsBodyOneDescriptionEn";
 import type { PostKeywordsBodyOneEndingChapter } from "./postKeywordsBodyOneEndingChapter";
 import type { PostKeywordsBodyOneImageId } from "./postKeywordsBodyOneImageId";
+import type { PostKeywordsBodyOneMainThemeColor } from "./postKeywordsBodyOneMainThemeColor";
 import type { PostKeywordsBodyOneMatchingType } from "./postKeywordsBodyOneMatchingType";
 import type { PostKeywordsBodyOneNameAr } from "./postKeywordsBodyOneNameAr";
 import type { PostKeywordsBodyOneNameEn } from "./postKeywordsBodyOneNameEn";
@@ -43,6 +44,8 @@ export type PostKeywordsBodyOne = {
 	wordVfx?: PostKeywordsBodyOneWordVfx;
 	/** @nullable */
 	wordVfxColor?: PostKeywordsBodyOneWordVfxColor;
+	/** @nullable */
+	mainThemeColor?: PostKeywordsBodyOneMainThemeColor;
 	novelId: string;
 	categoryId: string;
 	natureId: string;

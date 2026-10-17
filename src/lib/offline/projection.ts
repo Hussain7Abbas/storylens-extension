@@ -15,6 +15,7 @@ import type {
 	VersionRow,
 } from "@/lib/offline/types";
 import { keywordDescriptionIn } from "@/utils/translation";
+import { lookupMigration } from "./lookup-migration";
 
 export type NovelSnapshot = {
 	novel?: CatalogNovel;
@@ -96,6 +97,7 @@ const KEYWORD_FIELDS = [
 	"fuzzyMatchArabicCharacters",
 	"wordVfx",
 	"wordVfxColor",
+	"mainThemeColor",
 ] as const;
 const BASE_VERSION_FIELDS = [
 	"description",
@@ -115,6 +117,7 @@ const ALIAS_FIELDS = [
 	"fuzzyMatchArabicCharacters",
 	"wordVfx",
 	"wordVfxColor",
+	"mainThemeColor",
 	"overrideStyle",
 	"categoryId",
 	"natureId",
@@ -135,6 +138,9 @@ const LOOKUP_FIELDS = [
 	"color",
 	"description",
 	"effect",
+	"switchPositionWithNature",
+	"wordVfx",
+	"wordVfxColor",
 ] as const;
 
 /** Keeps an embedded image while its ID is unchanged; a new or queued image shows once synced. */
@@ -182,7 +188,14 @@ export function projectLookups({
 				nameEn: null,
 				description: null,
 				color: "#000000",
-				...(mutation.entity === "keywordCategory" ? { effect: "NONE" } : {}),
+				...(mutation.entity === "keywordCategory"
+					? {
+							effect: "NONE",
+							switchPositionWithNature: false,
+							wordVfx: "NONE",
+							wordVfxColor: null,
+						}
+					: {}),
 				createdAt: iso(mutation.createdAt),
 				...existing,
 				...changes,
@@ -413,6 +426,7 @@ function applyKeyword(
 		fuzzyMatchArabicCharacters: true,
 		wordVfx: "NONE",
 		wordVfxColor: null,
+		mainThemeColor: null,
 		createdAt,
 		updatedAt: createdAt,
 		...existing,
@@ -488,6 +502,7 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		fuzzyMatchArabicCharacters: true,
 		wordVfx: "NONE",
 		wordVfxColor: null,
+		mainThemeColor: null,
 		overrideStyle: false,
 		categoryId: null,
 		natureId: null,
@@ -694,6 +709,22 @@ export function projectNovel({
 			mutation.entityId,
 			applied ? stateOf(mutation) : "missing",
 		);
+	}
+
+	for (const mutation of ownMutations(mutations, userId)) {
+		const migration = lookupMigration(mutation);
+		if (!migration) continue;
+		const move = <
+			T extends { categoryId: string | null; natureId: string | null },
+		>(
+			table: Map<string, T>,
+		) => {
+			for (const [id, row] of table)
+				if (row[migration.field] === mutation.entityId)
+					table.set(id, { ...row, [migration.field]: migration.replacementId });
+		};
+		move(work.versions);
+		move(work.aliases);
 	}
 
 	const aliasesByKeyword = new Map<string, AliasRow[]>();

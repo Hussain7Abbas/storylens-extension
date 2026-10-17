@@ -16,4 +16,5 @@ export const PutKeywordsById409CurrentAliasesItemWordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

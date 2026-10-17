@@ -16,4 +16,5 @@ export const DeleteKeywordsById200WordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

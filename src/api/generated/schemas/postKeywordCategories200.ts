@@ -11,14 +11,19 @@ import type { PostKeywordCategories200Description } from "./postKeywordCategorie
 import type { PostKeywordCategories200NameAr } from "./postKeywordCategories200NameAr";
 import type { PostKeywordCategories200NameEn } from "./postKeywordCategories200NameEn";
 import type { PostKeywordCategories200UpdatedAt } from "./postKeywordCategories200UpdatedAt";
+import type { PostKeywordCategories200WordVfx } from "./postKeywordCategories200WordVfx";
+import type { PostKeywordCategories200WordVfxColor } from "./postKeywordCategories200WordVfxColor";
 
 export type PostKeywordCategories200 = {
 	id: string;
 	nameEn: PostKeywordCategories200NameEn;
 	nameAr: PostKeywordCategories200NameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PostKeywordCategories200WordVfx;
+	wordVfxColor: PostKeywordCategories200WordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PostKeywordCategories200Description;
 	createdAt: PostKeywordCategories200CreatedAt;
 	updatedAt: PostKeywordCategories200UpdatedAt;

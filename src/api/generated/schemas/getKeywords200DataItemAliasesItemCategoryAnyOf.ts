@@ -11,14 +11,19 @@ import type { GetKeywords200DataItemAliasesItemCategoryAnyOfDescription } from "
 import type { GetKeywords200DataItemAliasesItemCategoryAnyOfNameAr } from "./getKeywords200DataItemAliasesItemCategoryAnyOfNameAr";
 import type { GetKeywords200DataItemAliasesItemCategoryAnyOfNameEn } from "./getKeywords200DataItemAliasesItemCategoryAnyOfNameEn";
 import type { GetKeywords200DataItemAliasesItemCategoryAnyOfUpdatedAt } from "./getKeywords200DataItemAliasesItemCategoryAnyOfUpdatedAt";
+import type { GetKeywords200DataItemAliasesItemCategoryAnyOfWordVfx } from "./getKeywords200DataItemAliasesItemCategoryAnyOfWordVfx";
+import type { GetKeywords200DataItemAliasesItemCategoryAnyOfWordVfxColor } from "./getKeywords200DataItemAliasesItemCategoryAnyOfWordVfxColor";
 
 export type GetKeywords200DataItemAliasesItemCategoryAnyOf = {
 	id: string;
 	nameEn: GetKeywords200DataItemAliasesItemCategoryAnyOfNameEn;
 	nameAr: GetKeywords200DataItemAliasesItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: GetKeywords200DataItemAliasesItemCategoryAnyOfWordVfx;
+	wordVfxColor: GetKeywords200DataItemAliasesItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: GetKeywords200DataItemAliasesItemCategoryAnyOfDescription;
 	createdAt: GetKeywords200DataItemAliasesItemCategoryAnyOfCreatedAt;
 	updatedAt: GetKeywords200DataItemAliasesItemCategoryAnyOfUpdatedAt;

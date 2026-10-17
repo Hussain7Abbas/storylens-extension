@@ -26,6 +26,7 @@ import {
 	canEditVersion,
 } from "@/lib/auth/permissions";
 import { useCurrentUser } from "@/lib/auth/use-permissions";
+import { parseMainThemeColor } from "@/lib/main-theme-color";
 import {
 	useNovelKeywords,
 	useNovelView,
@@ -306,6 +307,7 @@ function VersionCard({
 
 function AliasCard({
 	alias,
+	mainThemeColor,
 	baseVersion,
 	fallbackImage,
 	onClick,
@@ -314,6 +316,7 @@ function AliasCard({
 	locked = false,
 }: {
 	alias: GetKeywords200DataItemAliasesItem;
+	mainThemeColor?: string | null;
 	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
 	/** The keyword's resolved image, shown when this alias has none. */
 	fallbackImage: RawImage;
@@ -353,7 +356,17 @@ function AliasCard({
 						alt={aliasDisplayName(alias, language)}
 						size={28}
 					/>
-					<Text fw={500} size="xs" style={{ flex: 1 }}>
+					<Text
+						fw={500}
+						size="xs"
+						style={{
+							flex: 1,
+							color:
+								parseMainThemeColor(alias.mainThemeColor) ??
+								parseMainThemeColor(mainThemeColor) ??
+								undefined,
+						}}
+					>
 						{aliasDisplayName(alias, language)}
 					</Text>
 					<Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
@@ -499,7 +512,14 @@ export function ColoringCards({
 										alt={nameIn(parent, language)}
 										size={36}
 									/>
-									<Text fw={500} style={{ flex: 1 }}>
+									<Text
+										fw={500}
+										style={{
+											flex: 1,
+											color:
+												parseMainThemeColor(parent.mainThemeColor) ?? undefined,
+										}}
+									>
 										{nameIn(parent, language)}
 									</Text>
 									<Group gap="xs" wrap="nowrap">
@@ -624,6 +644,7 @@ export function ColoringCards({
 													<AliasCard
 														key={alias.id}
 														alias={alias}
+														mainThemeColor={parent.mainThemeColor}
 														baseVersion={baseVersion}
 														fallbackImage={keywordImage}
 														readOnly={readOnly || aliasLocked}

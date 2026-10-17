@@ -5,6 +5,7 @@ export const KEYWORD_EFFECTS = [
 	"HEAT",
 	"SHAKING",
 	"GLITCHING",
+	"GLARE",
 ] as const;
 export type KeywordEffect = (typeof KEYWORD_EFFECTS)[number];
 
@@ -29,4 +30,16 @@ export function hasWordVfxColor(value: unknown): boolean {
 }
 export function parseWordVfxColor(value: unknown): string | null {
 	return isHexColor(value) && value.length === 7 ? value : null;
+}
+
+/** A word's own effect wins; NONE uses the category selected for this chapter. */
+export function resolveWordVfx(
+	word: { wordVfx?: unknown; wordVfxColor?: unknown },
+	category: { wordVfx?: unknown; wordVfxColor?: unknown },
+): { wordVfx: KeywordEffect; wordVfxColor: string | null } {
+	const source = parseKeywordEffect(word.wordVfx) === "NONE" ? category : word;
+	return {
+		wordVfx: parseKeywordEffect(source.wordVfx),
+		wordVfxColor: parseWordVfxColor(source.wordVfxColor),
+	};
 }

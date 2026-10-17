@@ -11,14 +11,19 @@ import type { GetKeywordAliases200DataItemCategoryAnyOfDescription } from "./get
 import type { GetKeywordAliases200DataItemCategoryAnyOfNameAr } from "./getKeywordAliases200DataItemCategoryAnyOfNameAr";
 import type { GetKeywordAliases200DataItemCategoryAnyOfNameEn } from "./getKeywordAliases200DataItemCategoryAnyOfNameEn";
 import type { GetKeywordAliases200DataItemCategoryAnyOfUpdatedAt } from "./getKeywordAliases200DataItemCategoryAnyOfUpdatedAt";
+import type { GetKeywordAliases200DataItemCategoryAnyOfWordVfx } from "./getKeywordAliases200DataItemCategoryAnyOfWordVfx";
+import type { GetKeywordAliases200DataItemCategoryAnyOfWordVfxColor } from "./getKeywordAliases200DataItemCategoryAnyOfWordVfxColor";
 
 export type GetKeywordAliases200DataItemCategoryAnyOf = {
 	id: string;
 	nameEn: GetKeywordAliases200DataItemCategoryAnyOfNameEn;
 	nameAr: GetKeywordAliases200DataItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: GetKeywordAliases200DataItemCategoryAnyOfWordVfx;
+	wordVfxColor: GetKeywordAliases200DataItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: GetKeywordAliases200DataItemCategoryAnyOfDescription;
 	createdAt: GetKeywordAliases200DataItemCategoryAnyOfCreatedAt;
 	updatedAt: GetKeywordAliases200DataItemCategoryAnyOfUpdatedAt;

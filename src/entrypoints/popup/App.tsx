@@ -25,6 +25,7 @@ import { Onboarding } from "@/components/onboarding/onboarding";
 import { onboardingCompletedAtom, useAuthInit } from "@/lib/auth";
 import { EXTRACTION_VIEW } from "@/lib/desktop-client/chapter-extraction";
 import { SHOW_WORD_VFX_KEY } from "@/lib/keyword-effects";
+import { NATURE_CIRCLE_SIZE_KEY } from "@/lib/nature-circle-size";
 import { NIGHT_LIGHT_LEVEL_KEY } from "@/lib/night-light";
 import { isOfflineUnavailable, openOfflineDb } from "@/lib/offline/db";
 import { useOfflineInvalidation } from "@/lib/offline/hooks";
@@ -35,6 +36,7 @@ import {
 	APPEARANCE_FONT_SIZE_KEY,
 	fontFaceAtom,
 	fontSizeAtom,
+	natureCircleSizeAtom,
 	nightLightLevelAtom,
 	showWordVfxAtom,
 	tooltipTriggerAtom,
@@ -131,6 +133,7 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	const locale = useAtomValue(localeAtom);
 	const fontFace = useAtomValue(fontFaceAtom);
 	const fontSize = useAtomValue(fontSizeAtom);
+	const natureCircleSize = useAtomValue(natureCircleSizeAtom);
 	const tooltipTrigger = useAtomValue(tooltipTriggerAtom);
 	const nightLightLevel = useAtomValue(nightLightLevelAtom);
 	const showWordVfx = useAtomValue(showWordVfxAtom);
@@ -153,6 +156,12 @@ function App({ type = "popup" }: { type: "popup" | "options" }) {
 	useEffect(() => {
 		void browser.storage.local.set({ [APPEARANCE_FONT_SIZE_KEY]: fontSize });
 	}, [fontSize]);
+
+	useEffect(() => {
+		void browser.storage.local.set({
+			[NATURE_CIRCLE_SIZE_KEY]: natureCircleSize,
+		});
+	}, [natureCircleSize]);
 
 	useEffect(() => {
 		void browser.storage.local.set({ [TOOLTIP_TRIGGER_KEY]: tooltipTrigger });

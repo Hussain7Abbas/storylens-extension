@@ -9,6 +9,7 @@
 import type { PutKeywordsById409CurrentAliasesItem } from "./putKeywordsById409CurrentAliasesItem";
 import type { PutKeywordsById409CurrentCreatedAt } from "./putKeywordsById409CurrentCreatedAt";
 import type { PutKeywordsById409CurrentCreatedById } from "./putKeywordsById409CurrentCreatedById";
+import type { PutKeywordsById409CurrentMainThemeColor } from "./putKeywordsById409CurrentMainThemeColor";
 import type { PutKeywordsById409CurrentMatchingType } from "./putKeywordsById409CurrentMatchingType";
 import type { PutKeywordsById409CurrentNameAr } from "./putKeywordsById409CurrentNameAr";
 import type { PutKeywordsById409CurrentNameEn } from "./putKeywordsById409CurrentNameEn";
@@ -25,6 +26,7 @@ export type PutKeywordsById409Current = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: PutKeywordsById409CurrentWordVfx;
 	wordVfxColor: PutKeywordsById409CurrentWordVfxColor;
+	mainThemeColor: PutKeywordsById409CurrentMainThemeColor;
 	novelId: string;
 	createdById: PutKeywordsById409CurrentCreatedById;
 	createdAt: PutKeywordsById409CurrentCreatedAt;

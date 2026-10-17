@@ -11,14 +11,19 @@ import type { PutKeywordVersionsById200CategoryAnyOfDescription } from "./putKey
 import type { PutKeywordVersionsById200CategoryAnyOfNameAr } from "./putKeywordVersionsById200CategoryAnyOfNameAr";
 import type { PutKeywordVersionsById200CategoryAnyOfNameEn } from "./putKeywordVersionsById200CategoryAnyOfNameEn";
 import type { PutKeywordVersionsById200CategoryAnyOfUpdatedAt } from "./putKeywordVersionsById200CategoryAnyOfUpdatedAt";
+import type { PutKeywordVersionsById200CategoryAnyOfWordVfx } from "./putKeywordVersionsById200CategoryAnyOfWordVfx";
+import type { PutKeywordVersionsById200CategoryAnyOfWordVfxColor } from "./putKeywordVersionsById200CategoryAnyOfWordVfxColor";
 
 export type PutKeywordVersionsById200CategoryAnyOf = {
 	id: string;
 	nameEn: PutKeywordVersionsById200CategoryAnyOfNameEn;
 	nameAr: PutKeywordVersionsById200CategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PutKeywordVersionsById200CategoryAnyOfWordVfx;
+	wordVfxColor: PutKeywordVersionsById200CategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PutKeywordVersionsById200CategoryAnyOfDescription;
 	createdAt: PutKeywordVersionsById200CategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordVersionsById200CategoryAnyOfUpdatedAt;

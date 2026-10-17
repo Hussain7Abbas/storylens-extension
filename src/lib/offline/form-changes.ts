@@ -38,6 +38,7 @@ export type KeywordFormFields = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx?: string;
 	wordVfxColor?: string | null;
+	mainThemeColor?: string | null;
 	categoryId: string;
 	natureId: string;
 	description?: string | null;
@@ -91,6 +92,7 @@ export function keywordFormChanges(
 				fuzzyMatchArabicCharacters: initial.fuzzyMatchArabicCharacters,
 				wordVfx: initial.wordVfx ?? "NONE",
 				wordVfxColor: initial.wordVfxColor ?? null,
+				mainThemeColor: initial.mainThemeColor ?? null,
 			},
 			{
 				...names(values),
@@ -98,6 +100,7 @@ export function keywordFormChanges(
 				fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 				wordVfx: values.wordVfx,
 				wordVfxColor: values.wordVfxColor,
+				mainThemeColor: values.mainThemeColor,
 			},
 		),
 		baseVersion: diff(
@@ -125,6 +128,7 @@ export type AliasFormFields = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx?: string;
 	wordVfxColor?: string | null;
+	mainThemeColor?: string | null;
 	overrideStyle: boolean;
 	categoryId: string | null;
 	natureId: string | null;
@@ -145,6 +149,7 @@ export function aliasFormChanges(
 		fuzzyMatchArabicCharacters: fields.fuzzyMatchArabicCharacters,
 		wordVfx: fields.wordVfx,
 		wordVfxColor: fields.wordVfxColor,
+		mainThemeColor: fields.mainThemeColor,
 		overrideStyle: fields.overrideStyle,
 		categoryId: fields.categoryId || null,
 		natureId: fields.natureId || null,
@@ -207,6 +212,9 @@ export function replacementFormChanges(
 }
 
 export type LookupFormFields = {
+	switchPositionWithNature?: boolean;
+	wordVfx?: string;
+	wordVfxColor?: string | null;
 	effect?: string;
 	nameAr?: string | null;
 	nameEn?: string | null;
@@ -220,6 +228,13 @@ export function lookupFormChanges(
 ): FormChanges | undefined {
 	const shape = (fields: LookupFormFields) => ({
 		...(fields.effect === undefined ? {} : { effect: fields.effect }),
+		...(fields.switchPositionWithNature === undefined
+			? {}
+			: { switchPositionWithNature: fields.switchPositionWithNature }),
+		...(fields.wordVfx === undefined ? {} : { wordVfx: fields.wordVfx }),
+		...(fields.wordVfxColor === undefined
+			? {}
+			: { wordVfxColor: fields.wordVfxColor }),
 		nameAr: optionalText(fields.nameAr),
 		nameEn: optionalText(fields.nameEn),
 		color: fields.color,

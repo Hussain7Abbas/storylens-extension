@@ -51,6 +51,7 @@ import {
 	parseWordVfxColor,
 } from "@/lib/keyword-effects";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
+import { parseMainThemeColor } from "@/lib/main-theme-color";
 import { offlineErrorMessage } from "@/lib/offline/errors";
 import {
 	aliasFormChanges,
@@ -265,6 +266,7 @@ type KeywordFormValues = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: KeywordEffect;
 	wordVfxColor: string;
+	mainThemeColor: string;
 	categoryId: string;
 	natureId: string;
 	descriptionAr: string;
@@ -362,6 +364,7 @@ function KeywordForm({
 			fuzzyMatchArabicCharacters: keyword?.fuzzyMatchArabicCharacters ?? true,
 			wordVfx: parseKeywordEffect(keyword?.wordVfx),
 			wordVfxColor: parseWordVfxColor(keyword?.wordVfxColor) ?? "",
+			mainThemeColor: parseMainThemeColor(keyword?.mainThemeColor) ?? "",
 			categoryId: baseVersion?.categoryId ?? suggestion?.categoryId ?? "",
 			natureId: baseVersion?.natureId ?? suggestion?.natureId ?? "",
 			descriptionAr:
@@ -378,6 +381,10 @@ function KeywordForm({
 					: Number(baseVersion.endingChapter),
 		},
 		validate: {
+			mainThemeColor: (value) =>
+				!value || parseMainThemeColor(value)
+					? null
+					: t("settings.invalidColor"),
 			wordVfxColor: (value) =>
 				!value || parseWordVfxColor(value) ? null : t("settings.invalidColor"),
 			nameAr: (_value, values) => missingName(values),
@@ -487,6 +494,7 @@ function KeywordForm({
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					wordVfx: values.wordVfx,
 					wordVfxColor: values.wordVfxColor || null,
+					mainThemeColor: values.mainThemeColor || null,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					descriptionAr: values.descriptionAr || null,
@@ -507,6 +515,7 @@ function KeywordForm({
 								keyword.fuzzyMatchArabicCharacters ?? true,
 							wordVfx: parseKeywordEffect(keyword.wordVfx),
 							wordVfxColor: parseWordVfxColor(keyword.wordVfxColor),
+							mainThemeColor: parseMainThemeColor(keyword.mainThemeColor),
 							categoryId: baseVersion?.categoryId ?? "",
 							natureId: baseVersion?.natureId ?? "",
 							descriptionAr: keywordDescriptionIn(baseVersion, "ar"),
@@ -516,6 +525,7 @@ function KeywordForm({
 						{
 							...values,
 							wordVfxColor: values.wordVfxColor || null,
+							mainThemeColor: values.mainThemeColor || null,
 							imageId: values.imageId ?? null,
 						},
 					);
@@ -591,7 +601,8 @@ function KeywordForm({
 					if (
 						(errors.startingChapter ||
 							errors.endingChapter ||
-							errors.wordVfxColor) &&
+							errors.wordVfxColor ||
+							errors.mainThemeColor) &&
 						advanceSection.current
 					)
 						advanceSection.current.open = true;
@@ -743,6 +754,24 @@ function KeywordForm({
 					<details ref={advanceSection}>
 						<summary>{t("coloring.advance")}</summary>
 						<Stack gap="xs" mt="xs">
+							<ColorInput
+								label={t("coloring.mainThemeColor")}
+								description={t("coloring.mainThemeColorHint")}
+								placeholder={t("coloring.inheritCategoryColor")}
+								{...form.getInputProps("mainThemeColor")}
+								rightSection={
+									form.values.mainThemeColor ? (
+										<ActionIcon
+											type="button"
+											variant="subtle"
+											aria-label={t("coloring.inheritCategoryColor")}
+											onClick={() => form.setFieldValue("mainThemeColor", "")}
+										>
+											<IconTrash size={14} aria-hidden />
+										</ActionIcon>
+									) : undefined
+								}
+							/>
 							<Select
 								label={t("coloring.wordVfx")}
 								description={t("coloring.wordVfxHint")}
@@ -910,6 +939,7 @@ type AliasFormValues = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: KeywordEffect;
 	wordVfxColor: string;
+	mainThemeColor: string;
 	categoryId: string | null;
 	natureId: string | null;
 	imageId?: string | null;
@@ -994,12 +1024,17 @@ function AliasForm({
 			fuzzyMatchArabicCharacters: alias?.fuzzyMatchArabicCharacters ?? true,
 			wordVfx: parseKeywordEffect(alias?.wordVfx),
 			wordVfxColor: parseWordVfxColor(alias?.wordVfxColor) ?? "",
+			mainThemeColor: parseMainThemeColor(alias?.mainThemeColor) ?? "",
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
 			imageId: (alias?.imageId as string | undefined) ?? undefined,
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
 		validate: {
+			mainThemeColor: (value) =>
+				!value || parseMainThemeColor(value)
+					? null
+					: t("settings.invalidColor"),
 			wordVfxColor: (value) =>
 				!value || parseWordVfxColor(value) ? null : t("settings.invalidColor"),
 			nameAr: (_value, values) => missingName(values),
@@ -1087,6 +1122,7 @@ function AliasForm({
 					fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 					wordVfx: values.wordVfx,
 					wordVfxColor: values.wordVfxColor || null,
+					mainThemeColor: values.mainThemeColor || null,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					imageId: values.imageId ?? null,
@@ -1105,6 +1141,7 @@ function AliasForm({
 					fuzzyMatchArabicCharacters: alias.fuzzyMatchArabicCharacters ?? true,
 					wordVfx: parseKeywordEffect(alias.wordVfx),
 					wordVfxColor: parseWordVfxColor(alias.wordVfxColor),
+					mainThemeColor: parseMainThemeColor(alias.mainThemeColor),
 					categoryId: alias.categoryId ?? null,
 					natureId: alias.natureId ?? null,
 					imageId: alias.imageId ?? null,
@@ -1113,6 +1150,7 @@ function AliasForm({
 				const changes = aliasFormChanges(initial, {
 					...values,
 					wordVfxColor: values.wordVfxColor || null,
+					mainThemeColor: values.mainThemeColor || null,
 					imageId: values.imageId ?? null,
 				});
 				if (changes || image || translationId) {
@@ -1179,7 +1217,10 @@ function AliasForm({
 			</Alert>
 			<form
 				onSubmit={form.onSubmit(handleSubmit, (errors) => {
-					if (errors.wordVfxColor && advanceSection.current)
+					if (
+						(errors.wordVfxColor || errors.mainThemeColor) &&
+						advanceSection.current
+					)
 						advanceSection.current.open = true;
 				})}
 			>
@@ -1334,6 +1375,24 @@ function AliasForm({
 					<details ref={advanceSection}>
 						<summary>{t("coloring.advance")}</summary>
 						<Stack gap="xs" mt="xs">
+							<ColorInput
+								label={t("coloring.mainThemeColor")}
+								description={t("coloring.mainThemeColorHint")}
+								placeholder={t("coloring.inheritCategoryColor")}
+								{...form.getInputProps("mainThemeColor")}
+								rightSection={
+									form.values.mainThemeColor ? (
+										<ActionIcon
+											type="button"
+											variant="subtle"
+											aria-label={t("coloring.inheritCategoryColor")}
+											onClick={() => form.setFieldValue("mainThemeColor", "")}
+										>
+											<IconTrash size={14} aria-hidden />
+										</ActionIcon>
+									) : undefined
+								}
+							/>
 							<Select
 								label={t("coloring.wordVfx")}
 								description={t("coloring.wordVfxHint")}

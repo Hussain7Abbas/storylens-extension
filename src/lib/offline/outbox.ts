@@ -19,6 +19,7 @@ import {
 	parseKeywordEffect,
 	parseWordVfxColor,
 } from "@/lib/keyword-effects";
+import { parseMainThemeColor } from "@/lib/main-theme-color";
 import {
 	allTables,
 	isOfflineUnavailable,
@@ -57,6 +58,7 @@ import type {
 import { readNovelSnapshot, readUserMutations } from "@/lib/offline/views";
 import { cleanKeywordName } from "@/utils/arabic";
 import { MAX_IMAGE_BYTES } from "../image-upload";
+import { adoptLookupMigration } from "./lookup-migration";
 
 // ---------------------------------------------------------------------------
 // Errors (typed, so forms show localized messages)
@@ -106,6 +108,7 @@ export type KeywordValues = {
 	fuzzyMatchArabicCharacters?: boolean;
 	wordVfx?: KeywordEffect;
 	wordVfxColor?: string | null;
+	mainThemeColor?: string | null;
 	categoryId: string;
 	natureId: string;
 	description?: string | null;
@@ -135,6 +138,7 @@ export type KeywordFields = Pick<
 	| "fuzzyMatchArabicCharacters"
 	| "wordVfx"
 	| "wordVfxColor"
+	| "mainThemeColor"
 >;
 
 export type AliasValues = {
@@ -147,6 +151,7 @@ export type AliasValues = {
 	fuzzyMatchArabicCharacters?: boolean;
 	wordVfx?: KeywordEffect;
 	wordVfxColor?: string | null;
+	mainThemeColor?: string | null;
 	overrideStyle?: boolean;
 	categoryId?: string | null;
 	natureId?: string | null;
@@ -175,6 +180,9 @@ export type ReplacementValues = {
 };
 
 export type LookupValues = {
+	switchPositionWithNature?: boolean;
+	wordVfx?: KeywordEffect;
+	wordVfxColor?: string | null;
 	effect?: KeywordEffect;
 	nameAr?: string | null;
 	nameEn?: string | null;
@@ -254,7 +262,12 @@ export type EnqueueInput =
 			op: "update";
 			id: string;
 	  } & Update<LookupValues>)
-	| { entity: "keywordCategory" | "keywordNature"; op: "delete"; id: string };
+	| {
+			entity: "keywordCategory" | "keywordNature";
+			op: "delete";
+			id: string;
+			replacementId?: string;
+	  };
 
 export type EnqueueResult = {
 	entityId: string;
@@ -718,7 +731,8 @@ async function coalesceOrAppend(
 	if (tail.op === "update" && next.op === "delete") {
 		await db.mutations.update(tail.seq, {
 			op: "delete",
-			patch: {},
+			patch: next.patch,
+			dependsOn: next.dependsOn,
 			base: undefined,
 			baseUpdatedAt: undefined,
 			updatedAt: ctx.now,
@@ -813,6 +827,12 @@ async function enqueueKeyword(
 ): Promise<EnqueueResult> {
 	if (input.op !== "delete") {
 		const fields = input.op === "create" ? input.values : input.changes;
+		if (
+			fields.mainThemeColor !== undefined &&
+			fields.mainThemeColor !== null &&
+			parseMainThemeColor(fields.mainThemeColor) === null
+		)
+			throw new ValidationFailed("MAIN_THEME_COLOR_INVALID");
 		if (fields.wordVfx !== undefined && !isKeywordEffect(fields.wordVfx))
 			throw new ValidationFailed("WORD_VFX_INVALID");
 		if (
@@ -843,6 +863,7 @@ async function enqueueKeyword(
 				input.values.fuzzyMatchArabicCharacters ?? true,
 			wordVfx: input.values.wordVfx ?? "NONE",
 			wordVfxColor: input.values.wordVfxColor ?? null,
+			mainThemeColor: input.values.mainThemeColor ?? null,
 			categoryId: input.values.categoryId,
 			natureId: input.values.natureId,
 			description: cleanText(input.values.description),
@@ -914,6 +935,7 @@ async function enqueueKeyword(
 		fuzzyMatchArabicCharacters: input.changes.fuzzyMatchArabicCharacters,
 		wordVfx: input.changes.wordVfx,
 		wordVfxColor: input.changes.wordVfxColor,
+		mainThemeColor: input.changes.mainThemeColor,
 	}) as Partial<KeywordFields>;
 	const { patch, base } = diffChanges(changes, input.seen, keyword);
 	linkedKeyword(
@@ -964,6 +986,7 @@ const ALIAS_FIELDS = [
 	"fuzzyMatchArabicCharacters",
 	"wordVfx",
 	"wordVfxColor",
+	"mainThemeColor",
 	"overrideStyle",
 	"categoryId",
 	"natureId",
@@ -981,6 +1004,7 @@ function aliasValues(values: Partial<AliasValues>): Row {
 		fuzzyMatchArabicCharacters: values.fuzzyMatchArabicCharacters,
 		wordVfx: values.wordVfx,
 		wordVfxColor: values.wordVfxColor,
+		mainThemeColor: values.mainThemeColor,
 		overrideStyle: values.overrideStyle,
 		categoryId: values.categoryId,
 		natureId: values.natureId,
@@ -994,6 +1018,12 @@ async function enqueueAlias(
 ): Promise<EnqueueResult> {
 	if (input.op !== "delete") {
 		const fields = input.op === "create" ? input.values : input.changes;
+		if (
+			fields.mainThemeColor !== undefined &&
+			fields.mainThemeColor !== null &&
+			parseMainThemeColor(fields.mainThemeColor) === null
+		)
+			throw new ValidationFailed("MAIN_THEME_COLOR_INVALID");
 		if (fields.wordVfx !== undefined && !isKeywordEffect(fields.wordVfx))
 			throw new ValidationFailed("WORD_VFX_INVALID");
 		if (
@@ -1032,6 +1062,7 @@ async function enqueueAlias(
 			fuzzyMatchArabicCharacters: true,
 			wordVfx: "NONE",
 			wordVfxColor: null,
+			mainThemeColor: null,
 			overrideStyle: false,
 			categoryId: null,
 			natureId: null,
@@ -1433,6 +1464,21 @@ async function enqueueReplacement(
 	return { entityId: input.id, mutationId };
 }
 
+function validateCategoryVfx(
+	entity: string,
+	fields: Partial<LookupValues>,
+): void {
+	if (entity !== "keywordCategory") return;
+	if (fields.wordVfx !== undefined && !isKeywordEffect(fields.wordVfx))
+		throw new ValidationFailed("WORD_VFX_INVALID");
+	if (
+		fields.wordVfxColor !== undefined &&
+		fields.wordVfxColor !== null &&
+		parseWordVfxColor(fields.wordVfxColor) === null
+	)
+		throw new ValidationFailed("WORD_VFX_COLOR_INVALID");
+}
+
 async function enqueueLookup(
 	ctx: Context,
 	input: Extract<EnqueueInput, { entity: "keywordCategory" | "keywordNature" }>,
@@ -1449,9 +1495,16 @@ async function enqueueLookup(
 			!isKeywordEffect(input.values.effect)
 		)
 			throw new ValidationFailed("CATEGORY_EFFECT_INVALID");
+		validateCategoryVfx(input.entity, input.values);
 		const values = {
 			...(input.entity === "keywordCategory"
-				? { effect: input.values.effect ?? "NONE" }
+				? {
+						effect: input.values.effect ?? "NONE",
+						switchPositionWithNature:
+							input.values.switchPositionWithNature ?? false,
+						wordVfx: input.values.wordVfx ?? "NONE",
+						wordVfxColor: input.values.wordVfxColor ?? null,
+					}
 				: {}),
 			nameAr: cleanText(input.values.nameAr) ?? null,
 			nameEn: cleanText(input.values.nameEn) ?? null,
@@ -1477,6 +1530,13 @@ async function enqueueLookup(
 	const row = rows.find((item) => item.id === input.id);
 	if (input.op === "delete") {
 		if (!row) return { entityId: input.id, mutationId: null };
+		if (input.replacementId === input.id)
+			throw new ValidationFailed("LOOKUP_REPLACEMENT_INVALID");
+		if (
+			input.replacementId &&
+			!rows.some((item) => item.id === input.replacementId)
+		)
+			throw new ValidationFailed("PARENT_NOT_FOUND");
 		const [versions, aliases] = await Promise.all([
 			ctx.db.keywordVersions.toArray(),
 			ctx.db.keywordAliases.toArray(),
@@ -1488,23 +1548,41 @@ async function enqueueLookup(
 				mutation.op !== "delete" && mutation.patch[field] === input.id,
 		);
 		validate(
-			pendingUse
+			pendingUse && !input.replacementId
 				? input.entity === "keywordCategory"
 					? "CATEGORY_IN_USE"
 					: "NATURE_IN_USE"
 				: null,
 		);
-		validate(checkLookupDelete(input.entity, input.id, { versions, aliases }));
-		const mutationId = await coalesceOrAppend(
-			ctx,
-			newMutation(ctx, {
-				entity: input.entity,
-				op: "delete",
-				entityId: input.id,
-				novelId: null,
-				patch: {},
-			}),
-		);
+		if (!input.replacementId)
+			validate(
+				checkLookupDelete(input.entity, input.id, { versions, aliases }),
+			);
+		const draft = newMutation(ctx, {
+			entity: input.entity,
+			op: "delete",
+			entityId: input.id,
+			novelId: null,
+			patch: input.replacementId ? { replacementId: input.replacementId } : {},
+			dependsOn: unconfirmedDependencies(ctx.mutations, [input.replacementId]),
+		});
+		const unsent =
+			ctx.mutations.some(
+				(item) => item.entityId === input.id && item.op === "create",
+			) &&
+			!ctx.mutations.some(
+				(item) => item.entityId === input.id && item.status === "inflight",
+			);
+		if (input.replacementId && unsent) {
+			const novels = await adoptLookupMigration(ctx.db, draft);
+			await removeMutations(
+				ctx.db,
+				ctx.mutations.filter((item) => item.entityId === input.id),
+			);
+			await bumpChangeCounter(ctx.db, novels);
+			return { entityId: input.id, mutationId: null };
+		}
+		const mutationId = await coalesceOrAppend(ctx, draft);
 		await bumpChangeCounter(ctx.db);
 		return { entityId: input.id, mutationId };
 	}
@@ -1516,9 +1594,15 @@ async function enqueueLookup(
 		!isKeywordEffect(input.changes.effect)
 	)
 		throw new ValidationFailed("CATEGORY_EFFECT_INVALID");
+	validateCategoryVfx(input.entity, input.changes);
 	const changes = defined({
 		...(input.entity === "keywordCategory"
-			? { effect: input.changes.effect }
+			? {
+					effect: input.changes.effect,
+					switchPositionWithNature: input.changes.switchPositionWithNature,
+					wordVfx: input.changes.wordVfx,
+					wordVfxColor: input.changes.wordVfxColor,
+				}
 			: {}),
 		nameAr: cleanText(input.changes.nameAr),
 		nameEn: cleanText(input.changes.nameEn),
@@ -1710,6 +1794,7 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				fuzzyMatchArabicCharacters: row.fuzzyMatchArabicCharacters ?? true,
 				wordVfx: parseKeywordEffect(row.wordVfx),
 				wordVfxColor: parseWordVfxColor(row.wordVfxColor),
+				mainThemeColor: parseMainThemeColor(row.mainThemeColor),
 				categoryId: base.categoryId ?? row.categoryId,
 				startingChapter: base.startingChapter ?? 0,
 				endingChapter: base.endingChapter ?? null,
@@ -1751,6 +1836,13 @@ function createAgainPatch(mutation: Mutation): Row | null {
 		case "keywordCategory":
 		case "keywordNature":
 			return {
+				...(mutation.entity === "keywordCategory"
+					? {
+							switchPositionWithNature: row.switchPositionWithNature === true,
+							wordVfx: parseKeywordEffect(row.wordVfx),
+							wordVfxColor: parseWordVfxColor(row.wordVfxColor),
+						}
+					: {}),
 				nameAr: row.nameAr ?? null,
 				nameEn: row.nameEn ?? null,
 				color: row.color,

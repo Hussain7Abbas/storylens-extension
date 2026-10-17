@@ -1,3 +1,4 @@
+import { parseMainThemeColor } from "@/lib/main-theme-color";
 import {
 	emptyColors,
 	type LookupKind,
@@ -12,14 +13,18 @@ export function applyLookupColor(
 	kind: LookupKind,
 	row: { id: string; color: string },
 	property: "color" | "background-color" = "color",
+	mainThemeColor?: string | null,
 ): void {
 	element.dataset.storylensColorKind = kind;
 	element.dataset.storylensColorId = row.id;
 	element.dataset.storylensOriginalColor = row.color;
 	element.dataset.storylensColorProperty = property;
+	const override = parseMainThemeColor(mainThemeColor);
+	if (override) element.dataset.storylensMainThemeColor = override;
+	else delete element.dataset.storylensMainThemeColor;
 	element.style.setProperty(
 		property,
-		lookupColor(colors, kind, row),
+		override ?? lookupColor(colors, kind, row),
 		"important",
 	);
 }
@@ -40,6 +45,7 @@ export function setPersonalColors(value: unknown): void {
 				kind,
 				{ id, color },
 				property === "background-color" ? property : "color",
+				element.dataset.storylensMainThemeColor,
 			);
 	}
 }

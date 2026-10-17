@@ -16,4 +16,5 @@ export const PutKeywordsByIdBodyThreeWordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

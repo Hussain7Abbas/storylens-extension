@@ -9,6 +9,7 @@ if (registeredHere)
 import { afterAll, afterEach, describe, expect, it, spyOn } from "bun:test";
 import type { EnrichedKeyword, RawKeyword } from "../../src/types/content-data";
 import type { TooltipEditTarget } from "../../src/utils/keyword-tooltip";
+import type { Language } from "../../src/utils/translation";
 import { makeUser } from "../helpers/engine";
 import {
 	alias,
@@ -39,8 +40,12 @@ const keywordImage = image("keyword-image");
 const aliasImage = image("alias-image");
 const owner = makeUser("owner");
 
-function createAnchor(raw: RawKeyword, aliasId?: string): HTMLElement {
-	const enriched = enrichKeywords([raw], 5, "en").find(
+function createAnchor(
+	raw: RawKeyword,
+	aliasId?: string,
+	language: Language = "en",
+): HTMLElement {
+	const enriched = enrichKeywords([raw], 5, language).find(
 		(item) => item.id === (aliasId ?? raw.id),
 	) as EnrichedKeyword;
 	const anchor = document.createElement("span");
@@ -51,15 +56,19 @@ function createAnchor(raw: RawKeyword, aliasId?: string): HTMLElement {
 		raw,
 		raw.aliases.find((item) => item.id === aliasId) ?? null,
 		5,
-		"en",
+		language,
 	);
 	return anchor;
 }
 
 /** Hovers a highlighted word of `raw` (its alias when `aliasId` is given). */
-function hover(raw: RawKeyword, aliasId?: string): HTMLElement {
+function hover(
+	raw: RawKeyword,
+	aliasId?: string,
+	language: Language = "en",
+): HTMLElement {
 	setTooltipTrigger("hover");
-	const anchor = createAnchor(raw, aliasId);
+	const anchor = createAnchor(raw, aliasId, language);
 	anchor.dispatchEvent(new MouseEvent("mouseenter"));
 	const tooltip = document.querySelector<HTMLElement>('[role="tooltip"]');
 	if (!tooltip) throw new Error("tooltip did not open");
@@ -930,5 +939,108 @@ describe("tooltip contextual details", () => {
 		expect(
 			document.querySelector(".storylens-keyword-hover-actions"),
 		).toBeNull();
+	});
+});
+
+describe("tooltip language visibility", () => {
+	const aliases = [
+		alias({ id: "english", nameEn: "English alias", nameAr: null }),
+		alias({ id: "arabic", nameEn: null, nameAr: "الاسم العربي" }),
+		alias({ id: "both", nameEn: "Bilingual alias", nameAr: "الاسم باللغتين" }),
+		alias({ id: "blank", nameEn: "  ", nameAr: null }),
+	];
+	for (const language of ["en", "ar"] as const) {
+		it(`shows only ${language} alias names, including bilingual aliases`, () => {
+			setTooltipLocale(language);
+			const raw = keyword({ nameEn: "Keyword", nameAr: "الشخصية", aliases });
+			const tooltip = hover(raw, undefined, language);
+			const names = [
+				...tooltip.querySelectorAll(
+					".storylens-panel-item-name > span:first-child",
+				),
+			].map((element) => element.textContent);
+			expect(names).toEqual(
+				language === "en"
+					? ["English alias", "Bilingual alias"]
+					: ["الاسم العربي", "الاسم باللغتين"],
+			);
+			expect(raw.aliases).toHaveLength(4);
+		});
+		it(`omits the aliases tab when none are named in ${language}`, () => {
+			setTooltipLocale(language);
+			const raw = keyword({
+				nameEn: "Keyword",
+				nameAr: "الشخصية",
+				aliases: [aliases[language === "en" ? 1 : 0]],
+			});
+			const tooltip = hover(raw, undefined, language);
+			expect(tooltip.querySelector('[role="tablist"]')).toBeNull();
+			expect(tooltip.querySelector(".storylens-panel-item")).toBeNull();
+		});
+		it(`hides other-language-only version rows and retains bilingual and shared ${language} versions`, () => {
+			setTooltipLocale(language);
+			const raw = keyword({
+				nameEn: "Keyword",
+				nameAr: "الشخصية",
+				versions: [
+					baseVersion({
+						descriptionEn: "Base English",
+						descriptionAr: "الوصف الأصلي",
+					}),
+					version({
+						id: "english",
+						startingChapter: 10,
+						descriptionEn: "English version",
+						descriptionAr: null,
+					}),
+					version({
+						id: "arabic",
+						startingChapter: 20,
+						descriptionEn: null,
+						descriptionAr: "الوصف العربي",
+					}),
+					version({
+						id: "both",
+						startingChapter: 30,
+						descriptionEn: "Bilingual version",
+						descriptionAr: "الوصف باللغتين",
+					}),
+					version({ id: "shared", startingChapter: 40, image: aliasImage }),
+				],
+			});
+			const tooltip = hover(raw, undefined, language);
+			const rows = [...tooltip.querySelectorAll(".storylens-panel-item")];
+			expect(
+				rows.map(
+					(row) =>
+						row.querySelector(".storylens-panel-item-name > span")?.textContent,
+				),
+			).toEqual(
+				language === "en"
+					? ["ch.0+", "ch.10+", "ch.30+", "ch.40+"]
+					: ["ch.0+", "ch.20+", "ch.30+", "ch.40+"],
+			);
+			expect(rows.map((row) => row.textContent).join(" ")).not.toContain(
+				language === "en" ? "الوصف العربي" : "English version",
+			);
+			expect(rows.at(-1)?.querySelector("img")?.src).toBe(aliasImage.url);
+			expect(raw.versions).toHaveLength(5);
+		});
+	}
+	it("omits the versions tab when only the base remains in the selected language, including legacy descriptions", () => {
+		const raw = keyword({
+			versions: [
+				baseVersion(),
+				version({
+					id: "legacy-ar",
+					startingChapter: 10,
+					description: "وصف قديم",
+					descriptionEn: undefined,
+					descriptionAr: undefined,
+				}),
+			],
+		});
+		const tooltip = hover(raw);
+		expect(tooltip.querySelector('[role="tablist"]')).toBeNull();
 	});
 });

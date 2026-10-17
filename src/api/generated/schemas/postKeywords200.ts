@@ -9,6 +9,7 @@
 import type { PostKeywords200AliasesItem } from "./postKeywords200AliasesItem";
 import type { PostKeywords200CreatedAt } from "./postKeywords200CreatedAt";
 import type { PostKeywords200CreatedById } from "./postKeywords200CreatedById";
+import type { PostKeywords200MainThemeColor } from "./postKeywords200MainThemeColor";
 import type { PostKeywords200MatchingType } from "./postKeywords200MatchingType";
 import type { PostKeywords200NameAr } from "./postKeywords200NameAr";
 import type { PostKeywords200NameEn } from "./postKeywords200NameEn";
@@ -25,6 +26,7 @@ export type PostKeywords200 = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: PostKeywords200WordVfx;
 	wordVfxColor: PostKeywords200WordVfxColor;
+	mainThemeColor: PostKeywords200MainThemeColor;
 	novelId: string;
 	createdById: PostKeywords200CreatedById;
 	createdAt: PostKeywords200CreatedAt;

@@ -113,7 +113,7 @@
 		"versionChapterRange": "Chapter range",
 		"versions": "Versions",
 		"wordVfx": "Word VFX",
-		"wordVfxHint": "Applies only to this keyword or alias, independently of its category.",
+		"wordVfxHint": "Applies to this word across chapters. None uses its category’s effect. Aliases choose their own effect.",
 		"wordVfxColor": "Word VFX color",
 		"wordVfxColorHint": "Leave empty to use this keyword or alias’s highlight color.",
 		"inheritWordColor": "Inherit word color",
@@ -122,7 +122,10 @@
 		"imagePromptCopyFailed": "Could not copy automatically. Select and copy the prompt below.",
 		"stopImage": "Stop image generation",
 		"stopImageHint": "Stop this image request and keep its prompt.",
-		"imageStopped": "Image generation stopped."
+		"imageStopped": "Image generation stopped.",
+		"mainThemeColor": "Main Theme Color",
+		"mainThemeColorHint": "Override the inherited color for this word. An alias inherits its keyword’s color when empty.",
+		"inheritCategoryColor": "Use inherited color"
 	},
 	"dataTable": {
 		"noRecords": "There is no records to show",
@@ -330,7 +333,8 @@
 			"VERSION_NOT_AFTER_LATEST": "A new version must start after the latest version",
 			"VERSION_ONLY_PROTECTED": "The only version of a keyword cannot be deleted",
 			"WORD_VFX_INVALID": "Choose a supported word VFX",
-			"WORD_VFX_COLOR_INVALID": "Choose a valid hex color or inherit the word color"
+			"WORD_VFX_COLOR_INVALID": "Choose a valid hex color or inherit the word color",
+			"LOOKUP_REPLACEMENT_INVALID": "Choose a different replacement"
 		},
 		"notAvailableOffline": "Not available offline. Download this novel while online to use it offline.",
 		"novelDownloaded": "Novel downloaded for offline use",
@@ -407,7 +411,8 @@
 			"SPARKLES": "Sparkles",
 			"HEAT": "Heat",
 			"SHAKING": "Shaking",
-			"GLITCHING": "Glitching"
+			"GLITCHING": "Glitching",
+			"GLARE": "Glare"
 		},
 		"aboutStoryLens": "About Story Lens",
 		"actions": "Actions",
@@ -426,7 +431,8 @@
 			"onClick": "On click",
 			"title": "Reading Appearance",
 			"showWordVfx": "Show word VFX",
-			"wordVfxDescription": "Animate highlighted words using their individual Word VFX."
+			"wordVfxDescription": "Animate highlighted words using their own effects or category defaults.",
+			"natureCircleSize": "Nature circle size"
 		},
 		"cancel": "Cancel",
 		"categories": "Categories",
@@ -467,7 +473,21 @@
 		"personalColorSaveFailed": "Could not save your color. Try again.",
 		"personalColorPending": "Saved on this device. Waiting to sync your colors.",
 		"originalDetails": "Shared details",
-		"originalDetailsHint": "Changes here apply to everyone."
+		"originalDetailsHint": "Changes here apply to everyone.",
+		"categoryVfxHint": "Default effect for words in this category. A word’s own VFX takes priority.",
+		"deleteCategory": "Delete category",
+		"deleteNature": "Delete nature",
+		"checkingLinkedData": "Checking linked data…",
+		"migrateLinkedData": "This item has linked data. Choose where to move it before deleting.",
+		"migrateUnknownData": "Linked data could not be checked online. Choose a replacement to preserve any links when synced.",
+		"deleteUnusedLookup": "No linked data was found. Delete this item?",
+		"replacementCategory": "Move data to category",
+		"replacementNature": "Move data to nature",
+		"chooseReplacement": "Choose a replacement",
+		"noReplacementAvailable": "No replacement is available. Add another item first, or reconnect to check for linked data.",
+		"migrateAndDelete": "Move data and delete",
+		"switchPositionWithNature": "Switch position with nature",
+		"switchPositionWithNatureHint": "Nature colors the word; category colors the circle. An explicit Main Theme Color still takes priority for the word."
 	},
 	"sync": {
 		"allSynced": "Everything is synced.",

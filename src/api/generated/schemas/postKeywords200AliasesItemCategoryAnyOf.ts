@@ -11,14 +11,19 @@ import type { PostKeywords200AliasesItemCategoryAnyOfDescription } from "./postK
 import type { PostKeywords200AliasesItemCategoryAnyOfNameAr } from "./postKeywords200AliasesItemCategoryAnyOfNameAr";
 import type { PostKeywords200AliasesItemCategoryAnyOfNameEn } from "./postKeywords200AliasesItemCategoryAnyOfNameEn";
 import type { PostKeywords200AliasesItemCategoryAnyOfUpdatedAt } from "./postKeywords200AliasesItemCategoryAnyOfUpdatedAt";
+import type { PostKeywords200AliasesItemCategoryAnyOfWordVfx } from "./postKeywords200AliasesItemCategoryAnyOfWordVfx";
+import type { PostKeywords200AliasesItemCategoryAnyOfWordVfxColor } from "./postKeywords200AliasesItemCategoryAnyOfWordVfxColor";
 
 export type PostKeywords200AliasesItemCategoryAnyOf = {
 	id: string;
 	nameEn: PostKeywords200AliasesItemCategoryAnyOfNameEn;
 	nameAr: PostKeywords200AliasesItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PostKeywords200AliasesItemCategoryAnyOfWordVfx;
+	wordVfxColor: PostKeywords200AliasesItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PostKeywords200AliasesItemCategoryAnyOfDescription;
 	createdAt: PostKeywords200AliasesItemCategoryAnyOfCreatedAt;
 	updatedAt: PostKeywords200AliasesItemCategoryAnyOfUpdatedAt;

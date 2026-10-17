@@ -8,6 +8,7 @@
 
 import type { GetSyncNovelsByIdChanges200KeywordsItemCreatedAt } from "./getSyncNovelsByIdChanges200KeywordsItemCreatedAt";
 import type { GetSyncNovelsByIdChanges200KeywordsItemCreatedById } from "./getSyncNovelsByIdChanges200KeywordsItemCreatedById";
+import type { GetSyncNovelsByIdChanges200KeywordsItemMainThemeColor } from "./getSyncNovelsByIdChanges200KeywordsItemMainThemeColor";
 import type { GetSyncNovelsByIdChanges200KeywordsItemMatchingType } from "./getSyncNovelsByIdChanges200KeywordsItemMatchingType";
 import type { GetSyncNovelsByIdChanges200KeywordsItemNameAr } from "./getSyncNovelsByIdChanges200KeywordsItemNameAr";
 import type { GetSyncNovelsByIdChanges200KeywordsItemNameEn } from "./getSyncNovelsByIdChanges200KeywordsItemNameEn";
@@ -23,6 +24,7 @@ export type GetSyncNovelsByIdChanges200KeywordsItem = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetSyncNovelsByIdChanges200KeywordsItemWordVfx;
 	wordVfxColor: GetSyncNovelsByIdChanges200KeywordsItemWordVfxColor;
+	mainThemeColor: GetSyncNovelsByIdChanges200KeywordsItemMainThemeColor;
 	novelId: string;
 	createdById: GetSyncNovelsByIdChanges200KeywordsItemCreatedById;
 	createdAt: GetSyncNovelsByIdChanges200KeywordsItemCreatedAt;

@@ -8,6 +8,7 @@
 
 import type { GetChaptersById200KeywordsChaptersItemKeywordCreatedAt } from "./getChaptersById200KeywordsChaptersItemKeywordCreatedAt";
 import type { GetChaptersById200KeywordsChaptersItemKeywordCreatedById } from "./getChaptersById200KeywordsChaptersItemKeywordCreatedById";
+import type { GetChaptersById200KeywordsChaptersItemKeywordMainThemeColor } from "./getChaptersById200KeywordsChaptersItemKeywordMainThemeColor";
 import type { GetChaptersById200KeywordsChaptersItemKeywordMatchingType } from "./getChaptersById200KeywordsChaptersItemKeywordMatchingType";
 import type { GetChaptersById200KeywordsChaptersItemKeywordNameAr } from "./getChaptersById200KeywordsChaptersItemKeywordNameAr";
 import type { GetChaptersById200KeywordsChaptersItemKeywordNameEn } from "./getChaptersById200KeywordsChaptersItemKeywordNameEn";
@@ -23,6 +24,7 @@ export type GetChaptersById200KeywordsChaptersItemKeyword = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetChaptersById200KeywordsChaptersItemKeywordWordVfx;
 	wordVfxColor: GetChaptersById200KeywordsChaptersItemKeywordWordVfxColor;
+	mainThemeColor: GetChaptersById200KeywordsChaptersItemKeywordMainThemeColor;
 	novelId: string;
 	createdById: GetChaptersById200KeywordsChaptersItemKeywordCreatedById;
 	createdAt: GetChaptersById200KeywordsChaptersItemKeywordCreatedAt;

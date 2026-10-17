@@ -11,14 +11,19 @@ import type { PutKeywordsById200VersionsItemCategoryAnyOfDescription } from "./p
 import type { PutKeywordsById200VersionsItemCategoryAnyOfNameAr } from "./putKeywordsById200VersionsItemCategoryAnyOfNameAr";
 import type { PutKeywordsById200VersionsItemCategoryAnyOfNameEn } from "./putKeywordsById200VersionsItemCategoryAnyOfNameEn";
 import type { PutKeywordsById200VersionsItemCategoryAnyOfUpdatedAt } from "./putKeywordsById200VersionsItemCategoryAnyOfUpdatedAt";
+import type { PutKeywordsById200VersionsItemCategoryAnyOfWordVfx } from "./putKeywordsById200VersionsItemCategoryAnyOfWordVfx";
+import type { PutKeywordsById200VersionsItemCategoryAnyOfWordVfxColor } from "./putKeywordsById200VersionsItemCategoryAnyOfWordVfxColor";
 
 export type PutKeywordsById200VersionsItemCategoryAnyOf = {
 	id: string;
 	nameEn: PutKeywordsById200VersionsItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById200VersionsItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PutKeywordsById200VersionsItemCategoryAnyOfWordVfx;
+	wordVfxColor: PutKeywordsById200VersionsItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PutKeywordsById200VersionsItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById200VersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordsById200VersionsItemCategoryAnyOfUpdatedAt;

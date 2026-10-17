@@ -28,6 +28,7 @@ import type {
 	DeleteKeywordCategoriesById200,
 	DeleteKeywordCategoriesById404,
 	DeleteKeywordCategoriesById500,
+	DeleteKeywordCategoriesByIdParams,
 	GetKeywordCategories200,
 	GetKeywordCategories404,
 	GetKeywordCategories500,
@@ -639,12 +640,14 @@ export const usePutKeywordCategoriesById = <
 };
 export const deleteKeywordCategoriesById = (
 	id: string,
+	params?: DeleteKeywordCategoriesByIdParams,
 	options?: SecondParameter<typeof customInstance>,
 ) => {
 	return customInstance<DeleteKeywordCategoriesById200>(
 		{
 			url: `http://localhost:3031/api/user/keyword-categories/${id}`,
 			method: "DELETE",
+			params,
 		},
 		options,
 	);
@@ -659,14 +662,14 @@ export const getDeleteKeywordCategoriesByIdMutationOptions = <
 	mutation?: UseMutationOptions<
 		Awaited<ReturnType<typeof deleteKeywordCategoriesById>>,
 		TError,
-		{ id: string },
+		{ id: string; params?: DeleteKeywordCategoriesByIdParams },
 		TContext
 	>;
 	request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
 	Awaited<ReturnType<typeof deleteKeywordCategoriesById>>,
 	TError,
-	{ id: string },
+	{ id: string; params?: DeleteKeywordCategoriesByIdParams },
 	TContext
 > => {
 	const mutationKey = ["deleteKeywordCategoriesById"];
@@ -680,11 +683,11 @@ export const getDeleteKeywordCategoriesByIdMutationOptions = <
 
 	const mutationFn: MutationFunction<
 		Awaited<ReturnType<typeof deleteKeywordCategoriesById>>,
-		{ id: string }
+		{ id: string; params?: DeleteKeywordCategoriesByIdParams }
 	> = (props) => {
-		const { id } = props ?? {};
+		const { id, params } = props ?? {};
 
-		return deleteKeywordCategoriesById(id, requestOptions);
+		return deleteKeywordCategoriesById(id, params, requestOptions);
 	};
 
 	return { mutationFn, ...mutationOptions };
@@ -708,7 +711,7 @@ export const useDeleteKeywordCategoriesById = <
 		mutation?: UseMutationOptions<
 			Awaited<ReturnType<typeof deleteKeywordCategoriesById>>,
 			TError,
-			{ id: string },
+			{ id: string; params?: DeleteKeywordCategoriesByIdParams },
 			TContext
 		>;
 		request?: SecondParameter<typeof customInstance>;
@@ -717,7 +720,7 @@ export const useDeleteKeywordCategoriesById = <
 ): UseMutationResult<
 	Awaited<ReturnType<typeof deleteKeywordCategoriesById>>,
 	TError,
-	{ id: string },
+	{ id: string; params?: DeleteKeywordCategoriesByIdParams },
 	TContext
 > => {
 	const mutationOptions =

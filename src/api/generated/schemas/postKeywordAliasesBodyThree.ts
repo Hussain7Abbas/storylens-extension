@@ -11,6 +11,7 @@ import type { PostKeywordAliasesBodyThreeDescription } from "./postKeywordAliase
 import type { PostKeywordAliasesBodyThreeDescriptionAr } from "./postKeywordAliasesBodyThreeDescriptionAr";
 import type { PostKeywordAliasesBodyThreeDescriptionEn } from "./postKeywordAliasesBodyThreeDescriptionEn";
 import type { PostKeywordAliasesBodyThreeImageId } from "./postKeywordAliasesBodyThreeImageId";
+import type { PostKeywordAliasesBodyThreeMainThemeColor } from "./postKeywordAliasesBodyThreeMainThemeColor";
 import type { PostKeywordAliasesBodyThreeMatchingType } from "./postKeywordAliasesBodyThreeMatchingType";
 import type { PostKeywordAliasesBodyThreeNameAr } from "./postKeywordAliasesBodyThreeNameAr";
 import type { PostKeywordAliasesBodyThreeNameEn } from "./postKeywordAliasesBodyThreeNameEn";
@@ -36,6 +37,8 @@ export type PostKeywordAliasesBodyThree = {
 	wordVfx?: PostKeywordAliasesBodyThreeWordVfx;
 	/** @nullable */
 	wordVfxColor?: PostKeywordAliasesBodyThreeWordVfxColor;
+	/** @nullable */
+	mainThemeColor?: PostKeywordAliasesBodyThreeMainThemeColor;
 	/** @nullable */
 	categoryId?: PostKeywordAliasesBodyThreeCategoryId;
 	/** @nullable */

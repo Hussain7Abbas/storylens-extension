@@ -11,6 +11,7 @@ import type { PostKeywordsBodyThreeDescriptionAr } from "./postKeywordsBodyThree
 import type { PostKeywordsBodyThreeDescriptionEn } from "./postKeywordsBodyThreeDescriptionEn";
 import type { PostKeywordsBodyThreeEndingChapter } from "./postKeywordsBodyThreeEndingChapter";
 import type { PostKeywordsBodyThreeImageId } from "./postKeywordsBodyThreeImageId";
+import type { PostKeywordsBodyThreeMainThemeColor } from "./postKeywordsBodyThreeMainThemeColor";
 import type { PostKeywordsBodyThreeMatchingType } from "./postKeywordsBodyThreeMatchingType";
 import type { PostKeywordsBodyThreeNameAr } from "./postKeywordsBodyThreeNameAr";
 import type { PostKeywordsBodyThreeNameEn } from "./postKeywordsBodyThreeNameEn";
@@ -43,6 +44,8 @@ export type PostKeywordsBodyThree = {
 	wordVfx?: PostKeywordsBodyThreeWordVfx;
 	/** @nullable */
 	wordVfxColor?: PostKeywordsBodyThreeWordVfxColor;
+	/** @nullable */
+	mainThemeColor?: PostKeywordsBodyThreeMainThemeColor;
 	novelId: string;
 	categoryId: string;
 	natureId: string;

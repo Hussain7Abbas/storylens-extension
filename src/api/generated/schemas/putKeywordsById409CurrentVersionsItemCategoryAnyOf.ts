@@ -11,14 +11,19 @@ import type { PutKeywordsById409CurrentVersionsItemCategoryAnyOfDescription } fr
 import type { PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameAr } from "./putKeywordsById409CurrentVersionsItemCategoryAnyOfNameAr";
 import type { PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameEn } from "./putKeywordsById409CurrentVersionsItemCategoryAnyOfNameEn";
 import type { PutKeywordsById409CurrentVersionsItemCategoryAnyOfUpdatedAt } from "./putKeywordsById409CurrentVersionsItemCategoryAnyOfUpdatedAt";
+import type { PutKeywordsById409CurrentVersionsItemCategoryAnyOfWordVfx } from "./putKeywordsById409CurrentVersionsItemCategoryAnyOfWordVfx";
+import type { PutKeywordsById409CurrentVersionsItemCategoryAnyOfWordVfxColor } from "./putKeywordsById409CurrentVersionsItemCategoryAnyOfWordVfxColor";
 
 export type PutKeywordsById409CurrentVersionsItemCategoryAnyOf = {
 	id: string;
 	nameEn: PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameEn;
 	nameAr: PutKeywordsById409CurrentVersionsItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PutKeywordsById409CurrentVersionsItemCategoryAnyOfWordVfx;
+	wordVfxColor: PutKeywordsById409CurrentVersionsItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PutKeywordsById409CurrentVersionsItemCategoryAnyOfDescription;
 	createdAt: PutKeywordsById409CurrentVersionsItemCategoryAnyOfCreatedAt;
 	updatedAt: PutKeywordsById409CurrentVersionsItemCategoryAnyOfUpdatedAt;

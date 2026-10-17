@@ -31,6 +31,9 @@ const category = {
 	nameEn: "Character",
 	color: "#aa0000",
 	effect: "NONE",
+	switchPositionWithNature: false,
+	wordVfx: "NONE" as const,
+	wordVfxColor: null,
 	description: null,
 	createdAt: NOW,
 	updatedAt: NOW,
@@ -52,6 +55,7 @@ function keyword(values: Partial<RawKeyword> = {}): RawKeyword {
 		matchingType: "FULL",
 		wordVfx: "NONE",
 		wordVfxColor: null,
+		mainThemeColor: null,
 		fuzzyMatchArabicCharacters: true,
 		novelId: "novel-1",
 		createdById: null,
@@ -93,6 +97,7 @@ function alias(
 		matchingType: "FULL",
 		wordVfx: "NONE",
 		wordVfxColor: null,
+		mainThemeColor: null,
 		fuzzyMatchArabicCharacters: true,
 		overrideStyle: false,
 		categoryId: null,
@@ -368,6 +373,7 @@ describe("word VFX preserve highlighting", () => {
 		"HEAT",
 		"SHAKING",
 		"GLITCHING",
+		"GLARE",
 		"FUTURE_EFFECT",
 	]) {
 		it(`keeps Arabic text, category color and nature indicator with ${effect}`, () => {
@@ -411,6 +417,9 @@ describe("word VFX preserve highlighting", () => {
 				expect(
 					anchor.querySelectorAll(".storylens-effect-pixels"),
 				).toHaveLength(effect === "GLITCHING" ? 1 : 0);
+				expect(anchor.querySelectorAll(".storylens-effect-glare")).toHaveLength(
+					effect === "GLARE" ? 1 : 0,
+				);
 			}
 			expect(
 				document.querySelectorAll("#storylens-keyword-effect-filters").length,
@@ -512,5 +521,40 @@ describe("personal lookup color rendering", () => {
 		expect(node.firstChild).toBe(text);
 		setPersonalColors(undefined);
 		expect(node.style.color).toBe(category.color);
+	});
+});
+
+describe("category and nature positions", () => {
+	it("swaps DOM colors, follows personal changes, and leaves explicit word colors first", () => {
+		const row = keyword({ nameAr: "سيف", nameEn: null });
+		const base = row.versions[0];
+		if (!base) throw new Error("base missing");
+		row.versions[0] = {
+			...base,
+			category: { ...category, switchPositionWithNature: true },
+		};
+		process("سيف", [row]);
+		const word = document.querySelector<HTMLElement>(".storylens-keyword");
+		const circle = word?.querySelector<HTMLElement>(
+			".storylens-nature-indicator",
+		);
+		if (!word || !circle) throw new Error("highlight missing");
+		expect(word.dataset.storylensColorKind).toBe("nature");
+		expect(circle.dataset.storylensColorKind).toBe("category");
+		setPersonalColors({
+			category: { [category.id]: "#112233" },
+			nature: { [nature.id]: "#445566" },
+		});
+		expect(word.style.color).toBe("#445566");
+		expect(circle.style.backgroundColor).toBe("#112233");
+		const original = word.textContent;
+		applyLookupColor(word, "nature", nature, "color", "#abcdef");
+		setPersonalColors({
+			category: { [category.id]: "#223344" },
+			nature: { [nature.id]: "#556677" },
+		});
+		expect(word.style.color).toBe("#abcdef");
+		expect(circle.style.backgroundColor).toBe("#223344");
+		expect(word.textContent).toBe(original);
 	});
 });

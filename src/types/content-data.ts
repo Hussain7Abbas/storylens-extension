@@ -32,6 +32,7 @@ export type EnrichedKeyword = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx?: string;
 	wordVfxColor?: string | null;
+	mainThemeColor?: string | null;
 	categoryId: string;
 	natureId: string;
 	imageId: string | null;

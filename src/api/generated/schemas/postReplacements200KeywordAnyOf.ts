@@ -8,6 +8,7 @@
 
 import type { PostReplacements200KeywordAnyOfCreatedAt } from "./postReplacements200KeywordAnyOfCreatedAt";
 import type { PostReplacements200KeywordAnyOfCreatedById } from "./postReplacements200KeywordAnyOfCreatedById";
+import type { PostReplacements200KeywordAnyOfMainThemeColor } from "./postReplacements200KeywordAnyOfMainThemeColor";
 import type { PostReplacements200KeywordAnyOfMatchingType } from "./postReplacements200KeywordAnyOfMatchingType";
 import type { PostReplacements200KeywordAnyOfNameAr } from "./postReplacements200KeywordAnyOfNameAr";
 import type { PostReplacements200KeywordAnyOfNameEn } from "./postReplacements200KeywordAnyOfNameEn";
@@ -23,6 +24,7 @@ export type PostReplacements200KeywordAnyOf = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: PostReplacements200KeywordAnyOfWordVfx;
 	wordVfxColor: PostReplacements200KeywordAnyOfWordVfxColor;
+	mainThemeColor: PostReplacements200KeywordAnyOfMainThemeColor;
 	novelId: string;
 	createdById: PostReplacements200KeywordAnyOfCreatedById;
 	createdAt: PostReplacements200KeywordAnyOfCreatedAt;

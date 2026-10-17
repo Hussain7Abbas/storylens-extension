@@ -11,4 +11,5 @@ export type GetReplacementsById200KeywordAnyOfWordVfx =
 	| "SPARKLES"
 	| "HEAT"
 	| "SHAKING"
-	| "GLITCHING";
+	| "GLITCHING"
+	| "GLARE";

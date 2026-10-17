@@ -18,6 +18,7 @@ import type {
 	ReplacementRow,
 	VersionRow,
 } from "@/lib/offline/types";
+import { adoptLookupMigration } from "../lookup-migration";
 import type { Outcome } from "./classify";
 import { backoffDelay } from "./scheduler";
 
@@ -263,6 +264,7 @@ export async function applyOutcome(
 
 			switch (outcome.type) {
 				case "success": {
+					novelIds.push(...(await adoptLookupMigration(db, mutation)));
 					if (mutation.op === "delete")
 						await removeRows(db, mutation.entity, [mutation.entityId]);
 					else if (mutation.entity === "file")
@@ -296,6 +298,7 @@ export async function applyOutcome(
 					return finish({ result: "sent", refreshVersionsOf });
 				}
 				case "alreadyDone":
+					novelIds.push(...(await adoptLookupMigration(db, mutation)));
 					await removeRows(db, mutation.entity, [mutation.entityId]);
 					await db.mutations.delete(seq);
 					return finish({ result: "sent" });

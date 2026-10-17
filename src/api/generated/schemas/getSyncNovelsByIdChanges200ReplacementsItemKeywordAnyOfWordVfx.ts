@@ -11,4 +11,5 @@ export type GetSyncNovelsByIdChanges200ReplacementsItemKeywordAnyOfWordVfx =
 	| "SPARKLES"
 	| "HEAT"
 	| "SHAKING"
-	| "GLITCHING";
+	| "GLITCHING"
+	| "GLARE";

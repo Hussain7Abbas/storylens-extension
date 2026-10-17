@@ -19,6 +19,10 @@ import { clearChapterExtraction } from "@/lib/desktop-client/chapter-panel";
 import { clearPageSummary } from "@/lib/desktop-client/page-summary";
 import { SHOW_WORD_VFX_KEY } from "@/lib/keyword-effects";
 import { pageAiTasks, parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
+import {
+	NATURE_CIRCLE_SIZE_KEY,
+	setNatureCircleSize,
+} from "@/lib/nature-circle-size";
 import { PAGE_POPUP_VISIBLE_KEY } from "@/lib/page-popup-settings";
 import {
 	parseColorPreferences,
@@ -225,10 +229,12 @@ export async function runContentScript(
 		"storylens-font-face",
 		"storylens-font-size",
 		TOOLTIP_TRIGGER_KEY,
+		NATURE_CIRCLE_SIZE_KEY,
 		SHOW_WORD_VFX_KEY,
 	]);
 	pagePopupVisible = stored[PAGE_POPUP_VISIBLE_KEY] !== false;
 	setTooltipTrigger(stored[TOOLTIP_TRIGGER_KEY]);
+	setNatureCircleSize(stored[NATURE_CIRCLE_SIZE_KEY]);
 	setWordVfxVisible(stored[SHOW_WORD_VFX_KEY]);
 	// Tooltip Edit buttons follow the reader's per-row permissions.
 	setTooltipUser(parseStoredAuth(stored[AUTH_STORAGE_KEY]).user);
@@ -263,6 +269,8 @@ export async function runContentScript(
 		if (SHOW_WORD_VFX_KEY in changes) {
 			setWordVfxVisible(changes[SHOW_WORD_VFX_KEY].newValue);
 		}
+		if (NATURE_CIRCLE_SIZE_KEY in changes)
+			setNatureCircleSize(changes[NATURE_CIRCLE_SIZE_KEY].newValue);
 		if (TOOLTIP_TRIGGER_KEY in changes) {
 			setTooltipTrigger(changes[TOOLTIP_TRIGGER_KEY].newValue);
 		}

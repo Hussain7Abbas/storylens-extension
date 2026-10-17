@@ -15,6 +15,7 @@ import type { PostKeywordAliases200DescriptionAr } from "./postKeywordAliases200
 import type { PostKeywordAliases200DescriptionEn } from "./postKeywordAliases200DescriptionEn";
 import type { PostKeywordAliases200Image } from "./postKeywordAliases200Image";
 import type { PostKeywordAliases200ImageId } from "./postKeywordAliases200ImageId";
+import type { PostKeywordAliases200MainThemeColor } from "./postKeywordAliases200MainThemeColor";
 import type { PostKeywordAliases200MatchingType } from "./postKeywordAliases200MatchingType";
 import type { PostKeywordAliases200NameAr } from "./postKeywordAliases200NameAr";
 import type { PostKeywordAliases200NameEn } from "./postKeywordAliases200NameEn";
@@ -35,6 +36,7 @@ export type PostKeywordAliases200 = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: PostKeywordAliases200WordVfx;
 	wordVfxColor: PostKeywordAliases200WordVfxColor;
+	mainThemeColor: PostKeywordAliases200MainThemeColor;
 	overrideStyle: boolean;
 	categoryId: PostKeywordAliases200CategoryId;
 	natureId: PostKeywordAliases200NatureId;

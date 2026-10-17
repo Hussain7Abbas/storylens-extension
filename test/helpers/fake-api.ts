@@ -173,7 +173,14 @@ export class FakeApi {
 			id: crypto.randomUUID(),
 			nameAr: null,
 			nameEn: kind,
-			...(kind === "category" ? { effect: "NONE" } : {}),
+			...(kind === "category"
+				? {
+						effect: "NONE",
+						wordVfx: "NONE",
+						wordVfxColor: null,
+						switchPositionWithNature: false,
+					}
+				: {}),
 			color: "#112233",
 			description: null,
 			createdAt: now,
@@ -211,6 +218,7 @@ export class FakeApi {
 			fuzzyMatchArabicCharacters: true,
 			wordVfx: "NONE",
 			wordVfxColor: null,
+			mainThemeColor: null,
 			novelId,
 			createdById,
 			createdAt: now,
@@ -246,6 +254,7 @@ export class FakeApi {
 			fuzzyMatchArabicCharacters: true,
 			wordVfx: "NONE",
 			wordVfxColor: null,
+			mainThemeColor: null,
 			overrideStyle: false,
 			categoryId: null,
 			natureId: null,
@@ -937,6 +946,7 @@ export class FakeApi {
 				fuzzyMatchArabicCharacters: body.fuzzyMatchArabicCharacters ?? true,
 				wordVfx: body.wordVfx ?? "NONE",
 				wordVfxColor: body.wordVfxColor ?? null,
+				mainThemeColor: body.mainThemeColor ?? null,
 				novelId: body.novelId,
 				createdById: user.id,
 				createdAt: now,
@@ -1014,6 +1024,9 @@ export class FakeApi {
 					? {}
 					: { wordVfxColor: body.wordVfxColor }),
 				...(body.wordVfx === undefined ? {} : { wordVfx: body.wordVfx }),
+				...(body.mainThemeColor === undefined
+					? {}
+					: { mainThemeColor: body.mainThemeColor }),
 				...(body.fuzzyMatchArabicCharacters === undefined
 					? {}
 					: { fuzzyMatchArabicCharacters: body.fuzzyMatchArabicCharacters }),
@@ -1054,6 +1067,7 @@ export class FakeApi {
 			"fuzzyMatchArabicCharacters",
 			"wordVfx",
 			"wordVfxColor",
+			"mainThemeColor",
 			"overrideStyle",
 			"categoryId",
 			"natureId",
@@ -1090,6 +1104,7 @@ export class FakeApi {
 				fuzzyMatchArabicCharacters: true,
 				wordVfx: "NONE",
 				wordVfxColor: null,
+				mainThemeColor: null,
 				overrideStyle: false,
 				categoryId: null,
 				natureId: null,
@@ -1472,8 +1487,23 @@ export class FakeApi {
 		params: Record<string, unknown>,
 		user: User,
 	): unknown {
-		if (method === "GET")
-			return this.page([...table.values()].map(clone), params);
+		if (method === "GET") {
+			if (!id) return this.page([...table.values()].map(clone), params);
+			const row = table.get(id);
+			if (!row) fail(404, "NOT_FOUND", "Not found");
+			const field = entity === "keywordCategory" ? "categoryId" : "natureId";
+			return {
+				...clone(row),
+				_count: {
+					keywordVersions: [...this.versions.values()].filter(
+						(item) => item[field] === id,
+					).length,
+					keywordAliases: [...this.aliases.values()].filter(
+						(item) => item[field] === id,
+					).length,
+				},
+			};
+		}
 		if (!user.moderator) fail(403, undefined, "Missing permission");
 		const names = (values: Record<string, unknown>) => ({
 			nameAr: String(values.nameAr ?? "").trim() || null,
@@ -1486,6 +1516,11 @@ export class FakeApi {
 				(row) =>
 					row.color === body.color &&
 					(body.effect === undefined || row.effect === body.effect) &&
+					(body.wordVfx === undefined || row.wordVfx === body.wordVfx) &&
+					(body.switchPositionWithNature === undefined ||
+						row.switchPositionWithNature === body.switchPositionWithNature) &&
+					(body.wordVfxColor === undefined ||
+						row.wordVfxColor === body.wordVfxColor) &&
 					row.nameAr === names(body).nameAr &&
 					row.nameEn === names(body).nameEn,
 				clone,
@@ -1500,7 +1535,12 @@ export class FakeApi {
 				...names(body),
 				color: body.color,
 				...(entity === "keywordCategory"
-					? { effect: body.effect ?? "NONE" }
+					? {
+							effect: body.effect ?? "NONE",
+							switchPositionWithNature: body.switchPositionWithNature ?? false,
+							wordVfx: body.wordVfx ?? "NONE",
+							wordVfxColor: body.wordVfxColor ?? null,
+						}
 					: {}),
 				description: body.description ?? null,
 				createdAt: now,
@@ -1524,7 +1564,14 @@ export class FakeApi {
 						"nameEn",
 						"color",
 						"description",
-						...(entity === "keywordCategory" ? ["effect"] : []),
+						...(entity === "keywordCategory"
+							? [
+									"effect",
+									"wordVfx",
+									"wordVfxColor",
+									"switchPositionWithNature",
+								]
+							: []),
 					]
 						.filter((field) => body[field] !== undefined)
 						.map((field) => [field, body[field]]),
@@ -1539,12 +1586,40 @@ export class FakeApi {
 		const used = [...this.versions.values(), ...this.aliases.values()].some(
 			(item) => item[field] === row.id,
 		);
-		if (used)
+		if (used && !params.replacementId)
 			fail(
 				400,
 				entity === "keywordCategory" ? "CATEGORY_IN_USE" : "NATURE_IN_USE",
 				"In use",
 			);
+		if (params.replacementId) {
+			if (params.replacementId === row.id)
+				fail(
+					422,
+					"LOOKUP_REPLACEMENT_INVALID",
+					"Choose a different replacement",
+				);
+			if (!table.has(String(params.replacementId)))
+				fail(404, "PARENT_NOT_FOUND", "Replacement missing");
+			for (const [table, kind] of [
+				[this.versions, "keywordVersion"],
+				[this.aliases, "keywordAlias"],
+			] as const) {
+				for (const [id, linked] of table)
+					if (linked[field] === row.id) {
+						table.set(id, {
+							...linked,
+							[field]: params.replacementId,
+							updatedAt: this.now(),
+						});
+						this.record(
+							kind,
+							id,
+							String(this.keywords.get(String(linked.keywordId))?.novelId),
+						);
+					}
+			}
+		}
 		table.delete(row.id);
 		this.record(entity, row.id, null);
 		return clone(row);

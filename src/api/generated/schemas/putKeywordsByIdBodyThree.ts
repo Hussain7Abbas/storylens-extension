@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 
+import type { PutKeywordsByIdBodyThreeMainThemeColor } from "./putKeywordsByIdBodyThreeMainThemeColor";
 import type { PutKeywordsByIdBodyThreeMatchingType } from "./putKeywordsByIdBodyThreeMatchingType";
 import type { PutKeywordsByIdBodyThreeNameAr } from "./putKeywordsByIdBodyThreeNameAr";
 import type { PutKeywordsByIdBodyThreeNameEn } from "./putKeywordsByIdBodyThreeNameEn";
@@ -23,5 +24,7 @@ export type PutKeywordsByIdBodyThree = {
 	wordVfx?: PutKeywordsByIdBodyThreeWordVfx;
 	/** @nullable */
 	wordVfxColor?: PutKeywordsByIdBodyThreeWordVfxColor;
+	/** @nullable */
+	mainThemeColor?: PutKeywordsByIdBodyThreeMainThemeColor;
 	translationKeywordId?: string;
 };

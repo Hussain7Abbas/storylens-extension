@@ -8,6 +8,7 @@
 
 import type { DeleteKeywordsById200CreatedAt } from "./deleteKeywordsById200CreatedAt";
 import type { DeleteKeywordsById200CreatedById } from "./deleteKeywordsById200CreatedById";
+import type { DeleteKeywordsById200MainThemeColor } from "./deleteKeywordsById200MainThemeColor";
 import type { DeleteKeywordsById200MatchingType } from "./deleteKeywordsById200MatchingType";
 import type { DeleteKeywordsById200NameAr } from "./deleteKeywordsById200NameAr";
 import type { DeleteKeywordsById200NameEn } from "./deleteKeywordsById200NameEn";
@@ -23,6 +24,7 @@ export type DeleteKeywordsById200 = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: DeleteKeywordsById200WordVfx;
 	wordVfxColor: DeleteKeywordsById200WordVfxColor;
+	mainThemeColor: DeleteKeywordsById200MainThemeColor;
 	novelId: string;
 	createdById: DeleteKeywordsById200CreatedById;
 	createdAt: DeleteKeywordsById200CreatedAt;

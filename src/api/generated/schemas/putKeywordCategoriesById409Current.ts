@@ -11,14 +11,19 @@ import type { PutKeywordCategoriesById409CurrentDescription } from "./putKeyword
 import type { PutKeywordCategoriesById409CurrentNameAr } from "./putKeywordCategoriesById409CurrentNameAr";
 import type { PutKeywordCategoriesById409CurrentNameEn } from "./putKeywordCategoriesById409CurrentNameEn";
 import type { PutKeywordCategoriesById409CurrentUpdatedAt } from "./putKeywordCategoriesById409CurrentUpdatedAt";
+import type { PutKeywordCategoriesById409CurrentWordVfx } from "./putKeywordCategoriesById409CurrentWordVfx";
+import type { PutKeywordCategoriesById409CurrentWordVfxColor } from "./putKeywordCategoriesById409CurrentWordVfxColor";
 
 export type PutKeywordCategoriesById409Current = {
 	id: string;
 	nameEn: PutKeywordCategoriesById409CurrentNameEn;
 	nameAr: PutKeywordCategoriesById409CurrentNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: PutKeywordCategoriesById409CurrentWordVfx;
+	wordVfxColor: PutKeywordCategoriesById409CurrentWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: PutKeywordCategoriesById409CurrentDescription;
 	createdAt: PutKeywordCategoriesById409CurrentCreatedAt;
 	updatedAt: PutKeywordCategoriesById409CurrentUpdatedAt;

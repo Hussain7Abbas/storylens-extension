@@ -8,6 +8,7 @@
 
 import type { GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedAt } from "./getSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedAt";
 import type { GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedById } from "./getSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedById";
+import type { GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfMainThemeColor } from "./getSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfMainThemeColor";
 import type { GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfMatchingType } from "./getSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfMatchingType";
 import type { GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfNameAr } from "./getSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfNameAr";
 import type { GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfNameEn } from "./getSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfNameEn";
@@ -23,6 +24,7 @@ export type GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOf = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfWordVfx;
 	wordVfxColor: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfWordVfxColor;
+	mainThemeColor: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfMainThemeColor;
 	novelId: string;
 	createdById: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedById;
 	createdAt: GetSyncSnapshotNovelsById200ReplacementsItemKeywordAnyOfCreatedAt;

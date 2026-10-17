@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-17
+Last updated: 2026-10-18
 
 ## Store listing
 
@@ -104,3 +104,15 @@ For release steps see [the publishing runbook](../../docs/publishing.md). New li
 2026-10-17 generation recovery — Chapter background images and context retry failed generation/saving automatically until stopped or successful. Added Regenerate background image to the image’s three-dot menu and Regenerate context inside the context section, preserving saved content during replacement. Refresh chapter artwork/context screenshots before submission. Package version, permissions and publication status are unchanged.
 
 2026-10-17 error details — Failed chapter background-image/context generation and saving now expose a localized, expandable Details area with the latest error message while automatic recovery continues. Refresh error-state screenshots before submission. No package version, permissions or publication status changed.
+
+
+2026-10-18 tooltip language filtering — In-page alias lists show only names in the selected UI language. Version lists hide entries described only in the other language, retaining shared artwork/style rows. Empty tabs are omitted. Package version, permissions and publication status are unchanged.
+
+
+2026-10-18 appearance controls — Nature markers default to 6 px (twice the former diameter) and have an Appearance size slider. Keyword/alias Advance forms add Main Theme Color with an inherited-color reset, shared and synced with reference data. Refresh Appearance and reference-editor screenshots before submission. Package version, permissions and publication status are unchanged.
+
+2026-10-18 category VFX — Category forms offer shared Word VFX defaults and optional Heat/Sparkles tints. Explicit word effects take priority; existing appearance visibility and reduced-motion behavior remain supported.
+
+2026-10-18 VFX pacing and Glare — Heat, Shaking and Glitching animate at half their prior speed, including smoke and SVG filters; Sparkles is unchanged. Added Glare, a diagonal glow sweep following the word’s reading direction, to keyword, alias and category controls. Reduced motion, forced colors and scrolling keep existing safeguards. Package version, browser permissions and publication status are unchanged.
+
+2026-10-18 lookup maintenance — Category/nature deletion asks for a replacement when linked data exists and moves versions/aliases before deleting. Offline migration preserves queued words. Categories add Switch position with nature, default off, to swap word/circle colors while respecting explicit word colors and personal preferences. Refresh Settings/editor screenshots before submission. Package version, browser permissions and publication status are unchanged.

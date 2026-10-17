@@ -162,6 +162,7 @@ describe("page highlight refresh", () => {
 		expect(anchor.textContent).toBe("أمل");
 		await fakeBrowser.storage.local.remove(SHOW_WORD_VFX_KEY);
 		expect(anchor.dataset.storylensEffect).toBeUndefined();
+		await checkNatureCircleSize();
 	});
 
 	it("keeps existing keywords visible while replacement data is pending", async () => {
@@ -214,3 +215,65 @@ describe("page highlight refresh", () => {
 		expect(root.querySelector(".storylens-keyword")).toBeNull();
 	});
 });
+
+it("main theme color wins over personal category colors and aliases inherit or override it", async () => {
+	const { alias } = await import("../helpers/keywords");
+	const { setPersonalColors } = await import("../../src/utils/personal-colors");
+	removeExtensionMarkup();
+	root.textContent = "أمل Friend Rival";
+	const raw = keyword({
+		nameAr: "أمل",
+		mainThemeColor: "#123456",
+		aliases: [
+			alias({ id: "inherited", nameEn: "Friend" }),
+			alias({ id: "own", nameEn: "Rival", mainThemeColor: "#abcdef" }),
+		],
+	});
+	applyContentProcessing(root, { ...data, keywords: [raw] }, "main-color");
+	const anchors = [...root.querySelectorAll<HTMLElement>(".storylens-keyword")];
+	const same = (actual: string, expected: string) => {
+		const element = document.createElement("span");
+		element.style.color = expected;
+		expect(actual).toBe(element.style.color);
+	};
+	try {
+		expect(anchors).toHaveLength(3);
+		same(anchors[0].style.color, "#123456");
+		same(anchors[1].style.color, "#123456");
+		same(anchors[2].style.color, "#abcdef");
+		setPersonalColors({
+			category: { [raw.versions[0].categoryId ?? ""]: "#ff0000" },
+			nature: {},
+		});
+		same(anchors[0].style.color, "#123456");
+		same(anchors[1].style.color, "#123456");
+		same(anchors[2].style.color, "#abcdef");
+		expect(root.querySelector(".storylens-keyword")).toBe(anchors[0]);
+	} finally {
+		setPersonalColors(undefined);
+	}
+});
+
+async function checkNatureCircleSize() {
+	const { NATURE_CIRCLE_SIZE_KEY, parseNatureCircleSize } = await import(
+		"../../src/lib/nature-circle-size"
+	);
+	const anchor = root.querySelector(".storylens-keyword");
+	const marker = anchor?.querySelector(".storylens-nature-indicator");
+	for (const invalid of [undefined, null, "10", 1, 17, 4.5, Number.NaN])
+		expect(parseNatureCircleSize(invalid)).toBe(6);
+	await fakeBrowser.storage.local.set({ [NATURE_CIRCLE_SIZE_KEY]: 12 });
+	expect(
+		document.documentElement.style.getPropertyValue(
+			"--storylens-nature-circle-size",
+		),
+	).toBe("12px");
+	expect(root.querySelector(".storylens-keyword")).toBe(anchor);
+	expect(anchor?.querySelector(".storylens-nature-indicator")).toBe(marker);
+	await fakeBrowser.storage.local.remove(NATURE_CIRCLE_SIZE_KEY);
+	expect(
+		document.documentElement.style.getPropertyValue(
+			"--storylens-nature-circle-size",
+		),
+	).toBe("6px");
+}

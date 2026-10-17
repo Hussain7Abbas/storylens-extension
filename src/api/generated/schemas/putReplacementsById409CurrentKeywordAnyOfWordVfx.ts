@@ -11,4 +11,5 @@ export type PutReplacementsById409CurrentKeywordAnyOfWordVfx =
 	| "SPARKLES"
 	| "HEAT"
 	| "SHAKING"
-	| "GLITCHING";
+	| "GLITCHING"
+	| "GLARE";

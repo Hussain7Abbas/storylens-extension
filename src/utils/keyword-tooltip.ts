@@ -7,6 +7,7 @@ import {
 	canEditVersion,
 } from "@/lib/auth/permissions";
 import { parseFontSize } from "@/lib/font-size";
+import { parseMainThemeColor } from "@/lib/main-theme-color";
 import {
 	parseTooltipTrigger,
 	type TooltipTrigger,
@@ -17,6 +18,7 @@ import type {
 	EnrichedNature,
 	RawKeyword,
 	RawKeywordAlias,
+	RawKeywordVersion,
 } from "@/types/content-data";
 import { closeImageModal, openImageModal } from "@/utils/image-modal";
 import { applyLookupColor } from "@/utils/personal-colors";
@@ -29,9 +31,10 @@ import {
 	resolveTooltipInfo,
 } from "@/utils/resolve-keyword-version";
 import {
-	aliasDisplayName,
+	hasNameIn,
 	keywordDescriptionIn,
 	type Language,
+	namedIn,
 	nameIn,
 } from "@/utils/translation";
 
@@ -456,6 +459,10 @@ function buildInfoPanel(
 	// Name
 	const nameEl = document.createElement("strong");
 	nameEl.textContent = info.name.value ?? rawName;
+	const mainColor =
+		parseMainThemeColor(data.alias?.mainThemeColor) ??
+		parseMainThemeColor(data.raw.mainThemeColor);
+	if (mainColor) nameEl.style.color = mainColor;
 	const nameShowMore =
 		info.name.source !== "keyword"
 			? buildShowMoreToggle(info.name, (v) => v, onLayoutChange)
@@ -530,7 +537,7 @@ function buildAliasesPanel(
 	// What an alias without its own image shows, so no row stays blank.
 	const fallbackImage = resolveKeywordImage(raw, currentChapter);
 
-	for (const alias of raw.aliases) {
+	for (const alias of namedIn(raw.aliases, language)) {
 		const item = document.createElement("div");
 		item.className = "storylens-panel-item";
 		// The row's details sit beside its thumbnail.
@@ -541,7 +548,11 @@ function buildAliasesPanel(
 		const nameRow = document.createElement("div");
 		nameRow.className = "storylens-panel-item-name";
 		const nameText = document.createElement("span");
-		nameText.textContent = aliasDisplayName(alias, language);
+		nameText.textContent = nameIn(alias, language);
+		const mainColor =
+			parseMainThemeColor(alias.mainThemeColor) ??
+			parseMainThemeColor(raw.mainThemeColor);
+		if (mainColor) nameText.style.color = mainColor;
 		nameRow.append(nameText);
 		if (alias.overrideStyle) {
 			const badge = document.createElement("span");
@@ -612,7 +623,7 @@ function buildAliasesPanel(
 		const ownImage = alias.image?.url ? alias.image : null;
 		const thumb = buildRowThumb(
 			ownImage ?? fallbackImage,
-			aliasDisplayName(alias, language),
+			nameIn(alias, language),
 			!ownImage,
 		);
 		if (thumb) {
@@ -630,9 +641,10 @@ function buildVersionsPanel(
 	raw: RawKeyword,
 	language: Language,
 	currentChapter: number,
+	versions: RawKeywordVersion[],
 ): HTMLElement {
 	const panel = document.createElement("div");
-	const sortedVersions = [...raw.versions].sort(
+	const sortedVersions = [...versions].sort(
 		(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
 	);
 	const base = sortedVersions[0];
@@ -848,17 +860,31 @@ function buildKeywordTooltipContent(
 		});
 	}
 
-	if (data.raw.aliases.length > 0) {
+	if (data.raw.aliases.some((alias) => hasNameIn(alias, data.language))) {
 		tabs.push({
 			label: tt("aliases"),
 			content: buildAliasesPanel(data.raw, data.language, data.currentChapter),
 		});
 	}
 
-	if (data.raw.versions.length > 1) {
+	// Versions share ranges and artwork across languages. Hide translated-only
+	// rows without this language's description, retaining the base and neutral rows.
+	const otherLanguage = data.language === "ar" ? "en" : "ar";
+	const versions = data.raw.versions.filter(
+		(version) =>
+			version.id === base?.id ||
+			keywordDescriptionIn(version, data.language) !== null ||
+			keywordDescriptionIn(version, otherLanguage) === null,
+	);
+	if (versions.length > 1) {
 		tabs.push({
 			label: tt("versions"),
-			content: buildVersionsPanel(data.raw, data.language, data.currentChapter),
+			content: buildVersionsPanel(
+				data.raw,
+				data.language,
+				data.currentChapter,
+				versions,
+			),
 		});
 	}
 

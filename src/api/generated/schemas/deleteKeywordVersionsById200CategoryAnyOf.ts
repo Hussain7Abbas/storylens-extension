@@ -11,14 +11,19 @@ import type { DeleteKeywordVersionsById200CategoryAnyOfDescription } from "./del
 import type { DeleteKeywordVersionsById200CategoryAnyOfNameAr } from "./deleteKeywordVersionsById200CategoryAnyOfNameAr";
 import type { DeleteKeywordVersionsById200CategoryAnyOfNameEn } from "./deleteKeywordVersionsById200CategoryAnyOfNameEn";
 import type { DeleteKeywordVersionsById200CategoryAnyOfUpdatedAt } from "./deleteKeywordVersionsById200CategoryAnyOfUpdatedAt";
+import type { DeleteKeywordVersionsById200CategoryAnyOfWordVfx } from "./deleteKeywordVersionsById200CategoryAnyOfWordVfx";
+import type { DeleteKeywordVersionsById200CategoryAnyOfWordVfxColor } from "./deleteKeywordVersionsById200CategoryAnyOfWordVfxColor";
 
 export type DeleteKeywordVersionsById200CategoryAnyOf = {
 	id: string;
 	nameEn: DeleteKeywordVersionsById200CategoryAnyOfNameEn;
 	nameAr: DeleteKeywordVersionsById200CategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: DeleteKeywordVersionsById200CategoryAnyOfWordVfx;
+	wordVfxColor: DeleteKeywordVersionsById200CategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: DeleteKeywordVersionsById200CategoryAnyOfDescription;
 	createdAt: DeleteKeywordVersionsById200CategoryAnyOfCreatedAt;
 	updatedAt: DeleteKeywordVersionsById200CategoryAnyOfUpdatedAt;

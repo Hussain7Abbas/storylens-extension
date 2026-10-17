@@ -11,14 +11,19 @@ import type { DeleteKeywordCategoriesById200Description } from "./deleteKeywordC
 import type { DeleteKeywordCategoriesById200NameAr } from "./deleteKeywordCategoriesById200NameAr";
 import type { DeleteKeywordCategoriesById200NameEn } from "./deleteKeywordCategoriesById200NameEn";
 import type { DeleteKeywordCategoriesById200UpdatedAt } from "./deleteKeywordCategoriesById200UpdatedAt";
+import type { DeleteKeywordCategoriesById200WordVfx } from "./deleteKeywordCategoriesById200WordVfx";
+import type { DeleteKeywordCategoriesById200WordVfxColor } from "./deleteKeywordCategoriesById200WordVfxColor";
 
 export type DeleteKeywordCategoriesById200 = {
 	id: string;
 	nameEn: DeleteKeywordCategoriesById200NameEn;
 	nameAr: DeleteKeywordCategoriesById200NameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: DeleteKeywordCategoriesById200WordVfx;
+	wordVfxColor: DeleteKeywordCategoriesById200WordVfxColor;
+	switchPositionWithNature: boolean;
 	description: DeleteKeywordCategoriesById200Description;
 	createdAt: DeleteKeywordCategoriesById200CreatedAt;
 	updatedAt: DeleteKeywordCategoriesById200UpdatedAt;

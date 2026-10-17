@@ -16,4 +16,5 @@ export const GetKeywordsChaptersById200KeywordWordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

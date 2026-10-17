@@ -8,4 +8,5 @@
 
 export type _GetKeywordCategoriesById200Count = {
 	keywordVersions: number;
+	keywordAliases: number;
 };

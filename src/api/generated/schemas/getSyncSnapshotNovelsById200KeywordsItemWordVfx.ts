@@ -16,4 +16,5 @@ export const GetSyncSnapshotNovelsById200KeywordsItemWordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

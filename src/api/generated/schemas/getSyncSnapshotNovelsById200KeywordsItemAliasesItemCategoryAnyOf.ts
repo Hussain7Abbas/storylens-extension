@@ -11,14 +11,19 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfDe
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameAr } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameAr";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameEn } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameEn";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfUpdatedAt } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfUpdatedAt";
+import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfWordVfx } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfWordVfx";
+import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfWordVfxColor } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfWordVfxColor";
 
 export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOf = {
 	id: string;
 	nameEn: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameEn;
 	nameAr: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfWordVfx;
+	wordVfxColor: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfDescription;
 	createdAt: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfCreatedAt;
 	updatedAt: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryAnyOfUpdatedAt;

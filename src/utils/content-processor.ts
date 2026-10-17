@@ -396,15 +396,25 @@ function createKeywordElement(
 ): HTMLSpanElement {
 	const span = document.createElement("span");
 	span.className = "storylens-keyword-tooltip storylens-keyword";
-	applyLookupColor(span, "category", keyword.category);
+	applyLookupColor(
+		span,
+		keyword.category.switchPositionWithNature ? "nature" : "category",
+		keyword.category.switchPositionWithNature
+			? keyword.nature
+			: keyword.category,
+		"color",
+		keyword.mainThemeColor,
+	);
 	span.dataset.keywordId = keyword.id;
 
 	const natureIndicator = document.createElement("span");
 	natureIndicator.className = "storylens-nature-indicator";
 	applyLookupColor(
 		natureIndicator,
-		"nature",
-		keyword.nature,
+		keyword.category.switchPositionWithNature ? "category" : "nature",
+		keyword.category.switchPositionWithNature
+			? keyword.category
+			: keyword.nature,
 		"background-color",
 	);
 	natureIndicator.setAttribute("aria-hidden", "true");

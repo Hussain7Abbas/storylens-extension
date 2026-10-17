@@ -8,4 +8,5 @@
 
 export type _GetKeywordNaturesById200Count = {
 	keywordVersions: number;
+	keywordAliases: number;
 };

@@ -16,4 +16,5 @@ export const GetSyncNovelsByIdChanges200AliasesItemWordVfx = {
 	HEAT: "HEAT",
 	SHAKING: "SHAKING",
 	GLITCHING: "GLITCHING",
+	GLARE: "GLARE",
 } as const;

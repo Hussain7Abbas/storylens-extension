@@ -156,7 +156,7 @@ function ensureFilter(kind: "HEAT" | "GLITCHING"): void {
 			svgNode("animate", {
 				attributeName: "baseFrequency",
 				values: "0.025 0.08;0.045 0.13;0.025 0.08",
-				dur: "1.15s",
+				dur: "2.3s",
 				repeatCount: "indefinite",
 			}),
 		);
@@ -191,7 +191,7 @@ function ensureFilter(kind: "HEAT" | "GLITCHING"): void {
 				values: "0;6;0;0;4;0;0;0",
 				keyTimes: "0;0.08;0.16;0.48;0.56;0.64;0.82;1",
 				calcMode: "discrete",
-				dur: "1.6s",
+				dur: "3.2s",
 				repeatCount: "indefinite",
 			}),
 		);
@@ -253,10 +253,18 @@ export function applyKeywordEffect(
 		for (let index = 0; index < 3; index++) {
 			const smoke = decoration(anchor, "storylens-effect-smoke");
 			smoke.style.setProperty("--sl-effect-x", `${18 + index * 32}%`);
-			smoke.style.setProperty("--sl-effect-delay", `${index * -0.42}s`);
+			smoke.style.setProperty("--sl-effect-delay", `${index * -0.84}s`);
 		}
 	} else if (effect === "GLITCHING") {
 		decoration(anchor, "storylens-effect-pixels");
+	} else if (effect === "GLARE") {
+		const glare = decoration(anchor, "storylens-effect-glare");
+		// The beam follows the word's first strong letter, independently of the host page.
+		const firstLetter = anchor.textContent?.match(/\p{L}/u)?.[0];
+		glare.dir =
+			firstLetter && /[\p{Script=Arabic}\p{Script=Hebrew}]/u.test(firstLetter)
+				? "rtl"
+				: "ltr";
 	}
 	trackAnchor(anchor);
 }

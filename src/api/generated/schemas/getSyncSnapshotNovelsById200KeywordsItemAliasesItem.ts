@@ -15,6 +15,7 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionAr }
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionEn } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionEn";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImage } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemImage";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImageId } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemImageId";
+import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemMainThemeColor } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemMainThemeColor";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemMatchingType } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemMatchingType";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNameAr } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemNameAr";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNameEn } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemNameEn";
@@ -35,6 +36,7 @@ export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItem = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfx;
 	wordVfxColor: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemWordVfxColor;
+	mainThemeColor: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemMainThemeColor;
 	overrideStyle: boolean;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryId;
 	natureId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNatureId;

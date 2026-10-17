@@ -8,6 +8,7 @@
 
 import type { GetKeywordsChaptersById200KeywordCreatedAt } from "./getKeywordsChaptersById200KeywordCreatedAt";
 import type { GetKeywordsChaptersById200KeywordCreatedById } from "./getKeywordsChaptersById200KeywordCreatedById";
+import type { GetKeywordsChaptersById200KeywordMainThemeColor } from "./getKeywordsChaptersById200KeywordMainThemeColor";
 import type { GetKeywordsChaptersById200KeywordMatchingType } from "./getKeywordsChaptersById200KeywordMatchingType";
 import type { GetKeywordsChaptersById200KeywordNameAr } from "./getKeywordsChaptersById200KeywordNameAr";
 import type { GetKeywordsChaptersById200KeywordNameEn } from "./getKeywordsChaptersById200KeywordNameEn";
@@ -23,6 +24,7 @@ export type GetKeywordsChaptersById200Keyword = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetKeywordsChaptersById200KeywordWordVfx;
 	wordVfxColor: GetKeywordsChaptersById200KeywordWordVfxColor;
+	mainThemeColor: GetKeywordsChaptersById200KeywordMainThemeColor;
 	novelId: string;
 	createdById: GetKeywordsChaptersById200KeywordCreatedById;
 	createdAt: GetKeywordsChaptersById200KeywordCreatedAt;

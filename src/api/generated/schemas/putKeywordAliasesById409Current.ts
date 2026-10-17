@@ -15,6 +15,7 @@ import type { PutKeywordAliasesById409CurrentDescriptionAr } from "./putKeywordA
 import type { PutKeywordAliasesById409CurrentDescriptionEn } from "./putKeywordAliasesById409CurrentDescriptionEn";
 import type { PutKeywordAliasesById409CurrentImage } from "./putKeywordAliasesById409CurrentImage";
 import type { PutKeywordAliasesById409CurrentImageId } from "./putKeywordAliasesById409CurrentImageId";
+import type { PutKeywordAliasesById409CurrentMainThemeColor } from "./putKeywordAliasesById409CurrentMainThemeColor";
 import type { PutKeywordAliasesById409CurrentMatchingType } from "./putKeywordAliasesById409CurrentMatchingType";
 import type { PutKeywordAliasesById409CurrentNameAr } from "./putKeywordAliasesById409CurrentNameAr";
 import type { PutKeywordAliasesById409CurrentNameEn } from "./putKeywordAliasesById409CurrentNameEn";
@@ -35,6 +36,7 @@ export type PutKeywordAliasesById409Current = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: PutKeywordAliasesById409CurrentWordVfx;
 	wordVfxColor: PutKeywordAliasesById409CurrentWordVfxColor;
+	mainThemeColor: PutKeywordAliasesById409CurrentMainThemeColor;
 	overrideStyle: boolean;
 	categoryId: PutKeywordAliasesById409CurrentCategoryId;
 	natureId: PutKeywordAliasesById409CurrentNatureId;

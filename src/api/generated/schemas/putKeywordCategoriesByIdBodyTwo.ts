@@ -10,6 +10,8 @@ import type { PutKeywordCategoriesByIdBodyTwoDescription } from "./putKeywordCat
 import type { PutKeywordCategoriesByIdBodyTwoEffect } from "./putKeywordCategoriesByIdBodyTwoEffect";
 import type { PutKeywordCategoriesByIdBodyTwoNameAr } from "./putKeywordCategoriesByIdBodyTwoNameAr";
 import type { PutKeywordCategoriesByIdBodyTwoNameEn } from "./putKeywordCategoriesByIdBodyTwoNameEn";
+import type { PutKeywordCategoriesByIdBodyTwoWordVfx } from "./putKeywordCategoriesByIdBodyTwoWordVfx";
+import type { PutKeywordCategoriesByIdBodyTwoWordVfxColor } from "./putKeywordCategoriesByIdBodyTwoWordVfxColor";
 
 export type PutKeywordCategoriesByIdBodyTwo = {
 	baseUpdatedAt: string;
@@ -20,6 +22,10 @@ export type PutKeywordCategoriesByIdBodyTwo = {
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color?: string;
 	effect?: PutKeywordCategoriesByIdBodyTwoEffect;
+	wordVfx?: PutKeywordCategoriesByIdBodyTwoWordVfx;
+	/** @nullable */
+	wordVfxColor?: PutKeywordCategoriesByIdBodyTwoWordVfxColor;
+	switchPositionWithNature?: boolean;
 	/** @nullable */
 	description?: PutKeywordCategoriesByIdBodyTwoDescription;
 };

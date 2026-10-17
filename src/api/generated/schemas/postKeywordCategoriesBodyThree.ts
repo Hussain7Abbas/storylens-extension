@@ -10,6 +10,8 @@ import type { PostKeywordCategoriesBodyThreeDescription } from "./postKeywordCat
 import type { PostKeywordCategoriesBodyThreeEffect } from "./postKeywordCategoriesBodyThreeEffect";
 import type { PostKeywordCategoriesBodyThreeNameAr } from "./postKeywordCategoriesBodyThreeNameAr";
 import type { PostKeywordCategoriesBodyThreeNameEn } from "./postKeywordCategoriesBodyThreeNameEn";
+import type { PostKeywordCategoriesBodyThreeWordVfx } from "./postKeywordCategoriesBodyThreeWordVfx";
+import type { PostKeywordCategoriesBodyThreeWordVfxColor } from "./postKeywordCategoriesBodyThreeWordVfxColor";
 
 export type PostKeywordCategoriesBodyThree = {
 	id: string;
@@ -20,6 +22,10 @@ export type PostKeywordCategoriesBodyThree = {
 	/** @pattern ^#[0-9A-Fa-f]{6}$ */
 	color: string;
 	effect?: PostKeywordCategoriesBodyThreeEffect;
+	wordVfx?: PostKeywordCategoriesBodyThreeWordVfx;
+	/** @nullable */
+	wordVfxColor?: PostKeywordCategoriesBodyThreeWordVfxColor;
+	switchPositionWithNature?: boolean;
 	/** @nullable */
 	description?: PostKeywordCategoriesBodyThreeDescription;
 };

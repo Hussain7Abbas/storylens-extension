@@ -8,6 +8,7 @@
 
 import type { PutReplacementsById200KeywordAnyOfCreatedAt } from "./putReplacementsById200KeywordAnyOfCreatedAt";
 import type { PutReplacementsById200KeywordAnyOfCreatedById } from "./putReplacementsById200KeywordAnyOfCreatedById";
+import type { PutReplacementsById200KeywordAnyOfMainThemeColor } from "./putReplacementsById200KeywordAnyOfMainThemeColor";
 import type { PutReplacementsById200KeywordAnyOfMatchingType } from "./putReplacementsById200KeywordAnyOfMatchingType";
 import type { PutReplacementsById200KeywordAnyOfNameAr } from "./putReplacementsById200KeywordAnyOfNameAr";
 import type { PutReplacementsById200KeywordAnyOfNameEn } from "./putReplacementsById200KeywordAnyOfNameEn";
@@ -23,6 +24,7 @@ export type PutReplacementsById200KeywordAnyOf = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: PutReplacementsById200KeywordAnyOfWordVfx;
 	wordVfxColor: PutReplacementsById200KeywordAnyOfWordVfxColor;
+	mainThemeColor: PutReplacementsById200KeywordAnyOfMainThemeColor;
 	novelId: string;
 	createdById: PutReplacementsById200KeywordAnyOfCreatedById;
 	createdAt: PutReplacementsById200KeywordAnyOfCreatedAt;

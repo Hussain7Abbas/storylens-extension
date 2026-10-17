@@ -104,6 +104,7 @@ const { NIGHT_LIGHT_LEVEL_KEY } = await import("../../src/lib/night-light");
 const {
 	APPEARANCE_FONT_SIZE_KEY,
 	fontSizeAtom,
+	natureCircleSizeAtom,
 	nightLightLevelAtom,
 	showWordVfxAtom,
 	tooltipTriggerAtom,
@@ -1256,13 +1257,18 @@ describe("language tabs in a character form", () => {
 					options.filter((option) =>
 						option.textContent?.startsWith("settings.effects."),
 					),
-				).toHaveLength(5);
+				).toHaveLength(6);
 				fireEvent.click(
 					view.getByRole("option", {
 						name: "settings.effects.SPARKLES",
 						hidden: true,
 					}),
 				);
+				const mainColor = view.getByLabelText("coloring.mainThemeColor", {
+					selector: "input",
+				}) as HTMLInputElement;
+				expect(section?.contains(mainColor)).toBe(true);
+				fireEvent.change(mainColor, { target: { value: "#123AbC" } });
 				const color = view.getByLabelText("coloring.wordVfxColor", {
 					selector: "input",
 				}) as HTMLInputElement;
@@ -1283,6 +1289,7 @@ describe("language tabs in a character form", () => {
 				);
 				expect(mutation?.patch.wordVfx).toBe("SPARKLES");
 				expect(mutation?.patch.wordVfxColor).toBe("#A1b2C3");
+				expect(mutation?.patch.mainThemeColor).toBe("#123AbC");
 			});
 		}
 	}
@@ -1870,12 +1877,19 @@ function renderAppearanceTab(appearanceStore = createStore()) {
 			),
 		),
 	);
-	const sliders = view.getAllByRole("slider");
+
 	return {
 		view,
 		store: appearanceStore,
-		fontSize: sliders[0],
-		nightLight: sliders[1],
+		fontSize: view.getByRole("slider", {
+			name: "settings.appearance.fontSize",
+		}),
+		natureCircle: view.getByRole("slider", {
+			name: "settings.appearance.natureCircleSize",
+		}),
+		nightLight: view.getByRole("slider", {
+			name: "settings.appearance.nightLightLevel",
+		}),
 	};
 }
 
@@ -2967,7 +2981,7 @@ describe("parallel selection suggestions and images", () => {
 });
 
 describe("category form", () => {
-	it("does not offer category-wide effects", async () => {
+	it("lets moderators save category-wide effects with an optional tint", async () => {
 		env = await setupEngine({ moderator: true });
 		store.set(authStateAtom, { user: env.user, token: "token-reader-1" });
 		const { CategoryForm } = await import(
@@ -2982,7 +2996,41 @@ describe("category form", () => {
 			{ wrapper },
 		);
 		expect(view.queryByLabelText("settings.effect")).toBeNull();
-		expect(view.queryByLabelText("coloring.wordVfx")).toBeNull();
+		fireEvent.click(
+			view.getByLabelText(/^settings.switchPositionWithNature/, {
+				selector: "input",
+			}),
+		);
+		const effect = view.getByLabelText("coloring.wordVfx", {
+			selector: "input",
+		});
+		fireEvent.click(effect);
+		fireEvent.click(
+			view.getByRole("option", {
+				name: "settings.effects.SPARKLES",
+				hidden: true,
+			}),
+		);
+		fireEvent.change(
+			view.getByLabelText("coloring.wordVfxColor", { selector: "input" }),
+			{ target: { value: "#aabbcc" } },
+		);
+		fireEvent.change(view.getByLabelText(/^settings.nameEn/), {
+			target: { value: "Magic" },
+		});
+		fireEvent.change(view.getByLabelText(/^settings.nameAr/), {
+			target: { value: "سحر" },
+		});
+		setOnline(false);
+		const form = view.getByRole("button", { name: "_.save" }).closest("form");
+		if (!form) throw new Error("category form missing");
+		fireEvent.submit(form);
+		await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+		expect((await env.db.mutations.toArray())[0]?.patch).toMatchObject({
+			wordVfx: "SPARKLES",
+			wordVfxColor: "#aabbcc",
+			switchPositionWithNature: true,
+		});
 	});
 });
 
@@ -3573,5 +3621,121 @@ describe("image drag and drop input", async () => {
 		expect(
 			enabled.queryByRole("button", { name: "imageUpload.remove" }),
 		).toBeNull();
+	});
+});
+
+it("nature circle size starts at twice the previous diameter and persists slider changes", () => {
+	const { store, natureCircle } = renderAppearanceTab();
+	expect(range(natureCircle)).toEqual(["2", "16", "6"]);
+	fireEvent.keyDown(natureCircle, { key: "ArrowRight" });
+	expect(store.get(natureCircleSizeAtom)).toBe(7);
+	expect(window.localStorage.getItem("storylens-nature-circle-size")).toBe("7");
+	for (let step = 0; step < 30; step++)
+		fireEvent.keyDown(natureCircle, { key: "ArrowRight" });
+	expect(store.get(natureCircleSizeAtom)).toBe(16);
+});
+
+describe("lookup deletion migration dialog", () => {
+	for (const kind of ["category", "nature"] as const) {
+		it(`asks for a different ${kind} before deleting linked data`, async () => {
+			env = await setupEngine({ moderator: true });
+			store.set(authStateAtom, { user: env.user, token: "token-reader-1" });
+			const target = env.api.seedLookup(kind, { nameEn: "Destination" });
+			env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Mira",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			const { pullLookups, pullNovel } = await import(
+				"../../src/lib/offline/sync/pull"
+			);
+			await pullLookups({ db: env.db, token: "token-reader-1" });
+			await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+			const { CategoryForm } = await import(
+				"../../src/entrypoints/popup.settings/category-form"
+			);
+			const { NatureForm } = await import(
+				"../../src/entrypoints/popup.settings/nature-form"
+			);
+			const row = env[kind];
+			const editor =
+				kind === "category"
+					? React.createElement(CategoryForm, {
+							mode: "edit",
+							category:
+								row as unknown as import("../../src/types/models").KeywordCategory,
+							onClose() {},
+						})
+					: React.createElement(NatureForm, {
+							mode: "edit",
+							nature:
+								row as unknown as import("../../src/types/models").KeywordNature,
+							onClose() {},
+						});
+			const view = render(React.createElement(PageContent, null, editor), {
+				wrapper,
+			});
+			setOnline(false);
+			fireEvent.click(view.getByRole("button", { name: "_.delete" }));
+			const dialog = await view.findByRole("dialog");
+			const picker = await view.findByLabelText(
+				kind === "category"
+					? /^settings.replacementCategory/
+					: /^settings.replacementNature/,
+				{ selector: "input" },
+			);
+			expect(await env.db.mutations.count()).toBe(0);
+			fireEvent.click(picker);
+			const options = await view.findAllByRole("option", { hidden: true });
+			expect(options.some((option) => option.textContent === row.nameEn)).toBe(
+				false,
+			);
+			fireEvent.click(
+				await view.findByRole("option", { name: "Destination", hidden: true }),
+			);
+			const form = dialog.querySelector("form");
+			if (!form) throw new Error("delete dialog form missing");
+			fireEvent.submit(form);
+			await waitFor(async () => expect(await env.db.mutations.count()).toBe(1));
+			expect((await env.db.mutations.toArray())[0]).toMatchObject({
+				entity: kind === "category" ? "keywordCategory" : "keywordNature",
+				op: "delete",
+				patch: { replacementId: target.id },
+			});
+		});
+	}
+	it("does not offer a migration dropdown for a confirmed unused item and allows cancelling", async () => {
+		env = await setupEngine({ moderator: true });
+		store.set(authStateAtom, { user: env.user, token: "token-reader-1" });
+		const { CategoryForm } = await import(
+			"../../src/entrypoints/popup.settings/category-form"
+		);
+		const view = render(
+			React.createElement(
+				PageContent,
+				null,
+				React.createElement(CategoryForm, {
+					mode: "edit",
+					category:
+						env.category as unknown as import("../../src/types/models").KeywordCategory,
+					onClose() {},
+				}),
+			),
+			{ wrapper },
+		);
+		fireEvent.click(view.getByRole("button", { name: "_.delete" }));
+		const text = await view.findByText("settings.deleteUnusedLookup");
+		const dialog = text.closest('[role="dialog"]');
+		if (!dialog) throw new Error("delete dialog missing");
+		expect(view.queryByLabelText("settings.replacementCategory")).toBeNull();
+		const cancel = dialog.querySelector("button");
+		if (!cancel) throw new Error("close missing");
+		fireEvent.click(cancel);
+		await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
+		expect(await env.db.mutations.count()).toBe(0);
 	});
 });

@@ -15,6 +15,7 @@ import type { GetKeywordsById200AliasesItemDescriptionAr } from "./getKeywordsBy
 import type { GetKeywordsById200AliasesItemDescriptionEn } from "./getKeywordsById200AliasesItemDescriptionEn";
 import type { GetKeywordsById200AliasesItemImage } from "./getKeywordsById200AliasesItemImage";
 import type { GetKeywordsById200AliasesItemImageId } from "./getKeywordsById200AliasesItemImageId";
+import type { GetKeywordsById200AliasesItemMainThemeColor } from "./getKeywordsById200AliasesItemMainThemeColor";
 import type { GetKeywordsById200AliasesItemMatchingType } from "./getKeywordsById200AliasesItemMatchingType";
 import type { GetKeywordsById200AliasesItemNameAr } from "./getKeywordsById200AliasesItemNameAr";
 import type { GetKeywordsById200AliasesItemNameEn } from "./getKeywordsById200AliasesItemNameEn";
@@ -35,6 +36,7 @@ export type GetKeywordsById200AliasesItem = {
 	fuzzyMatchArabicCharacters: boolean;
 	wordVfx: GetKeywordsById200AliasesItemWordVfx;
 	wordVfxColor: GetKeywordsById200AliasesItemWordVfxColor;
+	mainThemeColor: GetKeywordsById200AliasesItemMainThemeColor;
 	overrideStyle: boolean;
 	categoryId: GetKeywordsById200AliasesItemCategoryId;
 	natureId: GetKeywordsById200AliasesItemNatureId;

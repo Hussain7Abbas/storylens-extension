@@ -90,9 +90,9 @@
 .storylens-keyword .storylens-nature-indicator {
 	position: absolute;
 	top: 5px;
-	inset-inline-end: -2px;
-	width: 3px;
-	height: 3px;
+	inset-inline-end: calc(var(--storylens-nature-circle-size, 6px) / -2);
+	width: var(--storylens-nature-circle-size, 6px);
+	height: var(--storylens-nature-circle-size, 6px);
 	border-radius: 50%;
 	pointer-events: none;
 }
@@ -598,7 +598,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 }
 .storylens-keyword[data-storylens-effect="HEAT"][data-storylens-effect-active] {
 	filter: url(#storylens-keyword-heat-filter);
-	animation: storylens-category-heat 1.15s ease-in-out infinite;
+	animation: storylens-category-heat 2.3s ease-in-out infinite;
 }
 @keyframes storylens-category-heat {
 	0%,
@@ -626,7 +626,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 	);
 	filter: blur(0.07em);
 	opacity: 0;
-	animation: storylens-category-smoke 1.25s ease-out var(--sl-effect-delay)
+	animation: storylens-category-smoke 2.5s ease-out var(--sl-effect-delay)
 		infinite;
 }
 @keyframes storylens-category-smoke {
@@ -647,7 +647,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 	}
 }
 .storylens-keyword[data-storylens-effect="SHAKING"][data-storylens-effect-active] {
-	animation: storylens-category-tremor 0.72s steps(1, end) infinite;
+	animation: storylens-category-tremor 1.44s steps(1, end) infinite;
 }
 @keyframes storylens-category-tremor {
 	0%,
@@ -675,7 +675,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 }
 .storylens-keyword[data-storylens-effect="GLITCHING"][data-storylens-effect-active] {
 	filter: url(#storylens-keyword-glitch-filter);
-	animation: storylens-category-glitch 1.6s steps(1, end) infinite;
+	animation: storylens-category-glitch 3.2s steps(1, end) infinite;
 }
 @keyframes storylens-category-glitch {
 	0%,
@@ -720,7 +720,7 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 		transparent 4px 6px
 	);
 	opacity: 0;
-	animation: storylens-category-pixels 1.6s steps(1, end) infinite;
+	animation: storylens-category-pixels 3.2s steps(1, end) infinite;
 }
 @keyframes storylens-category-pixels {
 	0%,
@@ -740,6 +740,53 @@ section.content-wrap .chapter-content p:nth-child(odd) {
 	60% {
 		opacity: 0.6;
 		transform: translateX(3px);
+	}
+}
+.storylens-keyword[data-storylens-effect="GLARE"][data-storylens-effect-active]
+	.storylens-effect-glare {
+	--sl-glare-start: 100%;
+	--sl-glare-end: 0%;
+	--sl-glare-angle: 115deg;
+	inset: 0;
+	border-radius: inherit;
+	background-image: linear-gradient(
+		var(--sl-glare-angle),
+		transparent 46%,
+		rgb(255 255 255 / 0.12) 48%,
+		rgb(255 255 255 / 0.95) 50%,
+		rgb(255 255 255 / 0.12) 52%,
+		transparent 54%
+	);
+	background-size: 300% 100%;
+	background-repeat: no-repeat;
+	background-position: var(--sl-glare-start) 50%;
+	filter: blur(0.02em);
+	opacity: 0;
+	animation: storylens-word-glare 3.2s ease-in-out infinite;
+}
+.storylens-keyword[data-storylens-effect="GLARE"]
+	.storylens-effect-glare:dir(rtl) {
+	--sl-glare-start: 0%;
+	--sl-glare-end: 100%;
+	--sl-glare-angle: 65deg;
+}
+@keyframes storylens-word-glare {
+	0%,
+	12% {
+		opacity: 0;
+		background-position: var(--sl-glare-start) 50%;
+	}
+	20% {
+		opacity: 1;
+	}
+	58% {
+		opacity: 1;
+		background-position: var(--sl-glare-end) 50%;
+	}
+	66%,
+	100% {
+		opacity: 0;
+		background-position: var(--sl-glare-end) 50%;
 	}
 }
 [data-storylens-vfx-paused] .storylens-keyword[data-storylens-effect-active],

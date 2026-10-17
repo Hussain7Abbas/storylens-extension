@@ -14,6 +14,9 @@ On supported novel sites, StoryLens detects the novel and chapter. Give characte
 Features
 • Automatic novel and chapter detection on supported sites
 • Colored highlights and in-page reference notes
+• Adjustable nature-marker size and custom keyword/alias colors and category visual effects
+• Optional word effects, including a diagonal Glare sweep
+• Move linked entries when deleting categories or natures, and optionally swap their word/circle colors
 • Aliases and chapter-specific versions of entries
 • Text replacements for preferred names and translations
 • Search, editing, and offline access to downloaded references

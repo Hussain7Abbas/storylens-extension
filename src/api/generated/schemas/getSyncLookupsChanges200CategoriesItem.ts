@@ -11,14 +11,19 @@ import type { GetSyncLookupsChanges200CategoriesItemDescription } from "./getSyn
 import type { GetSyncLookupsChanges200CategoriesItemNameAr } from "./getSyncLookupsChanges200CategoriesItemNameAr";
 import type { GetSyncLookupsChanges200CategoriesItemNameEn } from "./getSyncLookupsChanges200CategoriesItemNameEn";
 import type { GetSyncLookupsChanges200CategoriesItemUpdatedAt } from "./getSyncLookupsChanges200CategoriesItemUpdatedAt";
+import type { GetSyncLookupsChanges200CategoriesItemWordVfx } from "./getSyncLookupsChanges200CategoriesItemWordVfx";
+import type { GetSyncLookupsChanges200CategoriesItemWordVfxColor } from "./getSyncLookupsChanges200CategoriesItemWordVfxColor";
 
 export type GetSyncLookupsChanges200CategoriesItem = {
 	id: string;
 	nameEn: GetSyncLookupsChanges200CategoriesItemNameEn;
 	nameAr: GetSyncLookupsChanges200CategoriesItemNameAr;
 	color: string;
-	/** @deprecated use Keyword.wordVfx or KeywordAlias.wordVfx. remove-after: 2027-04-30 */
+	/** @deprecated use KeywordCategory.wordVfx. remove-after: 2027-04-30 */
 	effect: string;
+	wordVfx: GetSyncLookupsChanges200CategoriesItemWordVfx;
+	wordVfxColor: GetSyncLookupsChanges200CategoriesItemWordVfxColor;
+	switchPositionWithNature: boolean;
 	description: GetSyncLookupsChanges200CategoriesItemDescription;
 	createdAt: GetSyncLookupsChanges200CategoriesItemCreatedAt;
 	updatedAt: GetSyncLookupsChanges200CategoriesItemUpdatedAt;
