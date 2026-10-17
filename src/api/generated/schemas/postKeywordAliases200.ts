@@ -15,6 +15,7 @@ import type { PostKeywordAliases200DescriptionAr } from "./postKeywordAliases200
 import type { PostKeywordAliases200DescriptionEn } from "./postKeywordAliases200DescriptionEn";
 import type { PostKeywordAliases200Image } from "./postKeywordAliases200Image";
 import type { PostKeywordAliases200ImageId } from "./postKeywordAliases200ImageId";
+import type { PostKeywordAliases200ImagePrompt } from "./postKeywordAliases200ImagePrompt";
 import type { PostKeywordAliases200MainThemeColor } from "./postKeywordAliases200MainThemeColor";
 import type { PostKeywordAliases200MatchingType } from "./postKeywordAliases200MatchingType";
 import type { PostKeywordAliases200NameAr } from "./postKeywordAliases200NameAr";
@@ -40,6 +41,7 @@ export type PostKeywordAliases200 = {
 	overrideStyle: boolean;
 	categoryId: PostKeywordAliases200CategoryId;
 	natureId: PostKeywordAliases200NatureId;
+	imagePrompt: PostKeywordAliases200ImagePrompt;
 	imageId: PostKeywordAliases200ImageId;
 	keywordId: string;
 	createdById: PostKeywordAliases200CreatedById;

@@ -16,6 +16,7 @@ import type { GetKeywordVersions200DataItemDescriptionEn } from "./getKeywordVer
 import type { GetKeywordVersions200DataItemEndingChapter } from "./getKeywordVersions200DataItemEndingChapter";
 import type { GetKeywordVersions200DataItemImage } from "./getKeywordVersions200DataItemImage";
 import type { GetKeywordVersions200DataItemImageId } from "./getKeywordVersions200DataItemImageId";
+import type { GetKeywordVersions200DataItemImagePrompt } from "./getKeywordVersions200DataItemImagePrompt";
 import type { GetKeywordVersions200DataItemNature } from "./getKeywordVersions200DataItemNature";
 import type { GetKeywordVersions200DataItemNatureId } from "./getKeywordVersions200DataItemNatureId";
 import type { GetKeywordVersions200DataItemStartingChapter } from "./getKeywordVersions200DataItemStartingChapter";
@@ -30,6 +31,7 @@ export type GetKeywordVersions200DataItem = {
 	endingChapter: GetKeywordVersions200DataItemEndingChapter;
 	categoryId: GetKeywordVersions200DataItemCategoryId;
 	natureId: GetKeywordVersions200DataItemNatureId;
+	imagePrompt: GetKeywordVersions200DataItemImagePrompt;
 	imageId: GetKeywordVersions200DataItemImageId;
 	keywordId: string;
 	createdById: GetKeywordVersions200DataItemCreatedById;

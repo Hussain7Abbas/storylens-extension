@@ -114,6 +114,7 @@ export type KeywordValues = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
+	imagePrompt?: string | null;
 	imageId?: string | null;
 };
 
@@ -155,6 +156,7 @@ export type AliasValues = {
 	overrideStyle?: boolean;
 	categoryId?: string | null;
 	natureId?: string | null;
+	imagePrompt?: string | null;
 	imageId?: string | null;
 };
 
@@ -164,6 +166,7 @@ export type VersionValues = {
 	descriptionEn?: string | null;
 	categoryId?: string | null;
 	natureId?: string | null;
+	imagePrompt?: string | null;
 	imageId?: string | null;
 	/** Readers: the chapter the version starts at. */
 	currentChapter?: number | null;
@@ -869,6 +872,7 @@ async function enqueueKeyword(
 			description: cleanText(input.values.description),
 			descriptionAr: cleanText(input.values.descriptionAr),
 			descriptionEn: cleanText(input.values.descriptionEn),
+			imagePrompt: cleanText(input.values.imagePrompt),
 			imageId: fileId ?? input.values.imageId ?? null,
 			versionId,
 			startingChapter: input.values.startingChapter,
@@ -990,6 +994,7 @@ const ALIAS_FIELDS = [
 	"overrideStyle",
 	"categoryId",
 	"natureId",
+	"imagePrompt",
 	"imageId",
 ] as const;
 
@@ -1008,6 +1013,7 @@ function aliasValues(values: Partial<AliasValues>): Row {
 		overrideStyle: values.overrideStyle,
 		categoryId: values.categoryId,
 		natureId: values.natureId,
+		imagePrompt: cleanText(values.imagePrompt),
 		imageId: values.imageId,
 	});
 }
@@ -1190,6 +1196,7 @@ const BASE_VERSION_FIELDS = [
 	"descriptionEn",
 	"categoryId",
 	"natureId",
+	"imagePrompt",
 	"imageId",
 ] as const;
 
@@ -1203,6 +1210,7 @@ function versionValues(
 		descriptionEn: cleanText(values.descriptionEn),
 		categoryId: values.categoryId,
 		natureId: values.natureId,
+		imagePrompt: cleanText(values.imagePrompt),
 		imageId: values.imageId,
 		...(moderator
 			? {
@@ -1235,6 +1243,7 @@ async function enqueueVersion(
 			descriptionEn: cleanText(input.values.descriptionEn),
 			categoryId: input.values.categoryId ?? undefined,
 			natureId: input.values.natureId ?? undefined,
+			imagePrompt: cleanText(input.values.imagePrompt),
 			imageId: fileId ?? input.values.imageId ?? null,
 			...(ctx.actor.moderator
 				? {
@@ -1802,6 +1811,7 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				description: base.description ?? row.description ?? null,
 				descriptionAr: base.descriptionAr ?? row.descriptionAr ?? null,
 				descriptionEn: base.descriptionEn ?? row.descriptionEn ?? null,
+				imagePrompt: base.imagePrompt ?? row.imagePrompt ?? null,
 				imageId: base.imageId ?? row.imageId ?? null,
 				versionId: newId(),
 			};
@@ -1818,6 +1828,7 @@ function createAgainPatch(mutation: Mutation): Row | null {
 				descriptionEn: row.descriptionEn ?? null,
 				categoryId: row.categoryId ?? undefined,
 				natureId: row.natureId ?? undefined,
+				imagePrompt: row.imagePrompt ?? null,
 				imageId: row.imageId ?? null,
 				...(mutation.actor.moderator
 					? {

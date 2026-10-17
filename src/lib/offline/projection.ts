@@ -105,6 +105,7 @@ const BASE_VERSION_FIELDS = [
 	"descriptionEn",
 	"categoryId",
 	"natureId",
+	"imagePrompt",
 	"imageId",
 ] as const;
 const ALIAS_FIELDS = [
@@ -121,6 +122,7 @@ const ALIAS_FIELDS = [
 	"overrideStyle",
 	"categoryId",
 	"natureId",
+	"imagePrompt",
 	"imageId",
 ] as const;
 const VERSION_FIELDS = [
@@ -129,6 +131,7 @@ const VERSION_FIELDS = [
 	"descriptionEn",
 	"categoryId",
 	"natureId",
+	"imagePrompt",
 	"imageId",
 ] as const;
 const REPLACEMENT_FIELDS = ["from", "to", "matchingType"] as const;
@@ -445,6 +448,7 @@ function applyKeyword(
 			descriptionEn: null,
 			categoryId: null,
 			natureId: null,
+			imagePrompt: null,
 			imageId: null,
 			image: null,
 			category: null,
@@ -506,6 +510,7 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		overrideStyle: false,
 		categoryId: null,
 		natureId: null,
+		imagePrompt: null,
 		imageId: null,
 		keywordId,
 		createdById: mutation.userId,
@@ -587,6 +592,7 @@ function applyVersion(work: Working, mutation: Mutation): boolean {
 		endingChapter,
 		categoryId: null,
 		natureId: null,
+		imagePrompt: null,
 		imageId: null,
 		keywordId,
 		createdById: mutation.userId,

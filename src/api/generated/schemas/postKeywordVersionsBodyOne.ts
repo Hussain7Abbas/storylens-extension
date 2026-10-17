@@ -10,6 +10,7 @@ import type { PostKeywordVersionsBodyOneDescriptionAr } from "./postKeywordVersi
 import type { PostKeywordVersionsBodyOneDescriptionEn } from "./postKeywordVersionsBodyOneDescriptionEn";
 import type { PostKeywordVersionsBodyOneEndingChapter } from "./postKeywordVersionsBodyOneEndingChapter";
 import type { PostKeywordVersionsBodyOneImageId } from "./postKeywordVersionsBodyOneImageId";
+import type { PostKeywordVersionsBodyOneImagePrompt } from "./postKeywordVersionsBodyOneImagePrompt";
 
 export type PostKeywordVersionsBodyOne = {
 	id: string;
@@ -22,6 +23,8 @@ export type PostKeywordVersionsBodyOne = {
 	descriptionAr?: PostKeywordVersionsBodyOneDescriptionAr;
 	/** @nullable */
 	descriptionEn?: PostKeywordVersionsBodyOneDescriptionEn;
+	/** @nullable */
+	imagePrompt?: PostKeywordVersionsBodyOneImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordVersionsBodyOneImageId;
 	/** @minimum 0 */

@@ -153,6 +153,7 @@ type Translation = {
 	description: string;
 	categoryId: string | null;
 	natureId: string | null;
+	imagePrompt: string | null;
 	imageId: string | null;
 	imageUrl: string | null;
 };
@@ -163,6 +164,7 @@ type Styled = {
 	description?: string | null;
 	categoryId?: string | null;
 	natureId?: string | null;
+	imagePrompt?: string | null;
 	imageId?: unknown;
 	image?: { url?: string | null } | null;
 };
@@ -178,6 +180,7 @@ function translationOf(
 		categoryId: styled?.categoryId ?? null,
 		natureId: styled?.natureId ?? null,
 		imageId: (styled?.imageId as string | null | undefined) ?? null,
+		imagePrompt: styled?.imagePrompt ?? null,
 		imageUrl: styled?.image?.url ?? null,
 	};
 }
@@ -271,6 +274,7 @@ type KeywordFormValues = {
 	natureId: string;
 	descriptionAr: string;
 	descriptionEn: string;
+	imagePrompt: string;
 	imageId?: string | null;
 	startingChapter: number | "";
 	endingChapter: number | "";
@@ -373,6 +377,11 @@ function KeywordForm({
 			descriptionEn:
 				keywordDescriptionIn(baseVersion, "en") ??
 				(language === "en" ? (suggestion?.description ?? "") : ""),
+			imagePrompt:
+				frame.imagePrompt ??
+				baseVersion?.imagePrompt ??
+				suggestion?.imagePrompt ??
+				"",
 			imageId: (baseVersion?.imageId as string | undefined) ?? undefined,
 			startingChapter: Number(baseVersion?.startingChapter ?? 0),
 			endingChapter:
@@ -439,6 +448,9 @@ function KeywordForm({
 				setFieldValue(descriptionKey(other), translation.description);
 				setFieldValue("categoryId", translation.categoryId ?? "");
 				setFieldValue("natureId", translation.natureId ?? "");
+				// A generated file retained by an automatic link keeps its submitted prompt.
+				if (!baseline || !frame.generatedImage)
+					setFieldValue("imagePrompt", translation.imagePrompt ?? "");
 				setFieldValue("imageId", translation.imageId ?? undefined);
 				if (!baseline) setImageFile(null);
 				setLinkedImageUrl(translation.imageUrl);
@@ -446,7 +458,14 @@ function KeywordForm({
 			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
 			else write();
 		},
-		[setFieldValue, isDirty, resetDirty, other, storedOther],
+		[
+			setFieldValue,
+			isDirty,
+			resetDirty,
+			other,
+			storedOther,
+			frame.generatedImage,
+		],
 	);
 
 	// The candidates load from the local view, so an AI-proposed link applies late.
@@ -499,6 +518,7 @@ function KeywordForm({
 					natureId: values.natureId,
 					descriptionAr: values.descriptionAr || null,
 					descriptionEn: values.descriptionEn || null,
+					imagePrompt: values.imagePrompt || null,
 					imageId: values.imageId ?? null,
 					image,
 					// The linked keyword is merged in and gives this one its other name.
@@ -520,12 +540,14 @@ function KeywordForm({
 							natureId: baseVersion?.natureId ?? "",
 							descriptionAr: keywordDescriptionIn(baseVersion, "ar"),
 							descriptionEn: keywordDescriptionIn(baseVersion, "en"),
+							imagePrompt: baseVersion?.imagePrompt ?? null,
 							imageId: baseVersion?.imageId ?? null,
 						},
 						{
 							...values,
 							wordVfxColor: values.wordVfxColor || null,
 							mainThemeColor: values.mainThemeColor || null,
+							imagePrompt: values.imagePrompt || null,
 							imageId: values.imageId ?? null,
 						},
 					);
@@ -719,7 +741,10 @@ function KeywordForm({
 								/>
 								<GenerateImageButton
 									initialError={frame.imageError}
-									initialPrompt={frame.imagePrompt}
+									imagePrompt={form.values.imagePrompt}
+									onPromptChange={(value) =>
+										form.setFieldValue("imagePrompt", value)
+									}
 									initialStopped={frame.imageStopped}
 									initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 									novelId={selectedNovelId}
@@ -942,6 +967,7 @@ type AliasFormValues = {
 	mainThemeColor: string;
 	categoryId: string | null;
 	natureId: string | null;
+	imagePrompt: string;
 	imageId?: string | null;
 	overrideStyle: boolean;
 };
@@ -1027,6 +1053,11 @@ function AliasForm({
 			mainThemeColor: parseMainThemeColor(alias?.mainThemeColor) ?? "",
 			categoryId: alias?.categoryId ?? null,
 			natureId: alias?.natureId ?? null,
+			imagePrompt:
+				frame.imagePrompt ??
+				alias?.imagePrompt ??
+				suggestion?.imagePrompt ??
+				"",
 			imageId: (alias?.imageId as string | undefined) ?? undefined,
 			overrideStyle: alias?.overrideStyle ?? false,
 		},
@@ -1073,6 +1104,9 @@ function AliasForm({
 				setFieldValue(descriptionKey(other), translation.description);
 				setFieldValue("categoryId", translation.categoryId);
 				setFieldValue("natureId", translation.natureId);
+				// A generated file retained by an automatic link keeps its submitted prompt.
+				if (!baseline || !frame.generatedImage)
+					setFieldValue("imagePrompt", translation.imagePrompt ?? "");
 				setFieldValue("imageId", translation.imageId ?? undefined);
 				if (!baseline) setImageFile(null);
 				setLinkedImageUrl(translation.imageUrl);
@@ -1080,7 +1114,14 @@ function AliasForm({
 			if (baseline) loadFormValues({ isDirty, resetDirty }, write);
 			else write();
 		},
-		[setFieldValue, isDirty, resetDirty, other, storedOther],
+		[
+			setFieldValue,
+			isDirty,
+			resetDirty,
+			other,
+			storedOther,
+			frame.generatedImage,
+		],
 	);
 
 	// The siblings load from the local view, so an AI-proposed link applies late.
@@ -1125,6 +1166,7 @@ function AliasForm({
 					mainThemeColor: values.mainThemeColor || null,
 					categoryId: values.categoryId,
 					natureId: values.natureId,
+					imagePrompt: values.imagePrompt || null,
 					imageId: values.imageId ?? null,
 					overrideStyle: values.overrideStyle,
 					image,
@@ -1144,6 +1186,7 @@ function AliasForm({
 					mainThemeColor: parseMainThemeColor(alias.mainThemeColor),
 					categoryId: alias.categoryId ?? null,
 					natureId: alias.natureId ?? null,
+					imagePrompt: alias.imagePrompt ?? null,
 					imageId: alias.imageId ?? null,
 					overrideStyle: alias.overrideStyle,
 				};
@@ -1151,6 +1194,7 @@ function AliasForm({
 					...values,
 					wordVfxColor: values.wordVfxColor || null,
 					mainThemeColor: values.mainThemeColor || null,
+					imagePrompt: values.imagePrompt || null,
 					imageId: values.imageId ?? null,
 				});
 				if (changes || image || translationId) {
@@ -1333,7 +1377,10 @@ function AliasForm({
 								/>
 								<GenerateImageButton
 									initialError={frame.imageError}
-									initialPrompt={frame.imagePrompt}
+									imagePrompt={form.values.imagePrompt}
+									onPromptChange={(value) =>
+										form.setFieldValue("imagePrompt", value)
+									}
 									initialStopped={frame.imageStopped}
 									initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 									novelId={selectedNovelId}
@@ -1519,6 +1566,7 @@ type VersionFormValues = {
 	description: string;
 	categoryId: string | null;
 	natureId: string | null;
+	imagePrompt: string;
 	imageId?: string | null;
 	startingChapter?: number;
 	endingChapter?: number | null;
@@ -1579,6 +1627,11 @@ function VersionForm({
 				(frame.mode === "version-add" ? (frame.initialText ?? "") : ""),
 			categoryId: version?.categoryId ?? suggestion?.categoryId ?? null,
 			natureId: version?.natureId ?? suggestion?.natureId ?? null,
+			imagePrompt:
+				frame.imagePrompt ??
+				version?.imagePrompt ??
+				suggestion?.imagePrompt ??
+				"",
 			imageId: (version?.imageId as string | undefined) ?? undefined,
 			startingChapter: version ? Number(version.startingChapter) : undefined,
 			endingChapter:
@@ -1628,6 +1681,7 @@ function VersionForm({
 					categoryId: values.categoryId,
 					natureId: values.natureId,
 					[descriptionKey(language)]: values.description || null,
+					imagePrompt: values.imagePrompt || null,
 					imageId: values.imageId ?? null,
 					currentChapter,
 					...range,
@@ -1639,6 +1693,7 @@ function VersionForm({
 						categoryId: version.categoryId ?? null,
 						natureId: version.natureId ?? null,
 						[descriptionKey(language)]: keywordDescriptionIn(version, language),
+						imagePrompt: version.imagePrompt ?? null,
 						imageId: version.imageId ?? null,
 						...(isModerator
 							? {
@@ -1653,6 +1708,7 @@ function VersionForm({
 					{
 						...values,
 						[descriptionKey(language)]: values.description || null,
+						imagePrompt: values.imagePrompt || null,
 						imageId: values.imageId ?? null,
 						...(isModerator
 							? {
@@ -1798,7 +1854,8 @@ function VersionForm({
 					/>
 					<GenerateImageButton
 						initialError={frame.imageError}
-						initialPrompt={frame.imagePrompt}
+						imagePrompt={form.values.imagePrompt}
+						onPromptChange={(value) => form.setFieldValue("imagePrompt", value)}
 						initialStopped={frame.imageStopped}
 						initialRevisedPrompt={frame.generatedImage?.revisedPrompt}
 						novelId={selectedNovelId}

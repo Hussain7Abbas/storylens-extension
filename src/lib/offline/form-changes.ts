@@ -44,6 +44,7 @@ export type KeywordFormFields = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
+	imagePrompt?: string | null;
 	imageId?: string | null;
 };
 
@@ -108,12 +109,17 @@ export function keywordFormChanges(
 				...descriptions(initial),
 				categoryId: initial.categoryId,
 				natureId: initial.natureId,
+				imagePrompt: optionalText(initial.imagePrompt),
 				imageId: initial.imageId ?? null,
 			},
 			{
 				...descriptions(values),
 				categoryId: values.categoryId,
 				natureId: values.natureId,
+				imagePrompt:
+					values.imagePrompt === undefined
+						? undefined
+						: optionalText(values.imagePrompt),
 				imageId:
 					values.imageId === undefined ? undefined : (values.imageId ?? null),
 			},
@@ -135,6 +141,7 @@ export type AliasFormFields = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
+	imagePrompt?: string | null;
 	imageId?: string | null;
 };
 
@@ -154,6 +161,9 @@ export function aliasFormChanges(
 		categoryId: fields.categoryId || null,
 		natureId: fields.natureId || null,
 		...descriptions(fields),
+		...(fields.imagePrompt === undefined
+			? {}
+			: { imagePrompt: optionalText(fields.imagePrompt) }),
 		...(fields.imageId === undefined
 			? {}
 			: { imageId: fields.imageId ?? null }),
@@ -167,6 +177,7 @@ export type VersionFormFields = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
+	imagePrompt?: string | null;
 	imageId?: string | null;
 	startingChapter?: number | null;
 	endingChapter?: number | null;
@@ -180,6 +191,9 @@ export function versionFormChanges(
 		categoryId: fields.categoryId || undefined,
 		natureId: fields.natureId || undefined,
 		...descriptions(fields),
+		...(fields.imagePrompt === undefined
+			? {}
+			: { imagePrompt: optionalText(fields.imagePrompt) }),
 		...(fields.imageId === undefined
 			? {}
 			: { imageId: fields.imageId ?? null }),

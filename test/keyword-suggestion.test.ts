@@ -137,3 +137,16 @@ describe("relatedSuggestionDescription", () => {
 		).toBe("اسم آخر للشخصية «لين».");
 	});
 });
+
+test("keeps an AI visual prompt for the suggestion form", () => {
+	expect(
+		parseKeywordSuggestion(
+			JSON.stringify({
+				description: "A scout.",
+				imagePrompt: "  Silver hair, blue cloak.  ",
+			}),
+			categories,
+			natures,
+		).imagePrompt,
+	).toBe("Silver hair, blue cloak.");
+});

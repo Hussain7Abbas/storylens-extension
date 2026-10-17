@@ -16,6 +16,7 @@ export type SuggestedParent = { name: string; relation: ParentRelation };
 export type ExtractedKeyword = {
 	name: string;
 	description: string;
+	imagePrompt?: string;
 	categoryId?: string;
 	natureId?: string;
 	/** Set when the AI suspects the name is an alias or version of a known name or of another listed item. */
@@ -54,10 +55,11 @@ export function buildChapterExtractionPrompt(input: {
 ${instructionSection(input.instructions)}
 
 Return only one JSON object, without Markdown fences:
-{"items": [{"name": string, "description": string, "category": number, "nature": number, "parent": string | null, "relation": "alias" | "version" | null}]}
+{"items": [{"name": string, "description": string, "imagePrompt": string, "category": number, "nature": number, "parent": string | null, "relation": "alias" | "version" | null}]}
 
 - name: exactly as it is written in the chapter.
 - description: the entity description, written as the reader instructions ask.
+- imagePrompt: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
 - category: the number of the best matching category below.
 - nature: the number of the best matching nature below.
 - List each entity once. Skip these names, which are already known: ${knownNameList(input.knownNames)}
@@ -125,6 +127,10 @@ export function parseChapterExtraction(
 			name,
 			description:
 				typeof entry.description === "string" ? entry.description.trim() : "",
+			imagePrompt:
+				typeof entry.imagePrompt === "string" && entry.imagePrompt.trim()
+					? entry.imagePrompt.trim().slice(0, 180000)
+					: undefined,
 			categoryId: pickOption(categories, entry.category),
 			natureId: pickOption(natures, entry.nature),
 			...(suggestedParent ? { suggestedParent } : {}),

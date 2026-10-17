@@ -10,6 +10,7 @@ import type { PutKeywordVersionsByIdBodyThreeDescriptionAr } from "./putKeywordV
 import type { PutKeywordVersionsByIdBodyThreeDescriptionEn } from "./putKeywordVersionsByIdBodyThreeDescriptionEn";
 import type { PutKeywordVersionsByIdBodyThreeEndingChapter } from "./putKeywordVersionsByIdBodyThreeEndingChapter";
 import type { PutKeywordVersionsByIdBodyThreeImageId } from "./putKeywordVersionsByIdBodyThreeImageId";
+import type { PutKeywordVersionsByIdBodyThreeImagePrompt } from "./putKeywordVersionsByIdBodyThreeImagePrompt";
 
 export type PutKeywordVersionsByIdBodyThree = {
 	baseUpdatedAt: string;
@@ -21,6 +22,8 @@ export type PutKeywordVersionsByIdBodyThree = {
 	descriptionEn?: PutKeywordVersionsByIdBodyThreeDescriptionEn;
 	categoryId?: string;
 	natureId?: string;
+	/** @nullable */
+	imagePrompt?: PutKeywordVersionsByIdBodyThreeImagePrompt;
 	/** @nullable */
 	imageId?: PutKeywordVersionsByIdBodyThreeImageId;
 	/** @minimum 0 */

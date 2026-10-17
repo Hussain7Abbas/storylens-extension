@@ -16,6 +16,7 @@ import type { GetKeywords200DataItemVersionsItemDescriptionEn } from "./getKeywo
 import type { GetKeywords200DataItemVersionsItemEndingChapter } from "./getKeywords200DataItemVersionsItemEndingChapter";
 import type { GetKeywords200DataItemVersionsItemImage } from "./getKeywords200DataItemVersionsItemImage";
 import type { GetKeywords200DataItemVersionsItemImageId } from "./getKeywords200DataItemVersionsItemImageId";
+import type { GetKeywords200DataItemVersionsItemImagePrompt } from "./getKeywords200DataItemVersionsItemImagePrompt";
 import type { GetKeywords200DataItemVersionsItemNature } from "./getKeywords200DataItemVersionsItemNature";
 import type { GetKeywords200DataItemVersionsItemNatureId } from "./getKeywords200DataItemVersionsItemNatureId";
 import type { GetKeywords200DataItemVersionsItemStartingChapter } from "./getKeywords200DataItemVersionsItemStartingChapter";
@@ -30,6 +31,7 @@ export type GetKeywords200DataItemVersionsItem = {
 	endingChapter: GetKeywords200DataItemVersionsItemEndingChapter;
 	categoryId: GetKeywords200DataItemVersionsItemCategoryId;
 	natureId: GetKeywords200DataItemVersionsItemNatureId;
+	imagePrompt: GetKeywords200DataItemVersionsItemImagePrompt;
 	imageId: GetKeywords200DataItemVersionsItemImageId;
 	keywordId: string;
 	createdById: GetKeywords200DataItemVersionsItemCreatedById;

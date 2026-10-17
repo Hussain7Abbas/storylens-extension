@@ -11,6 +11,7 @@ import type { PutKeywordAliasesByIdBodyOneDescription } from "./putKeywordAliase
 import type { PutKeywordAliasesByIdBodyOneDescriptionAr } from "./putKeywordAliasesByIdBodyOneDescriptionAr";
 import type { PutKeywordAliasesByIdBodyOneDescriptionEn } from "./putKeywordAliasesByIdBodyOneDescriptionEn";
 import type { PutKeywordAliasesByIdBodyOneImageId } from "./putKeywordAliasesByIdBodyOneImageId";
+import type { PutKeywordAliasesByIdBodyOneImagePrompt } from "./putKeywordAliasesByIdBodyOneImagePrompt";
 import type { PutKeywordAliasesByIdBodyOneMainThemeColor } from "./putKeywordAliasesByIdBodyOneMainThemeColor";
 import type { PutKeywordAliasesByIdBodyOneMatchingType } from "./putKeywordAliasesByIdBodyOneMatchingType";
 import type { PutKeywordAliasesByIdBodyOneNameAr } from "./putKeywordAliasesByIdBodyOneNameAr";
@@ -42,6 +43,8 @@ export type PutKeywordAliasesByIdBodyOne = {
 	categoryId?: PutKeywordAliasesByIdBodyOneCategoryId;
 	/** @nullable */
 	natureId?: PutKeywordAliasesByIdBodyOneNatureId;
+	/** @nullable */
+	imagePrompt?: PutKeywordAliasesByIdBodyOneImagePrompt;
 	/** @nullable */
 	imageId?: PutKeywordAliasesByIdBodyOneImageId;
 	overrideStyle?: boolean;

@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import type { GetKeywords200DataItem } from "@/api/generated/schemas";
+import { CopyImagePrompt } from "@/components/copy-image-prompt";
 import { AiPrice } from "@/components/lens/ai-price";
 import { GetLensesLink } from "@/components/lens/get-lenses-link";
 import { sendMessage } from "@/entrypoints/background/messaging";
@@ -36,6 +37,10 @@ import {
 	EXTRACTION_PANEL_MESSAGE,
 	type ExtractionPanelMessage,
 } from "@/lib/desktop-client/chapter-panel";
+import {
+	buildCharacterImagePrompt,
+	chapterMentions,
+} from "@/lib/desktop-client/character-image";
 import { relatedSuggestionDescription } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
@@ -296,6 +301,16 @@ export function ExtractionView() {
 			setRows(
 				items.map((item, index) => ({
 					...item,
+					imagePrompt: buildCharacterImagePrompt({
+						name: item.name,
+						otherNames: [],
+						description: [item.description, item.imagePrompt]
+							.filter(Boolean)
+							.join("\n\n"),
+						instructions: prompts.imagePrompt,
+						chapterExcerpts: chapterMentions(text, [item.name]),
+						novelContext,
+					}),
 					key: `${index}-${item.name}`,
 					parentId: item.suggestedParent
 						? findParentId(
@@ -389,6 +404,7 @@ export function ExtractionView() {
 					categoryId: row.categoryId as string,
 					natureId: row.natureId as string,
 					[descriptionKey(language)]: description || null,
+					imagePrompt: row.imagePrompt || null,
 				});
 				setRows((current) =>
 					current.map((item) =>
@@ -407,6 +423,7 @@ export function ExtractionView() {
 					keywordId: parent.id,
 					...nameFields(language, row.name),
 					[descriptionKey(language)]: description || null,
+					imagePrompt: row.imagePrompt || null,
 					matchingType: "FULL",
 					categoryId: row.categoryId ?? null,
 					natureId: row.natureId ?? null,
@@ -418,6 +435,7 @@ export function ExtractionView() {
 					categoryId: row.categoryId,
 					natureId: row.natureId,
 					[descriptionKey(language)]: description || null,
+					imagePrompt: row.imagePrompt || null,
 					currentChapter: chapter,
 				});
 			updateRow(row.key, { saving: undefined, saved: action });
@@ -567,6 +585,13 @@ export function ExtractionView() {
 														description: event.currentTarget.value,
 													})
 												}
+											/>
+											<CopyImagePrompt
+												value={row.imagePrompt ?? ""}
+												onChange={(imagePrompt) =>
+													updateRow(row.key, { imagePrompt })
+												}
+												disabled={locked}
 											/>
 										</Table.Td>
 										<Table.Td>

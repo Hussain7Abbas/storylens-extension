@@ -16,6 +16,7 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionEn 
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImage } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImage";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId";
+import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemNature } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemNature";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemNatureId } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemNatureId";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemStartingChapter } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemStartingChapter";
@@ -30,6 +31,7 @@ export type GetSyncSnapshotNovelsById200KeywordsItemVersionsItem = {
 	endingChapter: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryId;
 	natureId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemNatureId;
+	imagePrompt: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt;
 	imageId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId;
 	keywordId: string;
 	createdById: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCreatedById;

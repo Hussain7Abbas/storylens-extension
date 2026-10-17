@@ -1423,8 +1423,21 @@ describe("language tabs in a character form", () => {
 			}
 		});
 	}
+	function chapterFixture() {
+		const open = fakeBrowser.tabs.open;
+		const send = fakeBrowser.tabs.sendMessage;
+		fakeBrowser.tabs.open = [{ id: 7 }];
+		(fakeBrowser.tabs as { sendMessage: unknown }).sendMessage = async () => ({
+			res: { text: "Mira and ليو walk through the forest." },
+		});
+		return () => {
+			fakeBrowser.tabs.open = open;
+			(fakeBrowser.tabs as { sendMessage: unknown }).sendMessage = send;
+		};
+	}
 	it("starts a hover image request once when the source becomes ready", async () => {
 		const previousUrl = window.location.href;
+		const restoreChapter = chapterFixture();
 		const runtime = fakeBrowser.runtime as { sendMessage: unknown };
 		const original = runtime.sendMessage;
 		const parent = env.api.seedKeyword(
@@ -1475,6 +1488,13 @@ describe("language tabs in a character form", () => {
 					effort: "low",
 				},
 			});
+			const extract = await view.findByRole("button", {
+				name: /coloring.extractImagePrompt/,
+			});
+			await waitFor(() =>
+				expect((extract as HTMLButtonElement).disabled).toBe(false),
+			);
+			fireEvent.click(extract);
 			await waitFor(() => expect(imageRequests).toHaveLength(1));
 			expect(imageRequests[0].prompt).toContain("Entity: Mira");
 			fireEvent.click(view.getByRole("tab", { name: "coloring.arabic" }));
@@ -1490,6 +1510,7 @@ describe("language tabs in a character form", () => {
 			finishImage({ res: undefined });
 			view?.unmount();
 			runtime.sendMessage = original;
+			restoreChapter();
 			window.history.replaceState(null, "", previousUrl);
 		}
 	});
@@ -1497,6 +1518,7 @@ describe("language tabs in a character form", () => {
 	for (const kind of ["keyword", "alias"] as const) {
 		it(`keeps ${kind} image generation running when its language tab changes`, async () => {
 			const previousUrl = window.location.href;
+			const restoreChapter = chapterFixture();
 			const runtime = fakeBrowser.runtime as { sendMessage: unknown };
 			const original = runtime.sendMessage;
 			const parent = env.api.seedKeyword(
@@ -1539,6 +1561,13 @@ describe("language tabs in a character form", () => {
 					expect(generate.hasAttribute("data-disabled")).toBe(false),
 				);
 				fireEvent.click(generate);
+				const extract = await view.findByRole("button", {
+					name: /coloring.extractImagePrompt/,
+				});
+				await waitFor(() =>
+					expect((extract as HTMLButtonElement).disabled).toBe(false),
+				);
+				fireEvent.click(extract);
 				await waitFor(() =>
 					expect(requests.some((item) => item.type === "generateAiImage")).toBe(
 						true,
@@ -1572,6 +1601,7 @@ describe("language tabs in a character form", () => {
 				finishImage({ res: undefined });
 				view.unmount();
 				runtime.sendMessage = original;
+				restoreChapter();
 				window.history.replaceState(null, "", previousUrl);
 			}
 		});
@@ -2738,6 +2768,15 @@ describe("parallel selection suggestions and images", () => {
 		setOnline(false);
 		fireEvent.submit(form);
 		await waitFor(async () => expect(await env.db.files.count()).toBe(1));
+		const submittedPrompt = requests.find(
+			(item) => item.type === "generateAiImage",
+		)?.data.prompt;
+		expect(typeof submittedPrompt).toBe("string");
+		expect(
+			(await env.db.mutations.toArray()).find(
+				(item) => item.entity === "keyword",
+			)?.patch.imagePrompt,
+		).toBe(submittedPrompt);
 	});
 
 	it("keeps the image when the suggestion fails", async () => {
@@ -3151,6 +3190,8 @@ describe("personal category and nature colors", () => {
 describe("manual image prompts", () => {
 	const runtime = fakeBrowser.runtime as { sendMessage: unknown };
 	let original: unknown;
+	let originalTabSend: unknown;
+	let originalOpenTabs: typeof fakeBrowser.tabs.open;
 	let authorization: (typeof axiosInstance.defaults.headers.common)["Authorization"];
 	let clipboard: PropertyDescriptor | undefined;
 	let requests: { type: string; data: Record<string, unknown> }[];
@@ -3159,6 +3200,12 @@ describe("manual image prompts", () => {
 		axiosInstance.defaults.headers.common.Authorization =
 			"Bearer token-reader-1";
 		original = runtime.sendMessage;
+		originalTabSend = fakeBrowser.tabs.sendMessage;
+		originalOpenTabs = fakeBrowser.tabs.open;
+		fakeBrowser.tabs.open = [{ id: 7 }];
+		(fakeBrowser.tabs as { sendMessage: unknown }).sendMessage = async () => ({
+			res: { text: "Mira wore a silver cloak by the river." },
+		});
 		clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
 		requests = [];
 		runtime.sendMessage = async (message: unknown) => {
@@ -3195,18 +3242,41 @@ describe("manual image prompts", () => {
 			delete axiosInstance.defaults.headers.common.Authorization;
 		else axiosInstance.defaults.headers.common.Authorization = authorization;
 		runtime.sendMessage = original;
+		(fakeBrowser.tabs as { sendMessage: unknown }).sendMessage =
+			originalTabSend;
+		fakeBrowser.tabs.open = originalOpenTabs;
 		if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
 		else Reflect.deleteProperty(navigator, "clipboard");
 	});
 
-	it("copies the current form brief before generation and refreshes it after edits", async () => {
-		const tabs = fakeBrowser.tabs as { sendMessage: unknown };
-		const originalSend = tabs.sendMessage;
-		const originalTabs = fakeBrowser.tabs.open;
-		fakeBrowser.tabs.open = [{ id: 7 }];
-		tabs.sendMessage = async () => ({
-			res: { text: "Mira wore a silver cloak by the river." },
+	async function confirmExtraction(view: ReturnType<typeof render>) {
+		const button = await view.findByRole("button", {
+			name: /coloring.extractImagePrompt/,
 		});
+		await waitFor(() =>
+			expect((button as HTMLButtonElement).disabled).toBe(false),
+		);
+		fireEvent.click(button);
+	}
+
+	function PromptHarness(
+		props: Omit<
+			React.ComponentProps<
+				typeof import("../../src/components/generate-image-button").GenerateImageButton
+			>,
+			"imagePrompt" | "onPromptChange"
+		>,
+	) {
+		const [imagePrompt, onPromptChange] = React.useState("");
+		const { GenerateImageButton } =
+			require("../../src/components/generate-image-button") as typeof import("../../src/components/generate-image-button");
+		return React.createElement(GenerateImageButton, {
+			...props,
+			imagePrompt,
+			onPromptChange,
+		});
+	}
+	it("keeps the saved brief across description changes and copies prompt edits", async () => {
 		const copied: string[] = [];
 		Object.defineProperty(navigator, "clipboard", {
 			configurable: true,
@@ -3216,62 +3286,159 @@ describe("manual image prompts", () => {
 				},
 			},
 		});
-		const { GenerateImageButton } = await import(
-			"../../src/components/generate-image-button"
-		);
 		const props = {
 			novelId: env.novel.id,
 			name: "Mira",
-			otherNames: ["The scout"],
-			description: "A red-haired scout.",
-			category: "Character",
-			onGenerated() {
-				throw new Error("Copy must not generate an image");
-			},
+			description: "A scout.",
+			onGenerated() {},
 		};
-		const view = render(React.createElement(GenerateImageButton, props), {
-			wrapper,
+		const view = render(React.createElement(PromptHarness, props), { wrapper });
+		fireEvent.click(
+			view.getByText("desktop.imagePrompt", { selector: "summary" }),
+		);
+		const textarea = view.getByLabelText("desktop.imagePrompt");
+		fireEvent.change(textarea, {
+			target: { value: "Ink wash portrait. A red-haired scout." },
 		});
-		try {
-			fireEvent.click(
-				view.getByRole("button", { name: "coloring.copyImagePrompt" }),
-			);
-			await waitFor(() => expect(copied).toHaveLength(1));
-			for (const detail of [
-				"Ink wash portrait.",
-				"Mira / The scout",
-				"A red-haired scout.",
-				"Category: Character",
-				"Mira wore a silver cloak",
-				"A fantasy novel.",
-			]) {
-				expect(copied[0]).toContain(detail);
-			}
-			expect(view.getByText("coloring.imagePromptCopied")).toBeTruthy();
-			view.rerender(
-				React.createElement(GenerateImageButton, {
-					...props,
-					description: "A blue-haired mage.",
+		fireEvent.click(
+			view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+		);
+		await waitFor(() =>
+			expect(copied).toEqual(["Ink wash portrait. A red-haired scout."]),
+		);
+		view.rerender(
+			React.createElement(PromptHarness, {
+				...props,
+				description: "Changed description",
+			}),
+		);
+		expect((textarea as HTMLTextAreaElement).value).toBe(copied[0]);
+		fireEvent.change(textarea, { target: { value: "A blue-haired mage." } });
+		fireEvent.click(
+			view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+		);
+		await waitFor(() => expect(copied.at(-1)).toBe("A blue-haired mage."));
+		expect(
+			requests.some(
+				(item) =>
+					item.type === "generateAiImage" || item.type === "executeAiPrompt",
+			),
+		).toBe(false);
+	});
+
+	for (const source of ["desktop", "cloud"] as const) {
+		it(`warns before extracting an empty prompt with ${source}, shows its price and focuses manual input`, async () => {
+			await fakeBrowser.storage.local.set({
+				"storylens-ai-image-source": source,
+				"storylens-ai-pricing": {
+					data: {
+						cloudAi: { enabled: true },
+						features: [{ key: "character_image", enabled: true, lenses: 7 }],
+					},
+				},
+			});
+			const view = render(
+				React.createElement(PromptHarness, {
+					novelId: env.novel.id,
+					name: "Mira",
+					description: "A scout.",
+					onGenerated() {},
 				}),
+				{ wrapper },
 			);
 			fireEvent.click(
-				view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+				view.getByRole("button", { name: /^coloring.generateImage/ }),
 			);
-			await waitFor(() => expect(copied).toHaveLength(2));
-			expect(copied[1]).toContain("A blue-haired mage.");
-			expect(copied[1]).not.toContain("A red-haired scout.");
+			await waitFor(() => expect(view.getByRole("dialog")).toBeTruthy());
+			const extract = view.getByRole("button", {
+				name: /coloring.extractImagePrompt/,
+			});
+			await waitFor(() =>
+				expect(extract.textContent).toContain(
+					source === "cloud" ? "7" : "lens.free",
+				),
+			);
 			expect(
 				requests.some(
 					(item) =>
 						item.type === "generateAiImage" || item.type === "executeAiPrompt",
 				),
 			).toBe(false);
-		} finally {
-			tabs.sendMessage = originalSend;
-			fakeBrowser.tabs.open = originalTabs;
-			view.unmount();
-		}
-	});
+			expect(
+				(view.getByLabelText("desktop.imagePrompt") as HTMLTextAreaElement)
+					.value,
+			).toBe("");
+			fireEvent.click(
+				view.getByRole("button", { name: "coloring.provideImagePrompt" }),
+			);
+			await waitFor(() =>
+				expect(document.activeElement).toBe(
+					view.getByLabelText("desktop.imagePrompt"),
+				),
+			);
+			const textarea = view.getByLabelText("desktop.imagePrompt");
+			expect(textarea.closest("details")?.open).toBe(true);
+			fireEvent.change(textarea, { target: { value: "My own prompt." } });
+			fireEvent.click(
+				view.getByRole("button", { name: /^coloring.generateImage/ }),
+			);
+			await waitFor(() =>
+				expect(requests.some((item) => item.type === "generateAiImage")).toBe(
+					true,
+				),
+			);
+			expect(
+				requests.find((item) => item.type === "generateAiImage")?.data.prompt,
+			).toBe("My own prompt.");
+		});
+	}
+
+	for (const source of ["desktop", "cloud"] as const) {
+		it(`sends the edited prompt unchanged to ${source} and preserves it on failure`, async () => {
+			await fakeBrowser.storage.local.set({
+				"storylens-ai-image-source": source,
+				"storylens-ai-pricing": {
+					data: {
+						cloudAi: { enabled: true },
+						features: [{ key: "character_image", enabled: true, lenses: 1 }],
+					},
+				},
+			});
+			const view = render(
+				React.createElement(PromptHarness, {
+					novelId: env.novel.id,
+					name: "Mira",
+					description: "A scout.",
+					onGenerated() {},
+				}),
+				{ wrapper },
+			);
+			fireEvent.click(
+				view.getByText("desktop.imagePrompt", { selector: "summary" }),
+			);
+			const textarea = view.getByLabelText("desktop.imagePrompt");
+			for (const prompt of [
+				"Silver-haired scout in a blue cloak.",
+				"Silver-haired scout in a RED cloak.",
+			]) {
+				fireEvent.change(textarea, { target: { value: prompt } });
+				fireEvent.click(
+					view.getByRole("button", { name: /^coloring.generateImage/ }),
+				);
+				await waitFor(() =>
+					expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy(),
+				);
+				expect(
+					requests.filter((item) => item.type === "generateAiImage").at(-1)
+						?.data.prompt,
+				).toBe(prompt);
+				expect((textarea as HTMLTextAreaElement).value).toBe(prompt);
+			}
+			expect(requests.some((item) => item.type === "executeAiPrompt")).toBe(
+				false,
+			);
+		});
+	}
 
 	for (const source of ["desktop", "cloud"] as const) {
 		it(`stops ${source} images immediately, ignores late results and allows retry`, async () => {
@@ -3292,13 +3459,10 @@ describe("manual image prompts", () => {
 					return new Promise((resolve) => pending.push(resolve));
 				return { res: undefined };
 			};
-			const { GenerateImageButton } = await import(
-				"../../src/components/generate-image-button"
-			);
 			const files: File[] = [],
 				busy: boolean[] = [];
 			const view = render(
-				React.createElement(GenerateImageButton, {
+				React.createElement(PromptHarness, {
 					novelId: env.novel.id,
 					name: "Mira",
 					description: "A scout.",
@@ -3313,6 +3477,10 @@ describe("manual image prompts", () => {
 				{ wrapper },
 			);
 			try {
+				fireEvent.click(
+					view.getByText("desktop.imagePrompt", { selector: "summary" }),
+				);
+				await confirmExtraction(view);
 				await waitFor(() => expect(pending).toHaveLength(1));
 				const first = requests.find(
 					(item) => item.type === "generateAiImage",
@@ -3379,11 +3547,8 @@ describe("manual image prompts", () => {
 				});
 			return { res: undefined };
 		};
-		const { GenerateImageButton } = await import(
-			"../../src/components/generate-image-button"
-		);
 		const view = render(
-			React.createElement(GenerateImageButton, {
+			React.createElement(PromptHarness, {
 				novelId: env.novel.id,
 				name: "Mira",
 				description: "A scout.",
@@ -3393,8 +3558,12 @@ describe("manual image prompts", () => {
 		);
 		try {
 			fireEvent.click(
+				view.getByText("desktop.imagePrompt", { selector: "summary" }),
+			);
+			fireEvent.click(
 				view.getByRole("button", { name: /coloring.generateImage$/ }),
 			);
+			await confirmExtraction(view);
 			await waitFor(() =>
 				expect(requests.some((item) => item.type === "executeAiPrompt")).toBe(
 					true,
@@ -3426,11 +3595,8 @@ describe("manual image prompts", () => {
 		}
 	});
 	it("keeps the submitted prompt copyable after failure and offers text when clipboard access fails", async () => {
-		const { GenerateImageButton } = await import(
-			"../../src/components/generate-image-button"
-		);
 		const view = render(
-			React.createElement(GenerateImageButton, {
+			React.createElement(PromptHarness, {
 				novelId: env.novel.id,
 				name: "Mira",
 				description: "A red-haired scout.",
@@ -3439,8 +3605,12 @@ describe("manual image prompts", () => {
 			{ wrapper },
 		);
 		fireEvent.click(
+			view.getByText("desktop.imagePrompt", { selector: "summary" }),
+		);
+		fireEvent.click(
 			view.getByRole("button", { name: /coloring.generateImage$/ }),
 		);
+		await confirmExtraction(view);
 		const copy = await view.findByRole("button", {
 			name: "coloring.copyImagePrompt",
 		});
@@ -3473,14 +3643,10 @@ describe("manual image prompts", () => {
 			requests.filter((item) => item.type === "generateAiImage"),
 		).toHaveLength(1);
 	});
-	it("prepares the saved prompt without pairing or sending any AI request", async () => {
-		await fakeBrowser.storage.local.remove("storylens-desktop-client");
-		env.novel.context = null;
-		const { GenerateImageButton } = await import(
-			"../../src/components/generate-image-button"
-		);
+	it("keeps the prompt empty and avoids an image charge when there is no current chapter", async () => {
+		fakeBrowser.tabs.open = [];
 		const view = render(
-			React.createElement(GenerateImageButton, {
+			React.createElement(PromptHarness, {
 				novelId: env.novel.id,
 				name: "Mira",
 				description: "A scout.",
@@ -3488,21 +3654,52 @@ describe("manual image prompts", () => {
 			}),
 			{ wrapper },
 		);
-		const copied: string[] = [];
-		Object.defineProperty(navigator, "clipboard", {
-			configurable: true,
-			value: {
-				writeText: async (prompt: string) => {
-					copied.push(prompt);
-				},
-			},
-		});
 		fireEvent.click(
-			view.getByRole("button", { name: "coloring.copyImagePrompt" }),
+			view.getByRole("button", { name: /^coloring.generateImage/ }),
 		);
-		await waitFor(() => expect(copied).toHaveLength(1));
-		expect(copied[0]).toContain("Ink wash portrait.");
-		expect(view.queryByText(/coloring.imageGenerateFailed/)).toBeNull();
+		await confirmExtraction(view);
+		await waitFor(() =>
+			expect(view.getByText(/coloring.imageNoChapter/)).toBeTruthy(),
+		);
+		expect(
+			(view.getByLabelText("desktop.imagePrompt") as HTMLTextAreaElement).value,
+		).toBe("");
+		expect(
+			requests.some(
+				(item) =>
+					item.type === "generateAiImage" || item.type === "executeAiPrompt",
+			),
+		).toBe(false);
+	});
+	it("does not prepare a missing prompt by copying and expands the compact editor", async () => {
+		await fakeBrowser.storage.local.remove("storylens-desktop-client");
+		const view = render(
+			React.createElement(PromptHarness, {
+				novelId: env.novel.id,
+				name: "Mira",
+				description: "A scout.",
+				onGenerated() {},
+			}),
+			{ wrapper },
+		);
+		fireEvent.click(
+			view.getByText("desktop.imagePrompt", { selector: "summary" }),
+		);
+		const copy = view.getByRole("button", {
+			name: "coloring.copyImagePrompt",
+		}) as HTMLButtonElement;
+		expect(copy.disabled).toBe(true);
+		const expand = view.getByRole("button", { name: "coloring.expandPrompt" });
+		expect(expand.getAttribute("aria-expanded")).toBe("false");
+		fireEvent.click(expand);
+		const collapse = view.getByRole("button", {
+			name: "coloring.collapsePrompt",
+		});
+		expect(collapse.getAttribute("aria-expanded")).toBe("true");
+		fireEvent.click(collapse);
+		expect(
+			view.getByRole("button", { name: "coloring.expandPrompt" }),
+		).toBeTruthy();
 		expect(
 			requests.some(
 				(item) =>

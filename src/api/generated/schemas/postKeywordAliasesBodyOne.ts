@@ -11,6 +11,7 @@ import type { PostKeywordAliasesBodyOneDescription } from "./postKeywordAliasesB
 import type { PostKeywordAliasesBodyOneDescriptionAr } from "./postKeywordAliasesBodyOneDescriptionAr";
 import type { PostKeywordAliasesBodyOneDescriptionEn } from "./postKeywordAliasesBodyOneDescriptionEn";
 import type { PostKeywordAliasesBodyOneImageId } from "./postKeywordAliasesBodyOneImageId";
+import type { PostKeywordAliasesBodyOneImagePrompt } from "./postKeywordAliasesBodyOneImagePrompt";
 import type { PostKeywordAliasesBodyOneMainThemeColor } from "./postKeywordAliasesBodyOneMainThemeColor";
 import type { PostKeywordAliasesBodyOneMatchingType } from "./postKeywordAliasesBodyOneMatchingType";
 import type { PostKeywordAliasesBodyOneNameAr } from "./postKeywordAliasesBodyOneNameAr";
@@ -43,6 +44,8 @@ export type PostKeywordAliasesBodyOne = {
 	categoryId?: PostKeywordAliasesBodyOneCategoryId;
 	/** @nullable */
 	natureId?: PostKeywordAliasesBodyOneNatureId;
+	/** @nullable */
+	imagePrompt?: PostKeywordAliasesBodyOneImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordAliasesBodyOneImageId;
 	overrideStyle?: boolean;

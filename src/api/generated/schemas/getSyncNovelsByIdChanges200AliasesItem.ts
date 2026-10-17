@@ -15,6 +15,7 @@ import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionAr } from "./getS
 import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionEn } from "./getSyncNovelsByIdChanges200AliasesItemDescriptionEn";
 import type { GetSyncNovelsByIdChanges200AliasesItemImage } from "./getSyncNovelsByIdChanges200AliasesItemImage";
 import type { GetSyncNovelsByIdChanges200AliasesItemImageId } from "./getSyncNovelsByIdChanges200AliasesItemImageId";
+import type { GetSyncNovelsByIdChanges200AliasesItemImagePrompt } from "./getSyncNovelsByIdChanges200AliasesItemImagePrompt";
 import type { GetSyncNovelsByIdChanges200AliasesItemMainThemeColor } from "./getSyncNovelsByIdChanges200AliasesItemMainThemeColor";
 import type { GetSyncNovelsByIdChanges200AliasesItemMatchingType } from "./getSyncNovelsByIdChanges200AliasesItemMatchingType";
 import type { GetSyncNovelsByIdChanges200AliasesItemNameAr } from "./getSyncNovelsByIdChanges200AliasesItemNameAr";
@@ -40,6 +41,7 @@ export type GetSyncNovelsByIdChanges200AliasesItem = {
 	overrideStyle: boolean;
 	categoryId: GetSyncNovelsByIdChanges200AliasesItemCategoryId;
 	natureId: GetSyncNovelsByIdChanges200AliasesItemNatureId;
+	imagePrompt: GetSyncNovelsByIdChanges200AliasesItemImagePrompt;
 	imageId: GetSyncNovelsByIdChanges200AliasesItemImageId;
 	keywordId: string;
 	createdById: GetSyncNovelsByIdChanges200AliasesItemCreatedById;

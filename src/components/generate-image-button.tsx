@@ -1,11 +1,19 @@
-import { Alert, Button, Group, Text, Tooltip } from "@mantine/core";
+import {
+	Alert,
+	Button,
+	Group,
+	Modal,
+	Stack,
+	Text,
+	Tooltip,
+} from "@mantine/core";
 import { ImagePlus as IconImagePlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { AiPrice } from "@/components/lens/ai-price";
 import { GetLensesLink } from "@/components/lens/get-lenses-link";
-import { useLensLabel } from "@/components/lens/lens-price";
+import { LensPrice, useLensLabel } from "@/components/lens/lens-price";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { availabilityKey } from "@/lib/ai-source/availability";
 import { useAiAvailability, useAiSnapshot } from "@/lib/ai-source/hooks";
@@ -14,7 +22,6 @@ import { trackEvent } from "@/lib/analytics/client";
 import { withImageContinuity } from "@/lib/chapter-context/image";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
-import { DEFAULT_AI_PROMPTS } from "@/lib/desktop-client/ai-prompts";
 import {
 	buildCharacterImagePrompt,
 	chapterMentions,
@@ -63,7 +70,8 @@ export function GenerateImageButton({
 	autoStart = false,
 	initialError,
 	initialRevisedPrompt,
-	initialPrompt,
+	imagePrompt,
+	onPromptChange,
 	initialStopped = false,
 }: {
 	novelId: string;
@@ -80,7 +88,8 @@ export function GenerateImageButton({
 	autoStart?: boolean;
 	initialError?: string;
 	initialRevisedPrompt?: string;
-	initialPrompt?: string;
+	imagePrompt: string;
+	onPromptChange: (prompt: string) => void;
 	initialStopped?: boolean;
 }) {
 	const { t, i18n } = useTranslation();
@@ -93,13 +102,18 @@ export function GenerateImageButton({
 	} = useAiSnapshot();
 	const label = useLensLabel();
 	const [needsContext, setNeedsContext] = useState(false);
+	const [contextLoaded, setContextLoaded] = useState(false);
 	useEffect(() => {
 		let active = true;
+		setContextLoaded(false);
 		void loadNovel(novelId, i18n.language.startsWith("ar") ? "ar" : "en")
 			.then((novel) => {
 				if (active) setNeedsContext(!!novel && !novel.context?.trim());
 			})
-			.catch(() => {});
+			.catch(() => {})
+			.finally(() => {
+				if (active) setContextLoaded(true);
+			});
 		return () => {
 			active = false;
 		};
@@ -110,7 +124,7 @@ export function GenerateImageButton({
 					?.lenses ?? 0)
 			: 0;
 	const researchPrice =
-		textSource === "cloud" && needsContext
+		textSource === "cloud" && needsContext && !imagePrompt.trim()
 			? (pricing?.features.find(
 					(row) => row.key === "novel_context" && row.enabled,
 				)?.lenses ?? 0)
@@ -119,24 +133,14 @@ export function GenerateImageButton({
 	const [revisedPrompt, setRevisedPrompt] = useState<string | undefined>(
 		initialRevisedPrompt,
 	);
-	const promptInputs = JSON.stringify([
-		novelId,
-		name,
-		otherNames,
-		description,
-		category,
-		i18n.language,
-	]);
-	const [preparedPrompt, setPreparedPrompt] = useState(
-		initialPrompt ? { value: initialPrompt, inputs: promptInputs } : undefined,
-	);
 	const [busy, setBusy] = useState(false);
-	const prompt =
-		busy || preparedPrompt?.inputs === promptInputs
-			? preparedPrompt?.value
-			: undefined;
-	const setPrompt = (value: string) =>
-		setPreparedPrompt({ value, inputs: promptInputs });
+	const [copying, setCopying] = useState(false);
+	const [needsPrompt, setNeedsPrompt] = useState(false);
+	const [focusRequest, setFocusRequest] = useState(0);
+	const generateButton = useRef<HTMLButtonElement>(null);
+	const prompt = imagePrompt;
+	const hasPrompt = !!prompt.trim();
+	const setPrompt = onPromptChange;
 	const [stopped, setStopped] = useState(initialStopped);
 	const [error, setError] = useState<string | null>(initialError ?? null);
 	const controller = useRef<AbortController | null>(null);
@@ -157,10 +161,10 @@ export function GenerateImageButton({
 		[],
 	);
 
-	const setBusyState = (value: boolean) => {
-		setBusy(value);
-		onBusyChange?.(value);
-	};
+	useEffect(() => {
+		onBusyChange?.(busy || copying);
+	}, [busy, copying, onBusyChange]);
+	const setBusyState = setBusy;
 
 	const build = (
 		instructions: string,
@@ -177,19 +181,6 @@ export function GenerateImageButton({
 			novelContext,
 		});
 
-	const preparePrompt = async () => {
-		const [prompts, chapterText, novel] = await Promise.all([
-			aiPrompts().catch(() => DEFAULT_AI_PROMPTS),
-			activeChapterText(),
-			loadNovel(novelId, toAiLanguage(i18n.language)).catch(() => undefined),
-		]);
-		return withImageContinuity({
-			novelId,
-			names: [name, ...otherNames],
-			prompt: build(prompts.imagePrompt, chapterText, novel?.context ?? ""),
-		});
-	};
-
 	const generate = async () => {
 		if (!name.trim()) {
 			setError(t("coloring.imageNeedsName"));
@@ -202,56 +193,57 @@ export function GenerateImageButton({
 		setStopped(false);
 		setRevisedPrompt(undefined);
 		setBusyState(true);
-		// A usable prompt remains available even when pairing, billing or generation fails.
-		setPrompt(build(DEFAULT_AI_PROMPTS.imagePrompt, "", ""));
+		// A saved or edited prompt is the exact source for every subsequent image.
+		const existingPrompt = prompt.trim() ? prompt : undefined;
 		try {
-			const language = toAiLanguage(i18n.language);
-			const [ai, textAi, prompts, chapterText, novel] = await Promise.all([
-				aiState("character_image"),
-				aiState("novel_context"),
-				aiPrompts(),
-				activeChapterText(),
-				loadNovel(novelId, language),
-			]);
+			const ai = await aiState("character_image");
 			if (abort.signal.aborted) return;
-			let prompt = build(
-				prompts.imagePrompt,
-				chapterText,
-				novel?.context ?? "",
-			);
-			setPrompt(prompt);
 			if (!ai.availability.ok)
 				throw new Error(t(availabilityKey(ai.availability)));
-			const settings = ai.desktop;
-			const novelContext = await ensureNovelContext({
-				novelId,
-				language,
-				settings: textAi.desktop,
-				source: textAi.source,
-				parentFeature: ai.source === "cloud" ? "character_image" : undefined,
-				signal: abort.signal,
-			});
-			if (abort.signal.aborted) return;
-			prompt = await withImageContinuity({
-				novelId,
-				names: [name, ...otherNames],
-				prompt: build(prompts.imagePrompt, chapterText, novelContext),
-			});
-			if (abort.signal.aborted) return;
-			setPrompt(prompt);
+			let submittedPrompt = existingPrompt;
+			let hasNovelContext: boolean | undefined;
+			if (!submittedPrompt) {
+				const language = toAiLanguage(i18n.language);
+				const [textAi, prompts, chapterText] = await Promise.all([
+					aiState("novel_context"),
+					aiPrompts(),
+					activeChapterText(),
+				]);
+				if (!chapterText.trim()) throw new Error(t("coloring.imageNoChapter"));
+				const novelContext = await ensureNovelContext({
+					novelId,
+					language,
+					settings: textAi.desktop,
+					source: textAi.source,
+					parentFeature: ai.source === "cloud" ? "character_image" : undefined,
+					signal: abort.signal,
+				});
+				if (abort.signal.aborted) return;
+				hasNovelContext = !!novelContext;
+				submittedPrompt = await withImageContinuity({
+					novelId,
+					names: [name, ...otherNames],
+					prompt: build(prompts.imagePrompt, chapterText, novelContext),
+				});
+				if (abort.signal.aborted) return;
+				setPrompt(submittedPrompt);
+			}
 			trackEvent("ai_image_generation_requested", {
 				provider: ai.source,
-				has_novel_context: !!novelContext,
+				...(hasNovelContext === undefined
+					? {}
+					: { has_novel_context: hasNovelContext }),
 			});
 			const image = await generateCharacterImage({
 				source: ai.source,
-				settings,
-				prompt,
+				settings: ai.desktop,
+				prompt: submittedPrompt,
 				name,
 				signal: abort.signal,
 			});
 			if (abort.signal.aborted) return;
 			setRevisedPrompt(image.revisedPrompt);
+			setPrompt(submittedPrompt);
 			onGenerated(image.file);
 		} catch (cause) {
 			if (abort.signal.aborted) return;
@@ -265,16 +257,30 @@ export function GenerateImageButton({
 		}
 	};
 
+	const requestGenerate = () => {
+		if (!name.trim()) {
+			setError(t("coloring.imageNeedsName"));
+			return;
+		}
+		if (!prompt.trim()) {
+			setNeedsPrompt(true);
+			return;
+		}
+		void generate();
+	};
+
 	// A form opened to draw an image starts once, after its values loaded.
 	const started = useRef(initialStopped);
-	const latestGenerate = useRef(generate);
-	latestGenerate.current = generate;
+	const latestGenerate = useRef(requestGenerate);
+	latestGenerate.current = requestGenerate;
 	useEffect(() => {
-		if (started.current || !autoStart || !loaded || !name.trim()) return;
-		// Preparing an unavailable source still exposes the prompt; start once it becomes ready.
-		if (aiConfigured) started.current = true;
+		if (started.current || copying || !autoStart || !loaded || !name.trim())
+			return;
+		// Empty prompts ask once; saved prompts wait for their selected source.
+		if (hasPrompt && !aiConfigured) return;
+		started.current = true;
 		void latestGenerate.current();
-	}, [autoStart, loaded, aiConfigured, name]);
+	}, [autoStart, loaded, aiConfigured, name, copying, hasPrompt]);
 
 	const stop = () => {
 		const active = controller.current;
@@ -303,25 +309,82 @@ export function GenerateImageButton({
 					maw={260}
 				>
 					<Button
+						ref={generateButton}
 						type="button"
 						size="xs"
 						variant="light"
 						leftSection={<IconImagePlus size={14} strokeWidth={1.75} />}
 						loading={busy}
+						disabled={copying}
 						onClick={() => {
-							void generate();
+							requestGenerate();
 						}}
 						style={{ alignSelf: "flex-start" }}
 					>
 						{t("coloring.generateImage")} <AiPrice feature="character_image" />
 					</Button>
 				</Tooltip>
-				<CopyImagePrompt
-					prompt={prompt ?? preparePrompt}
-					promptKey={prompt ?? promptInputs}
-					disabled={!prompt && !name.trim()}
-				/>
 			</Group>
+			<CopyImagePrompt
+				value={prompt}
+				onChange={setPrompt}
+				onBusyChange={setCopying}
+				readOnly={busy}
+				focusRequest={focusRequest}
+			/>
+
+			<Modal
+				opened={needsPrompt}
+				onClose={() => {
+					setNeedsPrompt(false);
+					generateButton.current?.focus();
+				}}
+				title={t("coloring.emptyImagePromptTitle")}
+				centered
+				returnFocus={false}
+			>
+				<Stack gap="md">
+					<Text>{t("coloring.emptyImagePromptQuestion")}</Text>
+					<Text size="sm" c="dimmed">
+						{t("coloring.extractImagePromptHelp")}
+					</Text>
+					{researchPrice > 0 && (
+						<Text size="xs" c="dimmed">
+							{t("cloud.researchCost", { lenses: label(researchPrice) })}
+						</Text>
+					)}
+					<Group justify="flex-end" gap="xs">
+						<Button
+							variant="default"
+							onClick={() => {
+								setNeedsPrompt(false);
+								setFocusRequest((value) => value + 1);
+							}}
+						>
+							{t("coloring.provideImagePrompt")}
+						</Button>
+						<Tooltip
+							label={
+								aiConfigured
+									? t("coloring.extractImagePromptHelp")
+									: t(availabilityKey(availability))
+							}
+						>
+							<Button
+								disabled={busy || !loaded || !contextLoaded || !aiConfigured}
+								onClick={() => {
+									setNeedsPrompt(false);
+									void generate();
+								}}
+							>
+								{t("coloring.extractImagePrompt")}{" "}
+								<LensPrice lenses={imagePrice} tone="on-brand" />
+							</Button>
+						</Tooltip>
+					</Group>
+				</Stack>
+			</Modal>
+
 			{busy && <StopImageButton onStop={stop} />}
 			{stopped && (
 				<Text size="xs" c="dimmed" role="status">

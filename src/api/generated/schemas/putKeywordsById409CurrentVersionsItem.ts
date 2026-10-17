@@ -16,6 +16,7 @@ import type { PutKeywordsById409CurrentVersionsItemDescriptionEn } from "./putKe
 import type { PutKeywordsById409CurrentVersionsItemEndingChapter } from "./putKeywordsById409CurrentVersionsItemEndingChapter";
 import type { PutKeywordsById409CurrentVersionsItemImage } from "./putKeywordsById409CurrentVersionsItemImage";
 import type { PutKeywordsById409CurrentVersionsItemImageId } from "./putKeywordsById409CurrentVersionsItemImageId";
+import type { PutKeywordsById409CurrentVersionsItemImagePrompt } from "./putKeywordsById409CurrentVersionsItemImagePrompt";
 import type { PutKeywordsById409CurrentVersionsItemNature } from "./putKeywordsById409CurrentVersionsItemNature";
 import type { PutKeywordsById409CurrentVersionsItemNatureId } from "./putKeywordsById409CurrentVersionsItemNatureId";
 import type { PutKeywordsById409CurrentVersionsItemStartingChapter } from "./putKeywordsById409CurrentVersionsItemStartingChapter";
@@ -30,6 +31,7 @@ export type PutKeywordsById409CurrentVersionsItem = {
 	endingChapter: PutKeywordsById409CurrentVersionsItemEndingChapter;
 	categoryId: PutKeywordsById409CurrentVersionsItemCategoryId;
 	natureId: PutKeywordsById409CurrentVersionsItemNatureId;
+	imagePrompt: PutKeywordsById409CurrentVersionsItemImagePrompt;
 	imageId: PutKeywordsById409CurrentVersionsItemImageId;
 	keywordId: string;
 	createdById: PutKeywordsById409CurrentVersionsItemCreatedById;

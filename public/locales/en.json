@@ -125,7 +125,16 @@
 		"imageStopped": "Image generation stopped.",
 		"mainThemeColor": "Main Theme Color",
 		"mainThemeColorHint": "Override the inherited color for this word. An alias inherits its keyword’s color when empty.",
-		"inheritCategoryColor": "Use inherited color"
+		"inheritCategoryColor": "Use inherited color",
+		"savedImagePromptHelp": "Saved with this entry. Edit this prompt to change the next generated image.",
+		"emptyImagePromptTitle": "Image Prompt is empty",
+		"emptyImagePromptQuestion": "The Image Prompt is empty. Do you want to extract image context from the current chapter?",
+		"extractImagePromptHelp": "Extracts context and generates an image at the normal character-generation price.",
+		"extractImagePrompt": "Extract With AI",
+		"provideImagePrompt": "I’ll Provide Prompt",
+		"expandPrompt": "Expand",
+		"collapsePrompt": "Collapse",
+		"imageNoChapter": "Open the novel’s current chapter before extracting image context, or provide an image prompt yourself."
 	},
 	"dataTable": {
 		"noRecords": "There is no records to show",
@@ -138,7 +147,7 @@
 		"connectionFailed": "Could not connect to desktop client.",
 		"disclosure": "The AI actions (AI add, Summarize page, Extract chapter characters, and Generate image) send page content through the desktop client to your selected AI provider. When a novel has no context yet, the first AI action also asks the provider to research the novel on the web. Image generation uses Codex. Connecting also shares your Story Lens sign-in with the desktop client so its wiki crawler can read and save your novels' characters; signing out removes it.",
 		"effort": "Effort",
-		"imagePrompt": "Image prompt",
+		"imagePrompt": "Image Prompt",
 		"imagePromptHelp": "How character images are drawn. Story Lens adds the passages of the current chapter that mention the character, its name, aliases, description and category, then the novel context, and Codex generates one image that uploads to image storage when you save the form.",
 		"keywordPrompt": "Keyword prompt",
 		"keywordPromptHelp": "How AI add and chapter extraction write descriptions and choose categories and natures.",

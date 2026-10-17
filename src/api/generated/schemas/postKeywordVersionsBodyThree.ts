@@ -10,6 +10,7 @@ import type { PostKeywordVersionsBodyThreeDescriptionAr } from "./postKeywordVer
 import type { PostKeywordVersionsBodyThreeDescriptionEn } from "./postKeywordVersionsBodyThreeDescriptionEn";
 import type { PostKeywordVersionsBodyThreeEndingChapter } from "./postKeywordVersionsBodyThreeEndingChapter";
 import type { PostKeywordVersionsBodyThreeImageId } from "./postKeywordVersionsBodyThreeImageId";
+import type { PostKeywordVersionsBodyThreeImagePrompt } from "./postKeywordVersionsBodyThreeImagePrompt";
 
 export type PostKeywordVersionsBodyThree = {
 	id: string;
@@ -22,6 +23,8 @@ export type PostKeywordVersionsBodyThree = {
 	descriptionAr?: PostKeywordVersionsBodyThreeDescriptionAr;
 	/** @nullable */
 	descriptionEn?: PostKeywordVersionsBodyThreeDescriptionEn;
+	/** @nullable */
+	imagePrompt?: PostKeywordVersionsBodyThreeImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordVersionsBodyThreeImageId;
 	/** @minimum 0 */

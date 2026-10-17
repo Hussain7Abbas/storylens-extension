@@ -242,7 +242,24 @@ export function useKeywordSuggestion(
 						texts: (result) => [result.description],
 					});
 					if (!controller.signal.aborted)
-						setState({ status: "ready", suggestion });
+						setState({
+							status: "ready",
+							suggestion: {
+								...suggestion,
+								imagePrompt: buildCharacterImagePrompt({
+									name: request.name,
+									otherNames: [],
+									description: [suggestion.description, suggestion.imagePrompt]
+										.filter(Boolean)
+										.join("\n\n"),
+									instructions: prompts.imagePrompt,
+									chapterExcerpts: [
+										`${request.context.before}${request.name}${request.context.after}`,
+									],
+									novelContext,
+								}),
+							},
+						});
 				} catch (error: unknown) {
 					if (!controller.signal.aborted)
 						setState({

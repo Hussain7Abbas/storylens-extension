@@ -235,6 +235,7 @@ export class FakeApi {
 			descriptionEn,
 			categoryId,
 			natureId,
+			imagePrompt: null,
 			imageId: null,
 			startingChapter: 0,
 			endingChapter: null,
@@ -258,6 +259,7 @@ export class FakeApi {
 			overrideStyle: false,
 			categoryId: null,
 			natureId: null,
+			imagePrompt: null,
 			imageId: null,
 			keywordId,
 			createdById: null,
@@ -277,6 +279,7 @@ export class FakeApi {
 			description: null,
 			categoryId: null,
 			natureId: null,
+			imagePrompt: null,
 			imageId: null,
 			startingChapter: 0,
 			endingChapter: null,
@@ -962,6 +965,7 @@ export class FakeApi {
 				descriptionEn: body.descriptionEn ?? null,
 				categoryId: body.categoryId,
 				natureId: body.natureId,
+				imagePrompt: body.imagePrompt ?? null,
 				imageId: body.imageId ?? null,
 				startingChapter: body.startingChapter ?? 0,
 				endingChapter: body.endingChapter ?? null,
@@ -1071,6 +1075,7 @@ export class FakeApi {
 			"overrideStyle",
 			"categoryId",
 			"natureId",
+			"imagePrompt",
 			"imageId",
 		];
 		if (method === "POST") {
@@ -1108,6 +1113,7 @@ export class FakeApi {
 				overrideStyle: false,
 				categoryId: null,
 				natureId: null,
+				imagePrompt: null,
 				imageId: null,
 				...Object.fromEntries(
 					fields
@@ -1280,6 +1286,7 @@ export class FakeApi {
 				descriptionEn: body.descriptionEn ?? null,
 				categoryId: body.categoryId ?? null,
 				natureId: body.natureId ?? null,
+				imagePrompt: body.imagePrompt ?? null,
 				imageId: body.imageId ?? null,
 				startingChapter: start,
 				endingChapter: end,
@@ -1303,6 +1310,7 @@ export class FakeApi {
 				"descriptionEn",
 				"categoryId",
 				"natureId",
+				"imagePrompt",
 				"imageId",
 				...(user.moderator ? ["startingChapter", "endingChapter"] : []),
 			];

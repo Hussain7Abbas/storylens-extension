@@ -15,6 +15,7 @@ import type { PutKeywordsById409CurrentAliasesItemDescriptionAr } from "./putKey
 import type { PutKeywordsById409CurrentAliasesItemDescriptionEn } from "./putKeywordsById409CurrentAliasesItemDescriptionEn";
 import type { PutKeywordsById409CurrentAliasesItemImage } from "./putKeywordsById409CurrentAliasesItemImage";
 import type { PutKeywordsById409CurrentAliasesItemImageId } from "./putKeywordsById409CurrentAliasesItemImageId";
+import type { PutKeywordsById409CurrentAliasesItemImagePrompt } from "./putKeywordsById409CurrentAliasesItemImagePrompt";
 import type { PutKeywordsById409CurrentAliasesItemMainThemeColor } from "./putKeywordsById409CurrentAliasesItemMainThemeColor";
 import type { PutKeywordsById409CurrentAliasesItemMatchingType } from "./putKeywordsById409CurrentAliasesItemMatchingType";
 import type { PutKeywordsById409CurrentAliasesItemNameAr } from "./putKeywordsById409CurrentAliasesItemNameAr";
@@ -40,6 +41,7 @@ export type PutKeywordsById409CurrentAliasesItem = {
 	overrideStyle: boolean;
 	categoryId: PutKeywordsById409CurrentAliasesItemCategoryId;
 	natureId: PutKeywordsById409CurrentAliasesItemNatureId;
+	imagePrompt: PutKeywordsById409CurrentAliasesItemImagePrompt;
 	imageId: PutKeywordsById409CurrentAliasesItemImageId;
 	keywordId: string;
 	createdById: PutKeywordsById409CurrentAliasesItemCreatedById;

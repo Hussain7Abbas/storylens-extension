@@ -1,0 +1,74 @@
+.editor {
+	position: relative;
+	min-inline-size: 0;
+}
+.textarea {
+	box-sizing: border-box;
+	block-size: 100px;
+	min-block-size: 100px;
+	padding-inline-end: 44px;
+	padding-block-end: 36px;
+	resize: none;
+	overflow: hidden;
+}
+.editor[data-expanded="true"] .textarea {
+	block-size: 320px;
+	min-block-size: 160px;
+	padding-block-end: 12px;
+	resize: vertical;
+	overflow: auto;
+}
+.copy {
+	position: absolute;
+	inset-block-start: 6px;
+	inset-inline-end: 6px;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 150ms ease;
+}
+.editor:hover .copy,
+.editor:focus-within .copy {
+	opacity: 1;
+	pointer-events: auto;
+}
+.fade {
+	position: absolute;
+	inset-inline: 1px;
+	inset-block-end: 1px;
+	block-size: 44px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	border-radius: 0 0 var(--mantine-radius-default) var(--mantine-radius-default);
+	background: linear-gradient(to bottom, transparent, var(--sl-surface) 75%);
+	pointer-events: none;
+}
+.expand {
+	pointer-events: auto;
+	margin-block-end: 3px;
+}
+@media (hover: none), (pointer: coarse) {
+	.copy {
+		opacity: 1;
+		pointer-events: auto;
+		min-inline-size: 44px;
+		min-block-size: 44px;
+	}
+	.textarea {
+		padding-inline-end: 56px;
+	}
+	.expand {
+		min-block-size: 44px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.copy {
+		transition: none;
+	}
+}
+@media (forced-colors: active) {
+	.fade {
+		background: Canvas;
+		border-block-start: 1px solid CanvasText;
+	}
+}

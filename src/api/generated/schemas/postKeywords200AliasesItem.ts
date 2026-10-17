@@ -15,6 +15,7 @@ import type { PostKeywords200AliasesItemDescriptionAr } from "./postKeywords200A
 import type { PostKeywords200AliasesItemDescriptionEn } from "./postKeywords200AliasesItemDescriptionEn";
 import type { PostKeywords200AliasesItemImage } from "./postKeywords200AliasesItemImage";
 import type { PostKeywords200AliasesItemImageId } from "./postKeywords200AliasesItemImageId";
+import type { PostKeywords200AliasesItemImagePrompt } from "./postKeywords200AliasesItemImagePrompt";
 import type { PostKeywords200AliasesItemMainThemeColor } from "./postKeywords200AliasesItemMainThemeColor";
 import type { PostKeywords200AliasesItemMatchingType } from "./postKeywords200AliasesItemMatchingType";
 import type { PostKeywords200AliasesItemNameAr } from "./postKeywords200AliasesItemNameAr";
@@ -40,6 +41,7 @@ export type PostKeywords200AliasesItem = {
 	overrideStyle: boolean;
 	categoryId: PostKeywords200AliasesItemCategoryId;
 	natureId: PostKeywords200AliasesItemNatureId;
+	imagePrompt: PostKeywords200AliasesItemImagePrompt;
 	imageId: PostKeywords200AliasesItemImageId;
 	keywordId: string;
 	createdById: PostKeywords200AliasesItemCreatedById;

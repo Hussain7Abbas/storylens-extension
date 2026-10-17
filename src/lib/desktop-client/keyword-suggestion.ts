@@ -7,6 +7,7 @@ export type KeywordContext = { before: string; after: string };
 
 export type KeywordSuggestion = {
 	description: string;
+	imagePrompt?: string;
 	categoryId?: string;
 	natureId?: string;
 	/**
@@ -127,9 +128,10 @@ export function buildKeywordSuggestionPrompt(input: {
 ${instructionSection(input.instructions)}
 
 Return only one JSON object, without Markdown fences:
-{"description": string, "category": number, "nature": number${hasTranslations ? ', "translation": number' : ""}}
+{"description": string, "imagePrompt": string, "category": number, "nature": number${hasTranslations ? ', "translation": number' : ""}}
 
 - description: the entity description, written as the reader instructions ask.
+- imagePrompt: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
 - category: the number of the best matching category below.
 - nature: the number of the best matching nature below.
 ${translationSection(input.translations)}
@@ -174,6 +176,7 @@ export function parseKeywordSuggestion(
 		throw new Error("The AI answer did not contain a suggestion.");
 	let data: {
 		description?: unknown;
+		imagePrompt?: unknown;
 		category?: unknown;
 		nature?: unknown;
 		translation?: unknown;
@@ -190,6 +193,10 @@ export function parseKeywordSuggestion(
 	return {
 		description:
 			typeof data.description === "string" ? data.description.trim() : "",
+		imagePrompt:
+			typeof data.imagePrompt === "string" && data.imagePrompt.trim()
+				? data.imagePrompt.trim().slice(0, 180000)
+				: undefined,
 		categoryId: pickOption(categories, data.category),
 		natureId: pickOption(natures, data.nature),
 		...(translations && translationId

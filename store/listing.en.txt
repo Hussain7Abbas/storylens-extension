@@ -34,6 +34,8 @@ Getting started
 Privacy
 StoryLens uses the Story Lens service for accounts and a shared reference catalogue. Contributions are shared with other signed-in readers, so do not add private information. Cloud actions send relevant text and your prompts through the Story Lens API to OpenRouter and the configured model providers. Desktop actions use your paired companion and chosen provider. Prices use non-expiring lenses; payment is arranged directly with the operator through your WhatsApp or Telegram contact. If analytics is configured, the extension sends feature events and supported-site hostnames to Google Analytics; you can turn this off in Settings → General. See https://storylens.iscoded.com/en/privacy/ for details.
 
+Save and edit each character image’s prompt, copy it, and regenerate images with your changes.
+
 Support
 Questions or feedback: hussain@iscoded.com
 Website: https://storylens.iscoded.com

@@ -11,6 +11,7 @@ import type { PostKeywordsBodyThreeDescriptionAr } from "./postKeywordsBodyThree
 import type { PostKeywordsBodyThreeDescriptionEn } from "./postKeywordsBodyThreeDescriptionEn";
 import type { PostKeywordsBodyThreeEndingChapter } from "./postKeywordsBodyThreeEndingChapter";
 import type { PostKeywordsBodyThreeImageId } from "./postKeywordsBodyThreeImageId";
+import type { PostKeywordsBodyThreeImagePrompt } from "./postKeywordsBodyThreeImagePrompt";
 import type { PostKeywordsBodyThreeMainThemeColor } from "./postKeywordsBodyThreeMainThemeColor";
 import type { PostKeywordsBodyThreeMatchingType } from "./postKeywordsBodyThreeMatchingType";
 import type { PostKeywordsBodyThreeNameAr } from "./postKeywordsBodyThreeNameAr";
@@ -49,6 +50,8 @@ export type PostKeywordsBodyThree = {
 	novelId: string;
 	categoryId: string;
 	natureId: string;
+	/** @nullable */
+	imagePrompt?: PostKeywordsBodyThreeImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordsBodyThreeImageId;
 	translationKeywordId?: string;

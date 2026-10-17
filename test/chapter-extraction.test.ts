@@ -61,7 +61,12 @@ describe("parseChapterExtraction", () => {
 			"junk"
 		]}`;
 		expect(
-			parseChapterExtraction(output, categories, natures, ["lin"]),
+			parseChapterExtraction(output, categories, natures, ["lin"]).map(
+				({ imagePrompt, ...item }) => {
+					expect(imagePrompt).toBeUndefined();
+					return item;
+				},
+			),
 		).toEqual([
 			{
 				name: "Mira",
@@ -136,4 +141,22 @@ describe("isInLanguage", () => {
 		expect(isInLanguage(["أخت سو مينغ"], "en")).toBe(false);
 		expect(isInLanguage(["", "123"], "ar")).toBe(true);
 	});
+});
+
+test("keeps a visual prompt for each AI extraction draft", () => {
+	expect(
+		parseChapterExtraction(
+			JSON.stringify({
+				items: [
+					{
+						name: "Mira",
+						description: "A scout.",
+						imagePrompt: " Silver hair, blue cloak. ",
+					},
+				],
+			}),
+			categories,
+			natures,
+		)[0]?.imagePrompt,
+	).toBe("Silver hair, blue cloak.");
 });

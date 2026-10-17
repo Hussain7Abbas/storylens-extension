@@ -15,6 +15,7 @@ import type { GetKeywords200DataItemAliasesItemDescriptionAr } from "./getKeywor
 import type { GetKeywords200DataItemAliasesItemDescriptionEn } from "./getKeywords200DataItemAliasesItemDescriptionEn";
 import type { GetKeywords200DataItemAliasesItemImage } from "./getKeywords200DataItemAliasesItemImage";
 import type { GetKeywords200DataItemAliasesItemImageId } from "./getKeywords200DataItemAliasesItemImageId";
+import type { GetKeywords200DataItemAliasesItemImagePrompt } from "./getKeywords200DataItemAliasesItemImagePrompt";
 import type { GetKeywords200DataItemAliasesItemMainThemeColor } from "./getKeywords200DataItemAliasesItemMainThemeColor";
 import type { GetKeywords200DataItemAliasesItemMatchingType } from "./getKeywords200DataItemAliasesItemMatchingType";
 import type { GetKeywords200DataItemAliasesItemNameAr } from "./getKeywords200DataItemAliasesItemNameAr";
@@ -40,6 +41,7 @@ export type GetKeywords200DataItemAliasesItem = {
 	overrideStyle: boolean;
 	categoryId: GetKeywords200DataItemAliasesItemCategoryId;
 	natureId: GetKeywords200DataItemAliasesItemNatureId;
+	imagePrompt: GetKeywords200DataItemAliasesItemImagePrompt;
 	imageId: GetKeywords200DataItemAliasesItemImageId;
 	keywordId: string;
 	createdById: GetKeywords200DataItemAliasesItemCreatedById;
