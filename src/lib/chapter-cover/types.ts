@@ -7,7 +7,7 @@ export type CoverKey = { novelId: string; chapterNumber: number };
 export type CoverRequest = CoverKey &
 	(
 		| { action: "read" }
-		| { action: "claim" }
+		| { action: "claim"; regenerate?: boolean }
 		| { action: "release"; token: string }
 		| {
 				action: "publish";

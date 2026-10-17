@@ -331,3 +331,146 @@ test("Stop releases a context reservation and permits retry while a late AI resu
 		sent.filter((item) => item.type === "publishChapterContext"),
 	).toHaveLength(1);
 });
+
+test("saved context exposes a priced regeneration button and requests replacement", async () => {
+	saved = true;
+	syncChapterContext(coverChapter());
+	await tick();
+	const root = document.getElementById("storylens-chapter-context")?.shadowRoot;
+	const button = root?.querySelector("button");
+	expect(button?.textContent).toBe("Regenerate context");
+	expect(button?.hidden).toBe(false);
+	button?.click();
+	button?.click();
+	await tick();
+	expect(sent.filter((item) => item.type === "executeAiPrompt")).toHaveLength(
+		1,
+	);
+	expect(
+		sent.find((item) => item.type === "claimChapterContext")?.data?.regenerate,
+	).toBe(true);
+	expect(
+		sent.find((item) => item.type === "claimChapterContext")?.data
+			?.onlyIfMissing,
+	).toBe(false);
+});
+
+test("failed context generation retries automatically", async () => {
+	let attempts = 0;
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if (
+			(message as { type: string }).type === "executeAiPrompt" &&
+			attempts++ === 0
+		)
+			throw new Error("Temporary failure");
+		return reply(message);
+	};
+	await fakeBrowser.storage.local.set({ [AUTO_CHAPTER_CONTEXT_KEY]: true });
+	syncChapterContext(coverChapter());
+	await tick();
+	expect(
+		document.getElementById("storylens-chapter-context")?.shadowRoot
+			?.textContent,
+	).toContain("Retrying automatically");
+	const root = document.getElementById("storylens-chapter-context")?.shadowRoot;
+	const details = root?.querySelector<HTMLDetailsElement>(
+		".body > .error-details",
+	);
+	expect(details?.hidden).toBe(false);
+	expect(details?.open).toBe(false);
+	expect(details?.querySelector("p")?.textContent).toBe("Temporary failure");
+	if (details) details.open = true;
+	await new Promise((resolve) => setTimeout(resolve, 2100));
+	expect(attempts).toBe(2);
+	expect(details?.hidden).toBe(true);
+	expect(details?.open).toBe(false);
+	expect(saved).toBe(true);
+	expect(
+		document
+			.getElementById("storylens-chapter-context")
+			?.shadowRoot?.querySelector('[role="status"]')?.textContent,
+	).toBe("");
+	expect(sent.some((item) => item.type === "releaseChapterContext")).toBe(true);
+});
+
+test("context publication retries reuse validated AI output", async () => {
+	let publications = 0;
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if (
+			(message as { type: string }).type === "publishChapterContext" &&
+			publications++ === 0
+		)
+			throw new Error("Offline");
+		return reply(message);
+	};
+	await fakeBrowser.storage.local.set({ [AUTO_CHAPTER_CONTEXT_KEY]: true });
+	syncChapterContext(coverChapter());
+	await tick();
+	await new Promise((resolve) => setTimeout(resolve, 2100));
+	expect(publications).toBe(2);
+	expect(sent.filter((item) => item.type === "executeAiPrompt")).toHaveLength(
+		1,
+	);
+	expect(saved).toBe(true);
+});
+
+test("Stop cancels a scheduled context retry and preserves the saved context", async () => {
+	saved = true;
+	let attempts = 0;
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if ((message as { type: string }).type === "executeAiPrompt") {
+			attempts++;
+			throw new Error("Offline");
+		}
+		return reply(message);
+	};
+	syncChapterContext(coverChapter());
+	await tick();
+	const root = document.getElementById("storylens-chapter-context")?.shadowRoot;
+	root?.querySelector("button")?.click();
+	await tick();
+	[...(root?.querySelectorAll("button") ?? [])]
+		.find((button) => button.textContent === "Stop")
+		?.click();
+	await new Promise((resolve) => setTimeout(resolve, 2100));
+	expect(attempts).toBe(1);
+	expect(root?.textContent).toContain(context.summary);
+	expect(root?.querySelector('[role="status"]')?.textContent).toBe("Stopped");
+});
+
+test("error details are nested inside context, localized, safe and retained while retrying", () => {
+	for (const locale of ["en", "ar"] as const) {
+		const view = createContextView(
+			locale,
+			() => {},
+			() => {},
+		);
+		const root = view.host.shadowRoot;
+		const details = root?.querySelector<HTMLDetailsElement>(
+			".body > .error-details",
+		);
+		expect(details?.hidden).toBe(true);
+		const message =
+			"<img src=x onerror=alert(1)> Provider unavailable\nTry again later.";
+		view.retrying(new Error(message));
+		expect(details?.querySelector("summary")?.textContent).toBe(
+			locale === "ar" ? "التفاصيل" : "Details",
+		);
+		expect(details?.querySelector("p")?.textContent).toBe(message);
+		expect(root?.querySelector("img")).toBeNull();
+		expect(details?.open).toBe(false);
+		if (details) details.open = true;
+		view.working(true);
+		view.retrying(new Error("Second failure"));
+		expect(details?.open).toBe(true);
+		expect(details?.querySelector("p")?.textContent).toBe("Second failure");
+		view.stopped();
+		expect(details?.hidden).toBe(false);
+		view.clearError();
+		expect(details?.hidden).toBe(true);
+		expect(details?.open).toBe(false);
+	}
+});

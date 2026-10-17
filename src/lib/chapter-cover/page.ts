@@ -1,11 +1,11 @@
 import { browser } from "#imports";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { availabilityKey } from "@/lib/ai-source/availability";
+import { retryChapterTask } from "@/lib/ai-source/chapter-retry";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import { withImageContinuity } from "@/lib/chapter-context/image";
 import { placeChapterContext } from "@/lib/chapter-context/page";
-import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { generateCharacterImage } from "@/lib/desktop-client/character-image-job";
 import { aiPrompts } from "@/lib/desktop-client/settings";
@@ -26,6 +26,8 @@ const words = {
 	en: {
 		title: "Chapter cover",
 		generate: "Generate Chapter Cover Image",
+		regenerate: "Regenerate background image",
+		retrying: "Could not complete the chapter cover. Retrying automatically…",
 		copy: "Copy image prompt",
 		copied: "Prompt copied",
 		copyFailed: "Could not copy the prompt. Try again.",
@@ -47,6 +49,8 @@ const words = {
 	ar: {
 		title: "غلاف الفصل",
 		generate: "توليد صورة غلاف الفصل",
+		regenerate: "إعادة توليد صورة الخلفية",
+		retrying: "تعذر إكمال غلاف الفصل. ستتم إعادة المحاولة تلقائياً…",
 		copy: "نسخ وصف الصورة",
 		copied: "تم نسخ الوصف",
 		copyFailed: "تعذر نسخ الوصف. حاول مجدداً.",
@@ -72,9 +76,12 @@ type Session = {
 	host: HTMLElement;
 	mounted: boolean;
 	disposeMenu: () => void;
+	showError: (error: unknown) => void;
+	clearError: () => void;
 	status: HTMLElement;
 	image: HTMLImageElement;
 	generate: HTMLButtonElement;
+	regenerate: HTMLButtonElement;
 	copy: HTMLButtonElement;
 	stop: HTMLButtonElement;
 	download: HTMLAnchorElement;
@@ -135,7 +142,8 @@ export function clearChapterCover() {
 function busy(session: Session, working: boolean) {
 	session.working = working;
 	session.generate.disabled = working || session.waiting;
-	session.stop.hidden = !working || !!session.generated;
+	session.regenerate.disabled = working || session.waiting;
+	session.stop.hidden = !working;
 	session.stop.disabled = false;
 	session.save.disabled = working;
 	session.image.setAttribute("aria-busy", String(working));
@@ -152,12 +160,15 @@ function showCover(session: Session, cover: ChapterCover) {
 	const text = words[session.locale];
 	session.waiting = cover.generating;
 	if (cover.image) {
+		if (!cover.generating) session.clearError();
 		session.image.src = cover.image.url;
 		session.image.hidden = false;
 		session.host.setAttribute("data-ready", "");
 		session.download.href = cover.image.url;
 		session.download.hidden = false;
 		session.generate.hidden = true;
+		session.regenerate.hidden = false;
+		session.regenerate.disabled = session.working || session.waiting;
 		session.status.textContent = "";
 		attachCover(session);
 		return true;
@@ -167,12 +178,8 @@ function showCover(session: Session, cover: ChapterCover) {
 	session.generate.disabled = cover.generating;
 	return false;
 }
-function waitForCover(session: Session, until = Date.now() + 32 * 60_000) {
+function waitForCover(session: Session) {
 	clearTimeout(session.poll);
-	if (Date.now() > until) {
-		session.generate.disabled = false;
-		return;
-	}
 	session.poll = setTimeout(async () => {
 		try {
 			const result = await sendMessage("chapterCover", {
@@ -180,11 +187,24 @@ function waitForCover(session: Session, until = Date.now() + 32 * 60_000) {
 				action: "read",
 			});
 			if (!alive(session)) return;
-			if (showCover(session, result) || !result.generating) return;
+			showCover(session, result);
+			if (!result.generating) {
+				if (!result.image && context) {
+					const stored = await browser.storage.local.get(
+						AUTO_CHAPTER_COVER_KEY,
+					);
+					if (
+						alive(session) &&
+						(!session.automatic || stored[AUTO_CHAPTER_COVER_KEY] === true)
+					)
+						void generate(session, context);
+				}
+				return;
+			}
 		} catch {
 			if (!alive(session)) return;
 		}
-		waitForCover(session, until);
+		waitForCover(session);
 	}, 10_000);
 }
 async function publish(session: Session) {
@@ -198,11 +218,15 @@ async function publish(session: Session) {
 		mimeType: session.generated.mimeType,
 	});
 	session.token = undefined;
-	if (!alive(session)) return;
+	if (!alive(session) || session.controller.signal.aborted) return;
 	session.save.hidden = true;
 	showCover(session, cover);
 }
-async function generate(session: Session, data: NovelContentData) {
+async function generate(
+	session: Session,
+	data: NovelContentData,
+	regenerate = false,
+) {
 	if (session.working || !session.prompt.trim()) return;
 	const text = words[session.locale];
 	session.controller = new AbortController();
@@ -211,87 +235,94 @@ async function generate(session: Session, data: NovelContentData) {
 	busy(session, true);
 	session.status.textContent = text.working;
 	try {
-		const state = await aiState("chapter_cover");
-		if (!alive(session) || signal.aborted) return;
-		if (!state.user || state.user.isGuest) throw new Error(text.signIn);
-		if (!state.availability.ok)
-			throw new Error(
-				vanillaAiText(session.locale)(availabilityKey(state.availability)),
-			);
-		const prepared = await preparePrompt(data, true);
-		session.prompt = prepared.prompt;
-		session.copy.disabled = false;
-		if (signal.aborted || !alive(session)) return;
-		const claim = await sendMessage("chapterCover", {
-			...session.key,
-			action: "claim",
-		});
-		if (claim.token) session.token = claim.token;
-		if (!alive(session) || signal.aborted) {
-			await release(session);
-			return;
-		}
-		if (!session.token) {
-			showCover(session, claim);
-			if (claim.generating) waitForCover(session);
-			return;
-		}
-		pageAiTasks.apply({
-			id: session.id,
-			state: "working",
-			operation: "generate-image",
-			subject: `${text.title} ${session.key.chapterNumber}`,
-			source: "page",
-		});
-		trackEvent("ai_chapter_cover_requested", {
-			provider: state.source,
-			automatic: session.automatic,
-		});
+		await retryChapterTask(
+			async () => {
+				try {
+					session.status.textContent = text.working;
+					const state = await aiState("chapter_cover");
+					if (!alive(session) || signal.aborted) return;
+					if (!state.user || state.user.isGuest) throw new Error(text.signIn);
+					if (!state.availability.ok)
+						throw new Error(
+							vanillaAiText(session.locale)(
+								availabilityKey(state.availability),
+							),
+						);
+					const prepared = await preparePrompt(data, true);
+					session.prompt = prepared.prompt;
+					session.copy.disabled = false;
+					if (signal.aborted || !alive(session)) return;
+					const claim = await sendMessage("chapterCover", {
+						...session.key,
+						action: "claim",
+						regenerate,
+					});
+					if (claim.token) session.token = claim.token;
+					if (!alive(session) || signal.aborted) {
+						await release(session);
+						return;
+					}
+					if (!session.token) {
+						showCover(session, claim);
+						if (claim.generating) waitForCover(session);
+						return;
+					}
+					pageAiTasks.apply({
+						id: session.id,
+						state: "working",
+						operation: "generate-image",
+						subject: `${text.title} ${session.key.chapterNumber}`,
+						source: "page",
+					});
+					trackEvent("ai_chapter_cover_requested", {
+						provider: state.source,
+						automatic: session.automatic,
+					});
 
-		const result = await generateCharacterImage({
-			source: state.source,
-			settings: state.desktop,
-			feature: "chapter_cover",
-			prompt: session.prompt,
-			referenceImageUrls: prepared.referenceImageUrls,
-			name: `chapter-${session.key.chapterNumber}-cover`,
+					if (!session.generated) {
+						const result = await generateCharacterImage({
+							source: state.source,
+							settings: state.desktop,
+							feature: "chapter_cover",
+							prompt: session.prompt,
+							referenceImageUrls: prepared.referenceImageUrls,
+							name: `chapter-${session.key.chapterNumber}-cover`,
+							signal,
+						});
+						if (!alive(session) || signal.aborted) return;
+						session.generated = result;
+						session.imageId = crypto.randomUUID();
+						if (session.objectUrl) URL.revokeObjectURL(session.objectUrl);
+						session.objectUrl = URL.createObjectURL(result.file);
+						session.image.src = session.objectUrl;
+						session.image.hidden = false;
+						session.host.setAttribute("data-ready", "");
+						session.download.href = session.objectUrl;
+						session.download.download = result.file.name;
+						session.download.hidden = false;
+						session.regenerate.hidden = false;
+					}
+					await publish(session);
+					if (signal.aborted || !alive(session)) return;
+					endTask(session, "done");
+				} finally {
+					await release(session);
+				}
+			},
 			signal,
-		});
-		if (!alive(session) || signal.aborted) return;
-		session.stop.hidden = true;
-		session.generated = result;
-		session.imageId = crypto.randomUUID();
-		session.objectUrl = URL.createObjectURL(result.file);
-		session.image.src = session.objectUrl;
-		session.image.hidden = false;
-		session.host.setAttribute("data-ready", "");
-		session.download.href = session.objectUrl;
-		session.download.download = result.file.name;
-		session.download.hidden = false;
-		try {
-			await publish(session);
-		} catch {
-			if (alive(session)) {
-				session.status.textContent = text.saveFailed;
-				session.save.hidden = false;
-			}
-		}
-		endTask(session, "done");
-	} catch (error) {
-		if (alive(session) && !signal.aborted) {
-			session.status.textContent = session.automatic
-				? error instanceof Error
-					? error.message
-					: text.unavailable
-				: await aiErrorMessage(
-						error,
-						"chapter_cover",
-						vanillaAiText(session.locale),
-					);
-			endTask(session, "failed");
-		}
+			(error) => {
+				if (!alive(session)) {
+					session.controller.abort();
+					return;
+				}
+				session.showError(error);
+				session.status.textContent = text.retrying;
+				session.save.hidden = !session.generated;
+			},
+		);
+	} catch {
+		// Stop and disposal cancel both the active request and the retry delay.
 	} finally {
-		if (!session.generated) await release(session);
 		if (alive(session)) {
 			busy(session, false);
 			session.generate.hidden = !!session.generated || !session.image.hidden;
@@ -329,7 +360,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 	const locale = data.language;
 	const text = words[locale];
 	const view = createCoverView(locale, data.chapterNumber, text);
-	const { status, generate: start, copy, stop, save } = view;
+	const { status, generate: start, regenerate, copy, stop, save } = view;
 	const session: Session = {
 		key: { novelId: data.novel.id, chapterNumber: data.chapterNumber },
 		id: crypto.randomUUID(),
@@ -348,6 +379,14 @@ async function mount(data: NovelContentData, manual: boolean) {
 		session.automatic = false;
 		void generate(session, data);
 	});
+	regenerate.addEventListener("click", () => {
+		if (session.working || session.waiting) return;
+		session.automatic = false;
+		session.generated = undefined;
+		session.imageId = undefined;
+		session.save.hidden = true;
+		void generate(session, data, true);
+	});
 	stop.addEventListener("click", () => {
 		if (!session.working) return;
 		session.controller.abort();
@@ -364,29 +403,37 @@ async function mount(data: NovelContentData, manual: boolean) {
 			await navigator.clipboard.writeText(session.prompt);
 			if (alive(session)) copy.textContent = text.copied;
 			trackEvent("ai_image_prompt_copied", {});
-		} catch {
-			if (alive(session)) status.textContent = text.copyFailed;
+		} catch (error) {
+			if (alive(session)) {
+				session.showError(error);
+				status.textContent = text.copyFailed;
+			}
 		}
 	});
-	save.addEventListener("click", async () => {
-		busy(session, true);
-		try {
-			await publish(session);
-		} catch {
-			status.textContent = text.saveFailed;
-		} finally {
-			if (alive(session)) busy(session, false);
-		}
+	save.addEventListener("click", () => {
+		void generate(session, data, true);
 	});
 	try {
-		const prepared = await preparePrompt(data);
-		if (!alive(session)) return;
+		const [prepared, cover, state] = await retryChapterTask(
+			() =>
+				Promise.all([
+					preparePrompt(data),
+					sendMessage("chapterCover", { ...session.key, action: "read" }),
+					aiState("chapter_cover"),
+				]),
+			session.controller.signal,
+			(error) => {
+				if (!alive(session)) {
+					session.controller.abort();
+					return;
+				}
+				if (manual) attachCover(session);
+				session.showError(error);
+				status.textContent = text.retrying;
+			},
+		);
 		session.prompt = prepared.prompt;
 		copy.disabled = false;
-		const [cover, state] = await Promise.all([
-			sendMessage("chapterCover", { ...session.key, action: "read" }),
-			aiState("chapter_cover"),
-		]);
 		if (!alive(session)) return;
 		const price =
 			state.source === "cloud"
@@ -394,13 +441,20 @@ async function mount(data: NovelContentData, manual: boolean) {
 						?.lenses
 				: undefined;
 		if (price && price > 0) {
-			start.append(" ", createLensCoin(14), ` ${formatLenses(price, locale)}`);
+			for (const button of [start, regenerate]) {
+				button.append(
+					" ",
+					createLensCoin(14),
+					` ${formatLenses(price, locale)}`,
+				);
+			}
 			start.setAttribute(
 				"aria-label",
 				`${text.generate}, ${vanillaAiText(locale)("lens.count", { count: price, formatted: formatLenses(price, locale) })}`,
 			);
 		}
-		if (showCover(session, cover)) return;
+		const ready = showCover(session, cover);
+		if (ready && !cover.generating) return;
 		if (cover.generating) {
 			waitForCover(session);
 			return;
@@ -422,6 +476,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 			if (manual || !session.automatic) {
 				attachCover(session);
 				start.disabled = false;
+				session.showError(error);
 				status.textContent =
 					error instanceof Error ? error.message : text.unavailable;
 			} else {

@@ -1,4 +1,8 @@
 import {
+	CHAPTER_ERROR_DETAILS_CSS,
+	createChapterErrorDetails,
+} from "@/lib/ai-source/chapter-error-details";
+import {
 	createLensCoin,
 	formatLenses,
 	LENS_COIN_MOTION_CSS,
@@ -12,6 +16,8 @@ const labels = {
 		name: "Name",
 		missing: "No chapter context has been generated yet.",
 		generate: "Generate chapter context",
+		regenerate: "Regenerate context",
+		retrying: "Could not complete chapter context. Retrying automatically…",
 		working: "Generating chapter context…",
 		summary: "Summary",
 		scenes: "Scenes",
@@ -47,6 +53,8 @@ const labels = {
 		name: "الاسم",
 		missing: "لم يُولَّد سياق لهذا الفصل بعد.",
 		generate: "توليد سياق الفصل",
+		regenerate: "إعادة توليد السياق",
+		retrying: "تعذر إكمال سياق الفصل. ستتم إعادة المحاولة تلقائياً…",
 		working: "جارٍ توليد سياق الفصل…",
 		summary: "الملخص",
 		scenes: "المشاهد",
@@ -91,7 +99,7 @@ export function createContextView(
 	host.lang = locale;
 	const shadow = host.attachShadow({ mode: "open" });
 	const style = document.createElement("style");
-	style.textContent = `${contentThemeCss}${LENS_COIN_MOTION_CSS}:host{display:block;margin-block:6px 20px;font:14px/1.7 system-ui,sans-serif;color:var(--ink)}summary{width:fit-content;color:var(--muted);font-size:12px;cursor:pointer}summary:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.body{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-block-start:8px;overflow-wrap:anywhere}h3,h4{margin-block:12px 4px}p{margin-block:4px 10px;white-space:pre-wrap}dl{display:grid;grid-template-columns:minmax(5em,auto) 1fr;gap:4px 12px;margin-block:6px}dt{color:var(--muted)}dd{margin:0}ul{padding-inline-start:20px}button{font:inherit;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:6px;min-height:36px;padding:4px 12px;cursor:pointer}button:disabled{opacity:.6;cursor:default}[hidden]{display:none!important}@media(max-width:480px){dl{grid-template-columns:1fr;gap:0}dd{margin-block-end:6px}}`;
+	style.textContent = `${contentThemeCss}${LENS_COIN_MOTION_CSS}${CHAPTER_ERROR_DETAILS_CSS}:host{display:block;margin-block:6px 20px;font:14px/1.7 system-ui,sans-serif;color:var(--ink)}summary{width:fit-content;color:var(--muted);font-size:12px;cursor:pointer}summary:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.body{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-block-start:8px;overflow-wrap:anywhere}h3,h4{margin-block:12px 4px}p{margin-block:4px 10px;white-space:pre-wrap}dl{display:grid;grid-template-columns:minmax(5em,auto) 1fr;gap:4px 12px;margin-block:6px}dt{color:var(--muted)}dd{margin:0}ul{padding-inline-start:20px}button{font:inherit;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:6px;min-height:36px;padding:4px 12px;cursor:pointer}button:disabled{opacity:.6;cursor:default}[hidden]{display:none!important}@media(max-width:480px){dl{grid-template-columns:1fr;gap:0}dd{margin-block-end:6px}}`;
 	const details = document.createElement("details");
 	const summary = document.createElement("summary");
 	summary.textContent = text.title;
@@ -109,7 +117,8 @@ export function createContextView(
 	stopButton.textContent = text.stop;
 	stopButton.hidden = true;
 	stopButton.addEventListener("click", stop);
-	body.append(content, status, button, stopButton);
+	const errorDetails = createChapterErrorDetails(locale);
+	body.append(content, status, errorDetails.element, button, stopButton);
 	details.append(summary, body);
 	shadow.append(style, details);
 	shadow.addEventListener("click", (event) => event.stopPropagation());
@@ -154,10 +163,22 @@ export function createContextView(
 		node.textContent = value === null ? text.cleared : String(value ?? "");
 		return node;
 	}
+	let amount = 0;
+	let hasContext = false;
+	function renderButton() {
+		button.textContent = hasContext ? text.regenerate : text.generate;
+		if (amount > 0)
+			button.append(
+				" ",
+				createLensCoin(14),
+				` ${formatLenses(amount, locale)}`,
+			);
+	}
 	function update(record: ChapterContextRecord | undefined) {
 		content.replaceChildren();
 		const context = record?.context;
-		button.hidden = !!context;
+		hasContext = !!context;
+		renderButton();
 		if (!context) {
 			const p = document.createElement("p");
 			p.textContent = text.missing;
@@ -212,15 +233,9 @@ export function createContextView(
 		}
 	}
 	return {
-		price(amount: number) {
-			button.textContent = text.generate;
-			if (amount > 0) {
-				button.append(
-					" ",
-					createLensCoin(14),
-					` ${formatLenses(amount, locale)}`,
-				);
-			}
+		price(value: number) {
+			amount = value;
+			renderButton();
 		},
 		host,
 		update,
@@ -230,7 +245,13 @@ export function createContextView(
 			if (value) status.textContent = text.working;
 			else if (status.textContent === text.working) status.textContent = "";
 		},
-		error() {
+		clearError: errorDetails.clear,
+		retrying(error: unknown) {
+			errorDetails.show(error);
+			status.textContent = text.retrying;
+		},
+		error(error: unknown) {
+			errorDetails.show(error);
 			status.textContent = text.failed;
 		},
 		stopped() {

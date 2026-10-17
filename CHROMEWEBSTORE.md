@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-16
+Last updated: 2026-10-17
 
 ## Store listing
 
@@ -100,3 +100,7 @@ For release steps see [the publishing runbook](../../docs/publishing.md). New li
 2026-10-16 chapter-cover maintenance — The launcher offers Generate Chapter Cover Image beside Summary. Shared covers appear before chapter content. Settings → AI has an editable cinematic prompt and Auto Generate Chapter Cover (off by default), which uses the selected image provider and Cloud lens pricing. Chapter text, novel context and mentioned keyword descriptions/image references support the scene. Generated covers are saved to ImgBB and shared through the catalogue; prompts/chapter text are not retained. Copy prompt, Stop and download are available. Refresh launcher/AI-settings screenshots before the next store submission. Version and publication status remain unchanged.
 
 2026-10-16 image-preview maintenance — Full-size character image previews support native browser image actions, including copying the image or its address and saving it. Site-level context-menu blockers do not intercept the preview. No permissions or publication status changed.
+
+2026-10-17 generation recovery — Chapter background images and context retry failed generation/saving automatically until stopped or successful. Added Regenerate background image to the image’s three-dot menu and Regenerate context inside the context section, preserving saved content during replacement. Refresh chapter artwork/context screenshots before submission. Package version, permissions and publication status are unchanged.
+
+2026-10-17 error details — Failed chapter background-image/context generation and saving now expose a localized, expandable Details area with the latest error message while automatic recovery continues. Refresh error-state screenshots before submission. No package version, permissions or publication status changed.

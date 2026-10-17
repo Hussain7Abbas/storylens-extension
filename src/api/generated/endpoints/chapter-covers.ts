@@ -44,9 +44,15 @@ import type {
 	PostChapterArtworkByNovelIdByChapterNumberClaim200,
 	PostChapterArtworkByNovelIdByChapterNumberClaim404,
 	PostChapterArtworkByNovelIdByChapterNumberClaim500,
+	PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne,
+	PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree,
+	PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo,
 	PostChapterCoversByNovelIdByChapterNumberClaim200,
 	PostChapterCoversByNovelIdByChapterNumberClaim404,
 	PostChapterCoversByNovelIdByChapterNumberClaim500,
+	PostChapterCoversByNovelIdByChapterNumberClaimBodyOne,
+	PostChapterCoversByNovelIdByChapterNumberClaimBodyThree,
+	PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo,
 	PutChapterArtworkByNovelIdByChapterNumber200,
 	PutChapterArtworkByNovelIdByChapterNumber404,
 	PutChapterArtworkByNovelIdByChapterNumber500,
@@ -431,11 +437,15 @@ export const usePutChapterCoversByNovelIdByChapterNumber = <
 /**
  * Deprecated since 2026-10-17; removed after 2027-04-30. Use /api/user/chapter-artwork/:novelId/:chapterNumber instead.
  * @deprecated
- * @summary Reserve generation of a missing shared chapter cover
+ * @summary Reserve generation or regeneration of a shared chapter cover
  */
 export const postChapterCoversByNovelIdByChapterNumberClaim = (
 	novelId: string,
 	chapterNumber: string | number,
+	postChapterCoversByNovelIdByChapterNumberClaimBody:
+		| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+		| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+		| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree,
 	options?: SecondParameter<typeof customInstance>,
 	signal?: AbortSignal,
 ) => {
@@ -443,6 +453,7 @@ export const postChapterCoversByNovelIdByChapterNumberClaim = (
 		{
 			url: `http://localhost:3031/api/user/chapter-covers/${novelId}/${chapterNumber}/claim`,
 			method: "POST",
+			data: postChapterCoversByNovelIdByChapterNumberClaimBody,
 			signal,
 		},
 		options,
@@ -462,14 +473,28 @@ export const getPostChapterCoversByNovelIdByChapterNumberClaimMutationOptions =
 				ReturnType<typeof postChapterCoversByNovelIdByChapterNumberClaim>
 			>,
 			TError,
-			{ novelId: string; chapterNumber: string | number },
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree;
+			},
 			TContext
 		>;
 		request?: SecondParameter<typeof customInstance>;
 	}): UseMutationOptions<
 		Awaited<ReturnType<typeof postChapterCoversByNovelIdByChapterNumberClaim>>,
 		TError,
-		{ novelId: string; chapterNumber: string | number },
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+				| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+				| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree;
+		},
 		TContext
 	> => {
 		const mutationKey = ["postChapterCoversByNovelIdByChapterNumberClaim"];
@@ -485,13 +510,21 @@ export const getPostChapterCoversByNovelIdByChapterNumberClaimMutationOptions =
 			Awaited<
 				ReturnType<typeof postChapterCoversByNovelIdByChapterNumberClaim>
 			>,
-			{ novelId: string; chapterNumber: string | number }
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree;
+			}
 		> = (props) => {
-			const { novelId, chapterNumber } = props ?? {};
+			const { novelId, chapterNumber, data } = props ?? {};
 
 			return postChapterCoversByNovelIdByChapterNumberClaim(
 				novelId,
 				chapterNumber,
+				data,
 				requestOptions,
 			);
 		};
@@ -503,7 +536,10 @@ export type PostChapterCoversByNovelIdByChapterNumberClaimMutationResult =
 	NonNullable<
 		Awaited<ReturnType<typeof postChapterCoversByNovelIdByChapterNumberClaim>>
 	>;
-
+export type PostChapterCoversByNovelIdByChapterNumberClaimMutationBody =
+	| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+	| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+	| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree;
 export type PostChapterCoversByNovelIdByChapterNumberClaimMutationError =
 	ErrorType<
 		| PostChapterCoversByNovelIdByChapterNumberClaim404
@@ -512,7 +548,7 @@ export type PostChapterCoversByNovelIdByChapterNumberClaimMutationError =
 
 /**
  * @deprecated
- * @summary Reserve generation of a missing shared chapter cover
+ * @summary Reserve generation or regeneration of a shared chapter cover
  */
 export const usePostChapterCoversByNovelIdByChapterNumberClaim = <
 	TError = ErrorType<
@@ -527,7 +563,14 @@ export const usePostChapterCoversByNovelIdByChapterNumberClaim = <
 				ReturnType<typeof postChapterCoversByNovelIdByChapterNumberClaim>
 			>,
 			TError,
-			{ novelId: string; chapterNumber: string | number },
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+					| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree;
+			},
 			TContext
 		>;
 		request?: SecondParameter<typeof customInstance>;
@@ -536,7 +579,14 @@ export const usePostChapterCoversByNovelIdByChapterNumberClaim = <
 ): UseMutationResult<
 	Awaited<ReturnType<typeof postChapterCoversByNovelIdByChapterNumberClaim>>,
 	TError,
-	{ novelId: string; chapterNumber: string | number },
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PostChapterCoversByNovelIdByChapterNumberClaimBodyOne
+			| PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo
+			| PostChapterCoversByNovelIdByChapterNumberClaimBodyThree;
+	},
 	TContext
 > => {
 	const mutationOptions =
@@ -1067,11 +1117,15 @@ export const usePutChapterArtworkByNovelIdByChapterNumber = <
 	return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Reserve generation of a missing shared chapter cover
+ * @summary Reserve generation or regeneration of a shared chapter cover
  */
 export const postChapterArtworkByNovelIdByChapterNumberClaim = (
 	novelId: string,
 	chapterNumber: string | number,
+	postChapterArtworkByNovelIdByChapterNumberClaimBody:
+		| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+		| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+		| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree,
 	options?: SecondParameter<typeof customInstance>,
 	signal?: AbortSignal,
 ) => {
@@ -1079,6 +1133,7 @@ export const postChapterArtworkByNovelIdByChapterNumberClaim = (
 		{
 			url: `http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}/claim`,
 			method: "POST",
+			data: postChapterArtworkByNovelIdByChapterNumberClaimBody,
 			signal,
 		},
 		options,
@@ -1098,14 +1153,28 @@ export const getPostChapterArtworkByNovelIdByChapterNumberClaimMutationOptions =
 				ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>
 			>,
 			TError,
-			{ novelId: string; chapterNumber: string | number },
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+			},
 			TContext
 		>;
 		request?: SecondParameter<typeof customInstance>;
 	}): UseMutationOptions<
 		Awaited<ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>>,
 		TError,
-		{ novelId: string; chapterNumber: string | number },
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+				| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+				| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+		},
 		TContext
 	> => {
 		const mutationKey = ["postChapterArtworkByNovelIdByChapterNumberClaim"];
@@ -1121,13 +1190,21 @@ export const getPostChapterArtworkByNovelIdByChapterNumberClaimMutationOptions =
 			Awaited<
 				ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>
 			>,
-			{ novelId: string; chapterNumber: string | number }
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+			}
 		> = (props) => {
-			const { novelId, chapterNumber } = props ?? {};
+			const { novelId, chapterNumber, data } = props ?? {};
 
 			return postChapterArtworkByNovelIdByChapterNumberClaim(
 				novelId,
 				chapterNumber,
+				data,
 				requestOptions,
 			);
 		};
@@ -1139,7 +1216,10 @@ export type PostChapterArtworkByNovelIdByChapterNumberClaimMutationResult =
 	NonNullable<
 		Awaited<ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>>
 	>;
-
+export type PostChapterArtworkByNovelIdByChapterNumberClaimMutationBody =
+	| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+	| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+	| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
 export type PostChapterArtworkByNovelIdByChapterNumberClaimMutationError =
 	ErrorType<
 		| PostChapterArtworkByNovelIdByChapterNumberClaim404
@@ -1147,7 +1227,7 @@ export type PostChapterArtworkByNovelIdByChapterNumberClaimMutationError =
 	>;
 
 /**
- * @summary Reserve generation of a missing shared chapter cover
+ * @summary Reserve generation or regeneration of a shared chapter cover
  */
 export const usePostChapterArtworkByNovelIdByChapterNumberClaim = <
 	TError = ErrorType<
@@ -1162,7 +1242,14 @@ export const usePostChapterArtworkByNovelIdByChapterNumberClaim = <
 				ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>
 			>,
 			TError,
-			{ novelId: string; chapterNumber: string | number },
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+					| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+			},
 			TContext
 		>;
 		request?: SecondParameter<typeof customInstance>;
@@ -1171,7 +1258,14 @@ export const usePostChapterArtworkByNovelIdByChapterNumberClaim = <
 ): UseMutationResult<
 	Awaited<ReturnType<typeof postChapterArtworkByNovelIdByChapterNumberClaim>>,
 	TError,
-	{ novelId: string; chapterNumber: string | number },
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PostChapterArtworkByNovelIdByChapterNumberClaimBodyOne
+			| PostChapterArtworkByNovelIdByChapterNumberClaimBodyTwo
+			| PostChapterArtworkByNovelIdByChapterNumberClaimBodyThree;
+	},
 	TContext
 > => {
 	const mutationOptions =

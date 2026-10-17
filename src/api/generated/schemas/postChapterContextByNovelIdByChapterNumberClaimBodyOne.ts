@@ -12,4 +12,5 @@ export type PostChapterContextByNovelIdByChapterNumberClaimBodyOne = {
 	contentHash: string;
 	language: PostChapterContextByNovelIdByChapterNumberClaimBodyOneLanguage;
 	onlyIfMissing?: boolean;
+	regenerate?: boolean;
 };

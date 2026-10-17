@@ -297,3 +297,112 @@ test("Stop cancels the image request, releases the lease and ignores a late resu
 	expect(sent.some((item) => item.data?.action === "publish")).toBe(false);
 	expect(root()?.textContent).toContain("Image generation stopped.");
 });
+
+test("regeneration keeps the saved background visible, sends an explicit claim, and blocks duplicate clicks", async () => {
+	hasCover = true;
+	generateReply = Promise.withResolvers<unknown>();
+	syncChapterCover(coverChapter());
+	await tick();
+	const regenerate = button("Regenerate background image");
+	expect(regenerate?.hidden).toBe(false);
+	regenerate?.click();
+	regenerate?.click();
+	await tick();
+	expect(root()?.querySelector("img")?.src).toContain("cover.png");
+	expect(regenerate?.disabled).toBe(true);
+	expect(sent.filter((item) => item.type === "generateAiImage")).toHaveLength(
+		1,
+	);
+	expect(
+		sent.find((item) => item.data?.action === "claim")?.data?.regenerate,
+	).toBe(true);
+	generateReply.resolve({
+		res: { ok: true, value: { data: btoa("new"), mimeType: "image/png" } },
+	});
+	await tick();
+	expect(sent.some((item) => item.data?.action === "publish")).toBe(true);
+	expect(regenerate?.disabled).toBe(false);
+});
+
+test("failed cover generation retries automatically and succeeds", async () => {
+	let attempts = 0;
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if (
+			(message as { type: string }).type === "generateAiImage" &&
+			attempts++ === 0
+		)
+			throw new Error("Temporary provider failure");
+		return reply(message);
+	};
+	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(root()?.textContent).toContain("Retrying automatically");
+	const details = root()?.querySelector<HTMLDetailsElement>(".error-details");
+	expect(details?.hidden).toBe(false);
+	expect(details?.open).toBe(false);
+	expect(details?.querySelector("summary")?.textContent).toBe("Details");
+	expect(details?.querySelector("p")?.textContent).toBe(
+		"Temporary provider failure",
+	);
+	if (details) details.open = true;
+	expect(button("Stop")?.hidden).toBe(false);
+	await new Promise((resolve) => setTimeout(resolve, 2100));
+	expect(attempts).toBe(2);
+	expect(details?.hidden).toBe(true);
+	expect(details?.open).toBe(false);
+	expect(details?.querySelector("p")?.textContent).toBe("");
+	expect(hasCover).toBe(true);
+	expect(sent.some((item) => item.data?.action === "release")).toBe(true);
+});
+
+test("failed cover upload retries the saved image without another AI request", async () => {
+	let uploads = 0;
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if (
+			(message as { data?: { action?: string } }).data?.action === "publish" &&
+			uploads++ === 0
+		)
+			throw new Error("Upload failed");
+		return reply(message);
+	};
+	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
+	syncChapterCover(coverChapter());
+	for (
+		let i = 0;
+		i < 10 && !root()?.querySelector(".error-details p")?.textContent;
+		i++
+	)
+		await tick();
+	expect(root()?.querySelector("img")?.src).toBe("blob:cover-preview");
+	expect(root()?.querySelector(".error-details p")?.textContent).toBe(
+		"Upload failed",
+	);
+	await new Promise((resolve) => setTimeout(resolve, 2100));
+	expect(uploads).toBe(2);
+	expect(sent.filter((item) => item.type === "generateAiImage")).toHaveLength(
+		1,
+	);
+	expect(hasCover).toBe(true);
+});
+
+test("Stop cancels a scheduled cover retry", async () => {
+	let attempts = 0;
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if ((message as { type: string }).type === "generateAiImage") {
+			attempts++;
+			throw new Error("Offline");
+		}
+		return reply(message);
+	};
+	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
+	syncChapterCover(coverChapter());
+	await tick();
+	button("Stop")?.click();
+	await new Promise((resolve) => setTimeout(resolve, 2100));
+	expect(attempts).toBe(1);
+	expect(root()?.textContent).toContain("Image generation stopped.");
+});

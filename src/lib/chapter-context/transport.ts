@@ -9,6 +9,7 @@ export type ContextClaim = ChapterKey & {
 	contentHash: string;
 	language: "en" | "ar";
 	onlyIfMissing?: boolean;
+	regenerate?: boolean;
 };
 export type ContextPublish = ContextClaim & {
 	token: string;
@@ -35,6 +36,7 @@ export async function claimContext(input: ContextClaim) {
 				contentHash: input.contentHash,
 				language: input.language,
 				onlyIfMissing: input.onlyIfMissing,
+				regenerate: input.regenerate,
 			},
 		})
 	).data;

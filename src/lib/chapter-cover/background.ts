@@ -11,7 +11,11 @@ export async function chapterCoverRequest(
 			.data;
 	if (input.action === "claim")
 		return (
-			await customInstance<CoverReply>({ url: `${path}/claim`, method: "POST" })
+			await customInstance<CoverReply>({
+				url: `${path}/claim`,
+				method: "POST",
+				data: { regenerate: input.regenerate },
+			})
 		).data;
 	if (input.action === "release") {
 		await customInstance({

@@ -1,5 +1,6 @@
 import { browser } from "#imports";
 import { sendMessage } from "@/entrypoints/background/messaging";
+import { retryChapterTask } from "@/lib/ai-source/chapter-retry";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
@@ -13,7 +14,7 @@ import {
 	CONTEXT_TEXT_LIMIT,
 	parseContextOutput,
 } from "./prompt";
-import type { ChapterContextRecord } from "./schema";
+import type { ChapterContext, ChapterContextRecord } from "./schema";
 import { createContextView } from "./view";
 
 type Session = {
@@ -84,7 +85,7 @@ export function clearChapterContext() {
 	session.view.host.remove();
 	pageAiTasks.apply({ id: session.id, state: "released", source: "page" });
 }
-async function read(session: Session) {
+async function read(session: Session, resume = false) {
 	const record = await sendMessage("readChapterContext", key(session));
 	if (!alive(session)) return;
 	session.record = record;
@@ -93,8 +94,16 @@ async function read(session: Session) {
 	if (record?.generating) {
 		clearTimeout(session.poll);
 		session.poll = setTimeout(() => {
-			void read(session).catch(() => {});
+			void retryChapterTask(
+				() => read(session, true),
+				session.controller.signal,
+				() => {},
+			).catch(() => {});
 		}, 5000);
+	} else if (resume && !session.running && !record?.context) {
+		const stored = await browser.storage.local.get(AUTO_CHAPTER_CONTEXT_KEY);
+		if (alive(session) && stored[AUTO_CHAPTER_CONTEXT_KEY] === true)
+			void generate(session, true);
 	}
 }
 async function generate(session: Session, automatic: boolean) {
@@ -114,102 +123,131 @@ async function generate(session: Session, automatic: boolean) {
 		session.jobController === controller &&
 		!controller.signal.aborted;
 	session.running = true;
+	session.view.clearError();
 	session.view.working(true);
 	placeChapterContext(true);
+	let generated: { contentHash: string; context: ChapterContext } | undefined;
 	try {
-		const state = await aiState("chapter_context");
-		if (!state.user || state.user.isGuest || !state.availability.ok)
-			throw new Error("Chapter context AI is unavailable.");
-		const { text, contentHash } = await source();
-		if (!isCurrent()) return;
-		const claim = await sendMessage("claimChapterContext", {
-			...key(session),
-			contentHash,
-			language: session.data.language,
-			onlyIfMissing: automatic,
-		});
-		if (claim.token) {
-			token = claim.token;
-			if (isCurrent()) session.token = claim.token;
-		}
-		if (!isCurrent()) {
-			await release(session, token);
-			return;
-		}
-		if (!claim.token) {
-			await read(session);
-			return;
-		}
-		pageAiTasks.apply({
-			id,
-			state: "working",
-			operation: "generate-context",
-			subject:
-				session.data.language === "ar" ? "سياق الفصل" : "Chapter context",
-			source: "page",
-		});
-		trackEvent("ai_chapter_context_requested", {
-			provider: state.source,
-			automatic,
-		});
-		const keywords = await sendMessage(
-			"chapterCoverKeywords",
-			session.data.novel.id,
-		).catch(() => session.data.keywords);
-		let registry = "";
-		for (const keyword of keywords ?? []) {
-			const line = JSON.stringify({
-				id: keyword.id,
-				names: [
-					keyword.nameAr,
-					keyword.nameEn,
-					...keyword.aliases.flatMap((alias) => [alias.nameAr, alias.nameEn]),
-				].filter(Boolean),
-			});
-			if (registry.length + line.length > 30000) break;
-			registry += `${line}\n`;
-		}
-		const context = await executeLocalizedPrompt({
-			feature: "chapter_context",
-			novelId: session.data.novel.id,
-			prompt: buildContextPrompt(session.data, text, registry),
-			language: session.data.language,
-			signal: controller.signal,
-			parse: parseContextOutput,
-			texts: (result) => [result.summary],
-		});
-		if (!isCurrent()) return;
-		await sendMessage("publishChapterContext", {
-			...key(session),
-			contentHash,
-			language: session.data.language,
-			token: claim.token,
-			context,
-		});
-		if (session.token === token) session.token = undefined;
-		token = undefined;
-		if (!isCurrent()) return;
-		session.record = {
-			context,
-			contentHash,
-			generating: false,
-			inactiveEntities: [],
-		};
-		session.view.update(session.record);
-		placeChapterContext(true);
-		pageAiTasks.apply({
-			id,
-			state: "done",
-			operation: "generate-context",
-			subject:
-				session.data.language === "ar" ? "سياق الفصل" : "Chapter context",
-			source: "page",
-		});
-		trackEvent("ai_chapter_context_saved");
-		await read(session);
-	} catch {
+		await retryChapterTask(
+			async () => {
+				try {
+					session.view.working(true);
+					const state = await aiState("chapter_context");
+					if (!state.user || state.user.isGuest || !state.availability.ok)
+						throw new Error("Chapter context AI is unavailable.");
+					const { text, contentHash } = await source();
+					if (!isCurrent()) return;
+					const claim = await sendMessage("claimChapterContext", {
+						...key(session),
+						contentHash,
+						language: session.data.language,
+						onlyIfMissing: automatic,
+						regenerate: !automatic,
+					});
+					if (claim.token) {
+						token = claim.token;
+						if (isCurrent()) session.token = claim.token;
+					}
+					if (!isCurrent()) {
+						await release(session, token);
+						return;
+					}
+					if (!claim.token) {
+						await read(session);
+						return;
+					}
+					pageAiTasks.apply({
+						id,
+						state: "working",
+						operation: "generate-context",
+						subject:
+							session.data.language === "ar" ? "سياق الفصل" : "Chapter context",
+						source: "page",
+					});
+					trackEvent("ai_chapter_context_requested", {
+						provider: state.source,
+						automatic,
+					});
+					const keywords = await sendMessage(
+						"chapterCoverKeywords",
+						session.data.novel.id,
+					).catch(() => session.data.keywords);
+					let registry = "";
+					for (const keyword of keywords ?? []) {
+						const line = JSON.stringify({
+							id: keyword.id,
+							names: [
+								keyword.nameAr,
+								keyword.nameEn,
+								...keyword.aliases.flatMap((alias) => [
+									alias.nameAr,
+									alias.nameEn,
+								]),
+							].filter(Boolean),
+						});
+						if (registry.length + line.length > 30000) break;
+						registry += `${line}\n`;
+					}
+					const context =
+						generated?.contentHash === contentHash
+							? generated.context
+							: await executeLocalizedPrompt({
+									feature: "chapter_context",
+									novelId: session.data.novel.id,
+									prompt: buildContextPrompt(session.data, text, registry),
+									language: session.data.language,
+									signal: controller.signal,
+									parse: parseContextOutput,
+									texts: (result) => [result.summary],
+								});
+					if (!isCurrent()) return;
+					generated = { contentHash, context };
+					await sendMessage("publishChapterContext", {
+						...key(session),
+						contentHash,
+						language: session.data.language,
+						token: claim.token,
+						context,
+					});
+					if (session.token === token) session.token = undefined;
+					token = undefined;
+					if (!isCurrent()) return;
+					session.record = {
+						context,
+						contentHash,
+						generating: false,
+						inactiveEntities: [],
+					};
+					session.view.update(session.record);
+					session.view.clearError();
+					placeChapterContext(true);
+					pageAiTasks.apply({
+						id,
+						state: "done",
+						operation: "generate-context",
+						subject:
+							session.data.language === "ar" ? "سياق الفصل" : "Chapter context",
+						source: "page",
+					});
+					trackEvent("ai_chapter_context_saved");
+					await read(session).catch(() => {});
+				} finally {
+					await release(session, token);
+					token = undefined;
+				}
+			},
+			controller.signal,
+			(error) => {
+				if (!isCurrent()) {
+					controller.abort();
+					return;
+				}
+				session.view.retrying(error);
+			},
+		);
+	} catch (error) {
 		if (isCurrent()) {
-			session.view.error();
+			session.view.error(error);
 			pageAiTasks.apply({
 				id,
 				state: "failed",
@@ -276,7 +314,11 @@ export function syncChapterContext(data: NovelContentData) {
 	};
 	current = session;
 	void (async () => {
-		await read(session);
+		await retryChapterTask(
+			() => read(session),
+			controller.signal,
+			() => {},
+		);
 		const ai = await aiState("chapter_context");
 		if (alive(session))
 			session.view.price(
