@@ -130,7 +130,7 @@ ${instructionSection(input.instructions)}
 Return only one JSON object, without Markdown fences:
 {"description": string, "imagePrompt": string, "category": number, "nature": number${hasTranslations ? ', "translation": number' : ""}}
 
-- description: the entity description, written as the reader instructions ask.
+- description: the entity description, written as the AI instructions ask.
 - imagePrompt: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
 - category: the number of the best matching category below.
 - nature: the number of the best matching nature below.

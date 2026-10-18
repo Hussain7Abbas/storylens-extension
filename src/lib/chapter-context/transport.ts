@@ -1,7 +1,10 @@
 import { customInstance } from "@/api/axios-instance";
+import { loadContextHistory } from "./history";
 import type {
 	ChapterContext,
 	ChapterContextRecord,
+	ContextChapter,
+	ContextTracking,
 	ContinuityContext,
 } from "./schema";
 export type ChapterKey = { novelId: string; chapterNumber: number };
@@ -20,12 +23,30 @@ const path = (key: ChapterKey) =>
 export async function readContext(
 	key: ChapterKey,
 ): Promise<ChapterContextRecord> {
-	return (
+	const record = (
 		await customInstance<ChapterContextRecord>({
 			url: path(key),
 			method: "GET",
+			params: { format: "compact" },
 		})
 	).data;
+	return {
+		...record,
+		inactiveEntities: (record.inactiveEntities ?? []).flatMap((entity) => {
+			const chapter =
+				entity.lastSeenChapter ?? Reflect.get(entity, "lastMentionedChapter");
+			return Number.isInteger(chapter) && key.chapterNumber - chapter < 10
+				? [
+						{
+							entityKey: entity.entityKey,
+							name: entity.name,
+							keywordId: entity.keywordId,
+							lastSeenChapter: chapter as number,
+						},
+					]
+				: [];
+		}),
+	};
 }
 export async function claimContext(input: ContextClaim) {
 	return (
@@ -62,14 +83,36 @@ export async function releaseContext(
 		data: { token: input.token },
 	});
 }
-export async function readContinuity(
+export async function readTracking(
 	input: ChapterKey & { entityKeys: string[] },
-): Promise<ContinuityContext> {
+): Promise<ContextTracking> {
 	return (
-		await customInstance<ContinuityContext>({
-			url: `${path(input)}/continuity`,
-			method: "GET",
-			params: { entities: JSON.stringify(input.entityKeys) },
+		await customInstance<ContextTracking>({
+			url: `${path(input)}/tracking`,
+			method: "POST",
+			data: { entityKeys: input.entityKeys },
 		})
 	).data;
+}
+export async function readBulkContexts(
+	input: ChapterKey & { chapterNumbers: number[]; entityKeys: string[] },
+): Promise<ContextChapter[]> {
+	return (
+		await customInstance<{ chapters: ContextChapter[] }>({
+			url: `${path(input)}/bulk`,
+			method: "POST",
+			data: {
+				chapterNumbers: input.chapterNumbers,
+				entityKeys: input.entityKeys,
+			},
+		})
+	).data.chapters;
+}
+export async function readContinuity(
+	input: ChapterKey & { entityKeys: string[]; text?: string },
+): Promise<ContinuityContext> {
+	return loadContextHistory(input, {
+		tracking: readTracking,
+		bulk: readBulkContexts,
+	});
 }

@@ -15,6 +15,7 @@ describe("parseAiPrompts", () => {
 		expect(
 			parseAiPrompts({ keywordPrompt: "  ", imagePrompt: "Watercolor." }),
 		).toEqual({
+			...DEFAULT_AI_PROMPTS,
 			keywordPrompt: DEFAULT_AI_PROMPTS.keywordPrompt,
 			imagePrompt: "Watercolor.",
 			chapterCoverPrompt: DEFAULT_AI_PROMPTS.chapterCoverPrompt,

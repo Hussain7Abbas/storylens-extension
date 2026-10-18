@@ -3,9 +3,12 @@ import { sendMessage } from "@/entrypoints/background/messaging";
 import { retryChapterTask } from "@/lib/ai-source/chapter-retry";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
+import { chapterCoverReferences } from "@/lib/chapter-cover/prompt";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
+import { aiPrompts } from "@/lib/desktop-client/settings";
 import { pageAiTasks } from "@/lib/launcher-frame/ai-tasks";
 import type { NovelContentData } from "@/types/content-data";
+import { nameKey } from "@/utils/arabic";
 import { findContentRoot } from "@/utils/content-processor";
 import { readPageText } from "@/utils/page-text";
 import {
@@ -14,7 +17,11 @@ import {
 	CONTEXT_TEXT_LIMIT,
 	parseContextOutput,
 } from "./prompt";
-import type { ChapterContext, ChapterContextRecord } from "./schema";
+import type {
+	ChapterContext,
+	ChapterContextRecord,
+	ContinuityContext,
+} from "./schema";
 import { createContextView } from "./view";
 
 type Session = {
@@ -172,8 +179,28 @@ async function generate(session: Session, automatic: boolean) {
 						"chapterCoverKeywords",
 						session.data.novel.id,
 					).catch(() => session.data.keywords);
+					const names = new Set(
+						chapterCoverReferences(
+							{
+								...session.data,
+								keywords: keywords ?? session.data.keywords,
+							},
+							text,
+						).flatMap((row) => row.names.map(nameKey)),
+					);
+					const relevantKeywords = (keywords ?? session.data.keywords).filter(
+						(keyword) =>
+							[
+								keyword.nameAr,
+								keyword.nameEn,
+								...keyword.aliases.flatMap((alias) => [
+									alias.nameAr,
+									alias.nameEn,
+								]),
+							].some((name) => name && names.has(nameKey(name))),
+					);
 					let registry = "";
-					for (const keyword of keywords ?? []) {
+					for (const keyword of relevantKeywords) {
 						const line = JSON.stringify({
 							id: keyword.id,
 							names: [
@@ -185,21 +212,47 @@ async function generate(session: Session, automatic: boolean) {
 								]),
 							].filter(Boolean),
 						});
-						if (registry.length + line.length > 30000) break;
+						if (registry.length + line.length > 10000) break;
 						registry += `${line}\n`;
 					}
-					const context =
-						generated?.contentHash === contentHash
-							? generated.context
-							: await executeLocalizedPrompt({
-									feature: "chapter_context",
-									novelId: session.data.novel.id,
-									prompt: buildContextPrompt(session.data, text, registry),
-									language: session.data.language,
-									signal: controller.signal,
-									parse: parseContextOutput,
-									texts: (result) => [result.summary],
-								});
+					const entityKeys = relevantKeywords
+						.map((keyword) => `keyword:${keyword.id}`)
+						.slice(0, 80);
+					let context: ChapterContext;
+					if (generated?.contentHash === contentHash)
+						context = generated.context;
+					else {
+						const [prompts, history] = await Promise.all([
+							aiPrompts(),
+							sendMessage("contextHistory", {
+								...key(session),
+								entityKeys,
+								text,
+							}).catch(
+								(): ContinuityContext => ({
+									chapters: [],
+									lastMentions: [],
+									persistentState: [],
+								}),
+							),
+						]);
+						if (!isCurrent()) return;
+						context = await executeLocalizedPrompt({
+							feature: "chapter_context",
+							novelId: session.data.novel.id,
+							prompt: buildContextPrompt(
+								session.data,
+								text,
+								registry,
+								prompts.chapterContextPrompt,
+								history,
+							),
+							language: session.data.language,
+							signal: controller.signal,
+							parse: parseContextOutput,
+							texts: (result) => [result.summary],
+						});
+					}
 					if (!isCurrent()) return;
 					generated = { contentHash, context };
 					await sendMessage("publishChapterContext", {

@@ -13,6 +13,12 @@ Object.assign(globalThis, {
 	browser: fakeBrowser,
 	chrome: { runtime: { id: fakeBrowser.runtime.id } },
 });
+const { DEFAULT_AI_PROMPTS } = await import(
+	"../../src/lib/desktop-client/ai-prompts"
+);
+const { startPageSummary, clearPageSummary } = await import(
+	"../../src/lib/desktop-client/page-summary"
+);
 const { syncChapterContext, clearChapterContext } = await import(
 	"../../src/lib/chapter-context/page"
 );
@@ -79,6 +85,7 @@ let savedHash: string | null = null;
 const tick = () => new Promise((resolve) => setTimeout(resolve, 30));
 beforeEach(async () => {
 	clearChapterContext();
+	clearPageSummary();
 	resetFakeBrowser();
 	sent.length = 0;
 	saved = false;
@@ -126,6 +133,8 @@ beforeEach(async () => {
 			saved = true;
 			return { res: undefined };
 		}
+		if (item.type === "contextHistory")
+			return { res: { chapters: [], lastMentions: [], persistentState: [] } };
 		if (item.type === "imageContinuity")
 			return {
 				res: {
@@ -139,6 +148,7 @@ beforeEach(async () => {
 });
 afterEach(() => {
 	clearChapterContext();
+	clearPageSummary();
 	runtime.sendMessage = original;
 });
 afterAll(() => {
@@ -158,7 +168,7 @@ test("opening a chapter reads only its own context and does not run AI by defaul
 	).toBe(false);
 	expect(document.getElementById("storylens-chapter-context")).toBeNull();
 });
-test("automatic context publishes structured JSON once without retrieving neighboring chapters", async () => {
+test("automatic context publishes structured JSON using earlier-only history", async () => {
 	await fakeBrowser.storage.local.set({ [AUTO_CHAPTER_CONTEXT_KEY]: true });
 	syncChapterContext(coverChapter());
 	for (let i = 0; i < 8 && !saved; i++) await tick();
@@ -170,6 +180,7 @@ test("automatic context publishes structured JSON once without retrieving neighb
 		1,
 	);
 	expect(sent.some((item) => item.type === "imageContinuity")).toBe(false);
+	expect(sent.filter((item) => item.type === "contextHistory")).toHaveLength(1);
 	const body = sent.find((item) => item.type === "publishChapterContext")?.data;
 	expect(chapterContextSchema.safeParse(body?.context).success).toBe(true);
 	expect(
@@ -246,8 +257,7 @@ test("context disclosure renders readable sections safely in English and Arabic"
 					entityKey: "name:leo",
 					keywordId: null,
 					name: "Leo",
-					lastMentionedChapter: 10,
-					missingChapters: 2,
+					lastSeenChapter: 10,
 				},
 			],
 		});
@@ -290,7 +300,9 @@ test("structured output validates scene relationships and bounded image context 
 	)?.[1];
 	expect(data).toBeDefined();
 	expect(() => JSON.parse(data ?? "")).not.toThrow();
-	expect(prompt).toContain("laterChaptersForClarificationOnly");
+	expect(prompt).not.toContain("laterChaptersForClarificationOnly");
+	expect(prompt).not.toContain('"chapterNumber":13');
+	expect(prompt).not.toContain('"chapterNumber":14');
 });
 
 test("Stop releases a context reservation and permits retry while a late AI result is ignored", async () => {
@@ -473,4 +485,79 @@ test("error details are nested inside context, localized, safe and retained whil
 		expect(details?.hidden).toBe(true);
 		expect(details?.open).toBe(false);
 	}
+});
+
+test("context generation reads the current shared extraction instructions", async () => {
+	await fakeBrowser.storage.local.set({ [AUTO_CHAPTER_CONTEXT_KEY]: true });
+	const dispatch = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		if ((message as { type: string }).type === "getAiInstructions")
+			return {
+				res: {
+					...DEFAULT_AI_PROMPTS,
+					chapterContextPrompt:
+						"Focus on visual continuity and lasting wounds.",
+				},
+			};
+		return dispatch(message);
+	};
+	syncChapterContext(coverChapter());
+	for (let i = 0; i < 20 && !saved; i++) await tick();
+	expect(saved).toBe(true);
+	const request = sent.find((item) => item.type === "executeAiPrompt")?.data;
+	expect(request?.prompt).toContain(
+		"Focus on visual continuity and lasting wounds.",
+	);
+	expect(request?.prompt).toContain('"schemaVersion":1');
+});
+test("page summary reads shared instructions and keeps private controls out of the source", async () => {
+	document.body.innerHTML =
+		'<article>Mira reached the gate.</article><form><input value="private form value"></form>';
+	const dispatch = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		const type = (message as { type: string }).type;
+		if (type === "getAiInstructions")
+			return {
+				res: {
+					...DEFAULT_AI_PROMPTS,
+					pageSummaryPrompt: "Use one sentence focused on the main event.",
+				},
+			};
+		if (type === "executeAiPrompt") {
+			sent.push(message as (typeof sent)[number]);
+			return { res: { ok: true, value: "Mira reaches the gate." } };
+		}
+		return dispatch(message);
+	};
+	startPageSummary({ model: "codex", effort: "default", locale: "en" });
+	for (
+		let i = 0;
+		i < 20 && !sent.some((item) => item.type === "executeAiPrompt");
+		i++
+	)
+		await tick();
+	const request = sent.find((item) => item.type === "executeAiPrompt")?.data;
+	expect(request?.feature).toBe("page_summary");
+	expect(request?.prompt).toContain(
+		"Use one sentence focused on the main event.",
+	);
+	expect(request?.prompt).toContain("Mira reached the gate.");
+	expect(request?.prompt).not.toContain("private form value");
+	for (
+		let i = 0;
+		i < 20 &&
+		document
+			.getElementById("storylens-page-summary")
+			?.shadowRoot?.querySelector('[role="status"]')?.textContent !==
+			"Mira reaches the gate.";
+		i++
+	)
+		await tick();
+	expect(
+		document
+			.getElementById("storylens-page-summary")
+			?.shadowRoot?.querySelector('[role="status"]')?.textContent,
+	).toBe("Mira reaches the gate.");
+	clearPageSummary();
+	await tick();
 });

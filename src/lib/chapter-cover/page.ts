@@ -4,8 +4,11 @@ import { availabilityKey } from "@/lib/ai-source/availability";
 import { retryChapterTask } from "@/lib/ai-source/chapter-retry";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
-import { withImageContinuity } from "@/lib/chapter-context/image";
 import { placeChapterContext } from "@/lib/chapter-context/page";
+import {
+	type ChapterContext,
+	chapterContextSchema,
+} from "@/lib/chapter-context/schema";
 import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { generateCharacterImage } from "@/lib/desktop-client/character-image-job";
 import { aiPrompts } from "@/lib/desktop-client/settings";
@@ -14,7 +17,8 @@ import { createLensCoin, formatLenses } from "@/lib/lens-coin";
 import type { NovelContentData } from "@/types/content-data";
 import { findContentRoot } from "@/utils/content-processor";
 import { readPageText } from "@/utils/page-text";
-import { buildChapterCoverPrompt, chapterCoverReferences } from "./prompt";
+import { waitForChapterCoverContext } from "./context";
+import { buildChapterCoverPrompt } from "./prompt";
 import {
 	AUTO_CHAPTER_COVER_KEY,
 	type ChapterCover,
@@ -36,6 +40,10 @@ const words = {
 		actions: "Chapter cover actions",
 		working: "Generating chapter cover…",
 		waiting: "Another reader is generating this chapter’s cover…",
+		waitingContext:
+			"Waiting for the current chapter context to finish generating…",
+		missingContext:
+			"Waiting for chapter context. Generate the current chapter’s context below to continue.",
 		missing: "No cover has been generated for this chapter.",
 		ready: "Chapter cover",
 		signIn:
@@ -59,6 +67,8 @@ const words = {
 		actions: "إجراءات غلاف الفصل",
 		working: "جارٍ توليد غلاف الفصل…",
 		waiting: "قارئ آخر يولّد غلاف هذا الفصل…",
+		waitingContext: "بانتظار اكتمال توليد سياق الفصل الحالي…",
+		missingContext: "بانتظار سياق الفصل. ولّد سياق الفصل الحالي أدناه للمتابعة.",
 		missing: "لم يُولّد غلاف لهذا الفصل بعد.",
 		ready: "غلاف الفصل",
 		signIn: "سجّل الدخول بحساب عدسة القصة مسجّل لتوليد غلاف مشترك.",
@@ -227,13 +237,21 @@ async function generate(
 	data: NovelContentData,
 	regenerate = false,
 ) {
-	if (session.working || !session.prompt.trim()) return;
+	if (session.working) return;
 	const text = words[session.locale];
 	session.controller = new AbortController();
 	const { signal } = session.controller;
 	attachCover(session);
 	busy(session, true);
 	session.status.textContent = text.working;
+	session.clearError();
+	pageAiTasks.apply({
+		id: session.id,
+		state: "working",
+		operation: "generate-image",
+		subject: `${text.title} ${session.key.chapterNumber}`,
+		source: "page",
+	});
 	try {
 		await retryChapterTask(
 			async () => {
@@ -248,9 +266,28 @@ async function generate(
 								availabilityKey(state.availability),
 							),
 						);
-					const prepared = await preparePrompt(data, true);
-					session.prompt = prepared.prompt;
-					session.copy.disabled = false;
+					let prepared: Awaited<ReturnType<typeof preparePrompt>> | undefined;
+					if (!session.generated) {
+						const chapterContext = await waitForChapterCoverContext({
+							read: () => sendMessage("readChapterContext", session.key),
+							signal,
+							onWaiting: (generating) => {
+								if (!alive(session)) {
+									session.controller.abort();
+									return;
+								}
+								session.status.textContent = generating
+									? text.waitingContext
+									: text.missingContext;
+							},
+						});
+						if (signal.aborted || !alive(session)) return;
+						prepared = await preparePrompt(data, chapterContext);
+						session.prompt = prepared.prompt;
+						session.copy.disabled = false;
+						session.clearError();
+						session.status.textContent = text.working;
+					}
 					if (signal.aborted || !alive(session)) return;
 					const claim = await sendMessage("chapterCover", {
 						...session.key,
@@ -264,6 +301,7 @@ async function generate(
 					}
 					if (!session.token) {
 						showCover(session, claim);
+						endTask(session, "done");
 						if (claim.generating) waitForCover(session);
 						return;
 					}
@@ -285,7 +323,7 @@ async function generate(
 							settings: state.desktop,
 							feature: "chapter_cover",
 							prompt: session.prompt,
-							referenceImageUrls: prepared.referenceImageUrls,
+							referenceImageUrls: prepared?.referenceImageUrls,
 							name: `chapter-${session.key.chapterNumber}-cover`,
 							signal,
 						});
@@ -398,7 +436,13 @@ async function mount(data: NovelContentData, manual: boolean) {
 	});
 	copy.addEventListener("click", async () => {
 		try {
-			const prepared = await preparePrompt(data, true);
+			const record = await sendMessage("readChapterContext", session.key);
+			const parsed = chapterContextSchema.safeParse(record?.context);
+			if (record?.generating || !parsed.success)
+				throw new Error(
+					record?.generating ? text.waitingContext : text.missingContext,
+				);
+			const prepared = await preparePrompt(data, parsed.data);
 			session.prompt = prepared.prompt;
 			await navigator.clipboard.writeText(session.prompt);
 			if (alive(session)) copy.textContent = text.copied;
@@ -414,10 +458,9 @@ async function mount(data: NovelContentData, manual: boolean) {
 		void generate(session, data, true);
 	});
 	try {
-		const [prepared, cover, state] = await retryChapterTask(
+		const [cover, state] = await retryChapterTask(
 			() =>
 				Promise.all([
-					preparePrompt(data),
 					sendMessage("chapterCover", { ...session.key, action: "read" }),
 					aiState("chapter_cover"),
 				]),
@@ -432,7 +475,6 @@ async function mount(data: NovelContentData, manual: boolean) {
 				status.textContent = text.retrying;
 			},
 		);
-		session.prompt = prepared.prompt;
 		copy.disabled = false;
 		if (!alive(session)) return;
 		const price =
@@ -512,7 +554,10 @@ export function refreshChapterCoverPreference() {
 }
 
 /** Cover context includes both languages, independently of the highlight filter. */
-async function preparePrompt(data: NovelContentData, continuity = false) {
+async function preparePrompt(
+	data: NovelContentData,
+	chapterContext: ChapterContext,
+) {
 	const [prompts, keywords] = await Promise.all([
 		aiPrompts(),
 		sendMessage("chapterCoverKeywords", data.novel.id).catch(
@@ -520,24 +565,11 @@ async function preparePrompt(data: NovelContentData, continuity = false) {
 		),
 	]);
 	const chapterText = readPageText(findContentRoot(), 120_000);
-	const resolvedData = {
-		...data,
-		keywords: Array.isArray(keywords) ? keywords : data.keywords,
-	};
-	const prepared = buildChapterCoverPrompt(
-		resolvedData,
+	if (!chapterText.trim()) throw new Error(words[data.language].unavailable);
+	return buildChapterCoverPrompt(
+		{ ...data, keywords: Array.isArray(keywords) ? keywords : data.keywords },
 		chapterText,
 		prompts.chapterCoverPrompt,
+		chapterContext,
 	);
-	if (continuity)
-		prepared.prompt = await withImageContinuity({
-			novelId: data.novel.id,
-			feature: "chapter_cover",
-			chapterNumber: data.chapterNumber,
-			prompt: prepared.prompt,
-			names: chapterCoverReferences(resolvedData, chapterText).flatMap(
-				(row) => row.names,
-			),
-		});
-	return prepared;
 }

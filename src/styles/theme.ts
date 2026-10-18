@@ -158,6 +158,9 @@ export const theme: MantineThemeOverride = createTheme({
 		xl: "0 24px 80px rgb(32 33 50 / 0.13)",
 	},
 	components: {
+		// The popup body is a flex row. Anchor portalled modals explicitly so
+		// their fixed content cannot keep a static position after #root.
+		Modal: { styles: { inner: { inset: 0 } } },
 		Button: { defaultProps: { fw: 500, size: "sm" } },
 		ActionIcon: { defaultProps: { variant: "subtle", size: "lg" } },
 		Tabs: { defaultProps: { variant: "pills" } },

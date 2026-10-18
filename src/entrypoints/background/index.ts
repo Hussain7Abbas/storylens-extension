@@ -33,6 +33,7 @@ import {
 	loadDesktopCapabilities,
 	shareAccountSession,
 } from "@/lib/desktop-client/background";
+import { loadSharedAiPrompts } from "@/lib/desktop-client/shared-ai-prompts";
 import { parseAiTaskReport } from "@/lib/launcher-frame/ai-tasks";
 import { loadNovelContentDataForMeta } from "@/lib/offline/load-novel-content-data";
 import { queuePageReplacement } from "@/lib/offline/page-replacement";
@@ -155,6 +156,10 @@ export default defineBackground(() => {
 	browser.runtime.onStartup.addListener(() => {
 		void refreshAiPricing(0);
 	});
+	onMessage("getAiInstructions", ({ sender }) => {
+		desktopJobOwner(sender);
+		return loadSharedAiPrompts();
+	});
 	onMessage("refreshAiBilling", async ({ sender }) => {
 		desktopJobOwner(sender);
 		await Promise.all([refreshAiPricing(), refreshLensBalance()]);
@@ -223,6 +228,10 @@ export default defineBackground(() => {
 		return releaseContext(data);
 	});
 	onMessage("imageContinuity", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return readContinuity(data);
+	});
+	onMessage("contextHistory", ({ data, sender }) => {
 		desktopJobOwner(sender);
 		return readContinuity(data);
 	});

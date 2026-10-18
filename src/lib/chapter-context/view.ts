@@ -25,8 +25,7 @@ const labels = {
 		entities: "Entities",
 		stateChanges: "Lasting changes",
 		inactive: "Recently absent entities",
-		last: "Last mentioned in chapter",
-		gap: "chapters ago",
+		last: "Last seen in chapter",
 		location: "Location",
 		time: "Time",
 		weather: "Weather",
@@ -63,7 +62,6 @@ const labels = {
 		stateChanges: "التغيّرات المستمرة",
 		inactive: "عناصر غائبة مؤخراً",
 		last: "آخر ظهور في الفصل",
-		gap: "فصول مضت",
 		location: "المكان",
 		time: "الوقت",
 		weather: "الطقس",
@@ -226,7 +224,7 @@ export function createContextView(
 			const list = document.createElement("ul");
 			for (const entity of record?.inactiveEntities ?? []) {
 				const li = document.createElement("li");
-				li.textContent = `${entity.name} — ${text.last} ${entity.lastMentionedChapter} (${entity.missingChapters} ${text.gap})`;
+				li.textContent = `${entity.name} — ${text.last} ${entity.lastSeenChapter}`;
 				list.append(li);
 			}
 			content.append(list);

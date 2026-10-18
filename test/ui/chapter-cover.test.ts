@@ -1,7 +1,9 @@
 /// <reference types="bun" />
 import { afterAll, afterEach, beforeEach, expect, test } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import type { ChapterContextRecord } from "../../src/lib/chapter-context/schema";
 import { coverChapter } from "../helpers/chapter-cover";
+import { readyCoverContext } from "../helpers/cover-context";
 import { fakeBrowser, resetFakeBrowser } from "../helpers/fake-browser";
 
 const registeredHere = !GlobalRegistrator.isRegistered;
@@ -24,6 +26,7 @@ const originalCreate = URL.createObjectURL;
 const originalRevoke = URL.revokeObjectURL;
 const sent: { type: string; data?: Record<string, unknown> }[] = [];
 let hasCover: boolean;
+let contextRecord: ChapterContextRecord;
 let waiting: boolean;
 let generateReply:
 	| ReturnType<typeof Promise.withResolvers<unknown>>
@@ -41,6 +44,7 @@ beforeEach(async () => {
 	clearChapterCover();
 	sent.length = 0;
 	hasCover = false;
+	contextRecord = readyCoverContext();
 	waiting = false;
 	generateReply = undefined;
 	document.body.innerHTML =
@@ -72,6 +76,7 @@ beforeEach(async () => {
 	runtime.sendMessage = async (message) => {
 		const data = message as { type: string; data?: Record<string, unknown> };
 		sent.push(data);
+		if (data.type === "readChapterContext") return { res: contextRecord };
 		if (data.type === "chapterCoverKeywords")
 			return { res: coverChapter().keywords };
 		if (data.type === "chapterCover") {
@@ -135,6 +140,7 @@ test("default off does not generate an absent cover; an existing shared cover ap
 		"storylens-chapter-cover",
 	);
 	expect(root()?.querySelector("img")?.src).toContain("cover.png");
+	expect(sent.some((item) => item.type === "readChapterContext")).toBe(false);
 	expect(sent.some((item) => item.data?.action === "claim")).toBe(false);
 });
 test("cover lookup adds nothing to the DOM until a saved cover is found", async () => {
@@ -148,7 +154,7 @@ test("cover lookup adds nothing to the DOM until a saved cover is found", async 
 	};
 	syncChapterCover(coverChapter());
 	await tick();
-	expect(sent.some((item) => item.type === "chapterCoverKeywords")).toBe(true);
+	expect(sent.some((item) => item.type === "chapterCoverKeywords")).toBe(false);
 	expect(document.getElementById("storylens-chapter-cover")).toBeNull();
 	expect(document.body.textContent).toBe(
 		"Mira raises her sword on the bridge.",
@@ -364,8 +370,10 @@ test("failed cover upload retries the saved image without another AI request", a
 		if (
 			(message as { data?: { action?: string } }).data?.action === "publish" &&
 			uploads++ === 0
-		)
+		) {
+			contextRecord = { ...contextRecord, generating: true, context: null };
 			throw new Error("Upload failed");
+		}
 		return reply(message);
 	};
 	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
@@ -405,4 +413,83 @@ test("Stop cancels a scheduled cover retry", async () => {
 	await new Promise((resolve) => setTimeout(resolve, 2100));
 	expect(attempts).toBe(1);
 	expect(root()?.textContent).toContain("Image generation stopped.");
+});
+
+test("cover generation waits for replacement context, then uses the new scene snapshot before claiming", async () => {
+	contextRecord.generating = true;
+	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(root()?.textContent).toContain(
+		"Waiting for the current chapter context",
+	);
+	expect(button("Stop")?.hidden).toBe(false);
+	expect(
+		sent.some(
+			(item) =>
+				item.data?.action === "claim" || item.type === "generateAiImage",
+		),
+	).toBe(false);
+	const replacement = readyCoverContext();
+	if (!replacement.context) throw new Error("Missing context fixture");
+	replacement.context.summary = "The guardian reveals the hidden crown.";
+	contextRecord = replacement;
+	await new Promise((resolve) => setTimeout(resolve, 1600));
+	const prompt = sent.find((item) => item.type === "generateAiImage")?.data
+		?.prompt;
+	expect(prompt).toContain("The guardian reveals the hidden crown.");
+	expect(
+		sent.findIndex((item) => item.type === "readChapterContext"),
+	).toBeLessThan(sent.findIndex((item) => item.data?.action === "claim"));
+	expect(sent.some((item) => item.type === "imageContinuity")).toBe(false);
+});
+
+test("missing context waits for reader action and Stop cancels without a cover claim", async () => {
+	contextRecord.context = null;
+	syncChapterCover(coverChapter());
+	await tick();
+	startChapterCover();
+	await tick();
+	expect(root()?.textContent).toContain(
+		"Generate the current chapter’s context below",
+	);
+	expect(
+		sent.some(
+			(item) =>
+				item.data?.action === "claim" || item.type === "generateAiImage",
+		),
+	).toBe(false);
+	button("Stop")?.click();
+	contextRecord = readyCoverContext();
+	await new Promise((resolve) => setTimeout(resolve, 1600));
+	expect(
+		sent.some(
+			(item) =>
+				item.data?.action === "claim" || item.type === "generateAiImage",
+		),
+	).toBe(false);
+	expect(root()?.textContent).toContain("Image generation stopped.");
+});
+
+test("disposal ignores a late ready context and never claims or generates", async () => {
+	const pending = Promise.withResolvers<unknown>();
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = (message) =>
+		(message as { type: string }).type === "readChapterContext"
+			? pending.promise
+			: reply(message);
+	syncChapterCover(coverChapter());
+	await tick();
+	startChapterCover();
+	await tick();
+	clearChapterCover();
+	pending.resolve({ res: readyCoverContext() });
+	await tick();
+	expect(
+		sent.some(
+			(item) =>
+				item.data?.action === "claim" || item.type === "generateAiImage",
+		),
+	).toBe(false);
+	expect(root()).toBeUndefined();
 });

@@ -36,12 +36,23 @@ import type {
 	GetChapterContextByNovelIdByChapterNumberContinuity404,
 	GetChapterContextByNovelIdByChapterNumberContinuity500,
 	GetChapterContextByNovelIdByChapterNumberContinuityParams,
+	GetChapterContextByNovelIdByChapterNumberParams,
+	PostChapterContextByNovelIdByChapterNumberBulk404,
+	PostChapterContextByNovelIdByChapterNumberBulk500,
+	PostChapterContextByNovelIdByChapterNumberBulkBodyOne,
+	PostChapterContextByNovelIdByChapterNumberBulkBodyThree,
+	PostChapterContextByNovelIdByChapterNumberBulkBodyTwo,
 	PostChapterContextByNovelIdByChapterNumberClaim200,
 	PostChapterContextByNovelIdByChapterNumberClaim404,
 	PostChapterContextByNovelIdByChapterNumberClaim500,
 	PostChapterContextByNovelIdByChapterNumberClaimBodyOne,
 	PostChapterContextByNovelIdByChapterNumberClaimBodyThree,
 	PostChapterContextByNovelIdByChapterNumberClaimBodyTwo,
+	PostChapterContextByNovelIdByChapterNumberTracking404,
+	PostChapterContextByNovelIdByChapterNumberTracking500,
+	PostChapterContextByNovelIdByChapterNumberTrackingBodyOne,
+	PostChapterContextByNovelIdByChapterNumberTrackingBodyThree,
+	PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo,
 	PutChapterContextByNovelIdByChapterNumber200,
 	PutChapterContextByNovelIdByChapterNumber404,
 	PutChapterContextByNovelIdByChapterNumber500,
@@ -58,6 +69,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 export const getChapterContextByNovelIdByChapterNumber = (
 	novelId: string,
 	chapterNumber: string | number,
+	params?: GetChapterContextByNovelIdByChapterNumberParams,
 	options?: SecondParameter<typeof customInstance>,
 	signal?: AbortSignal,
 ) => {
@@ -65,6 +77,7 @@ export const getChapterContextByNovelIdByChapterNumber = (
 		{
 			url: `http://localhost:3031/api/user/chapter-context/${novelId}/${chapterNumber}`,
 			method: "GET",
+			params,
 			signal,
 		},
 		options,
@@ -74,9 +87,11 @@ export const getChapterContextByNovelIdByChapterNumber = (
 export const getGetChapterContextByNovelIdByChapterNumberQueryKey = (
 	novelId?: string,
 	chapterNumber?: string | number,
+	params?: GetChapterContextByNovelIdByChapterNumberParams,
 ) => {
 	return [
 		`http://localhost:3031/api/user/chapter-context/${novelId}/${chapterNumber}`,
+		...(params ? [params] : []),
 	] as const;
 };
 
@@ -89,6 +104,7 @@ export const getGetChapterContextByNovelIdByChapterNumberQueryOptions = <
 >(
 	novelId: string,
 	chapterNumber: string | number,
+	params?: GetChapterContextByNovelIdByChapterNumberParams,
 	options?: {
 		query?: Partial<
 			UseQueryOptions<
@@ -107,6 +123,7 @@ export const getGetChapterContextByNovelIdByChapterNumberQueryOptions = <
 		getGetChapterContextByNovelIdByChapterNumberQueryKey(
 			novelId,
 			chapterNumber,
+			params,
 		);
 
 	const queryFn: QueryFunction<
@@ -115,6 +132,7 @@ export const getGetChapterContextByNovelIdByChapterNumberQueryOptions = <
 		getChapterContextByNovelIdByChapterNumber(
 			novelId,
 			chapterNumber,
+			params,
 			requestOptions,
 			signal,
 		);
@@ -148,6 +166,7 @@ export function useGetChapterContextByNovelIdByChapterNumber<
 >(
 	novelId: string,
 	chapterNumber: string | number,
+	params: undefined | GetChapterContextByNovelIdByChapterNumberParams,
 	options: {
 		query: Partial<
 			UseQueryOptions<
@@ -179,6 +198,7 @@ export function useGetChapterContextByNovelIdByChapterNumber<
 >(
 	novelId: string,
 	chapterNumber: string | number,
+	params?: GetChapterContextByNovelIdByChapterNumberParams,
 	options?: {
 		query?: Partial<
 			UseQueryOptions<
@@ -210,6 +230,7 @@ export function useGetChapterContextByNovelIdByChapterNumber<
 >(
 	novelId: string,
 	chapterNumber: string | number,
+	params?: GetChapterContextByNovelIdByChapterNumberParams,
 	options?: {
 		query?: Partial<
 			UseQueryOptions<
@@ -237,6 +258,7 @@ export function useGetChapterContextByNovelIdByChapterNumber<
 >(
 	novelId: string,
 	chapterNumber: string | number,
+	params?: GetChapterContextByNovelIdByChapterNumberParams,
 	options?: {
 		query?: Partial<
 			UseQueryOptions<
@@ -254,6 +276,7 @@ export function useGetChapterContextByNovelIdByChapterNumber<
 	const queryOptions = getGetChapterContextByNovelIdByChapterNumberQueryOptions(
 		novelId,
 		chapterNumber,
+		params,
 		options,
 	);
 
@@ -415,6 +438,8 @@ export const usePutChapterContextByNovelIdByChapterNumber = <
 	return useMutation(mutationOptions, queryClient);
 };
 /**
+ * Deprecated since 2026-10-18; removed after 2027-04-30. Use /api/user/chapter-context/:novelId/:chapterNumber/tracking instead.
+ * @deprecated
  * @summary Load neighboring chapter contexts and returning entity states only when preparing an image
  */
 export const getChapterContextByNovelIdByChapterNumberContinuity = (
@@ -640,6 +665,7 @@ export function useGetChapterContextByNovelIdByChapterNumberContinuity<
 	queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
+ * @deprecated
  * @summary Load neighboring chapter contexts and returning entity states only when preparing an image
  */
 
@@ -689,6 +715,328 @@ export function useGetChapterContextByNovelIdByChapterNumberContinuity<
 	return query;
 }
 
+/**
+ * @summary Read one nearest earlier context and last-seen pointers for returning elements
+ */
+export const postChapterContextByNovelIdByChapterNumberTracking = (
+	novelId: string,
+	chapterNumber: string | number,
+	postChapterContextByNovelIdByChapterNumberTrackingBody:
+		| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+		| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+		| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/chapter-context/${novelId}/${chapterNumber}/tracking`,
+			method: "POST",
+			data: postChapterContextByNovelIdByChapterNumberTrackingBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostChapterContextByNovelIdByChapterNumberTrackingMutationOptions =
+	<
+		TError = ErrorType<
+			| PostChapterContextByNovelIdByChapterNumberTracking404
+			| PostChapterContextByNovelIdByChapterNumberTracking500
+		>,
+		TContext = unknown,
+	>(options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof postChapterContextByNovelIdByChapterNumberTracking>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	}): UseMutationOptions<
+		Awaited<
+			ReturnType<typeof postChapterContextByNovelIdByChapterNumberTracking>
+		>,
+		TError,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+				| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+				| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree;
+		},
+		TContext
+	> => {
+		const mutationKey = ["postChapterContextByNovelIdByChapterNumberTracking"];
+		const { mutation: mutationOptions, request: requestOptions } = options
+			? options.mutation &&
+				"mutationKey" in options.mutation &&
+				options.mutation.mutationKey
+				? options
+				: { ...options, mutation: { ...options.mutation, mutationKey } }
+			: { mutation: { mutationKey }, request: undefined };
+
+		const mutationFn: MutationFunction<
+			Awaited<
+				ReturnType<typeof postChapterContextByNovelIdByChapterNumberTracking>
+			>,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree;
+			}
+		> = (props) => {
+			const { novelId, chapterNumber, data } = props ?? {};
+
+			return postChapterContextByNovelIdByChapterNumberTracking(
+				novelId,
+				chapterNumber,
+				data,
+				requestOptions,
+			);
+		};
+
+		return { mutationFn, ...mutationOptions };
+	};
+
+export type PostChapterContextByNovelIdByChapterNumberTrackingMutationResult =
+	NonNullable<
+		Awaited<
+			ReturnType<typeof postChapterContextByNovelIdByChapterNumberTracking>
+		>
+	>;
+export type PostChapterContextByNovelIdByChapterNumberTrackingMutationBody =
+	| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+	| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+	| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree;
+export type PostChapterContextByNovelIdByChapterNumberTrackingMutationError =
+	ErrorType<
+		| PostChapterContextByNovelIdByChapterNumberTracking404
+		| PostChapterContextByNovelIdByChapterNumberTracking500
+	>;
+
+/**
+ * @summary Read one nearest earlier context and last-seen pointers for returning elements
+ */
+export const usePostChapterContextByNovelIdByChapterNumberTracking = <
+	TError = ErrorType<
+		| PostChapterContextByNovelIdByChapterNumberTracking404
+		| PostChapterContextByNovelIdByChapterNumberTracking500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof postChapterContextByNovelIdByChapterNumberTracking>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+					| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<
+		ReturnType<typeof postChapterContextByNovelIdByChapterNumberTracking>
+	>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PostChapterContextByNovelIdByChapterNumberTrackingBodyOne
+			| PostChapterContextByNovelIdByChapterNumberTrackingBodyTwo
+			| PostChapterContextByNovelIdByChapterNumberTrackingBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPostChapterContextByNovelIdByChapterNumberTrackingMutationOptions(
+			options,
+		);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Fetch requested earlier chapter contexts in a single bounded request
+ */
+export const postChapterContextByNovelIdByChapterNumberBulk = (
+	novelId: string,
+	chapterNumber: string | number,
+	postChapterContextByNovelIdByChapterNumberBulkBody:
+		| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+		| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+		| PostChapterContextByNovelIdByChapterNumberBulkBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/chapter-context/${novelId}/${chapterNumber}/bulk`,
+			method: "POST",
+			data: postChapterContextByNovelIdByChapterNumberBulkBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getPostChapterContextByNovelIdByChapterNumberBulkMutationOptions =
+	<
+		TError = ErrorType<
+			| PostChapterContextByNovelIdByChapterNumberBulk404
+			| PostChapterContextByNovelIdByChapterNumberBulk500
+		>,
+		TContext = unknown,
+	>(options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof postChapterContextByNovelIdByChapterNumberBulk>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	}): UseMutationOptions<
+		Awaited<ReturnType<typeof postChapterContextByNovelIdByChapterNumberBulk>>,
+		TError,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+				| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+				| PostChapterContextByNovelIdByChapterNumberBulkBodyThree;
+		},
+		TContext
+	> => {
+		const mutationKey = ["postChapterContextByNovelIdByChapterNumberBulk"];
+		const { mutation: mutationOptions, request: requestOptions } = options
+			? options.mutation &&
+				"mutationKey" in options.mutation &&
+				options.mutation.mutationKey
+				? options
+				: { ...options, mutation: { ...options.mutation, mutationKey } }
+			: { mutation: { mutationKey }, request: undefined };
+
+		const mutationFn: MutationFunction<
+			Awaited<
+				ReturnType<typeof postChapterContextByNovelIdByChapterNumberBulk>
+			>,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyThree;
+			}
+		> = (props) => {
+			const { novelId, chapterNumber, data } = props ?? {};
+
+			return postChapterContextByNovelIdByChapterNumberBulk(
+				novelId,
+				chapterNumber,
+				data,
+				requestOptions,
+			);
+		};
+
+		return { mutationFn, ...mutationOptions };
+	};
+
+export type PostChapterContextByNovelIdByChapterNumberBulkMutationResult =
+	NonNullable<
+		Awaited<ReturnType<typeof postChapterContextByNovelIdByChapterNumberBulk>>
+	>;
+export type PostChapterContextByNovelIdByChapterNumberBulkMutationBody =
+	| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+	| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+	| PostChapterContextByNovelIdByChapterNumberBulkBodyThree;
+export type PostChapterContextByNovelIdByChapterNumberBulkMutationError =
+	ErrorType<
+		| PostChapterContextByNovelIdByChapterNumberBulk404
+		| PostChapterContextByNovelIdByChapterNumberBulk500
+	>;
+
+/**
+ * @summary Fetch requested earlier chapter contexts in a single bounded request
+ */
+export const usePostChapterContextByNovelIdByChapterNumberBulk = <
+	TError = ErrorType<
+		| PostChapterContextByNovelIdByChapterNumberBulk404
+		| PostChapterContextByNovelIdByChapterNumberBulk500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof postChapterContextByNovelIdByChapterNumberBulk>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+					| PostChapterContextByNovelIdByChapterNumberBulkBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof postChapterContextByNovelIdByChapterNumberBulk>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PostChapterContextByNovelIdByChapterNumberBulkBodyOne
+			| PostChapterContextByNovelIdByChapterNumberBulkBodyTwo
+			| PostChapterContextByNovelIdByChapterNumberBulkBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPostChapterContextByNovelIdByChapterNumberBulkMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
 /**
  * @summary Reserve generation of a missing or changed chapter context
  */

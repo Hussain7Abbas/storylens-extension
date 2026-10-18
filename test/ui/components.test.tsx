@@ -2177,6 +2177,12 @@ describe("Cloud and lens UI", async () => {
 	});
 	it("switches source panels and stores the explicit choice", async () => {
 		const view = render(React.createElement(AiTab), { wrapper });
+		expect(view.queryByLabelText("desktop.keywordPrompt")).toBeNull();
+		expect(view.queryByLabelText("desktop.imagePrompt")).toBeNull();
+		expect(view.queryByLabelText("desktop.chapterCoverPrompt")).toBeNull();
+		expect(
+			view.queryByRole("button", { name: "desktop.savePrompts" }),
+		).toBeNull();
 		await waitFor(() =>
 			expect(view.getByText("cloud.disclosure")).toBeTruthy(),
 		);
@@ -2570,7 +2576,7 @@ describe("parallel selection suggestions and images", () => {
 				model: "test-model",
 				effort: "low",
 			},
-			"storylens-ai-prompts": {
+			"storylens-shared-ai-prompts": {
 				keywordPrompt: "Write concise details.",
 				imagePrompt: "Draw a watercolor portrait.",
 			},
@@ -3233,7 +3239,7 @@ describe("manual image prompts", () => {
 				model: "gemini:test",
 				effort: "default",
 			},
-			"storylens-ai-prompts": { imagePrompt: "Ink wash portrait." },
+			"storylens-shared-ai-prompts": { imagePrompt: "Ink wash portrait." },
 		});
 	});
 	afterEach(() => {

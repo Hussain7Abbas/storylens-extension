@@ -1,6 +1,5 @@
 import {
 	Button,
-	Divider,
 	Group,
 	NumberInput,
 	PasswordInput,
@@ -9,7 +8,6 @@ import {
 	Stack,
 	Switch,
 	Text,
-	Textarea,
 	Tooltip,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
@@ -24,14 +22,8 @@ import { trackEvent } from "@/lib/analytics/client";
 import { AUTO_CHAPTER_CONTEXT_KEY } from "@/lib/chapter-context/prompt";
 import { AUTO_CHAPTER_COVER_KEY } from "@/lib/chapter-cover/types";
 import {
-	type AiPrompts,
-	DEFAULT_AI_PROMPTS,
-} from "@/lib/desktop-client/ai-prompts";
-import {
-	aiPrompts,
 	desktopSettings,
 	parseDesktopSettings,
-	saveAiPrompts,
 } from "@/lib/desktop-client/settings";
 import type {
 	DesktopCapabilities,
@@ -39,118 +31,6 @@ import type {
 } from "@/lib/desktop-client/types";
 import { DESKTOP_SETTINGS_KEY } from "@/lib/desktop-client/types";
 import { CloudPanel } from "./cloud-panel";
-
-/**
- * Editable AI instructions. Each prompt is sent first and marked as taking
- * priority over the chapter and novel context added by the extension.
- */
-function AiPromptsSection() {
-	const { t } = useTranslation();
-	const [prompts, setPrompts] = useState<AiPrompts>(DEFAULT_AI_PROMPTS);
-	const [saved, setSaved] = useState<AiPrompts>(DEFAULT_AI_PROMPTS);
-	const [status, setStatus] = useState("");
-	useEffect(() => {
-		void aiPrompts().then((stored) => {
-			setPrompts(stored);
-			setSaved(stored);
-		});
-	}, []);
-	const dirty =
-		prompts.keywordPrompt !== saved.keywordPrompt ||
-		prompts.imagePrompt !== saved.imagePrompt ||
-		prompts.chapterCoverPrompt !== saved.chapterCoverPrompt;
-	const save = async () => {
-		const next: AiPrompts = {
-			keywordPrompt:
-				prompts.keywordPrompt.trim() || DEFAULT_AI_PROMPTS.keywordPrompt,
-			imagePrompt: prompts.imagePrompt.trim() || DEFAULT_AI_PROMPTS.imagePrompt,
-			chapterCoverPrompt:
-				prompts.chapterCoverPrompt.trim() ||
-				DEFAULT_AI_PROMPTS.chapterCoverPrompt,
-		};
-		await saveAiPrompts(next);
-		setPrompts(next);
-		setSaved(next);
-		setStatus(t("desktop.promptsSaved"));
-		trackEvent("ai_prompts_saved", {
-			keyword_custom: next.keywordPrompt !== DEFAULT_AI_PROMPTS.keywordPrompt,
-			image_custom: next.imagePrompt !== DEFAULT_AI_PROMPTS.imagePrompt,
-			chapter_cover_custom:
-				next.chapterCoverPrompt !== DEFAULT_AI_PROMPTS.chapterCoverPrompt,
-		});
-	};
-	const field = (key: keyof AiPrompts, label: string, description: string) => (
-		<Stack gap={4}>
-			<Textarea
-				label={label}
-				description={description}
-				autosize
-				minRows={4}
-				maxRows={12}
-				value={prompts[key]}
-				onChange={(event) => {
-					const value = event.currentTarget.value;
-					setStatus("");
-					setPrompts((current) => ({ ...current, [key]: value }));
-				}}
-			/>
-			<Tooltip label={t("desktop.resetPromptHint")} withArrow openDelay={350}>
-				<Button
-					size="compact-xs"
-					variant="subtle"
-					style={{ alignSelf: "flex-start" }}
-					disabled={prompts[key] === DEFAULT_AI_PROMPTS[key]}
-					onClick={() => {
-						setStatus("");
-						setPrompts((current) => ({
-							...current,
-							[key]: DEFAULT_AI_PROMPTS[key],
-						}));
-					}}
-				>
-					{t("desktop.resetPrompt")}
-				</Button>
-			</Tooltip>
-		</Stack>
-	);
-	return (
-		<Stack gap="xs">
-			<Text fw={600}>{t("desktop.prompts")}</Text>
-			<Text size="xs">{t("desktop.promptsHelp")}</Text>
-			{field(
-				"keywordPrompt",
-				t("desktop.keywordPrompt"),
-				t("desktop.keywordPromptHelp"),
-			)}
-			{field(
-				"imagePrompt",
-				t("desktop.imagePrompt"),
-				t("desktop.imagePromptHelp"),
-			)}
-			{field(
-				"chapterCoverPrompt",
-				t("desktop.chapterCoverPrompt"),
-				t("desktop.chapterCoverPromptHelp"),
-			)}
-			<Group justify="space-between" gap="xs">
-				<Text size="xs" role="status">
-					{status}
-				</Text>
-				<Tooltip label={t("desktop.savePrompts")} withArrow openDelay={350}>
-					<Button
-						size="xs"
-						disabled={!dirty}
-						onClick={() => {
-							void save();
-						}}
-					>
-						{t("desktop.savePrompts")}
-					</Button>
-				</Tooltip>
-			</Group>
-		</Stack>
-	);
-}
 
 export function AiTab() {
 	const { t } = useTranslation();
@@ -365,8 +245,6 @@ export function AiTab() {
 					trackEvent("ai_auto_chapter_cover_changed", { enabled });
 				}}
 			/>
-			<Divider my="xs" />
-			<AiPromptsSection />
 		</Stack>
 	);
 }

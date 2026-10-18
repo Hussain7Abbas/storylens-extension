@@ -9,25 +9,26 @@ import {
 	parseAiPrompts,
 } from "../src/lib/desktop-client/ai-prompts";
 import { coverChapter } from "./helpers/chapter-cover";
+import { coverContext } from "./helpers/cover-context";
 import { alias, baseVersion, keyword } from "./helpers/keywords";
 
 test("existing installs receive the cinematic prompt without changing custom character instructions", () => {
 	const parsed = parseAiPrompts({ imagePrompt: "Oil portrait" });
 	expect(parsed.imagePrompt).toBe("Oil portrait");
 	expect(parsed.chapterCoverPrompt).toBe(DEFAULT_AI_PROMPTS.chapterCoverPrompt);
-	expect(parsed.chapterCoverPrompt).toContain("most iconic");
-	expect(parsed.chapterCoverPrompt).toContain("merge");
+	expect(parsed.chapterCoverPrompt).toContain("single most valuable scene");
+	expect(parsed.chapterCoverPrompt).toContain("do not merge different scenes");
 	expect(parsed.chapterCoverPrompt).toContain("reference image URLs");
 	expect(parsed.chapterCoverPrompt).toContain("landscape chapter cover (16:9)");
 });
-test("the original portrait seed upgrades to landscape while custom cover prompts remain intact", () => {
+test("shared chapter cover instructions preserve the administrator’s chosen composition", () => {
 	const originalSeed = DEFAULT_AI_PROMPTS.chapterCoverPrompt.replace(
 		"a wide landscape chapter cover (16:9)",
 		"a portrait book cover (2:3)",
 	);
 	expect(
 		parseAiPrompts({ chapterCoverPrompt: originalSeed }).chapterCoverPrompt,
-	).toBe(DEFAULT_AI_PROMPTS.chapterCoverPrompt);
+	).toBe(originalSeed);
 	expect(
 		parseAiPrompts({ chapterCoverPrompt: "My painted scene" })
 			.chapterCoverPrompt,
@@ -76,11 +77,15 @@ test("prompt puts editable instructions first and carries chapter, novel, and ke
 		coverChapter(),
 		"Mira raises her sword.",
 		"Watercolor cinematic scene.",
+		coverContext(),
 	);
 	expect(result.prompt.indexOf("Watercolor cinematic scene.")).toBeLessThan(
 		result.prompt.indexOf("Fantasy city"),
 	);
 	expect(result.prompt).toContain("Mira raises her sword.");
+	expect(result.prompt).toContain("Rain-soaked silver armor");
+	expect(result.prompt).toContain("Injured left arm");
+	expect(result.prompt).toContain("Do not merge unrelated moments");
 	expect(result.prompt).toContain("Wears silver armor.");
 	expect(result.prompt).toContain("armored-mira.png");
 	expect(result.prompt).not.toContain("Must not appear.");
@@ -105,6 +110,8 @@ test("Arabic full words include marks in their boundaries and respect alif match
 	};
 	expect(chapterCoverReferences(data, "اَمَل")).toHaveLength(1);
 	expect(chapterCoverReferences(data, "أملُهم")).toHaveLength(0);
-	data.keywords[0]!.fuzzyMatchArabicCharacters = false;
+	const first = data.keywords[0];
+	if (!first) throw new Error("Missing keyword fixture");
+	first.fuzzyMatchArabicCharacters = false;
 	expect(chapterCoverReferences(data, "امل")).toHaveLength(0);
 });

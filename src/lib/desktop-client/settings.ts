@@ -1,5 +1,9 @@
 import { browser } from "#imports";
-import { AI_PROMPTS_KEY, type AiPrompts, parseAiPrompts } from "./ai-prompts";
+import {
+	type AiPrompts,
+	parseAiPrompts,
+	SHARED_AI_PROMPTS_KEY,
+} from "./ai-prompts";
 import type { DesktopSettings } from "./types";
 import { DESKTOP_SETTINGS_KEY } from "./types";
 
@@ -24,13 +28,18 @@ export async function desktopSettings(): Promise<DesktopSettings> {
 	);
 }
 
-/** Reader AI prompts from Settings → AI, with defaults for empty ones. */
+/** Fetch the centrally managed templates; the background keeps the last good values offline. */
 export async function aiPrompts(): Promise<AiPrompts> {
+	try {
+		const { sendMessage } = await import("@/entrypoints/background/messaging");
+		const prompts = await sendMessage("getAiInstructions");
+		if (prompts) return parseAiPrompts(prompts);
+	} catch {
+		// A restarting/older background can still use the last shared snapshot.
+	}
 	return parseAiPrompts(
-		(await browser.storage.local.get(AI_PROMPTS_KEY))[AI_PROMPTS_KEY],
+		(await browser.storage.local.get(SHARED_AI_PROMPTS_KEY))[
+			SHARED_AI_PROMPTS_KEY
+		],
 	);
-}
-
-export async function saveAiPrompts(prompts: AiPrompts): Promise<void> {
-	await browser.storage.local.set({ [AI_PROMPTS_KEY]: prompts });
 }

@@ -24,6 +24,7 @@ import type { websiteSelector } from "@/types/configs";
 import type { NovelContentData } from "@/types/content-data";
 
 interface ProtocolMap {
+	getAiInstructions(): import("@/lib/desktop-client/ai-prompts").AiPrompts;
 	readChapterContext(
 		data: import("@/lib/chapter-context/transport").ChapterKey,
 	): import("@/lib/chapter-context/schema").ChapterContextRecord;
@@ -41,6 +42,13 @@ interface ProtocolMap {
 	imageContinuity(
 		data: import("@/lib/chapter-context/transport").ChapterKey & {
 			entityKeys: string[];
+			text?: string;
+		},
+	): import("@/lib/chapter-context/schema").ContinuityContext;
+	contextHistory(
+		data: import("@/lib/chapter-context/transport").ChapterKey & {
+			entityKeys: string[];
+			text?: string;
 		},
 	): import("@/lib/chapter-context/schema").ContinuityContext;
 	chapterCoverKeywords(

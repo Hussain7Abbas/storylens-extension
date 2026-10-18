@@ -126,8 +126,7 @@ export type InactiveEntity = {
 	entityKey: string;
 	name: string;
 	keywordId: string | null;
-	lastMentionedChapter: number;
-	missingChapters: number;
+	lastSeenChapter: number;
 };
 export type ChapterContextRecord = {
 	context: ChapterContext | null;
@@ -149,4 +148,16 @@ export type ContinuityContext = {
 		field: string;
 		value: { value: string | null; sceneId: string; evidence: string };
 	}[];
+};
+
+export type ContextChapter = { chapterNumber: number; context: ChapterContext };
+export type EntityLastSeen = {
+	entityKey: string;
+	name: string;
+	keywordId: string | null;
+	lastSeenChapter: number;
+};
+export type ContextTracking = {
+	previous: ContextChapter | null;
+	lastSeen: EntityLastSeen[];
 };

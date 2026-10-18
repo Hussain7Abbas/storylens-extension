@@ -7,16 +7,27 @@
  */
 
 import type {
+	DataTag,
+	DefinedInitialDataOptions,
+	DefinedUseQueryResult,
 	MutationFunction,
 	QueryClient,
+	QueryFunction,
+	QueryKey,
+	UndefinedInitialDataOptions,
 	UseMutationOptions,
 	UseMutationResult,
+	UseQueryOptions,
+	UseQueryResult,
 } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ErrorType } from "../../axios-instance";
 
 import { customInstance } from "../../axios-instance";
 import type {
+	GetAiInstructions200,
+	GetAiInstructions404,
+	GetAiInstructions500,
 	PostAiChapterSelectors200,
 	PostAiChapterSelectors404,
 	PostAiChapterSelectors500,
@@ -36,6 +47,166 @@ import type {
 } from "../schemas";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * @summary Read shared AI instruction templates
+ */
+export const getAiInstructions = (
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<GetAiInstructions200>(
+		{
+			url: `http://localhost:3031/api/user/ai/instructions`,
+			method: "GET",
+			signal,
+		},
+		options,
+	);
+};
+
+export const getGetAiInstructionsQueryKey = () => {
+	return [`http://localhost:3031/api/user/ai/instructions`] as const;
+};
+
+export const getGetAiInstructionsQueryOptions = <
+	TData = Awaited<ReturnType<typeof getAiInstructions>>,
+	TError = ErrorType<GetAiInstructions404 | GetAiInstructions500>,
+>(options?: {
+	query?: Partial<
+		UseQueryOptions<
+			Awaited<ReturnType<typeof getAiInstructions>>,
+			TError,
+			TData
+		>
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetAiInstructionsQueryKey();
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getAiInstructions>>
+	> = ({ signal }) => getAiInstructions(requestOptions, signal);
+
+	return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+		Awaited<ReturnType<typeof getAiInstructions>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAiInstructionsQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getAiInstructions>>
+>;
+export type GetAiInstructionsQueryError = ErrorType<
+	GetAiInstructions404 | GetAiInstructions500
+>;
+
+export function useGetAiInstructions<
+	TData = Awaited<ReturnType<typeof getAiInstructions>>,
+	TError = ErrorType<GetAiInstructions404 | GetAiInstructions500>,
+>(
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getAiInstructions>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getAiInstructions>>,
+					TError,
+					Awaited<ReturnType<typeof getAiInstructions>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAiInstructions<
+	TData = Awaited<ReturnType<typeof getAiInstructions>>,
+	TError = ErrorType<GetAiInstructions404 | GetAiInstructions500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getAiInstructions>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getAiInstructions>>,
+					TError,
+					Awaited<ReturnType<typeof getAiInstructions>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetAiInstructions<
+	TData = Awaited<ReturnType<typeof getAiInstructions>>,
+	TError = ErrorType<GetAiInstructions404 | GetAiInstructions500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getAiInstructions>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Read shared AI instruction templates
+ */
+
+export function useGetAiInstructions<
+	TData = Awaited<ReturnType<typeof getAiInstructions>>,
+	TError = ErrorType<GetAiInstructions404 | GetAiInstructions500>,
+>(
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getAiInstructions>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetAiInstructionsQueryOptions(options);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
 
 /**
  * Deprecated since 2026-10-02; removed after 2027-01-31. Use POST /api/user/ai/prompts (feature selector_detection) instead.
