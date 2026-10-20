@@ -133,6 +133,8 @@ Every event also carries `session_id`, `engagement_time_msec`, and `extension_ve
 
 ## Commands
 
+Publishing CI pins Bun 1.4.3, installs with `--frozen-lockfile`, and runs `bun run test:ci`. That command uses `bun test --isolate` with `test/helpers/fake-browser.ts` preloaded for every file, so DOM/module state and browser mocks never depend on file discovery order. Use Bun 1.4.3 for this CI-equivalent command; `bun run test` remains available for the shared-process local suite. Do not remove isolation or depend on another file registering `#imports`.
+
 Tests share the full browser mock from `test/helpers/fake-browser.ts`. Override individual methods only within test hooks and restore them after each test; do not replace the shared `#imports` module with a partial browser, which leaks into later files in Bun's test process.
 
 The WXT development server uses port 3050 (`wxt.config.ts`) for both Chrome and Firefox, leaving port 3000 for the website during `make dev`. Its dev CSP must use the resolved WXT server port. This port is separate from `WXT_API_URL` (backend) and `WXT_WEBSITE_URL` (website/account bridge).

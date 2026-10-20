@@ -15,6 +15,7 @@
   "submit:chrome": "wxt submit",
   "typecheck": "tsc --noEmit",
   "test": "bun test",
+  "test:ci": "bun test --isolate --preload ./test/helpers/fake-browser.ts",
   "check": "biome check --write",
   "format": "biome format --write",
   "lint": "biome lint --write",

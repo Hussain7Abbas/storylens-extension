@@ -17,6 +17,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.3"
 
       - name: Resolve version
         id: version
@@ -29,13 +31,13 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Install
-        run: make install
+        run: bun install --frozen-lockfile
 
       - name: Typecheck
         run: make typecheck
 
       - name: Test
-        run: make test
+        run: bun run test:ci
 
       - name: Build store zip
         run: make release-chrome
