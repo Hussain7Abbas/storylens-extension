@@ -62,15 +62,50 @@ for (const supported of [false, true])
 				});
 			body = JSON.parse(String(init?.body)) as Record<string, unknown>;
 			return new Response(
-				JSON.stringify({
+				`${JSON.stringify({
 					type: "result",
 					mimeType: "image/png",
 					data: "aW1hZ2U=",
-				}) + "\n",
+				})}\n`,
 			);
 		}) as typeof fetch;
 		expect((await generateDesktopImage(input, 5)).mimeType).toBe("image/png");
 		expect(body.referenceImageUrls).toEqual(
 			supported ? input.referenceImageUrls : undefined,
 		);
+	});
+
+for (const supported of [false, true])
+	test(`saved-description input is ${supported ? "forwarded to updated" : "omitted for legacy"} desktop companions`, async () => {
+		let body: Record<string, unknown> = {};
+		globalThis.fetch = (async (url, init) => {
+			if (String(url).endsWith("/capabilities"))
+				return Response.json({
+					protocolVersion: 2,
+					models: [],
+					limits: { promptBytes: 500000 },
+					features: { imageGeneration: true, imagePromptInput: supported },
+				});
+			body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+			return new Response(
+				`${JSON.stringify({
+					type: "result",
+					mimeType: "image/png",
+					data: "AA==",
+					revisedPrompt: "An edited description",
+				})}\n`,
+			);
+		}) as typeof fetch;
+		const result = await generateDesktopImage(
+			{
+				...input,
+				referenceImageUrls: undefined,
+				prompt: "An edited description",
+				promptIsDescription: true,
+			},
+			5,
+		);
+		expect(result.revisedPrompt).toBe("An edited description");
+		expect(body.prompt).toBe("An edited description");
+		expect(body.promptIsDescription).toBe(supported ? true : undefined);
 	});

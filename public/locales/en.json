@@ -1,4 +1,8 @@
 {
+	"lookupSelect": {
+		"recovered": "This menu had a problem. You can still choose an option below.",
+		"savedValue": "Saved selection (unavailable)"
+	},
 	"_": {
 		"actions": "Actions",
 		"add": "Add",

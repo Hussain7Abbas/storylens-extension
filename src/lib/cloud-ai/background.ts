@@ -94,6 +94,9 @@ async function run(
 						? { referenceImageUrls: (data as AiImageInput).referenceImageUrls }
 						: {}),
 					prompt: data.prompt,
+					...(image && (data as AiImageInput).promptIsDescription
+						? { promptIsDescription: true }
+						: {}),
 					...(!image
 						? {
 								attempt: prompt.attempt,

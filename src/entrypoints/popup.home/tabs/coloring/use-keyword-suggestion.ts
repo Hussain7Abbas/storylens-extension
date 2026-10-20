@@ -7,7 +7,6 @@ import { trackEvent } from "@/lib/analytics/client";
 import { withImageContinuity } from "@/lib/chapter-context/image";
 import { aiErrorMessage } from "@/lib/cloud-ai/top-up";
 import { toAiLanguage } from "@/lib/desktop-client/ai-language";
-import { DEFAULT_AI_PROMPTS } from "@/lib/desktop-client/ai-prompts";
 import { buildCharacterImagePrompt } from "@/lib/desktop-client/character-image";
 import {
 	type GeneratedCharacterImage,
@@ -163,19 +162,7 @@ export function useKeywordSuggestion(
 		if (imageStopped.current) drawing.abort();
 		setState({ status: "loading" });
 		if (request.generateImage && !imageStopped.current)
-			setImage({
-				status: "loading",
-				prompt: buildCharacterImagePrompt({
-					name: request.name,
-					otherNames: [],
-					description: "",
-					instructions: DEFAULT_AI_PROMPTS.imagePrompt,
-					chapterExcerpts: [
-						`${request.context.before}${request.name}${request.context.after}`,
-					],
-					novelContext: "",
-				}),
-			});
+			setImage({ status: "loading" });
 		void (async () => {
 			const [ai, imageAi] = await Promise.all([
 				aiState("keyword_suggestion"),
@@ -227,6 +214,7 @@ export function useKeywordSuggestion(
 							...options,
 							language,
 							instructions: prompts.keywordPrompt,
+							imageInstructions: prompts.imagePrompt,
 							novelContext,
 						}),
 						language,
@@ -244,21 +232,7 @@ export function useKeywordSuggestion(
 					if (!controller.signal.aborted)
 						setState({
 							status: "ready",
-							suggestion: {
-								...suggestion,
-								imagePrompt: buildCharacterImagePrompt({
-									name: request.name,
-									otherNames: [],
-									description: [suggestion.description, suggestion.imagePrompt]
-										.filter(Boolean)
-										.join("\n\n"),
-									instructions: prompts.imagePrompt,
-									chapterExcerpts: [
-										`${request.context.before}${request.name}${request.context.after}`,
-									],
-									novelContext,
-								}),
-							},
+							suggestion,
 						});
 				} catch (error: unknown) {
 					if (!controller.signal.aborted)
@@ -288,7 +262,7 @@ export function useKeywordSuggestion(
 							prompt,
 						});
 					if (drawing.signal.aborted) return;
-					setImage({ status: "loading", prompt });
+					setImage({ status: "loading" });
 					if (!imageAvailability.ok)
 						throw new Error(t(availabilityKey(imageAvailability)));
 					trackEvent("ai_image_generation_requested", {
@@ -302,12 +276,7 @@ export function useKeywordSuggestion(
 						prompt,
 						signal: drawing.signal,
 					});
-					if (!drawing.signal.aborted)
-						setImage((current) => ({
-							status: "ready",
-							...result,
-							prompt: current.prompt,
-						}));
+					if (!drawing.signal.aborted) setImage({ status: "ready", ...result });
 				} catch (error: unknown) {
 					if (!drawing.signal.aborted) {
 						const message = await aiErrorMessage(error, "character_image", t);

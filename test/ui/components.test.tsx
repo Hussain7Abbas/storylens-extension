@@ -42,8 +42,16 @@ mock.module("@tanstack/react-query", () => ({
 }));
 
 const React = await import("react");
-const { render, renderHook, fireEvent, waitFor, cleanup, act, configure } =
-	await import("@testing-library/react");
+const {
+	render,
+	renderHook,
+	fireEvent,
+	waitFor,
+	cleanup,
+	act,
+	configure,
+	within,
+} = await import("@testing-library/react");
 // Allow slower rendering while browser build checks run on the same machine.
 configure({ asyncUtilTimeout: 5000 });
 
@@ -1151,6 +1159,105 @@ describe("language tabs in a character form", () => {
 		);
 		return view;
 	}
+
+	for (const kind of ["keyword", "alias", "version"] as const) {
+		it(`confirms ${kind} deletion in a modal and Cancel preserves the form`, async () => {
+			const previousUrl = window.location.href;
+			const parent = env.api.seedKeyword(
+				env.novel.id,
+				{
+					nameEn: "Mira",
+					categoryId: env.category.id,
+					natureId: env.nature.id,
+				},
+				env.user.id,
+			);
+			const targetId =
+				kind === "keyword"
+					? parent.id
+					: kind === "alias"
+						? env.api.seedAlias(parent.id, {
+								nameEn: "Scout",
+								createdById: env.user.id,
+							}).id
+						: env.api.seedVersion(parent.id, {
+								startingChapter: 10,
+								createdById: env.user.id,
+							}).id;
+			const view = await openKeywordForm("", kind, parent.id, targetId);
+			try {
+				setOnline(false);
+				const opener = view.getByRole("button", { name: "_.delete" });
+				opener.focus();
+				fireEvent.click(opener);
+				let dialog = await view.findByRole("dialog", { name: "_.delete" });
+				expect(within(dialog).getByText("home.confirmDelete")).toBeTruthy();
+				expect(
+					within(dialog).getByRole("button", { name: "_.delete" }),
+				).toBeTruthy();
+				expect(await env.db.mutations.count()).toBe(0);
+				fireEvent.click(
+					within(dialog).getByRole("button", { name: "_.cancel" }),
+				);
+				await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
+				expect(view.getByRole("button", { name: "_.save" })).toBeTruthy();
+				expect(await env.db.mutations.count()).toBe(0);
+				fireEvent.click(opener);
+				dialog = await view.findByRole("dialog");
+				fireEvent.click(
+					within(dialog).getByRole("button", { name: "_.delete" }),
+				);
+				await waitFor(async () =>
+					expect(await env.db.mutations.count()).toBe(1),
+				);
+				const queued = (await env.db.mutations.toArray())[0];
+				expect(queued).toMatchObject({
+					entity:
+						kind === "keyword"
+							? "keyword"
+							: kind === "alias"
+								? "keywordAlias"
+								: "keywordVersion",
+					entityId: targetId,
+					op: "delete",
+				});
+				expect(view.queryByRole("dialog")).toBeNull();
+			} finally {
+				view.unmount();
+				window.history.replaceState(null, "", previousUrl);
+			}
+		});
+	}
+
+	it("keeps a failed delete in the modal and displays its error", async () => {
+		const previousUrl = window.location.href;
+		const parent = env.api.seedKeyword(
+			env.novel.id,
+			{ nameEn: "Mira", categoryId: env.category.id, natureId: env.nature.id },
+			env.user.id,
+		);
+		const base = [...env.api.versions.values()].find(
+			(version) => version.keywordId === parent.id,
+		);
+		if (!base) throw new Error("Base version missing");
+		const view = await openKeywordForm("", "version", parent.id, base.id);
+		try {
+			setOnline(false);
+			fireEvent.click(view.getByRole("button", { name: "_.delete" }));
+			const dialog = await view.findByRole("dialog");
+			fireEvent.click(within(dialog).getByRole("button", { name: "_.delete" }));
+			await waitFor(() =>
+				expect(within(dialog).getByRole("alert")).toBeTruthy(),
+			);
+			expect(view.getByRole("dialog")).toBe(dialog);
+			expect(await env.db.mutations.count()).toBe(0);
+			fireEvent.click(within(dialog).getByRole("button", { name: "_.cancel" }));
+			await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
+		} finally {
+			view.unmount();
+			window.history.replaceState(null, "", previousUrl);
+		}
+	});
 
 	const nameInput = (view: ReturnType<typeof render>) =>
 		view.getByLabelText("coloring.name", {
@@ -2636,6 +2743,7 @@ describe("parallel selection suggestions and images", () => {
 				ok: true,
 				value: JSON.stringify({
 					description: "A shepherd.",
+					imagePrompt: "A shepherd in a blue coat, watercolor.",
 					category: 1,
 					nature: 1,
 				}),
@@ -2703,7 +2811,9 @@ describe("parallel selection suggestions and images", () => {
 			});
 			try {
 				fireEvent.click(copy);
-				await waitFor(() => expect(copied).toEqual([prompt]));
+				await waitFor(() =>
+					expect(copied).toEqual(["A red-haired swordsman."]),
+				);
 				await waitFor(() =>
 					expect(view.getByText("coloring.imagePromptCopied")).toBeTruthy(),
 				);
@@ -2724,6 +2834,12 @@ describe("parallel selection suggestions and images", () => {
 			fireEvent.submit(form);
 			await waitFor(async () => expect(await env.db.files.count()).toBe(1));
 			await waitFor(() => expect(store.get(formPageAtom)).toBeNull());
+			expect(
+				(await env.db.mutations.toArray()).some(
+					(mutation) =>
+						mutation.patch.imagePrompt === "A red-haired swordsman.",
+				),
+			).toBe(true);
 			expect(
 				requests.filter((item) => item.type === "generateAiImage"),
 			).toHaveLength(1);
@@ -2782,7 +2898,7 @@ describe("parallel selection suggestions and images", () => {
 			(await env.db.mutations.toArray()).find(
 				(item) => item.entity === "keyword",
 			)?.patch.imagePrompt,
-		).toBe(submittedPrompt);
+		).toBe("A red-haired swordsman.");
 	});
 
 	it("keeps the image when the suggestion fails", async () => {
@@ -2869,7 +2985,10 @@ describe("parallel selection suggestions and images", () => {
 			expect(
 				view.getByRole("button", { name: "coloring.copyImagePrompt" }),
 			).toBeTruthy();
-			expect(view.getByDisplayValue(/A shepherd/)).toBeTruthy();
+			expect(
+				(view.getByLabelText("coloring.description") as HTMLTextAreaElement)
+					.value,
+			).toContain("A shepherd.");
 			await act(async () => {
 				image();
 			});
@@ -2891,6 +3010,13 @@ describe("parallel selection suggestions and images", () => {
 		await waitFor(() =>
 			expect(view.getByRole("button", { name: "_.save" })).toBeTruthy(),
 		);
+		expect(
+			(
+				view.getByLabelText("desktop.imagePrompt", {
+					selector: "textarea",
+				}) as HTMLTextAreaElement
+			).value,
+		).toBe("A shepherd in a blue coat, watercolor.");
 		expect(
 			requests.filter((item) => item.type === "generateAiImage"),
 		).toHaveLength(0);
@@ -3514,6 +3640,7 @@ describe("manual image prompts", () => {
 				fireEvent.click(
 					view.getByRole("button", { name: /^coloring.generateImage/ }),
 				);
+				await confirmExtraction(view);
 				await waitFor(() => expect(pending).toHaveLength(2));
 				await act(async () =>
 					pending[0]({
@@ -3600,7 +3727,7 @@ describe("manual image prompts", () => {
 			view.unmount();
 		}
 	});
-	it("keeps the submitted prompt copyable after failure and offers text when clipboard access fails", async () => {
+	it("keeps raw source material out of the prompt after failed extraction", async () => {
 		const view = render(
 			React.createElement(PromptHarness, {
 				novelId: env.novel.id,
@@ -3617,9 +3744,7 @@ describe("manual image prompts", () => {
 			view.getByRole("button", { name: /coloring.generateImage$/ }),
 		);
 		await confirmExtraction(view);
-		const copy = await view.findByRole("button", {
-			name: "coloring.copyImagePrompt",
-		});
+
 		await waitFor(() =>
 			expect(view.getByText(/coloring.imageGenerateFailed/)).toBeTruthy(),
 		);
@@ -3629,22 +3754,13 @@ describe("manual image prompts", () => {
 		expect(imageRequest?.model).toBe("codex");
 		expect(imageRequest?.prompt).toContain("Ink wash portrait.");
 		expect(imageRequest?.prompt).toContain("A red-haired scout.");
-		Object.defineProperty(navigator, "clipboard", {
-			configurable: true,
-			value: {
-				writeText: async () => {
-					throw new Error("blocked");
-				},
-			},
-		});
-		fireEvent.click(copy);
-		const fallback = await view.findByLabelText("desktop.imagePrompt", {
-			selector: "textarea",
-		});
-		const submittedPrompt = imageRequest?.prompt;
-		if (typeof submittedPrompt !== "string")
-			throw new Error("image prompt missing");
-		expect((fallback as HTMLTextAreaElement).value).toBe(submittedPrompt);
+		expect(
+			(
+				view.getByLabelText("desktop.imagePrompt", {
+					selector: "textarea",
+				}) as HTMLTextAreaElement
+			).value,
+		).toBe("");
 		expect(
 			requests.filter((item) => item.type === "generateAiImage"),
 		).toHaveLength(1);
@@ -3940,5 +4056,51 @@ describe("lookup deletion migration dialog", () => {
 		fireEvent.click(cancel);
 		await waitFor(() => expect(view.queryByRole("dialog")).toBeNull());
 		expect(await env.db.mutations.count()).toBe(0);
+	});
+});
+
+describe("MultiButtonsModal", () => {
+	it("supports multiple actions and blocks actions and dismissing while busy", async () => {
+		const { MultiButtonsModal } = await import(
+			"../../src/components/multi-buttons-modal"
+		);
+		const clicked: string[] = [];
+		let closed = 0;
+		const props = {
+			opened: true,
+			title: "A shared confirmation",
+			message: "Choose an action.",
+			onClose: () => {
+				closed++;
+			},
+			buttons: ["cancel", "first", "second"].map((id) => ({
+				id,
+				label: id,
+				onClick: () => clicked.push(id),
+			})),
+		};
+		const view = render(React.createElement(MultiButtonsModal, props), {
+			wrapper,
+		});
+		const dialog = await view.findByRole("dialog");
+		const body = within(dialog);
+		fireEvent.click(body.getByRole("button", { name: "second" }));
+		expect(clicked).toEqual(["second"]);
+		view.rerender(
+			React.createElement(MultiButtonsModal, { ...props, busy: true }),
+		);
+		for (const id of ["cancel", "first", "second"]) {
+			const button = body.getByRole("button", { name: id });
+			expect((button as HTMLButtonElement).disabled).toBe(true);
+			fireEvent.click(button);
+		}
+		expect(clicked).toEqual(["second"]);
+		expect(body.queryByRole("button", { name: "Close modal" })).toBeNull();
+		expect(closed).toBe(0);
+		view.rerender(React.createElement(MultiButtonsModal, props));
+		const closeButton = dialog.querySelector(".mantine-Modal-close");
+		if (!closeButton) throw new Error("Close button missing");
+		fireEvent.click(closeButton);
+		await waitFor(() => expect(closed).toBe(1));
 	});
 });

@@ -19,6 +19,8 @@ function base64File(data: string, mimeType: string, name: string): File {
 
 export type GeneratedCharacterImage = {
 	file: File;
+	/** AI-written visual description used for the generated image. */
+	prompt?: string;
 	revisedPrompt?: string;
 	data: string;
 	mimeType: string;
@@ -32,6 +34,8 @@ export async function generateCharacterImage(input: {
 	settings: DesktopSettings;
 	prompt: string;
 	name: string;
+	/** Reuse a saved/edited description directly on sources that support it. */
+	promptIsDescription?: boolean;
 	signal: AbortSignal;
 }): Promise<GeneratedCharacterImage> {
 	input.signal.throwIfAborted();
@@ -51,13 +55,18 @@ export async function generateCharacterImage(input: {
 				actionId: crypto.randomUUID(),
 				requestId,
 				prompt: input.prompt,
+				...(input.promptIsDescription ? { promptIsDescription: true } : {}),
 				// Desktop images always use Codex and its default effort, independently of text.
 				model: "codex",
 				effort: "default",
 			}),
 		);
 		input.signal.throwIfAborted();
+		const prompt =
+			image.revisedPrompt?.trim() ||
+			(input.promptIsDescription ? input.prompt : undefined);
 		return {
+			prompt,
 			file: base64File(image.data, image.mimeType, input.name),
 			data: image.data,
 			mimeType: image.mimeType,

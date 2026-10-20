@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-18
+Last updated: 2026-10-21
 
 ## Store listing
 
@@ -77,6 +77,10 @@ Publisher identity, contact email, visibility and regions must match the owner a
 
 ## Version history and review notes
 
+- Pending: chapter covers retain their image descriptions after reload and provide a collapsible editor for copying, saving tweaks and regenerating artwork.
+
+- Pending: aliases inherit newer chapter-version values while keeping their own values first; saved and copied AI image prompts contain visual descriptions.
+
 The original captured build was version 2.0.3. On 2026-09-27, screenshots and a demonstration video were prepared; the extension version was unchanged; local database reads and mutations were fixed to run while offline. Store submission/review status was not checked or changed.
 
 On 2026-09-28, a matching Arabic screenshot and video set was added. No additional extension behavior changed for this localization task.
@@ -120,3 +124,5 @@ For release steps see [the publishing runbook](../../docs/publishing.md). New li
 2026-10-18 image prompt editing — Keyword, alias and version image prompts are saved with their entries, editable in a collapsed Image Prompt section, and reused for regeneration. Copy prompt is above the textarea. AI suggestions and chapter extraction also fill missing prompts. Saved prompts may include context/excerpts and synchronize as shared reference data; bilingual privacy drafts document this. Screenshot 5/editor captures need refreshing for this section. Package version and submission status are unchanged.
 
 2026-10-18 image prompt controls — Empty-prompt image requests ask the reader to Extract With AI at the normal generation price or provide a prompt manually. Prompt editors use a 100px expandable preview and a hover/focus copy icon (always visible on touch). Copying no longer prepares an empty prompt. Refresh editor screenshots for the compact layout.
+
+2026-10-18 dropdown recovery — Category and nature menus recover from display errors with a basic list while keeping the rest of the form and its unsaved work available. Unexpected view errors show a localized explanation and Reload action instead of an empty popup. Refresh error-state/editor screenshots if showing these recovery states. Package version, browser permissions and submission status are unchanged.

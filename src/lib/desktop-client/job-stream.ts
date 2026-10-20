@@ -56,6 +56,7 @@ export type ResultFrame = {
 	type?: string;
 	output?: string;
 	mimeType?: string;
+	revisedPrompt?: string;
 	data?: string;
 	error?: { code?: string; message?: string };
 };

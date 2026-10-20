@@ -26,6 +26,9 @@ const originalCreate = URL.createObjectURL;
 const originalRevoke = URL.revokeObjectURL;
 const sent: { type: string; data?: Record<string, unknown> }[] = [];
 let hasCover: boolean;
+let storedPrompt: string | null;
+let canEditPrompt: boolean;
+let promptRevision: number;
 let contextRecord: ChapterContextRecord;
 let waiting: boolean;
 let generateReply:
@@ -44,6 +47,9 @@ beforeEach(async () => {
 	clearChapterCover();
 	sent.length = 0;
 	hasCover = false;
+	storedPrompt = null;
+	canEditPrompt = true;
+	promptRevision = 1;
 	contextRecord = readyCoverContext();
 	waiting = false;
 	generateReply = undefined;
@@ -81,28 +87,40 @@ beforeEach(async () => {
 			return { res: coverChapter().keywords };
 		if (data.type === "chapterCover") {
 			const action = data.data?.action;
-			if (action === "read")
+			const cover = () => ({
+				image: hasCover
+					? { id: "cover", url: "https://images.example.invalid/cover.png" }
+					: null,
+				generating: waiting,
+				imagePrompt: storedPrompt,
+				promptUpdatedAt: hasCover
+					? new Date(promptRevision * 1000).toISOString()
+					: null,
+				canEditPrompt: hasCover && canEditPrompt,
+			});
+			if (action === "read") return { res: cover() };
+			if (action === "claim")
 				return {
 					res: {
-						image: hasCover
-							? { id: "cover", url: "https://images.example.invalid/cover.png" }
-							: null,
-						generating: waiting,
+						...cover(),
+						generating: true,
+						token: "lease",
+						canEditPrompt: true,
 					},
 				};
-			if (action === "claim")
-				return { res: { image: null, generating: true, token: "lease" } };
+			if (action === "savePrompt") {
+				storedPrompt = String(data.data?.imagePrompt).trim() || null;
+				promptRevision++;
+				return { res: cover() };
+			}
 			if (action === "publish") {
 				hasCover = true;
-				return {
-					res: {
-						image: {
-							id: "cover",
-							url: "https://images.example.invalid/cover.png",
-						},
-						generating: false,
-					},
-				};
+				storedPrompt =
+					typeof data.data?.imagePrompt === "string"
+						? data.data.imagePrompt
+						: null;
+				promptRevision++;
+				return { res: cover() };
 			}
 			return { res: { image: null, generating: false } };
 		}
@@ -111,7 +129,13 @@ beforeEach(async () => {
 			return {
 				res: {
 					ok: true,
-					value: { data: btoa("image"), mimeType: "image/png" },
+					value: {
+						data: btoa("image"),
+						mimeType: "image/png",
+						revisedPrompt: data.data?.promptIsDescription
+							? String(data.data.prompt)
+							: "A scout raises her sword on a moonlit bridge.",
+					},
 				},
 			};
 		}
@@ -297,7 +321,14 @@ test("Stop cancels the image request, releases the lease and ignores a late resu
 	expect(sent.some((item) => item.type === "cancelAiPrompt")).toBe(true);
 	expect(sent.some((item) => item.data?.action === "release")).toBe(true);
 	generateReply.resolve({
-		res: { ok: true, value: { data: btoa("late"), mimeType: "image/png" } },
+		res: {
+			ok: true,
+			value: {
+				data: btoa("late"),
+				mimeType: "image/png",
+				revisedPrompt: "A scout raises her sword on a moonlit bridge.",
+			},
+		},
 	});
 	await tick();
 	expect(sent.some((item) => item.data?.action === "publish")).toBe(false);
@@ -323,7 +354,14 @@ test("regeneration keeps the saved background visible, sends an explicit claim, 
 		sent.find((item) => item.data?.action === "claim")?.data?.regenerate,
 	).toBe(true);
 	generateReply.resolve({
-		res: { ok: true, value: { data: btoa("new"), mimeType: "image/png" } },
+		res: {
+			ok: true,
+			value: {
+				data: btoa("new"),
+				mimeType: "image/png",
+				revisedPrompt: "A scout raises her sword on a moonlit bridge.",
+			},
+		},
 	});
 	await tick();
 	expect(sent.some((item) => item.data?.action === "publish")).toBe(true);
@@ -492,4 +530,145 @@ test("disposal ignores a late ready context and never claims or generates", asyn
 		),
 	).toBe(false);
 	expect(root()).toBeUndefined();
+});
+
+test("cover Copy uses the AI visual description without rebuilding the chapter brief", async () => {
+	const originalClipboard = Object.getOwnPropertyDescriptor(
+		navigator,
+		"clipboard",
+	);
+	const copied: string[] = [];
+	Object.defineProperty(navigator, "clipboard", {
+		configurable: true,
+		value: {
+			writeText: async (text: string) => {
+				copied.push(text);
+			},
+		},
+	});
+	try {
+		await fakeBrowser.storage.local.set({
+			"storylens-auto-chapter-cover": true,
+		});
+		syncChapterCover(coverChapter());
+		await tick();
+		await tick();
+		const contextRequests = sent.filter(
+			(item) => item.type === "readChapterContext",
+		).length;
+		button("Copy image prompt")?.click();
+		await tick();
+		expect(copied).toEqual(["A scout raises her sword on a moonlit bridge."]);
+		expect(
+			sent.filter((item) => item.type === "readChapterContext"),
+		).toHaveLength(contextRequests);
+		expect(copied[0]).not.toContain("<CHAPTER>");
+	} finally {
+		if (originalClipboard)
+			Object.defineProperty(navigator, "clipboard", originalClipboard);
+		else Reflect.deleteProperty(navigator, "clipboard");
+	}
+});
+
+test("saved cover descriptions load after reload, can be edited and saved without an AI request", async () => {
+	hasCover = true;
+	storedPrompt = "A scout under a red moon.";
+	syncChapterCover(coverChapter());
+	await tick();
+	const input = root()?.querySelector("textarea");
+	expect(input?.value).toBe(storedPrompt);
+	expect(input?.readOnly).toBe(false);
+	expect(root()?.querySelector(".prompt-section")?.hasAttribute("open")).toBe(
+		false,
+	);
+	if (!input) throw new Error("Missing prompt editor");
+	input.value = "A scout under two blue moons.";
+	input.dispatchEvent(new Event("input", { bubbles: true }));
+	expect(button("Save prompt")?.disabled).toBe(false);
+	button("Save prompt")?.click();
+	await tick();
+	expect(storedPrompt).toBe(input.value);
+	expect(
+		sent.find((item) => item.data?.action === "savePrompt")?.data,
+	).toMatchObject({
+		imagePrompt: input.value,
+		baseUpdatedAt: new Date(1000).toISOString(),
+	});
+	expect(root()?.textContent).toContain("Image prompt saved.");
+	clearChapterCover();
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(root()?.querySelector("textarea")?.value).toBe(
+		"A scout under two blue moons.",
+	);
+	expect(sent.some((item) => item.type === "generateAiImage")).toBe(false);
+	expect(sent.some((item) => item.type === "executeAiPrompt")).toBe(false);
+});
+
+test("regeneration sends the edited description exactly, without waiting for chapter context, and publishes it with the image", async () => {
+	hasCover = true;
+	storedPrompt = "A scout on a bridge.";
+	contextRecord = { ...contextRecord, generating: true, context: null };
+	syncChapterCover(coverChapter());
+	await tick();
+	const input = root()?.querySelector("textarea");
+	if (!input) throw new Error("Missing prompt editor");
+	const edited = "A scout on an empty bridge at dawn. Add a green cloak.";
+	input.value = edited;
+	input.dispatchEvent(new Event("input", { bubbles: true }));
+	button("Regenerate background image")?.click();
+	await tick();
+	await tick();
+	expect(
+		sent.find((item) => item.type === "generateAiImage")?.data,
+	).toMatchObject({ prompt: edited, promptIsDescription: true });
+	expect(sent.some((item) => item.type === "readChapterContext")).toBe(false);
+	expect(
+		sent.find((item) => item.data?.action === "publish")?.data?.imagePrompt,
+	).toBe(edited);
+	expect(storedPrompt).toBe(edited);
+});
+
+test("failed prompt saves preserve the draft and discarding reloads the latest saved description", async () => {
+	hasCover = true;
+	storedPrompt = "Saved description";
+	const reply = runtime.sendMessage;
+	runtime.sendMessage = (message) =>
+		(message as { data?: { action?: string } }).data?.action === "savePrompt"
+			? Promise.reject(
+					new Error("The chapter artwork changed. Reload its saved prompt."),
+				)
+			: reply(message);
+	syncChapterCover(coverChapter());
+	await tick();
+	const input = root()?.querySelector("textarea");
+	if (!input) throw new Error("Missing prompt editor");
+	input.value = "My unsaved tweak";
+	input.dispatchEvent(new Event("input", { bubbles: true }));
+	button("Save prompt")?.click();
+	await tick();
+	expect(input.value).toBe("My unsaved tweak");
+	expect(input.readOnly).toBe(false);
+	expect(root()?.querySelector(".error-details")?.textContent).toContain(
+		"chapter artwork changed",
+	);
+	storedPrompt = "A newer saved description";
+	promptRevision++;
+	button("Discard changes")?.click();
+	await tick();
+	expect(input.value).toBe(storedPrompt);
+	expect(button("Save prompt")?.disabled).toBe(true);
+	expect(sent.some((item) => item.type === "generateAiImage")).toBe(false);
+});
+
+test("other readers can view and copy saved prompts but cannot edit them", async () => {
+	hasCover = true;
+	canEditPrompt = false;
+	storedPrompt = "A published cover description";
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(root()?.querySelector("textarea")?.value).toBe(storedPrompt);
+	expect(root()?.querySelector("textarea")?.readOnly).toBe(true);
+	expect(button("Save prompt")?.disabled).toBe(true);
+	expect(button("Copy image prompt")?.disabled).toBe(false);
 });

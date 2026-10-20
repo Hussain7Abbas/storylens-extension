@@ -6,12 +6,19 @@
  * OpenAPI spec version: 0.0.0
  */
 import type { PostChapterArtworkByNovelIdByChapterNumberClaim200Image } from "./postChapterArtworkByNovelIdByChapterNumberClaim200Image";
+import type { PostChapterArtworkByNovelIdByChapterNumberClaim200ImagePrompt } from "./postChapterArtworkByNovelIdByChapterNumberClaim200ImagePrompt";
+import type { PostChapterArtworkByNovelIdByChapterNumberClaim200PromptUpdatedAt } from "./postChapterArtworkByNovelIdByChapterNumberClaim200PromptUpdatedAt";
 import type { PostChapterArtworkByNovelIdByChapterNumberClaim200Token } from "./postChapterArtworkByNovelIdByChapterNumberClaim200Token";
 
 export type PostChapterArtworkByNovelIdByChapterNumberClaim200 = {
 	/** @nullable */
 	image: PostChapterArtworkByNovelIdByChapterNumberClaim200Image;
 	generating: boolean;
+	/** @nullable */
+	imagePrompt: PostChapterArtworkByNovelIdByChapterNumberClaim200ImagePrompt;
+	/** @nullable */
+	promptUpdatedAt: PostChapterArtworkByNovelIdByChapterNumberClaim200PromptUpdatedAt;
+	canEditPrompt: boolean;
 	/** @nullable */
 	token: PostChapterArtworkByNovelIdByChapterNumberClaim200Token;
 };

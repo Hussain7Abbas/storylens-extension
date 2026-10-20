@@ -5,8 +5,11 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+import type { PutChapterArtworkByNovelIdByChapterNumberBodyThreeImagePrompt } from "./putChapterArtworkByNovelIdByChapterNumberBodyThreeImagePrompt";
 
 export type PutChapterArtworkByNovelIdByChapterNumberBodyThree = {
 	token: string;
 	imageId: string;
+	/** @nullable */
+	imagePrompt?: PutChapterArtworkByNovelIdByChapterNumberBodyThreeImagePrompt;
 };

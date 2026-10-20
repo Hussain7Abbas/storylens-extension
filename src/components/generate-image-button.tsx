@@ -1,12 +1,4 @@
-import {
-	Alert,
-	Button,
-	Group,
-	Modal,
-	Stack,
-	Text,
-	Tooltip,
-} from "@mantine/core";
+import { Alert, Button, Group, Text, Tooltip } from "@mantine/core";
 import { ImagePlus as IconImagePlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +27,7 @@ import { aiPrompts } from "@/lib/desktop-client/settings";
 import { useAiTask } from "@/lib/launcher-frame/use-ai-task";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
 import { CopyImagePrompt } from "./copy-image-prompt";
+import { MultiButtonsModal } from "./multi-buttons-modal";
 import { StopImageButton } from "./stop-image-button";
 
 /** Reads the chapter shown in the active tab; empty when no novel page is open. */
@@ -226,7 +219,6 @@ export function GenerateImageButton({
 					prompt: build(prompts.imagePrompt, chapterText, novelContext),
 				});
 				if (abort.signal.aborted) return;
-				setPrompt(submittedPrompt);
 			}
 			trackEvent("ai_image_generation_requested", {
 				provider: ai.source,
@@ -238,12 +230,13 @@ export function GenerateImageButton({
 				source: ai.source,
 				settings: ai.desktop,
 				prompt: submittedPrompt,
+				promptIsDescription: !!existingPrompt,
 				name,
 				signal: abort.signal,
 			});
 			if (abort.signal.aborted) return;
 			setRevisedPrompt(image.revisedPrompt);
-			setPrompt(submittedPrompt);
+			setPrompt(image.prompt ?? existingPrompt ?? "");
 			onGenerated(image.file);
 		} catch (cause) {
 			if (abort.signal.aborted) return;
@@ -333,57 +326,54 @@ export function GenerateImageButton({
 				focusRequest={focusRequest}
 			/>
 
-			<Modal
+			<MultiButtonsModal
 				opened={needsPrompt}
+				title={t("coloring.emptyImagePromptTitle")}
+				message={t("coloring.emptyImagePromptQuestion")}
+				returnFocus={false}
 				onClose={() => {
 					setNeedsPrompt(false);
 					generateButton.current?.focus();
 				}}
-				title={t("coloring.emptyImagePromptTitle")}
-				centered
-				returnFocus={false}
-			>
-				<Stack gap="md">
-					<Text>{t("coloring.emptyImagePromptQuestion")}</Text>
-					<Text size="sm" c="dimmed">
-						{t("coloring.extractImagePromptHelp")}
-					</Text>
-					{researchPrice > 0 && (
-						<Text size="xs" c="dimmed">
-							{t("cloud.researchCost", { lenses: label(researchPrice) })}
-						</Text>
-					)}
-					<Group justify="flex-end" gap="xs">
-						<Button
-							variant="default"
-							onClick={() => {
-								setNeedsPrompt(false);
-								setFocusRequest((value) => value + 1);
-							}}
-						>
-							{t("coloring.provideImagePrompt")}
-						</Button>
-						<Tooltip
-							label={
-								aiConfigured
-									? t("coloring.extractImagePromptHelp")
-									: t(availabilityKey(availability))
-							}
-						>
-							<Button
-								disabled={busy || !loaded || !contextLoaded || !aiConfigured}
-								onClick={() => {
-									setNeedsPrompt(false);
-									void generate();
-								}}
-							>
+				buttons={[
+					{
+						id: "provide",
+						label: t("coloring.provideImagePrompt"),
+						variant: "default",
+						autoFocus: true,
+						onClick: () => {
+							setNeedsPrompt(false);
+							setFocusRequest((value) => value + 1);
+						},
+					},
+					{
+						id: "extract",
+						label: (
+							<>
 								{t("coloring.extractImagePrompt")}{" "}
 								<LensPrice lenses={imagePrice} tone="on-brand" />
-							</Button>
-						</Tooltip>
-					</Group>
-				</Stack>
-			</Modal>
+							</>
+						),
+						disabled: busy || !loaded || !contextLoaded || !aiConfigured,
+						tooltip: aiConfigured
+							? t("coloring.extractImagePromptHelp")
+							: t(availabilityKey(availability)),
+						onClick: () => {
+							setNeedsPrompt(false);
+							void generate();
+						},
+					},
+				]}
+			>
+				<Text size="sm" c="dimmed">
+					{t("coloring.extractImagePromptHelp")}
+				</Text>
+				{researchPrice > 0 && (
+					<Text size="xs" c="dimmed">
+						{t("cloud.researchCost", { lenses: label(researchPrice) })}
+					</Text>
+				)}
+			</MultiButtonsModal>
 
 			{busy && <StopImageButton onStop={stop} />}
 			{stopped && (
@@ -396,7 +386,7 @@ export function GenerateImageButton({
 					{t("coloring.generatingImage")}
 				</Text>
 			)}
-			{revisedPrompt && (
+			{revisedPrompt && revisedPrompt !== prompt && (
 				<details>
 					<summary>{t("cloud.whatDrawn")}</summary>
 					<Text size="xs">{revisedPrompt}</Text>

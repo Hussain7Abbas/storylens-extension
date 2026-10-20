@@ -47,12 +47,15 @@ export function buildChapterExtractionPrompt(input: {
 	language: AiLanguage;
 	/** Reader's keyword prompt from Settings → AI; it takes priority over the context. */
 	instructions: string;
+	/** Art direction for the AI-written image description. */
+	imageInstructions?: string;
 	/** The novel's global context; empty when unknown. */
 	novelContext: string;
 }): string {
 	return `You help a reader build a character list for a web novel. Read the chapter below and list the named entities in it that fit one of the categories: people, places, skills, items, and similar named things.
 
 ${instructionSection(input.instructions)}
+${input.imageInstructions?.trim() ? `\nArt instructions for imagePrompt only:\n${input.imageInstructions.trim()}\nWrite the resulting visual description in imagePrompt; do not copy these instructions or chapter/context source blocks into it.` : ""}
 
 Return only one JSON object, without Markdown fences:
 {"items": [{"name": string, "description": string, "imagePrompt": string, "category": number, "nature": number, "parent": string | null, "relation": "alias" | "version" | null}]}

@@ -21,6 +21,7 @@ import { Copy as IconCopy } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { MultiButtonsModal } from "@/components/multi-buttons-modal";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { useRoutes } from "@/hooks/useRoutes";
 import { trackEvent } from "@/lib/analytics/client";
@@ -433,179 +434,175 @@ function IssueCard({
 					</Group>
 				)}
 
-				{confirmDiscard ? (
-					<Alert color="red" variant="light" p="xs">
-						<Stack gap={4}>
-							<Text size="xs">{t("sync.confirmDiscard")}</Text>
-							{dependants.length > 0 && (
-								<Text size="xs">
-									{t("sync.discardDependants", { count: dependants.length })}
-								</Text>
-							)}
-							<Group gap="xs">
-								<Button
-									size="compact-xs"
-									color="red"
-									loading={busy}
-									onClick={() => void discard()}
-								>
-									{t("sync.discard")}
-								</Button>
-								<Button
-									size="compact-xs"
-									variant="default"
-									onClick={() => setConfirmDiscard(false)}
-								>
-									{t("_.cancel")}
-								</Button>
-							</Group>
-						</Stack>
-					</Alert>
-				) : (
-					<Group gap="xs">
-						{kind === "stale" && (
-							<>
-								<Button
-									size="compact-xs"
-									loading={busy}
-									onClick={() =>
-										void resolve("merge", { kind: "fields", choices })
-									}
-								>
-									{t("sync.apply")}
-								</Button>
-								<Button
-									size="compact-xs"
-									variant="light"
-									loading={busy}
-									onClick={() =>
-										void resolve("keep_mine", { kind: "keepAllMine" })
-									}
-								>
-									{t("sync.keepAllMine")}
-								</Button>
-								<Button
-									size="compact-xs"
-									variant="light"
-									loading={busy}
-									onClick={() =>
-										void resolve("use_theirs", { kind: "useAllTheirs" })
-									}
-								>
-									{t("sync.useAllTheirs")}
-								</Button>
-							</>
-						)}
-						{kind === "deleted" && mutation.op !== "delete" && (
+				<MultiButtonsModal
+					opened={confirmDiscard}
+					title={t("sync.discard")}
+					message={t("sync.confirmDiscard")}
+					busy={busy}
+					onClose={() => setConfirmDiscard(false)}
+					buttons={[
+						{
+							id: "cancel",
+							label: t("_.cancel"),
+							variant: "default",
+							autoFocus: true,
+							onClick: () => setConfirmDiscard(false),
+						},
+						{
+							id: "discard",
+							label: t("sync.discard"),
+							color: "red",
+							loading: busy,
+							onClick: () => void discard(),
+						},
+					]}
+				>
+					{dependants.length > 0 && (
+						<Text size="xs">
+							{t("sync.discardDependants", { count: dependants.length })}
+						</Text>
+					)}
+				</MultiButtonsModal>
+
+				<Group gap="xs">
+					{kind === "stale" && (
+						<>
+							<Button
+								size="compact-xs"
+								loading={busy}
+								onClick={() =>
+									void resolve("merge", { kind: "fields", choices })
+								}
+							>
+								{t("sync.apply")}
+							</Button>
 							<Button
 								size="compact-xs"
 								variant="light"
 								loading={busy}
 								onClick={() =>
-									void resolve("recreate", { kind: "createAgain" })
+									void resolve("keep_mine", { kind: "keepAllMine" })
 								}
 							>
-								{t("sync.createAgain")}
+								{t("sync.keepAllMine")}
 							</Button>
-						)}
-						{mutation.conflict?.hint === "create-again" && kind === "rule" && (
 							<Button
 								size="compact-xs"
 								variant="light"
 								loading={busy}
 								onClick={() =>
-									void resolve("recreate", { kind: "createAgain" })
+									void resolve("use_theirs", { kind: "useAllTheirs" })
 								}
 							>
-								{t("sync.createAgain")}
+								{t("sync.useAllTheirs")}
 							</Button>
-						)}
-						{(kind === "duplicate" || kind === "rule") &&
-							mutation.op !== "delete" &&
-							mutation.entity !== "file" && (
-								<Button
-									size="compact-xs"
-									variant="light"
-									disabled={busy}
-									onClick={() => setEditing(true)}
-								>
-									{t("_.edit")}
-								</Button>
-							)}
-						{kind !== "stale" &&
-							kind !== "deleted" &&
-							kind !== "other-account" && (
-								<Button
-									size="compact-xs"
-									variant="light"
-									loading={busy}
-									onClick={() =>
-										void resolve("edit", { kind: "edit", patch: {} })
-									}
-								>
-									{t("sync.retry")}
-								</Button>
-							)}
-						{mutation.novelId && mutation.entity !== "file" && (
-							<Button
-								size="compact-xs"
-								variant="subtle"
-								onClick={() => {
-									trackEvent("sync_issue_opened", {
-										entity: mutation.entity,
-										kind,
-										operation: mutation.op,
-									});
-									setShowExisting({
-										novelId: mutation.novelId ?? undefined,
-										search:
-											keyword ||
-											(mutation.entity === "keyword" ? name : undefined),
-									});
-									goHome();
-								}}
-							>
-								{t("sync.openKeyword")}
-							</Button>
-						)}
-						{kind === "parent-missing" && name && (
-							<Button
-								size="compact-xs"
-								variant="subtle"
-								leftSection={<IconCopy size={12} />}
-								onClick={copyText}
-							>
-								{t("sync.copy")}
-							</Button>
-						)}
-						{kind === "other-account" && (
+						</>
+					)}
+					{kind === "deleted" && mutation.op !== "delete" && (
+						<Button
+							size="compact-xs"
+							variant="light"
+							loading={busy}
+							onClick={() => void resolve("recreate", { kind: "createAgain" })}
+						>
+							{t("sync.createAgain")}
+						</Button>
+					)}
+					{mutation.conflict?.hint === "create-again" && kind === "rule" && (
+						<Button
+							size="compact-xs"
+							variant="light"
+							loading={busy}
+							onClick={() => void resolve("recreate", { kind: "createAgain" })}
+						>
+							{t("sync.createAgain")}
+						</Button>
+					)}
+					{(kind === "duplicate" || kind === "rule") &&
+						mutation.op !== "delete" &&
+						mutation.entity !== "file" && (
 							<Button
 								size="compact-xs"
 								variant="light"
-								component="a"
-								href={websitePageUrl(locale, "profile/login/")}
-								target="_blank"
-								rel="noopener noreferrer"
-								onClick={() =>
-									trackEvent("sync_issue_resolved", {
-										kind,
-										resolution: "sign_in",
-									})
-								}
+								disabled={busy}
+								onClick={() => setEditing(true)}
 							>
-								{t("sync.signIn")}
+								{t("_.edit")}
 							</Button>
 						)}
+					{kind !== "stale" &&
+						kind !== "deleted" &&
+						kind !== "other-account" && (
+							<Button
+								size="compact-xs"
+								variant="light"
+								loading={busy}
+								onClick={() =>
+									void resolve("edit", { kind: "edit", patch: {} })
+								}
+							>
+								{t("sync.retry")}
+							</Button>
+						)}
+					{mutation.novelId && mutation.entity !== "file" && (
 						<Button
 							size="compact-xs"
 							variant="subtle"
-							color="red"
-							onClick={() => setConfirmDiscard(true)}
+							onClick={() => {
+								trackEvent("sync_issue_opened", {
+									entity: mutation.entity,
+									kind,
+									operation: mutation.op,
+								});
+								setShowExisting({
+									novelId: mutation.novelId ?? undefined,
+									search:
+										keyword ||
+										(mutation.entity === "keyword" ? name : undefined),
+								});
+								goHome();
+							}}
 						>
-							{t("sync.discard")}
+							{t("sync.openKeyword")}
 						</Button>
-					</Group>
-				)}
+					)}
+					{kind === "parent-missing" && name && (
+						<Button
+							size="compact-xs"
+							variant="subtle"
+							leftSection={<IconCopy size={12} />}
+							onClick={copyText}
+						>
+							{t("sync.copy")}
+						</Button>
+					)}
+					{kind === "other-account" && (
+						<Button
+							size="compact-xs"
+							variant="light"
+							component="a"
+							href={websitePageUrl(locale, "profile/login/")}
+							target="_blank"
+							rel="noopener noreferrer"
+							onClick={() =>
+								trackEvent("sync_issue_resolved", {
+									kind,
+									resolution: "sign_in",
+								})
+							}
+						>
+							{t("sync.signIn")}
+						</Button>
+					)}
+					<Button
+						size="compact-xs"
+						variant="subtle"
+						color="red"
+						onClick={() => setConfirmDiscard(true)}
+					>
+						{t("sync.discard")}
+					</Button>
+				</Group>
 			</Stack>
 		</Card>
 	);

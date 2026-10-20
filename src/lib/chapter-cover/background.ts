@@ -1,7 +1,7 @@
 import { customInstance } from "@/api/axios-instance";
 import type { CoverReply, CoverRequest } from "./types";
 
-/** Online shared artwork uses immediate upload; no chapter text or prompts are stored. */
+/** Online shared artwork uses immediate upload; only the image and its visual description are stored. */
 export async function chapterCoverRequest(
 	input: CoverRequest,
 ): Promise<CoverReply> {
@@ -15,6 +15,17 @@ export async function chapterCoverRequest(
 				url: `${path}/claim`,
 				method: "POST",
 				data: { regenerate: input.regenerate },
+			})
+		).data;
+	if (input.action === "savePrompt")
+		return (
+			await customInstance<CoverReply>({
+				url: `${path}/prompt`,
+				method: "PUT",
+				data: {
+					imagePrompt: input.imagePrompt,
+					baseUpdatedAt: input.baseUpdatedAt,
+				},
 			})
 		).data;
 	if (input.action === "release") {
@@ -46,7 +57,13 @@ export async function chapterCoverRequest(
 		await customInstance<CoverReply>({
 			url: path,
 			method: "PUT",
-			data: { token: input.token, imageId: input.imageId },
+			data: {
+				token: input.token,
+				imageId: input.imageId,
+				...(input.imagePrompt !== undefined
+					? { imagePrompt: input.imagePrompt }
+					: {}),
+			},
 		})
 	).data;
 }

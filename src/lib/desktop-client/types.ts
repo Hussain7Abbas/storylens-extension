@@ -26,6 +26,7 @@ export type DesktopCapabilities = {
 		webSearch: boolean;
 		imageGeneration: boolean;
 		imageReferences?: boolean;
+		imagePromptInput?: boolean;
 	};
 };
 export type ExecutePromptInput = {
@@ -38,6 +39,7 @@ export type ExecutePromptInput = {
 	webSearch?: boolean;
 };
 export type GenerateImageInput = {
+	promptIsDescription?: boolean;
 	referenceImageUrls?: string[];
 	requestId: string;
 	prompt: string;

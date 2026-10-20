@@ -533,7 +533,7 @@ function buildAliasesPanel(
 	currentChapter: number,
 ): HTMLElement {
 	const panel = document.createElement("div");
-	const base = pickBaseVersion(raw.versions);
+	const inherited = resolveTooltipInfo(raw, null, currentChapter, language);
 	// What an alias without its own image shows, so no row stays blank.
 	const fallbackImage = resolveKeywordImage(raw, currentChapter);
 
@@ -581,8 +581,8 @@ function buildAliasesPanel(
 		// Category / Nature
 		const ownCat = alias.category as EnrichedCategory | null;
 		const ownNat = alias.nature as EnrichedNature | null;
-		const inheritedCat = base?.category as EnrichedCategory | null | undefined;
-		const inheritedNat = base?.nature as EnrichedNature | null | undefined;
+		const inheritedCat = inherited.category.value;
+		const inheritedNat = inherited.nature.value;
 		const displayCat = ownCat ?? inheritedCat ?? null;
 		const displayNat = ownNat ?? inheritedNat ?? null;
 
@@ -608,7 +608,7 @@ function buildAliasesPanel(
 
 		// Description
 		const ownDesc = keywordDescriptionIn(alias, language);
-		const displayDesc = ownDesc ?? keywordDescriptionIn(base, language);
+		const displayDesc = ownDesc ?? inherited.description.value;
 		const isInherited = !ownDesc && !!displayDesc;
 		if (displayDesc) {
 			const descEl = document.createElement("div");

@@ -37,10 +37,6 @@ import {
 	EXTRACTION_PANEL_MESSAGE,
 	type ExtractionPanelMessage,
 } from "@/lib/desktop-client/chapter-panel";
-import {
-	buildCharacterImagePrompt,
-	chapterMentions,
-} from "@/lib/desktop-client/character-image";
 import { relatedSuggestionDescription } from "@/lib/desktop-client/keyword-suggestion";
 import { executeLocalizedPrompt } from "@/lib/desktop-client/localized-prompt";
 import { ensureNovelContext } from "@/lib/desktop-client/novel-context";
@@ -283,6 +279,7 @@ export function ExtractionView() {
 					knownNames,
 					language,
 					instructions: prompts.keywordPrompt,
+					imageInstructions: prompts.imagePrompt,
 					novelContext,
 				}),
 				language,
@@ -301,16 +298,7 @@ export function ExtractionView() {
 			setRows(
 				items.map((item, index) => ({
 					...item,
-					imagePrompt: buildCharacterImagePrompt({
-						name: item.name,
-						otherNames: [],
-						description: [item.description, item.imagePrompt]
-							.filter(Boolean)
-							.join("\n\n"),
-						instructions: prompts.imagePrompt,
-						chapterExcerpts: chapterMentions(text, [item.name]),
-						novelContext,
-					}),
+
 					key: `${index}-${item.name}`,
 					parentId: item.suggestedParent
 						? findParentId(

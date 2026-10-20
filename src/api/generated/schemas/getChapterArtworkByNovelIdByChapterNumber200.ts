@@ -6,9 +6,16 @@
  * OpenAPI spec version: 0.0.0
  */
 import type { GetChapterArtworkByNovelIdByChapterNumber200Image } from "./getChapterArtworkByNovelIdByChapterNumber200Image";
+import type { GetChapterArtworkByNovelIdByChapterNumber200ImagePrompt } from "./getChapterArtworkByNovelIdByChapterNumber200ImagePrompt";
+import type { GetChapterArtworkByNovelIdByChapterNumber200PromptUpdatedAt } from "./getChapterArtworkByNovelIdByChapterNumber200PromptUpdatedAt";
 
 export type GetChapterArtworkByNovelIdByChapterNumber200 = {
 	/** @nullable */
 	image: GetChapterArtworkByNovelIdByChapterNumber200Image;
 	generating: boolean;
+	/** @nullable */
+	imagePrompt: GetChapterArtworkByNovelIdByChapterNumber200ImagePrompt;
+	/** @nullable */
+	promptUpdatedAt: GetChapterArtworkByNovelIdByChapterNumber200PromptUpdatedAt;
+	canEditPrompt: boolean;
 };

@@ -116,6 +116,8 @@ export function buildKeywordSuggestionPrompt(input: {
 	language: AiLanguage;
 	/** Reader's keyword prompt from Settings → AI; it takes priority over the context. */
 	instructions: string;
+	/** Art direction for the AI-written image description. */
+	imageInstructions?: string;
 	/** The novel's global context; empty when unknown. */
 	novelContext: string;
 	/** Keywords or aliases named in the other language, to match a translation link. */
@@ -126,6 +128,7 @@ export function buildKeywordSuggestionPrompt(input: {
 	return `You help a reader tag a named entity in a web novel. The picked text is "${name}"; in the excerpt it is wrapped in <<< >>>. Using the excerpt, with the novel context as background, work out who or what it is.
 
 ${instructionSection(input.instructions)}
+${input.imageInstructions?.trim() ? `\nArt instructions for imagePrompt only:\n${input.imageInstructions.trim()}\nWrite the resulting visual description in imagePrompt; do not copy these instructions or chapter/context source blocks into it.` : ""}
 
 Return only one JSON object, without Markdown fences:
 {"description": string, "imagePrompt": string, "category": number, "nature": number${hasTranslations ? ', "translation": number' : ""}}

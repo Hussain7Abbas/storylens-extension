@@ -8,3 +8,23 @@
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-text-size-adjust: 100%;
 }
+
+.popup-error {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 1.5rem;
+	background: var(--mantine-color-body, Canvas);
+	color: var(--mantine-color-text, CanvasText);
+	font-family: system-ui, sans-serif;
+	overflow-wrap: anywhere;
+}
+
+.popup-error h1 {
+	font-size: 1.2rem;
+}
+
+.popup-error button {
+	font: inherit;
+	padding: 0.5rem 1rem;
+	cursor: pointer;
+}

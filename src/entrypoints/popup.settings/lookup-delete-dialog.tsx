@@ -1,17 +1,10 @@
-import {
-	Alert,
-	Button,
-	Group,
-	Modal,
-	Select,
-	Stack,
-	Text,
-} from "@mantine/core";
+import { Alert, Select } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getKeywordCategoriesById } from "@/api/generated/endpoints/keyword-categories";
 import { getKeywordNaturesById } from "@/api/generated/endpoints/keyword-natures";
+import { MultiButtonsModal } from "@/components/multi-buttons-modal";
 import { trackEvent } from "@/lib/analytics/client";
 import { getStoredAuth } from "@/lib/auth/auth-storage";
 import { isOfflineUnavailable, offlineDb } from "@/lib/offline/db";
@@ -111,103 +104,90 @@ export function LookupDeleteDialog({ kind, id, onClose, onDeleted }: Props) {
 	const error = mutation.isError
 		? offlineErrorMessage(mutation.error, t)
 		: undefined;
+
 	return (
-		<Modal
+		<MultiButtonsModal
 			opened
-			onClose={() => {
-				if (!mutation.isPending) onClose();
-			}}
 			title={t(
 				kind === "category"
 					? "settings.deleteCategory"
 					: "settings.deleteNature",
 			)}
-			centered
-			closeOnEscape={!mutation.isPending}
-			closeOnClickOutside={!mutation.isPending}
-			withCloseButton={!mutation.isPending}
-		>
-			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					if (usage.isPending || (needsReplacement && !replacementId)) {
-						setSelectionError(true);
-						return;
-					}
-					mutation.mutate(
-						{ id, ...(replacementId ? { replacementId } : {}) },
-						{
-							onSuccess: () => {
-								trackEvent("lookup_deleted", {
-									kind,
-									migrated: !!replacementId,
-								});
-								void onDeleted();
-							},
+			busy={mutation.isPending}
+			error={error}
+			onClose={onClose}
+			message={
+				usage.isPending
+					? t("settings.checkingLinkedData")
+					: needsReplacement
+						? t(
+								usage.data?.known
+									? "settings.migrateLinkedData"
+									: "settings.migrateUnknownData",
+							)
+						: t("settings.deleteUnusedLookup")
+			}
+			buttons={[
+				{
+					id: "cancel",
+					label: t("_.cancel"),
+					variant: "default",
+					autoFocus: true,
+					onClick: onClose,
+					disabled: choicesLoading,
+				},
+				{
+					id: "delete",
+					label: t(needsReplacement ? "settings.migrateAndDelete" : "_.delete"),
+					type: "submit",
+					color: "red",
+					loading: mutation.isPending,
+					disabled: usage.isPending || (needsReplacement && !rows.length),
+				},
+			]}
+			onSubmit={(event) => {
+				event.preventDefault();
+				if (usage.isPending || (needsReplacement && !replacementId)) {
+					setSelectionError(true);
+					return;
+				}
+				mutation.mutate(
+					{ id, ...(replacementId ? { replacementId } : {}) },
+					{
+						onSuccess: () => {
+							trackEvent("lookup_deleted", { kind, migrated: !!replacementId });
+							void onDeleted();
 						},
-					);
-				}}
-			>
-				<Stack>
-					<Text size="sm">
-						{usage.isPending
-							? t("settings.checkingLinkedData")
-							: needsReplacement
-								? t(
-										usage.data?.known
-											? "settings.migrateLinkedData"
-											: "settings.migrateUnknownData",
-									)
-								: t("settings.deleteUnusedLookup")}
-					</Text>
-					{needsReplacement && (
-						<Select
-							label={t(
-								kind === "category"
-									? "settings.replacementCategory"
-									: "settings.replacementNature",
-							)}
-							placeholder={t("settings.chooseReplacement")}
-							data={rows.map((row) => ({
-								value: row.id,
-								label: displayNameIn(row, language),
-							}))}
-							searchable
-							value={replacementId}
-							onChange={(value) => {
-								setReplacementId(value);
-								setSelectionError(false);
-							}}
-							required
-							disabled={mutation.isPending || choicesLoading}
-							error={
-								selectionError ? t("settings.chooseReplacement") : undefined
-							}
-						/>
+					},
+				);
+			}}
+		>
+			{needsReplacement && (
+				<Select
+					label={t(
+						kind === "category"
+							? "settings.replacementCategory"
+							: "settings.replacementNature",
 					)}
-					{needsReplacement && !rows.length && !choicesLoading && (
-						<Alert color="yellow">{t("settings.noReplacementAvailable")}</Alert>
-					)}
-					{error && <Alert color="red">{error}</Alert>}
-					<Group justify="flex-end">
-						<Button
-							variant="default"
-							onClick={onClose}
-							disabled={mutation.isPending || choicesLoading}
-						>
-							{t("_.cancel")}
-						</Button>
-						<Button
-							type="submit"
-							color="red"
-							loading={mutation.isPending}
-							disabled={usage.isPending || (needsReplacement && !rows.length)}
-						>
-							{t(needsReplacement ? "settings.migrateAndDelete" : "_.delete")}
-						</Button>
-					</Group>
-				</Stack>
-			</form>
-		</Modal>
+					placeholder={t("settings.chooseReplacement")}
+					data={rows.map((row) => ({
+						value: row.id,
+						label: displayNameIn(row, language),
+					}))}
+					searchable
+					value={replacementId}
+					onChange={(value) => {
+						setReplacementId(value);
+						setSelectionError(false);
+					}}
+					required
+					disabled={mutation.isPending || choicesLoading}
+					error={selectionError ? t("settings.chooseReplacement") : undefined}
+				/>
+			)}
+			{needsReplacement && !rows.length && !choicesLoading && (
+				<Alert color="yellow">{t("settings.noReplacementAvailable")}</Alert>
+			)}
+		</MultiButtonsModal>
 	);
 }

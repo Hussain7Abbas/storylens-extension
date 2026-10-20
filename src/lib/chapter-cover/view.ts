@@ -6,7 +6,13 @@ import {
 import { LENS_COIN_MOTION_CSS } from "@/lib/lens-coin";
 import { contentThemeCss } from "@/styles/palette";
 
-type CoverLabels = {
+import {
+	COVER_PROMPT_EDITOR_CSS,
+	type CoverPromptLabels,
+	createCoverPromptEditor,
+} from "./prompt-editor";
+
+type CoverLabels = CoverPromptLabels & {
 	actions: string;
 	ready: string;
 	copy: string;
@@ -32,12 +38,11 @@ export function createCoverView(
 		"all:initial;display:block;position:relative;inline-size:100%;z-index:1;margin-block-end:24px;color:var(--ink);font:16px/1.6 system-ui,sans-serif";
 	const shadow = host.attachShadow({ mode: "open" });
 	const style = document.createElement("style");
-	style.textContent = `${contentThemeCss}${LENS_COIN_MOTION_CSS}${CHAPTER_ERROR_DETAILS_CSS}
+	style.textContent = `${contentThemeCss}${LENS_COIN_MOTION_CSS}${CHAPTER_ERROR_DETAILS_CSS}${COVER_PROMPT_EDITOR_CSS}
 :host{all:initial;display:block;position:relative;margin-block-end:24px;color:var(--ink);font:16px/1.6 system-ui,sans-serif;direction:${locale === "ar" ? "rtl" : "ltr"}}
 img{display:block;inline-size:100%;block-size:auto;max-block-size:none;pointer-events:auto;user-select:auto;-webkit-user-drag:auto}
 .status{box-sizing:border-box;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);padding:12px;padding-inline-end:68px;min-block-size:68px}
 .status:empty{display:none}
- :host(:not([data-error])) img:not([hidden])~.status:not(:empty){position:absolute;inset-inline:0;inset-block-end:0;padding-inline-end:12px}
 .menu{position:absolute;inset-block-start:12px;inset-inline-end:12px;z-index:1;opacity:0;pointer-events:none;transition:opacity 160ms ease}
 :host(:hover) .menu,:host(:focus-within) .menu,.menu[open],:host(:not([data-ready])) .menu{opacity:1;pointer-events:auto}
 .menu>summary{display:grid;place-items:center;inline-size:44px;block-size:44px;box-sizing:border-box;list-style:none;border:1px solid var(--border);border-radius:50%;background:var(--surface);color:var(--ink);cursor:pointer}
@@ -93,7 +98,15 @@ button:disabled{opacity:.6;cursor:not-allowed}
 	download.hidden = true;
 	actions.append(copy, generate, regenerate, stop, save, download);
 	menu.append(trigger, actions);
-	shadow.append(style, image, status, menu, errorDetails.element);
+	const promptEditor = createCoverPromptEditor(text);
+	shadow.append(
+		style,
+		image,
+		status,
+		menu,
+		promptEditor.promptSection,
+		errorDetails.element,
+	);
 	// Novel sites often open their reading controls on every page click.
 	shadow.addEventListener("click", (event) => event.stopPropagation());
 
@@ -121,6 +134,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 	});
 	return {
 		host,
+		...promptEditor,
 		status,
 		image,
 		generate,

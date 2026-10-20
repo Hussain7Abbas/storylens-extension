@@ -40,7 +40,9 @@ import type { EnrichedCategory, EnrichedNature } from "@/types/content-data";
 import { fuzzyMatches } from "@/utils/fuzzy-search";
 import {
 	type RawImage,
+	type ResolvedInfo,
 	resolveKeywordImage,
+	resolveKeywordInfo,
 } from "@/utils/resolve-keyword-version";
 import {
 	aliasDisplayName,
@@ -308,7 +310,7 @@ function VersionCard({
 function AliasCard({
 	alias,
 	mainThemeColor,
-	baseVersion,
+	inherited,
 	fallbackImage,
 	onClick,
 	readOnly,
@@ -317,7 +319,7 @@ function AliasCard({
 }: {
 	alias: GetKeywords200DataItemAliasesItem;
 	mainThemeColor?: string | null;
-	baseVersion: GetKeywords200DataItemVersionsItem | undefined;
+	inherited: ResolvedInfo;
 	/** The keyword's resolved image, shown when this alias has none. */
 	fallbackImage: RawImage;
 	onClick?: () => void;
@@ -330,18 +332,12 @@ function AliasCard({
 	const hasOwnImage = Boolean(alias.imageId ?? alias.image?.url);
 	const ownCategory = alias.category as EnrichedCategory | null;
 	const ownNature = alias.nature as EnrichedNature | null;
-	const inheritedCategory = baseVersion?.category as
-		| EnrichedCategory
-		| null
-		| undefined;
-	const inheritedNature = baseVersion?.nature as
-		| EnrichedNature
-		| null
-		| undefined;
+	const inheritedCategory = inherited.category.value;
+	const inheritedNature = inherited.nature.value;
 
 	const ownDescription = keywordDescriptionIn(alias, language);
 	const inheritedDescription = !ownDescription
-		? keywordDescriptionIn(baseVersion, language)
+		? inherited.description.value
 		: null;
 	const displayDescription = ownDescription ?? inheritedDescription;
 	const isDescInherited = !ownDescription && !!inheritedDescription;
@@ -645,7 +641,12 @@ export function ColoringCards({
 														key={alias.id}
 														alias={alias}
 														mainThemeColor={parent.mainThemeColor}
-														baseVersion={baseVersion}
+														inherited={resolveKeywordInfo(
+															parent,
+															null,
+															chapter,
+															language,
+														)}
 														fallbackImage={keywordImage}
 														readOnly={readOnly || aliasLocked}
 														locked={aliasLocked}

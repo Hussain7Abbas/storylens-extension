@@ -10,6 +10,7 @@ import type { PostAiImagesBodyOneFeature } from "./postAiImagesBodyOneFeature";
 export type PostAiImagesBodyOne = {
 	actionId: string;
 	feature: PostAiImagesBodyOneFeature;
+	promptIsDescription?: boolean;
 	/** @maxItems 8 */
 	referenceImageUrls?: string[];
 	/**

@@ -59,6 +59,12 @@ import type {
 	PutChapterArtworkByNovelIdByChapterNumberBodyOne,
 	PutChapterArtworkByNovelIdByChapterNumberBodyThree,
 	PutChapterArtworkByNovelIdByChapterNumberBodyTwo,
+	PutChapterArtworkByNovelIdByChapterNumberPrompt200,
+	PutChapterArtworkByNovelIdByChapterNumberPrompt404,
+	PutChapterArtworkByNovelIdByChapterNumberPrompt500,
+	PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne,
+	PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree,
+	PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo,
 	PutChapterCoversByNovelIdByChapterNumber200,
 	PutChapterCoversByNovelIdByChapterNumber404,
 	PutChapterCoversByNovelIdByChapterNumber500,
@@ -1431,6 +1437,161 @@ export const useDeleteChapterArtworkByNovelIdByChapterNumberClaim = <
 		getDeleteChapterArtworkByNovelIdByChapterNumberClaimMutationOptions(
 			options,
 		);
+
+	return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Edit a shared chapter cover image prompt
+ */
+export const putChapterArtworkByNovelIdByChapterNumberPrompt = (
+	novelId: string,
+	chapterNumber: string | number,
+	putChapterArtworkByNovelIdByChapterNumberPromptBody:
+		| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+		| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+		| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<PutChapterArtworkByNovelIdByChapterNumberPrompt200>(
+		{
+			url: `http://localhost:3031/api/user/chapter-artwork/${novelId}/${chapterNumber}/prompt`,
+			method: "PUT",
+			data: putChapterArtworkByNovelIdByChapterNumberPromptBody,
+		},
+		options,
+	);
+};
+
+export const getPutChapterArtworkByNovelIdByChapterNumberPromptMutationOptions =
+	<
+		TError = ErrorType<
+			| PutChapterArtworkByNovelIdByChapterNumberPrompt404
+			| PutChapterArtworkByNovelIdByChapterNumberPrompt500
+		>,
+		TContext = unknown,
+	>(options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof putChapterArtworkByNovelIdByChapterNumberPrompt>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	}): UseMutationOptions<
+		Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumberPrompt>>,
+		TError,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+				| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+				| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree;
+		},
+		TContext
+	> => {
+		const mutationKey = ["putChapterArtworkByNovelIdByChapterNumberPrompt"];
+		const { mutation: mutationOptions, request: requestOptions } = options
+			? options.mutation &&
+				"mutationKey" in options.mutation &&
+				options.mutation.mutationKey
+				? options
+				: { ...options, mutation: { ...options.mutation, mutationKey } }
+			: { mutation: { mutationKey }, request: undefined };
+
+		const mutationFn: MutationFunction<
+			Awaited<
+				ReturnType<typeof putChapterArtworkByNovelIdByChapterNumberPrompt>
+			>,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree;
+			}
+		> = (props) => {
+			const { novelId, chapterNumber, data } = props ?? {};
+
+			return putChapterArtworkByNovelIdByChapterNumberPrompt(
+				novelId,
+				chapterNumber,
+				data,
+				requestOptions,
+			);
+		};
+
+		return { mutationFn, ...mutationOptions };
+	};
+
+export type PutChapterArtworkByNovelIdByChapterNumberPromptMutationResult =
+	NonNullable<
+		Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumberPrompt>>
+	>;
+export type PutChapterArtworkByNovelIdByChapterNumberPromptMutationBody =
+	| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+	| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+	| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree;
+export type PutChapterArtworkByNovelIdByChapterNumberPromptMutationError =
+	ErrorType<
+		| PutChapterArtworkByNovelIdByChapterNumberPrompt404
+		| PutChapterArtworkByNovelIdByChapterNumberPrompt500
+	>;
+
+/**
+ * @summary Edit a shared chapter cover image prompt
+ */
+export const usePutChapterArtworkByNovelIdByChapterNumberPrompt = <
+	TError = ErrorType<
+		| PutChapterArtworkByNovelIdByChapterNumberPrompt404
+		| PutChapterArtworkByNovelIdByChapterNumberPrompt500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<
+				ReturnType<typeof putChapterArtworkByNovelIdByChapterNumberPrompt>
+			>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+					| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof putChapterArtworkByNovelIdByChapterNumberPrompt>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PutChapterArtworkByNovelIdByChapterNumberPromptBodyOne
+			| PutChapterArtworkByNovelIdByChapterNumberPromptBodyTwo
+			| PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPutChapterArtworkByNovelIdByChapterNumberPromptMutationOptions(options);
 
 	return useMutation(mutationOptions, queryClient);
 };

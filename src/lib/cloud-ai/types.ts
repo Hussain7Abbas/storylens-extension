@@ -13,6 +13,7 @@ export type AiPromptInput = {
 	webSearch?: boolean;
 };
 export type AiImageInput = {
+	promptIsDescription?: boolean;
 	feature?: AiImageFeature;
 	referenceImageUrls?: string[];
 	source: AiSource;

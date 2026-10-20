@@ -24,6 +24,7 @@ import {
 	usePutNovelsById,
 } from "@/api/generated/endpoints/novels.js";
 import { FormPage } from "@/components/form-page";
+import { MultiButtonsModal } from "@/components/multi-buttons-modal";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userAccessAtom } from "@/lib/auth";
 import { useLauncherWork } from "@/lib/launcher-frame/use-launcher-work";
@@ -271,32 +272,32 @@ function NovelFormContent({
 
 	if (mode === "delete") {
 		return (
-			<Paper p="xs" withBorder>
-				<Stack gap="xs">
-					<Alert title={t("novels.confirmDelete")} color="red" />
-					<Group grow>
-						<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
-							<Button
-								variant="outline"
-								onClick={onClose}
-								loading={deleteNovelMutation.isPending}
-							>
-								{t("_.cancel")}
-							</Button>
-						</Tooltip>
-						<Tooltip label={t("_.delete")} withArrow openDelay={350}>
-							<Button
-								variant="outline"
-								color="red"
-								onClick={handleDelete}
-								loading={deleteNovelMutation.isPending}
-							>
-								{t("_.delete")}
-							</Button>
-						</Tooltip>
-					</Group>
-				</Stack>
-			</Paper>
+			<MultiButtonsModal
+				opened
+				title={t("_.delete")}
+				message={t("novels.confirmDelete")}
+				busy={deleteNovelMutation.isPending}
+				error={
+					deleteNovelMutation.isError ? t("home.novelDeletedFailed") : undefined
+				}
+				onClose={() => onClose?.()}
+				buttons={[
+					{
+						id: "cancel",
+						label: t("_.cancel"),
+						variant: "default",
+						autoFocus: true,
+						onClick: () => onClose?.(),
+					},
+					{
+						id: "delete",
+						label: t("_.delete"),
+						color: "red",
+						loading: deleteNovelMutation.isPending,
+						onClick: handleDelete,
+					},
+				]}
+			/>
 		);
 	}
 
@@ -398,6 +399,7 @@ function NovelFormContent({
 }
 
 export function NovelForm(props: Parameters<typeof NovelFormContent>[0]) {
+	if (props.mode === "delete") return <NovelFormContent {...props} />;
 	return (
 		<FormPage title="NovelForm" onClose={props.onClose ?? (() => {})}>
 			<NovelFormContent {...props} />

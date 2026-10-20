@@ -166,7 +166,7 @@ describe("tooltip image of an alias", () => {
 		expect(info.image.source).toBe("keyword");
 	});
 
-	test("the style override still decides category, not the image", () => {
+	test("inherits an unset category while keeping the alias's own image", () => {
 		const own = alias({ id: "alias-1", image: aliasImage });
 		const raw = keyword({ aliases: [own] });
 
@@ -212,5 +212,77 @@ describe("enriched alias entries", () => {
 			expect(item?.image?.url).toBe(versionImage.url);
 			expect(item?.imageId).toBe(versionImage.id);
 		}
+	});
+});
+
+describe("newest applicable version inheritance", () => {
+	test("all aliases inherit the newest overlapping version, with their own fields first", () => {
+		const bare = alias({ id: "bare", nameEn: "Bare" });
+		const own = alias({
+			id: "own",
+			nameEn: "Own",
+			description: "Alias description",
+			overrideStyle: false,
+		});
+		const raw = keyword({
+			aliases: [bare, own],
+			versions: [
+				baseVersion({ description: "Original", image: keywordImage }),
+				version({
+					id: "middle",
+					startingChapter: 3,
+					description: "Middle",
+					image: aliasImage,
+				}),
+				version({
+					id: "latest",
+					startingChapter: 7,
+					description: "Latest",
+					image: versionImage,
+				}),
+			],
+		});
+		for (const entry of [bare, own]) {
+			const info = resolveKeywordInfo(raw, entry, 8, "en");
+			expect(info.description.value).toBe(
+				entry === own ? "Alias description" : "Latest",
+			);
+			expect(info.image.value?.url).toBe(versionImage.url);
+		}
+		const rows = enrichKeywords([raw], 8, "en");
+		expect(rows.find((row) => row.id === "bare")?.description).toBe("Latest");
+		expect(rows.find((row) => row.id === "own")?.description).toBe(
+			"Alias description",
+		);
+		expect(resolveKeywordInfo(raw, bare, 4, "en").description.value).toBe(
+			"Middle",
+		);
+	});
+
+	test("sparse versions fall back field by field to earlier versions in the selected language", () => {
+		const bare = alias({ id: "bare" });
+		const raw = keyword({
+			aliases: [bare],
+			versions: [
+				baseVersion({ descriptionEn: "Original", descriptionAr: "الأصل" }),
+				version({
+					id: "middle",
+					startingChapter: 3,
+					endingChapter: 6,
+					descriptionEn: "Middle",
+				}),
+				version({ id: "latest", startingChapter: 7 }),
+			],
+		});
+		expect(resolveKeywordInfo(raw, bare, 8, "en").description.value).toBe(
+			"Middle",
+		);
+		expect(resolveKeywordInfo(raw, bare, 8, "ar").description.value).toBe(
+			"الأصل",
+		);
+		expect(
+			enrichKeywords([raw], 8, "en").find((row) => row.id === bare.id)
+				?.description,
+		).toBe("Middle");
 	});
 });

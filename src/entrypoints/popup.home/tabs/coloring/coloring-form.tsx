@@ -34,6 +34,8 @@ import { ColorInput } from "@/components/color-input";
 import { FormPage } from "@/components/form-page";
 import { GenerateImageButton } from "@/components/generate-image-button";
 import { ImageUpload } from "@/components/image-upload";
+import { LookupSelect } from "@/components/lookup-select";
+import { MultiButtonsModal } from "@/components/multi-buttons-modal";
 import {
 	TranslationLinkSelect,
 	type TranslationOption,
@@ -68,13 +70,12 @@ import {
 	useTranslationKeywords,
 } from "@/lib/offline/hooks";
 import { useLanguage } from "@/store/locale";
-import type { KeywordCategory, KeywordNature } from "@/types/models";
+import type { KeywordCategory } from "@/types/models";
 import { stripArabicDiacritics } from "@/utils/arabic";
 import { loadFormValues } from "@/utils/form-baseline";
 import {
 	aliasMatchNames,
 	descriptionKey,
-	displayNameIn,
 	keywordDescriptionIn,
 	LANGUAGES,
 	type Language,
@@ -690,14 +691,12 @@ function KeywordForm({
 										})}
 									/>
 								)}
-								<Select
+								<LookupSelect
 									label={t("coloring.category")}
 									placeholder={t("coloring.selectCategory")}
 									allowDeselect={false}
-									data={categoriesData?.map((cat: KeywordCategory) => ({
-										value: cat.id,
-										label: displayNameIn(cat, language),
-									}))}
+									rows={categoriesData}
+									language={language}
 									{...form.getInputProps("categoryId")}
 									required
 									leftSection={
@@ -708,14 +707,12 @@ function KeywordForm({
 										)
 									}
 								/>
-								<Select
+								<LookupSelect
 									label={t("coloring.nature")}
 									placeholder={t("coloring.selectNature")}
 									allowDeselect={false}
-									data={naturesData?.map((n: KeywordNature) => ({
-										value: n.id,
-										label: displayNameIn(n, language),
-									}))}
+									rows={naturesData}
+									language={language}
 									{...form.getInputProps("natureId")}
 									required
 									leftSection={
@@ -883,13 +880,14 @@ function KeywordForm({
 						}
 						mt="md"
 					>
-						{frame.mode === "keyword-edit" && !showDeleteConfirm && (
+						{frame.mode === "keyword-edit" && (
 							<Tooltip label={t("_.delete")} withArrow openDelay={350}>
 								<ActionIcon
 									aria-label={t("_.delete")}
 									variant="transparent"
 									color="red"
 									size="lg"
+									disabled={isPending}
 									onClick={() => setShowDeleteConfirm(true)}
 								>
 									<IconTrash />
@@ -910,42 +908,42 @@ function KeywordForm({
 						</Group>
 					</Group>
 					{showDeleteConfirm && keyword && (
-						<Alert color="red" variant="light">
-							<Stack gap="xs">
-								<Text size="sm">{t("home.confirmDelete")}</Text>
-								<Text size="xs" c="dimmed">
-									{t("coloring.deleteAliasesWarning")}
-								</Text>
-								<UnsentDependants entityId={keyword.id} />
-								<Group grow>
-									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
-										<Button
-											variant="outline"
-											size="xs"
-											onClick={() => setShowDeleteConfirm(false)}
-											disabled={deleteMutation.isPending}
-										>
-											{t("_.cancel")}
-										</Button>
-									</Tooltip>
-									<Tooltip label={t("_.delete")} withArrow openDelay={350}>
-										<Button
-											color="red"
-											variant="outline"
-											size="xs"
-											onClick={() =>
-												deleteMutation.mutate(keyword.id, {
-													onSuccess: () => onClose(),
-												})
-											}
-											loading={deleteMutation.isPending}
-										>
-											{t("_.delete")}
-										</Button>
-									</Tooltip>
-								</Group>
-							</Stack>
-						</Alert>
+						<MultiButtonsModal
+							opened
+							title={t("_.delete")}
+							message={t("home.confirmDelete")}
+							busy={deleteMutation.isPending}
+							error={
+								deleteMutation.isError
+									? offlineErrorMessage(deleteMutation.error, t)
+									: undefined
+							}
+							onClose={() => setShowDeleteConfirm(false)}
+							buttons={[
+								{
+									id: "cancel",
+									label: t("_.cancel"),
+									variant: "default",
+									autoFocus: true,
+									onClick: () => setShowDeleteConfirm(false),
+								},
+								{
+									id: "delete",
+									label: t("_.delete"),
+									color: "red",
+									loading: deleteMutation.isPending,
+									onClick: () =>
+										deleteMutation.mutate(keyword.id, {
+											onSuccess: () => onClose(),
+										}),
+								},
+							]}
+						>
+							<Text size="xs" c="dimmed">
+								{t("coloring.deleteAliasesWarning")}
+							</Text>
+							<UnsentDependants entityId={keyword.id} />
+						</MultiButtonsModal>
 					)}
 				</Stack>
 			</form>
@@ -1332,14 +1330,12 @@ function AliasForm({
 									label={t("coloring.description")}
 									{...form.getInputProps(descriptionKey(tab))}
 								/>
-								<Select
+								<LookupSelect
 									label={t("coloring.category")}
 									placeholder={t("coloring.selectCategory")}
 									clearable
-									data={categoriesData?.map((cat: KeywordCategory) => ({
-										value: cat.id,
-										label: displayNameIn(cat, language),
-									}))}
+									rows={categoriesData}
+									language={language}
 									{...form.getInputProps("categoryId")}
 									leftSection={
 										categoriesLoading ? (
@@ -1349,14 +1345,12 @@ function AliasForm({
 										)
 									}
 								/>
-								<Select
+								<LookupSelect
 									label={t("coloring.nature")}
 									placeholder={t("coloring.selectNature")}
 									clearable
-									data={naturesData?.map((n: KeywordNature) => ({
-										value: n.id,
-										label: displayNameIn(n, language),
-									}))}
+									rows={naturesData}
+									language={language}
 									{...form.getInputProps("natureId")}
 									leftSection={
 										naturesLoading ? (
@@ -1494,13 +1488,14 @@ function AliasForm({
 						justify={frame.mode === "alias-edit" ? "space-between" : "flex-end"}
 						mt="md"
 					>
-						{frame.mode === "alias-edit" && !showDeleteConfirm && (
+						{frame.mode === "alias-edit" && (
 							<Tooltip label={t("_.delete")} withArrow openDelay={350}>
 								<ActionIcon
 									aria-label={t("_.delete")}
 									variant="transparent"
 									color="red"
 									size="lg"
+									disabled={isPending}
 									onClick={() => setShowDeleteConfirm(true)}
 								>
 									<IconTrash />
@@ -1521,38 +1516,37 @@ function AliasForm({
 						</Group>
 					</Group>
 					{showDeleteConfirm && alias && (
-						<Alert color="red" variant="light">
-							<Stack gap="xs">
-								<Text size="sm">{t("home.confirmDelete")}</Text>
-								<Group grow>
-									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
-										<Button
-											variant="outline"
-											size="xs"
-											onClick={() => setShowDeleteConfirm(false)}
-											disabled={deleteMutation.isPending}
-										>
-											{t("_.cancel")}
-										</Button>
-									</Tooltip>
-									<Tooltip label={t("_.delete")} withArrow openDelay={350}>
-										<Button
-											color="red"
-											variant="outline"
-											size="xs"
-											onClick={() =>
-												deleteMutation.mutate(alias.id, {
-													onSuccess: () => onClose(),
-												})
-											}
-											loading={deleteMutation.isPending}
-										>
-											{t("_.delete")}
-										</Button>
-									</Tooltip>
-								</Group>
-							</Stack>
-						</Alert>
+						<MultiButtonsModal
+							opened
+							title={t("_.delete")}
+							message={t("home.confirmDelete")}
+							busy={deleteMutation.isPending}
+							error={
+								deleteMutation.isError
+									? offlineErrorMessage(deleteMutation.error, t)
+									: undefined
+							}
+							onClose={() => setShowDeleteConfirm(false)}
+							buttons={[
+								{
+									id: "cancel",
+									label: t("_.cancel"),
+									variant: "default",
+									autoFocus: true,
+									onClick: () => setShowDeleteConfirm(false),
+								},
+								{
+									id: "delete",
+									label: t("_.delete"),
+									color: "red",
+									loading: deleteMutation.isPending,
+									onClick: () =>
+										deleteMutation.mutate(alias.id, {
+											onSuccess: () => onClose(),
+										}),
+								},
+							]}
+						></MultiButtonsModal>
 					)}
 				</Stack>
 			</form>
@@ -1801,15 +1795,13 @@ function VersionForm({
 
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<Stack gap="xs">
-					<Select
+					<LookupSelect
 						label={t("coloring.category")}
 						placeholder={t("coloring.selectCategory")}
 						clearable={!isBaseVersion}
 						allowDeselect={!isBaseVersion}
-						data={categoriesData?.map((cat: KeywordCategory) => ({
-							value: cat.id,
-							label: displayNameIn(cat, language),
-						}))}
+						rows={categoriesData}
+						language={language}
 						{...form.getInputProps("categoryId")}
 						required={isBaseVersion}
 						leftSection={
@@ -1820,15 +1812,13 @@ function VersionForm({
 							)
 						}
 					/>
-					<Select
+					<LookupSelect
 						label={t("coloring.nature")}
 						placeholder={t("coloring.selectNature")}
 						clearable={!isBaseVersion}
 						allowDeselect={!isBaseVersion}
-						data={naturesData?.map((n: KeywordNature) => ({
-							value: n.id,
-							label: displayNameIn(n, language),
-						}))}
+						rows={naturesData}
+						language={language}
 						{...form.getInputProps("natureId")}
 						required={isBaseVersion}
 						leftSection={
@@ -1900,13 +1890,14 @@ function VersionForm({
 						}
 						mt="md"
 					>
-						{frame.mode === "version-edit" && !showDeleteConfirm && (
+						{frame.mode === "version-edit" && (
 							<Tooltip label={t("_.delete")} withArrow openDelay={350}>
 								<ActionIcon
 									aria-label={t("_.delete")}
 									variant="transparent"
 									color="red"
 									size="lg"
+									disabled={isPending}
 									onClick={() => setShowDeleteConfirm(true)}
 								>
 									<IconTrash />
@@ -1927,38 +1918,37 @@ function VersionForm({
 						</Group>
 					</Group>
 					{showDeleteConfirm && version && (
-						<Alert color="red" variant="light">
-							<Stack gap="xs">
-								<Text size="sm">{t("home.confirmDelete")}</Text>
-								<Group grow>
-									<Tooltip label={t("_.cancel")} withArrow openDelay={350}>
-										<Button
-											variant="outline"
-											size="xs"
-											onClick={() => setShowDeleteConfirm(false)}
-											disabled={deleteMutation.isPending}
-										>
-											{t("_.cancel")}
-										</Button>
-									</Tooltip>
-									<Tooltip label={t("_.delete")} withArrow openDelay={350}>
-										<Button
-											color="red"
-											variant="outline"
-											size="xs"
-											onClick={() =>
-												deleteMutation.mutate(version.id, {
-													onSuccess: () => onClose(),
-												})
-											}
-											loading={deleteMutation.isPending}
-										>
-											{t("_.delete")}
-										</Button>
-									</Tooltip>
-								</Group>
-							</Stack>
-						</Alert>
+						<MultiButtonsModal
+							opened
+							title={t("_.delete")}
+							message={t("home.confirmDelete")}
+							busy={deleteMutation.isPending}
+							error={
+								deleteMutation.isError
+									? offlineErrorMessage(deleteMutation.error, t)
+									: undefined
+							}
+							onClose={() => setShowDeleteConfirm(false)}
+							buttons={[
+								{
+									id: "cancel",
+									label: t("_.cancel"),
+									variant: "default",
+									autoFocus: true,
+									onClick: () => setShowDeleteConfirm(false),
+								},
+								{
+									id: "delete",
+									label: t("_.delete"),
+									color: "red",
+									loading: deleteMutation.isPending,
+									onClick: () =>
+										deleteMutation.mutate(version.id, {
+											onSuccess: () => onClose(),
+										}),
+								},
+							]}
+						></MultiButtonsModal>
 					)}
 				</Stack>
 			</form>

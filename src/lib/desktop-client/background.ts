@@ -253,7 +253,8 @@ export async function generateDesktopImage(
 		tabId,
 		async (settings, signal) => {
 			let references: string[] | undefined;
-			if (data.referenceImageUrls?.length) {
+			let promptIsDescription = false;
+			if (data.referenceImageUrls?.length || data.promptIsDescription) {
 				const response = await request("/capabilities", settings, {
 					signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]),
 				});
@@ -263,12 +264,18 @@ export async function generateDesktopImage(
 					capabilities.features?.imageReferences
 				)
 					references = data.referenceImageUrls;
+				if (
+					isCapabilities(capabilities) &&
+					capabilities.features?.imagePromptInput
+				)
+					promptIsDescription = data.promptIsDescription === true;
 			}
 			return {
 				prompt: data.prompt,
 				model: data.model,
 				effort: data.effort,
 				...(references ? { referenceImageUrls: references } : {}),
+				...(promptIsDescription ? { promptIsDescription: true } : {}),
 			};
 		},
 		{ timeoutMs: 360_000, maxBytes: 12_000_000 },
@@ -279,7 +286,13 @@ export async function generateDesktopImage(
 				!frame.mimeType.startsWith("image/")
 			)
 				throw new Error("Desktop client returned no image.");
-			return { mimeType: frame.mimeType, data: frame.data };
+			return {
+				mimeType: frame.mimeType,
+				data: frame.data,
+				...(typeof frame.revisedPrompt === "string"
+					? { revisedPrompt: frame.revisedPrompt }
+					: {}),
+			};
 		},
 	);
 }

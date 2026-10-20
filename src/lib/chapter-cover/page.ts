@@ -5,10 +5,7 @@ import { retryChapterTask } from "@/lib/ai-source/chapter-retry";
 import { aiState } from "@/lib/ai-source/storage";
 import { trackEvent } from "@/lib/analytics/client";
 import { placeChapterContext } from "@/lib/chapter-context/page";
-import {
-	type ChapterContext,
-	chapterContextSchema,
-} from "@/lib/chapter-context/schema";
+import type { ChapterContext } from "@/lib/chapter-context/schema";
 import { vanillaAiText } from "@/lib/cloud-ai/vanilla-text";
 import { generateCharacterImage } from "@/lib/desktop-client/character-image-job";
 import { aiPrompts } from "@/lib/desktop-client/settings";
@@ -18,7 +15,7 @@ import type { NovelContentData } from "@/types/content-data";
 import { findContentRoot } from "@/utils/content-processor";
 import { readPageText } from "@/utils/page-text";
 import { waitForChapterCoverContext } from "./context";
-import { buildChapterCoverPrompt } from "./prompt";
+import { buildChapterCoverPrompt, chapterCoverReferences } from "./prompt";
 import {
 	AUTO_CHAPTER_COVER_KEY,
 	type ChapterCover,
@@ -29,6 +26,17 @@ import { createCoverView } from "./view";
 const words = {
 	en: {
 		title: "Chapter cover",
+		imagePrompt: "Image Prompt",
+		savePrompt: "Save prompt",
+		reloadPrompt: "Discard changes",
+		expandPrompt: "Expand",
+		collapsePrompt: "Collapse",
+		promptHelp:
+			"Edit the description to tweak the next cover. Save prompt keeps your changes with this chapter without generating an image.",
+		promptSaved: "Image prompt saved.",
+		promptSaving: "Saving image prompt…",
+		promptReadOnly:
+			"Only the cover publisher or a moderator can edit this prompt.",
 		generate: "Generate Chapter Cover Image",
 		regenerate: "Regenerate background image",
 		retrying: "Could not complete the chapter cover. Retrying automatically…",
@@ -56,6 +64,16 @@ const words = {
 	},
 	ar: {
 		title: "غلاف الفصل",
+		imagePrompt: "وصف الصورة",
+		savePrompt: "حفظ الوصف",
+		reloadPrompt: "تجاهل التغييرات",
+		expandPrompt: "توسيع",
+		collapsePrompt: "طي",
+		promptHelp:
+			"عدّل الوصف لتغيير الغلاف القادم. يحفظ زر حفظ الوصف تغييراتك مع هذا الفصل دون توليد صورة.",
+		promptSaved: "تم حفظ وصف الصورة.",
+		promptSaving: "جارٍ حفظ وصف الصورة…",
+		promptReadOnly: "يمكن لناشر الغلاف أو المشرف فقط تعديل هذا الوصف.",
 		generate: "توليد صورة غلاف الفصل",
 		regenerate: "إعادة توليد صورة الخلفية",
 		retrying: "تعذر إكمال غلاف الفصل. ستتم إعادة المحاولة تلقائياً…",
@@ -96,8 +114,20 @@ type Session = {
 	stop: HTMLButtonElement;
 	download: HTMLAnchorElement;
 	save: HTMLButtonElement;
+	promptSection: HTMLDetailsElement;
+	promptInput: HTMLTextAreaElement;
+	promptCopy: HTMLButtonElement;
+	promptSave: HTMLButtonElement;
+	promptReload: HTMLButtonElement;
+	promptFeedback: HTMLElement;
 	controller: AbortController;
 	prompt: string;
+	savedPrompt: string;
+	promptUpdatedAt?: string | null;
+	canEditPrompt: boolean;
+	canRegenerate: boolean;
+	savingPrompt: boolean;
+	pendingPublication: boolean;
 	token?: string;
 	poll?: ReturnType<typeof setTimeout>;
 	objectUrl?: string;
@@ -149,6 +179,58 @@ export function clearChapterCover() {
 	current = undefined;
 	context = undefined;
 }
+function updatePromptControls(session: Session) {
+	const locked =
+		session.working ||
+		session.waiting ||
+		session.savingPrompt ||
+		session.pendingPublication;
+	session.promptInput.readOnly = locked || !session.canEditPrompt;
+	session.regenerate.disabled =
+		session.working ||
+		session.waiting ||
+		session.savingPrompt ||
+		!session.canRegenerate;
+	session.generate.disabled =
+		session.working || session.waiting || session.savingPrompt;
+	session.copy.disabled = !session.prompt.trim();
+	session.promptCopy.disabled = session.copy.disabled;
+	const dirty = session.prompt !== session.savedPrompt;
+	session.promptSave.disabled =
+		locked || !session.canEditPrompt || !session.promptUpdatedAt || !dirty;
+	session.promptReload.disabled = locked || !dirty;
+}
+function setPrompt(session: Session, prompt: string) {
+	session.prompt = prompt;
+	session.promptInput.value = prompt;
+	updatePromptControls(session);
+}
+async function savePrompt(session: Session) {
+	if (session.promptSave.disabled || !session.promptUpdatedAt) return;
+	session.savingPrompt = true;
+	updatePromptControls(session);
+	session.promptFeedback.textContent = words[session.locale].promptSaving;
+	try {
+		const result = await sendMessage("chapterCover", {
+			...session.key,
+			action: "savePrompt",
+			imagePrompt: session.prompt,
+			baseUpdatedAt: session.promptUpdatedAt,
+		});
+		if (!alive(session)) return;
+		showCover(session, result, true);
+		session.promptFeedback.textContent = words[session.locale].promptSaved;
+	} catch (error) {
+		if (alive(session)) {
+			session.showError(error);
+			session.promptFeedback.textContent =
+				error instanceof Error ? error.message : String(error);
+		}
+	} finally {
+		session.savingPrompt = false;
+		if (alive(session)) updatePromptControls(session);
+	}
+}
 function busy(session: Session, working: boolean) {
 	session.working = working;
 	session.generate.disabled = working || session.waiting;
@@ -157,6 +239,7 @@ function busy(session: Session, working: boolean) {
 	session.stop.disabled = false;
 	session.save.disabled = working;
 	session.image.setAttribute("aria-busy", String(working));
+	updatePromptControls(session);
 }
 function attachCover(session: Session) {
 	if (session.mounted) return;
@@ -166,9 +249,27 @@ function attachCover(session: Session) {
 	session.mounted = true;
 	placeChapterContext();
 }
-function showCover(session: Session, cover: ChapterCover) {
+function showCover(
+	session: Session,
+	cover: ChapterCover,
+	acceptPrompt = false,
+) {
 	const text = words[session.locale];
 	session.waiting = cover.generating;
+	const dirty = session.prompt !== session.savedPrompt;
+	if (
+		cover.imagePrompt !== undefined &&
+		(acceptPrompt || (!dirty && !session.pendingPublication))
+	) {
+		session.savedPrompt = cover.imagePrompt ?? "";
+		session.promptUpdatedAt = cover.promptUpdatedAt;
+		setPrompt(session, session.savedPrompt);
+	}
+	session.canEditPrompt = cover.canEditPrompt ?? false;
+	session.canRegenerate = cover.canEditPrompt ?? true;
+	if (!session.canEditPrompt && cover.image)
+		session.promptFeedback.textContent = text.promptReadOnly;
+	updatePromptControls(session);
 	if (cover.image) {
 		if (!cover.generating) session.clearError();
 		session.image.src = cover.image.url;
@@ -178,7 +279,11 @@ function showCover(session: Session, cover: ChapterCover) {
 		session.download.hidden = false;
 		session.generate.hidden = true;
 		session.regenerate.hidden = false;
-		session.regenerate.disabled = session.working || session.waiting;
+		session.regenerate.disabled =
+			session.working ||
+			session.waiting ||
+			session.savingPrompt ||
+			!session.canRegenerate;
 		session.status.textContent = "";
 		attachCover(session);
 		return true;
@@ -226,21 +331,24 @@ async function publish(session: Session) {
 		imageId: session.imageId,
 		data: session.generated.data,
 		mimeType: session.generated.mimeType,
+		imagePrompt: session.generated.prompt,
 	});
 	session.token = undefined;
 	if (!alive(session) || session.controller.signal.aborted) return;
 	session.save.hidden = true;
-	showCover(session, cover);
+	session.pendingPublication = false;
+	showCover(session, cover, true);
 }
 async function generate(
 	session: Session,
 	data: NovelContentData,
 	regenerate = false,
 ) {
-	if (session.working) return;
+	if (session.working || session.savingPrompt) return;
 	const text = words[session.locale];
 	session.controller = new AbortController();
 	const { signal } = session.controller;
+	const description = session.prompt.trim() ? session.prompt : undefined;
 	attachCover(session);
 	busy(session, true);
 	session.status.textContent = text.working;
@@ -267,7 +375,7 @@ async function generate(
 							),
 						);
 					let prepared: Awaited<ReturnType<typeof preparePrompt>> | undefined;
-					if (!session.generated) {
+					if (!session.generated && !description) {
 						const chapterContext = await waitForChapterCoverContext({
 							read: () => sendMessage("readChapterContext", session.key),
 							signal,
@@ -283,10 +391,30 @@ async function generate(
 						});
 						if (signal.aborted || !alive(session)) return;
 						prepared = await preparePrompt(data, chapterContext);
-						session.prompt = prepared.prompt;
-						session.copy.disabled = false;
 						session.clearError();
 						session.status.textContent = text.working;
+					}
+					if (description && !session.generated) {
+						const keywords = await sendMessage(
+							"chapterCoverKeywords",
+							data.novel.id,
+						).catch(() => data.keywords);
+						prepared = {
+							prompt: description,
+							referenceImageUrls: [
+								...new Set(
+									chapterCoverReferences(
+										{
+											...data,
+											keywords: Array.isArray(keywords)
+												? keywords
+												: data.keywords,
+										},
+										readPageText(findContentRoot(), 120_000),
+									).flatMap((row) => (row.imageUrl ? [row.imageUrl] : [])),
+								),
+							].slice(0, 8),
+						};
 					}
 					if (signal.aborted || !alive(session)) return;
 					const claim = await sendMessage("chapterCover", {
@@ -322,13 +450,16 @@ async function generate(
 							source: state.source,
 							settings: state.desktop,
 							feature: "chapter_cover",
-							prompt: session.prompt,
+							prompt: prepared?.prompt ?? "",
+							promptIsDescription: !!description,
 							referenceImageUrls: prepared?.referenceImageUrls,
 							name: `chapter-${session.key.chapterNumber}-cover`,
 							signal,
 						});
 						if (!alive(session) || signal.aborted) return;
 						session.generated = result;
+						session.pendingPublication = true;
+						setPrompt(session, result.prompt ?? description ?? "");
 						session.imageId = crypto.randomUUID();
 						if (session.objectUrl) URL.revokeObjectURL(session.objectUrl);
 						session.objectUrl = URL.createObjectURL(result.file);
@@ -362,6 +493,7 @@ async function generate(
 		// Stop and disposal cancel both the active request and the retry delay.
 	} finally {
 		if (alive(session)) {
+			session.save.hidden = !session.pendingPublication;
 			busy(session, false);
 			session.generate.hidden = !!session.generated || !session.image.hidden;
 		}
@@ -407,6 +539,11 @@ async function mount(data: NovelContentData, manual: boolean) {
 		mounted: false,
 		controller: new AbortController(),
 		prompt: "",
+		savedPrompt: "",
+		canEditPrompt: false,
+		canRegenerate: true,
+		savingPrompt: false,
+		pendingPublication: false,
 		working: false,
 		waiting: false,
 		automatic: !manual,
@@ -418,9 +555,16 @@ async function mount(data: NovelContentData, manual: boolean) {
 		void generate(session, data);
 	});
 	regenerate.addEventListener("click", () => {
-		if (session.working || session.waiting) return;
+		if (
+			session.working ||
+			session.waiting ||
+			session.savingPrompt ||
+			!session.canRegenerate
+		)
+			return;
 		session.automatic = false;
 		session.generated = undefined;
+		session.pendingPublication = false;
 		session.imageId = undefined;
 		session.save.hidden = true;
 		void generate(session, data, true);
@@ -434,24 +578,53 @@ async function mount(data: NovelContentData, manual: boolean) {
 		status.textContent = text.stopped;
 		trackEvent("ai_chapter_cover_stopped", {});
 	});
-	copy.addEventListener("click", async () => {
+	const copyPrompt = async () => {
 		try {
-			const record = await sendMessage("readChapterContext", session.key);
-			const parsed = chapterContextSchema.safeParse(record?.context);
-			if (record?.generating || !parsed.success)
-				throw new Error(
-					record?.generating ? text.waitingContext : text.missingContext,
-				);
-			const prepared = await preparePrompt(data, parsed.data);
-			session.prompt = prepared.prompt;
+			if (!session.prompt) return;
 			await navigator.clipboard.writeText(session.prompt);
-			if (alive(session)) copy.textContent = text.copied;
+			if (alive(session)) {
+				copy.textContent = text.copied;
+				session.promptFeedback.textContent = text.copied;
+			}
 			trackEvent("ai_image_prompt_copied", {});
 		} catch (error) {
 			if (alive(session)) {
 				session.showError(error);
 				status.textContent = text.copyFailed;
 			}
+		}
+	};
+	copy.addEventListener("click", copyPrompt);
+	session.promptCopy.addEventListener("click", copyPrompt);
+	session.promptInput.addEventListener("input", () => {
+		if (session.promptInput.readOnly) return;
+		session.prompt = session.promptInput.value;
+		session.promptFeedback.textContent = "";
+		copy.textContent = text.copy;
+		updatePromptControls(session);
+	});
+	session.promptSave.addEventListener("click", () => {
+		void savePrompt(session);
+	});
+	session.promptReload.addEventListener("click", async () => {
+		if (session.promptReload.disabled) return;
+		session.savingPrompt = true;
+		updatePromptControls(session);
+		try {
+			const cover = await sendMessage("chapterCover", {
+				...session.key,
+				action: "read",
+			});
+			if (alive(session)) {
+				showCover(session, cover, true);
+				session.clearError();
+				session.promptFeedback.textContent = "";
+			}
+		} catch (error) {
+			if (alive(session)) session.showError(error);
+		} finally {
+			session.savingPrompt = false;
+			if (alive(session)) updatePromptControls(session);
 		}
 	});
 	save.addEventListener("click", () => {
@@ -475,7 +648,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 				status.textContent = text.retrying;
 			},
 		);
-		copy.disabled = false;
+		copy.disabled = !session.prompt;
 		if (!alive(session)) return;
 		const price =
 			state.source === "cloud"

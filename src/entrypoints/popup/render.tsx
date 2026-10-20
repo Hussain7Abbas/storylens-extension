@@ -3,8 +3,10 @@ import ReactDOM from "react-dom/client";
 import App from "./App.js";
 import "./style.css";
 import { BrowserRouter } from "react-router";
+import { RenderErrorBoundary } from "@/components/render-error-boundary";
 import { connectLauncherFrame } from "@/lib/launcher-frame/use-launcher-work";
 import { setupApiClient } from "@/utils/setup-api-client";
+import { PopupErrorFallback } from "./error-fallback";
 
 setupApiClient();
 
@@ -17,9 +19,11 @@ export function Main(type: "popup" | "options" = "popup") {
 	else connectLauncherFrame();
 	ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 		<React.StrictMode>
-			<BrowserRouter>
-				<App type={type} />
-			</BrowserRouter>
+			<RenderErrorBoundary fallback={<PopupErrorFallback />}>
+				<BrowserRouter>
+					<App type={type} />
+				</BrowserRouter>
+			</RenderErrorBoundary>
 		</React.StrictMode>,
 	);
 }

@@ -5,7 +5,6 @@ import {
 	Container,
 	Group,
 	Menu,
-	Modal,
 	Select,
 	Skeleton,
 	Stack,
@@ -31,6 +30,7 @@ import { useTranslation } from "react-i18next";
 import { browser } from "#imports";
 import { usePutNovelsById } from "@/api/generated/endpoints/novels.js";
 import { getWebsiteSelectorsByWebsite } from "@/api/generated/endpoints/website-selectors.js";
+import { MultiButtonsModal } from "@/components/multi-buttons-modal";
 import { sendMessage } from "@/entrypoints/background/messaging";
 import { userAccessAtom } from "@/lib/auth";
 import {
@@ -374,39 +374,37 @@ export function HomePage() {
 						</Alert>
 					)}
 
-					<Modal
+					<MultiButtonsModal
 						opened={removeBlocked !== undefined}
-						onClose={() => setRemoveBlocked(undefined)}
 						title={t("offline.removeBlockedTitle")}
-						size="sm"
-					>
-						<Stack gap="sm">
-							<Text size="sm">
-								{t("offline.removeBlocked", { count: removeBlocked ?? 0 })}
-							</Text>
-							<Button
-								loading={downloading}
-								disabled={!online}
-								onClick={() => void handleBlockedRemoval("sync")}
-							>
-								{t("offline.syncNow")}
-							</Button>
-							<Button
-								color="red"
-								variant="light"
-								loading={downloading}
-								onClick={() => void handleBlockedRemoval("discard")}
-							>
-								{t("offline.discardAndRemove")}
-							</Button>
-							<Button
-								variant="default"
-								onClick={() => setRemoveBlocked(undefined)}
-							>
-								{t("_.cancel")}
-							</Button>
-						</Stack>
-					</Modal>
+						message={t("offline.removeBlocked", { count: removeBlocked ?? 0 })}
+						busy={downloading}
+						onClose={() => setRemoveBlocked(undefined)}
+						buttons={[
+							{
+								id: "cancel",
+								label: t("_.cancel"),
+								variant: "default",
+								autoFocus: true,
+								onClick: () => setRemoveBlocked(undefined),
+							},
+							{
+								id: "sync",
+								label: t("offline.syncNow"),
+								disabled: !online,
+								loading: downloading,
+								onClick: () => void handleBlockedRemoval("sync"),
+							},
+							{
+								id: "discard",
+								label: t("offline.discardAndRemove"),
+								color: "red",
+								variant: "light",
+								loading: downloading,
+								onClick: () => void handleBlockedRemoval("discard"),
+							},
+						]}
+					/>
 
 					<Tabs defaultValue="coloring" variant="pills">
 						<Stack

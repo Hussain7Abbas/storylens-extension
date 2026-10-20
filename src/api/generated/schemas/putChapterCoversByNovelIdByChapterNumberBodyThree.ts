@@ -5,8 +5,11 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+import type { PutChapterCoversByNovelIdByChapterNumberBodyThreeImagePrompt } from "./putChapterCoversByNovelIdByChapterNumberBodyThreeImagePrompt";
 
 export type PutChapterCoversByNovelIdByChapterNumberBodyThree = {
 	token: string;
 	imageId: string;
+	/** @nullable */
+	imagePrompt?: PutChapterCoversByNovelIdByChapterNumberBodyThreeImagePrompt;
 };

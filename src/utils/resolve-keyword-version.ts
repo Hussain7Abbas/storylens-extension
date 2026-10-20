@@ -30,7 +30,10 @@ export function pickActiveVersion(
 ): GetKeywords200DataItemVersionsItem | undefined {
 	if (versions.length === 0) return undefined;
 
-	const active = versions.find((v) => {
+	const newestFirst = [...versions].sort(
+		(a, b) => Number(b.startingChapter) - Number(a.startingChapter),
+	);
+	const active = newestFirst.find((v) => {
 		const start = Number(v.startingChapter);
 		const end = v.endingChapter;
 		return (
@@ -40,25 +43,24 @@ export function pickActiveVersion(
 	});
 	if (active) return active;
 
-	return [...versions].sort(
-		(a, b) => Number(a.startingChapter) - Number(b.startingChapter),
-	)[0];
+	return (
+		newestFirst.find((v) => Number(v.startingChapter) <= currentChapter) ??
+		newestFirst.at(-1)
+	);
 }
 
 /**
  * Resolves a nullable field through the priority chain:
- *   alias (override) → active version → alias (no override) → base version
- * When called without alias args, behaves as: active → base.
+ *   alias → newest applicable version → earlier versions → base version
+ * Without an alias value, use the resolved version value before the base.
  */
 function pickField<T>(
 	activeVal: T | null | undefined,
 	baseVal: T | null | undefined,
 	aliasVal?: T | null | undefined,
-	override?: boolean,
 ): T | null {
-	if (override && aliasVal != null) return aliasVal;
-	if (activeVal != null) return activeVal;
 	if (aliasVal != null) return aliasVal;
+	if (activeVal != null) return activeVal;
 	return baseVal ?? null;
 }
 
@@ -106,28 +108,41 @@ export function resolveStyle(
 	versions: GetKeywords200DataItemVersionsItem[] = [],
 	language: Language = "en",
 ): ResolvedStyle | null {
-	const override = alias?.overrideStyle ?? false;
+	const inherited = [...versions]
+		.filter(
+			(version) =>
+				Number(version.startingChapter) <=
+				Number(active?.startingChapter ?? base?.startingChapter ?? 0),
+		)
+		.sort((a, b) => Number(b.startingChapter) - Number(a.startingChapter));
+	const field = <T>(
+		read: (version: GetKeywords200DataItemVersionsItem) => T | null | undefined,
+	) => inherited.map(read).find((value) => value != null);
 
 	const category = pickField(
-		active?.category as EnrichedCategory | null | undefined,
+		(field((version) => version.category) ?? active?.category) as
+			| EnrichedCategory
+			| null
+			| undefined,
 		base?.category as EnrichedCategory | null | undefined,
 		alias?.category as EnrichedCategory | null | undefined,
-		override,
 	);
 	const nature = pickField(
-		active?.nature as EnrichedNature | null | undefined,
+		(field((version) => version.nature) ?? active?.nature) as
+			| EnrichedNature
+			| null
+			| undefined,
 		base?.nature as EnrichedNature | null | undefined,
 		alias?.nature as EnrichedNature | null | undefined,
-		override,
 	);
 
 	if (!category || !nature) return null;
 
 	const description = pickField(
-		keywordDescriptionIn(active, language),
+		field((version) => keywordDescriptionIn(version, language)) ??
+			keywordDescriptionIn(active, language),
 		keywordDescriptionIn(base, language),
 		keywordDescriptionIn(alias, language),
-		override,
 	);
 
 	// An alias shows its own image; without one it falls back to its keyword's
@@ -149,7 +164,7 @@ export function resolveStyle(
 
 /**
  * Converts root keywords (with embedded aliases/versions) into EnrichedKeyword[].
- * Applies the style fallback chain: alias override → active version → alias fallback → base version.
+ * Applies alias values first, then versions from newest applicable to oldest.
  */
 export function enrichKeywords(
 	keywords: GetKeywords200DataItem[],
@@ -272,41 +287,25 @@ export type ResolvedInfo = {
 };
 
 function resolveFieldInfo<T>(
-	activeVal: T | null | undefined,
-	baseVal: T | null | undefined,
+	versions: GetKeywords200DataItemVersionsItem[],
+	base: GetKeywords200DataItemVersionsItem | undefined,
+	read: (version: GetKeywords200DataItemVersionsItem) => T | null | undefined,
+	alias: GetKeywords200DataItemAliasesItem | null,
 	aliasVal: T | null | undefined,
-	override: boolean,
-	activeIsBase: boolean,
 ): FieldInfo<T> {
-	type Override = { source: "alias" | "keyword" | "version"; value: T | null };
-	const hasDistinctVersion = !activeIsBase && activeVal != null;
-
-	if (override && aliasVal != null) {
-		const overrides: Override[] = [];
-		if (hasDistinctVersion)
-			overrides.push({ source: "version", value: activeVal ?? null });
-		overrides.push({ source: "keyword", value: baseVal ?? null });
-		return { value: aliasVal, source: "alias", overrides };
-	}
-	if (activeVal != null && !activeIsBase) {
-		// Always include alias in the chain (even if null) so the full provenance is visible.
-		const overrides: Override[] = [
-			{ source: "alias", value: aliasVal ?? null },
-			{ source: "keyword", value: baseVal ?? null },
-		];
-		return { value: activeVal, source: "version", overrides };
-	}
-	if (activeVal != null) {
-		return { value: activeVal, source: "keyword", overrides: [] };
-	}
-	if (aliasVal != null) {
-		// In this branch activeVal is always null, so hasDistinctVersion is false — no version entry.
-		const overrides: Override[] = [
-			{ source: "keyword", value: baseVal ?? null },
-		];
-		return { value: aliasVal, source: "alias", overrides };
-	}
-	return { value: baseVal ?? null, source: "keyword", overrides: [] };
+	const chain: { source: InfoSource; value: T | null }[] = [];
+	if (alias) chain.push({ source: "alias", value: aliasVal ?? null });
+	for (const version of versions)
+		chain.push({
+			source: version.id === base?.id ? "keyword" : "version",
+			value: read(version) ?? null,
+		});
+	const chosen = chain.findIndex((entry) => entry.value != null);
+	if (chosen === -1) return { value: null, source: "keyword", overrides: [] };
+	return {
+		...chain[chosen],
+		overrides: chain.filter((_, index) => index !== chosen),
+	};
 }
 
 /**
@@ -393,7 +392,12 @@ export function resolveKeywordInfo(
 	const base = pickBaseVersion(keyword.versions);
 	const active = pickActiveVersion(keyword.versions, currentChapter);
 	const activeIsBase = !active || !base || active.id === base.id;
-	const override = alias?.overrideStyle ?? false;
+	const inherited = [...keyword.versions]
+		.filter(
+			(version) =>
+				Number(version.startingChapter) <= Number(active?.startingChapter ?? 0),
+		)
+		.sort((a, b) => Number(b.startingChapter) - Number(a.startingChapter));
 
 	const name: FieldInfo<string> = alias
 		? {
@@ -404,27 +408,25 @@ export function resolveKeywordInfo(
 		: { value: keywordName, source: "keyword", overrides: [] };
 
 	const category = resolveFieldInfo<EnrichedCategory>(
-		active?.category as EnrichedCategory | null | undefined,
-		base?.category as EnrichedCategory | null | undefined,
+		inherited,
+		base,
+		(version) => version.category as EnrichedCategory | null,
+		alias,
 		alias?.category as EnrichedCategory | null | undefined,
-		override,
-		activeIsBase,
 	);
-
 	const nature = resolveFieldInfo<EnrichedNature>(
-		active?.nature as EnrichedNature | null | undefined,
-		base?.nature as EnrichedNature | null | undefined,
+		inherited,
+		base,
+		(version) => version.nature as EnrichedNature | null,
+		alias,
 		alias?.nature as EnrichedNature | null | undefined,
-		override,
-		activeIsBase,
 	);
-
 	const description = resolveFieldInfo<string>(
-		keywordDescriptionIn(active, language),
-		keywordDescriptionIn(base, language),
+		inherited,
+		base,
+		(version) => keywordDescriptionIn(version, language),
+		alias,
 		keywordDescriptionIn(alias, language),
-		override,
-		activeIsBase,
 	);
 
 	const image = resolveImageInfo(keyword, alias, active, base, activeIsBase);
@@ -432,7 +434,7 @@ export function resolveKeywordInfo(
 	return { name, category, nature, description, image };
 }
 
-/** Tooltip fields prefer the hovered row, then the original keyword's base values. */
+/** Tooltip and highlights share alias-first, newest-applicable field inheritance. */
 export function resolveTooltipInfo(
 	keyword: GetKeywords200DataItem,
 	alias: GetKeywords200DataItemAliasesItem | null,
@@ -440,53 +442,17 @@ export function resolveTooltipInfo(
 	language: Language,
 ): ResolvedInfo {
 	const info = resolveKeywordInfo(keyword, alias, currentChapter, language);
-	const base = pickBaseVersion(keyword.versions);
-	const active = pickActiveVersion(keyword.versions, currentChapter);
-	const row = alias ?? active ?? base;
-	const source: InfoSource = alias
-		? "alias"
-		: active?.id !== base?.id
-			? "version"
-			: "keyword";
-	const withOriginal = <T>(
-		value: T | null | undefined,
-		original: T | null | undefined,
-	): FieldInfo<T> => ({
-		value: value ?? original ?? null,
-		source: value == null ? "keyword" : source,
-		overrides: [],
-	});
-	const image = withOriginal<RawImage>(
-		hasImage(row) ? row?.image : null,
-		hasImage(base) ? base?.image : null,
-	);
-	// Preserve image provenance and find an image elsewhere only when both are empty.
-	const tooltipImage = image.value
-		? {
-				...image,
-				overrides: [
-					{ source: info.image.source, value: info.image.value },
-					...info.image.overrides,
-				].filter((entry) => entry.value !== image.value),
-			}
-		: info.image;
 	return {
 		...info,
+		category: { ...info.category, overrides: [] },
+		nature: { ...info.nature, overrides: [] },
+		description: { ...info.description, overrides: [] },
 		name: alias
-			? withOriginal(nameIn(alias, language) || null, nameIn(keyword, language))
-			: { ...info.name, overrides: [] },
-		description: withOriginal(
-			keywordDescriptionIn(row, language),
-			keywordDescriptionIn(base, language),
-		),
-		category: withOriginal(
-			row?.category as EnrichedCategory | null | undefined,
-			base?.category as EnrichedCategory | null | undefined,
-		),
-		nature: withOriginal(
-			row?.nature as EnrichedNature | null | undefined,
-			base?.nature as EnrichedNature | null | undefined,
-		),
-		image: tooltipImage,
+			? {
+					value: nameIn(alias, language) || nameIn(keyword, language),
+					source: nameIn(alias, language) ? "alias" : "keyword",
+					overrides: [],
+				}
+			: info.name,
 	};
 }

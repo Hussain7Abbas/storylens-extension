@@ -794,7 +794,7 @@ describe("tooltip contextual details", () => {
 	});
 
 	for (const kind of ["alias", "version"] as const) {
-		it(`fills null ${kind} fields from the original keyword while keeping its own fields`, () => {
+		it(`fills null ${kind} fields from the newest applicable versions while keeping its own fields`, () => {
 			const ownCategory = {
 				...category,
 				id: "own-category",
@@ -835,24 +835,31 @@ describe("tooltip contextual details", () => {
 				5,
 				"en",
 			);
-			expect(info.description.value).toBe("Original history");
-			expect(info.description.source).toBe("keyword");
+			expect(info.description.value).toBe(
+				kind === "alias" ? "Current history" : "Original history",
+			);
+			expect(info.description.source).toBe(
+				kind === "alias" ? "version" : "keyword",
+			);
 			expect(info.category.value).toEqual(ownCategory);
 			expect(info.category.source).toBe(kind);
 			expect(info.nature.value).toEqual(nature);
-			expect(info.image.value?.url).toBe(keywordImage.url);
+			expect(info.image.value?.url).toBe(
+				kind === "alias" ? aliasImage.url : keywordImage.url,
+			);
 			const tooltip = hover(
 				raw,
 				kind === "alias" ? "alias-fallback" : undefined,
 			);
 			const panel = tooltip.querySelector('[role="tabpanel"]');
-			expect(panel?.textContent).toContain("Original history");
+			expect(panel?.textContent).toContain(
+				kind === "alias" ? "Current history" : "Original history",
+			);
 			expect(panel?.textContent).toContain("Own category");
 			expect(panel?.textContent).toContain("Ally");
 			expect(panel?.querySelector("img")?.getAttribute("src")).toBe(
-				keywordImage.url,
+				kind === "alias" ? aliasImage.url : keywordImage.url,
 			);
-			expect(panel?.textContent).not.toContain("Current history");
 		});
 	}
 
