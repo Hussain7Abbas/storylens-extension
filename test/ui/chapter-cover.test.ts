@@ -31,6 +31,7 @@ let canEditPrompt: boolean;
 let promptRevision: number;
 let contextRecord: ChapterContextRecord;
 let waiting: boolean;
+let canRestart: boolean;
 let generateReply:
 	| ReturnType<typeof Promise.withResolvers<unknown>>
 	| undefined;
@@ -52,6 +53,7 @@ beforeEach(async () => {
 	promptRevision = 1;
 	contextRecord = readyCoverContext();
 	waiting = false;
+	canRestart = false;
 	generateReply = undefined;
 	document.body.innerHTML =
 		'<article class="chapter-content">Mira raises her sword on the bridge.</article>';
@@ -93,10 +95,12 @@ beforeEach(async () => {
 					: null,
 				generating: waiting,
 				imagePrompt: storedPrompt,
-				promptUpdatedAt: hasCover
-					? new Date(promptRevision * 1000).toISOString()
-					: null,
+				promptUpdatedAt:
+					hasCover || waiting
+						? new Date(promptRevision * 1000).toISOString()
+						: null,
 				canEditPrompt: hasCover && canEditPrompt,
+				canRestart: waiting && canRestart,
 			});
 			if (action === "read") return { res: cover() };
 			if (action === "claim")
@@ -308,6 +312,136 @@ test("a shared generation in progress does not start a second request", async ()
 	startChapterCover();
 	expect(root()?.textContent).toContain("Another reader");
 	expect(button("Generate Chapter Cover Image")?.disabled).toBe(true);
+});
+test("after refresh the owning reader can restart once while automatic loading stays passive", async () => {
+	waiting = true;
+	canRestart = true;
+	generateReply = Promise.withResolvers<unknown>();
+	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(sent.some((item) => item.data?.action === "claim")).toBe(false);
+	startChapterCover();
+	startChapterCover();
+	await tick();
+	await tick();
+	const claims = sent.filter((item) => item.data?.action === "claim");
+	expect(claims).toHaveLength(1);
+	expect(claims[0]?.data?.restartIfUpdatedAt).toBe(
+		new Date(1000).toISOString(),
+	);
+	expect(sent.filter((item) => item.type === "generateAiImage")).toHaveLength(
+		1,
+	);
+	expect(button("Generate Chapter Cover Image")?.disabled).toBe(true);
+	button("Stop")?.click();
+});
+test("the owner can restart an interrupted replacement while the existing cover remains visible", async () => {
+	hasCover = true;
+	storedPrompt = "A scout on the bridge.";
+	waiting = true;
+	canRestart = true;
+	generateReply = Promise.withResolvers<unknown>();
+	syncChapterCover(coverChapter());
+	await tick();
+	expect(root()?.textContent).toContain("unfinished cover generation");
+	expect(button("Regenerate background image")?.disabled).toBe(false);
+	button("Regenerate background image")?.click();
+	button("Regenerate background image")?.click();
+	await tick();
+	await tick();
+	expect(root()?.querySelector("img")?.src).toBe(
+		"https://images.example.invalid/cover.png",
+	);
+	const claims = sent.filter((item) => item.data?.action === "claim");
+	expect(claims).toHaveLength(1);
+	expect(claims[0]?.data).toMatchObject({
+		regenerate: true,
+		restartIfUpdatedAt: new Date(1000).toISOString(),
+	});
+	button("Stop")?.click();
+});
+test("a stale restart claim waits without starting an image request or automatically replacing the newer lease", async () => {
+	waiting = true;
+	canRestart = true;
+	const delegate = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		const request = message as { type: string; data?: Record<string, unknown> };
+		if (request.type === "chapterCover" && request.data?.action === "claim") {
+			sent.push(request);
+			promptRevision++;
+			return {
+				res: {
+					image: null,
+					generating: true,
+					canRestart: true,
+					imagePrompt: null,
+					promptUpdatedAt: new Date(promptRevision * 1000).toISOString(),
+					token: null,
+				},
+			};
+		}
+		return delegate(message);
+	};
+	syncChapterCover(coverChapter());
+	await tick();
+	startChapterCover();
+	await tick();
+	await tick();
+	expect(sent.filter((item) => item.data?.action === "claim")).toHaveLength(1);
+	expect(sent.some((item) => item.type === "generateAiImage")).toBe(false);
+	expect(button("Generate Chapter Cover Image")?.disabled).toBe(false);
+	button("Generate Chapter Cover Image")?.click();
+	await tick();
+	await tick();
+	expect(
+		sent.filter((item) => item.data?.action === "claim")[1]?.data
+			?.restartIfUpdatedAt,
+	).toBe(new Date(2000).toISOString());
+});
+test("restart uses the latest lease revision while retaining a locally edited image prompt", async () => {
+	hasCover = true;
+	storedPrompt = "The original description.";
+	generateReply = Promise.withResolvers<unknown>();
+	syncChapterCover(coverChapter());
+	await tick();
+	const input = root()?.querySelector("textarea");
+	if (!input) throw new Error("Missing prompt editor");
+	input.value = "A scout in green robes.";
+	input.dispatchEvent(new Event("input", { bubbles: true }));
+	waiting = true;
+	canRestart = true;
+	promptRevision = 2;
+	const delegate = runtime.sendMessage;
+	let refused = false;
+	runtime.sendMessage = async (message) => {
+		const request = message as { type: string; data?: Record<string, unknown> };
+		if (
+			!refused &&
+			request.type === "chapterCover" &&
+			request.data?.action === "claim"
+		) {
+			refused = true;
+			sent.push(request);
+			return delegate({ type: "chapterCover", data: { action: "read" } });
+		}
+		return delegate(message);
+	};
+	button("Regenerate background image")?.click();
+	await tick();
+	await tick();
+	expect(input.value).toBe("A scout in green robes.");
+	button("Regenerate background image")?.click();
+	await tick();
+	await tick();
+	expect(
+		sent.filter((item) => item.data?.action === "claim")[1]?.data
+			?.restartIfUpdatedAt,
+	).toBe(new Date(2000).toISOString());
+	expect(
+		sent.find((item) => item.type === "generateAiImage")?.data?.prompt,
+	).toBe("A scout in green robes.");
+	button("Stop")?.click();
 });
 test("Stop cancels the image request, releases the lease and ignores a late result", async () => {
 	generateReply = Promise.withResolvers<unknown>();

@@ -28,6 +28,9 @@ interface ProtocolMap {
 	readChapterContext(
 		data: import("@/lib/chapter-context/transport").ChapterKey,
 	): import("@/lib/chapter-context/schema").ChapterContextRecord;
+	editChapterContext(
+		data: import("@/lib/chapter-context/transport").ContextEdit,
+	): import("@/lib/chapter-context/schema").ChapterContextRecord;
 	claimChapterContext(
 		data: import("@/lib/chapter-context/transport").ContextClaim,
 	): { token: string | null; ready: boolean };

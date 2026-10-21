@@ -18,4 +18,5 @@ export type GetChapterArtworkByNovelIdByChapterNumber200 = {
 	/** @nullable */
 	promptUpdatedAt: GetChapterArtworkByNovelIdByChapterNumber200PromptUpdatedAt;
 	canEditPrompt: boolean;
+	canRestart: boolean;
 };

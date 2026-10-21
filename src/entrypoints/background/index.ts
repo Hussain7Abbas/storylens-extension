@@ -12,6 +12,7 @@ import {
 } from "@/lib/billing/background";
 import {
 	claimContext,
+	editContext,
 	publishContext,
 	readContext,
 	readContinuity,
@@ -214,6 +215,10 @@ export default defineBackground(() => {
 	onMessage("readChapterContext", ({ data, sender }) => {
 		desktopJobOwner(sender);
 		return readContext(data);
+	});
+	onMessage("editChapterContext", ({ data, sender }) => {
+		desktopJobOwner(sender);
+		return editContext(data);
 	});
 	onMessage("claimChapterContext", ({ data, sender }) => {
 		desktopJobOwner(sender);

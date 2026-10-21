@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { customInstance } from "@/api/axios-instance";
 import { loadContextHistory } from "./history";
 import type {
@@ -17,6 +18,11 @@ export type ContextClaim = ChapterKey & {
 export type ContextPublish = ContextClaim & {
 	token: string;
 	context: ChapterContext;
+};
+export type ContextEdit = ChapterKey & {
+	baseUpdatedAt: string;
+	path: (string | number)[];
+	value: unknown;
 };
 const path = (key: ChapterKey) =>
 	`/api/user/chapter-context/${encodeURIComponent(key.novelId)}/${key.chapterNumber}`;
@@ -61,6 +67,37 @@ export async function claimContext(input: ContextClaim) {
 			},
 		})
 	).data;
+}
+export async function editContext(
+	input: ContextEdit,
+): Promise<ChapterContextRecord> {
+	try {
+		return (
+			await customInstance<ChapterContextRecord>({
+				url: path(input),
+				method: "PATCH",
+				data: {
+					baseUpdatedAt: input.baseUpdatedAt,
+					path: input.path,
+					value: input.value,
+				},
+			})
+		).data;
+	} catch (error) {
+		if (isAxiosError(error)) {
+			if (error.response?.status === 409) throw new Error("CONTEXT_EDIT_STALE");
+			const data: unknown = error.response?.data;
+			if (
+				data &&
+				typeof data === "object" &&
+				typeof Reflect.get(data, "message") === "string"
+			)
+				throw new Error(
+					`CONTEXT_EDIT_INVALID: ${Reflect.get(data, "message")}`,
+				);
+		}
+		throw error;
+	}
 }
 export async function publishContext(input: ContextPublish): Promise<void> {
 	await customInstance({

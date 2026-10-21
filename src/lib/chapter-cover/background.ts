@@ -14,7 +14,10 @@ export async function chapterCoverRequest(
 			await customInstance<CoverReply>({
 				url: `${path}/claim`,
 				method: "POST",
-				data: { regenerate: input.regenerate },
+				data: {
+					regenerate: input.regenerate,
+					restartIfUpdatedAt: input.restartIfUpdatedAt,
+				},
 			})
 		).data;
 	if (input.action === "savePrompt")

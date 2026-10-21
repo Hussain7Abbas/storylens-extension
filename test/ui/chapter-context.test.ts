@@ -168,6 +168,71 @@ test("opening a chapter reads only its own context and does not run AI by defaul
 	).toBe(false);
 	expect(document.getElementById("storylens-chapter-context")).toBeNull();
 });
+test("a manual inline edit saves shared context without invoking AI and survives reloading the chapter", async () => {
+	let latest = {
+		context: structuredClone(context),
+		contentHash: "saved-source",
+		generating: false,
+		inactiveEntities: [],
+		canEdit: true,
+		updatedAt: new Date(1000).toISOString(),
+	};
+	const delegate = runtime.sendMessage;
+	runtime.sendMessage = async (message) => {
+		const item = message as (typeof sent)[number];
+		if (item.type === "readChapterContext") {
+			sent.push(item);
+			return { res: latest };
+		}
+		if (item.type === "editChapterContext") {
+			sent.push(item);
+			latest = {
+				...latest,
+				context: { ...latest.context, summary: String(item.data?.value) },
+				updatedAt: new Date(2000).toISOString(),
+			};
+			return { res: latest };
+		}
+		return delegate(message);
+	};
+	syncChapterContext(coverChapter());
+	await tick();
+	const host = document.getElementById("storylens-chapter-context");
+	const root = host?.shadowRoot;
+	const disclosure = root?.querySelector("details");
+	if (disclosure) disclosure.open = true;
+	[...(root?.querySelectorAll<HTMLButtonElement>("[data-edit-context]") ?? [])]
+		.find((button) => button.dataset.editContext === '["summary"]')
+		?.click();
+	const input = root?.querySelector<HTMLInputElement>(".context-editor input");
+	if (!input) throw new Error("Missing inline editor");
+	input.value = "The scout escapes across the bridge.";
+	root
+		?.querySelector<HTMLButtonElement>('.context-editor button[type="submit"]')
+		?.click();
+	await tick();
+	expect(
+		sent.find((item) => item.type === "editChapterContext")?.data,
+	).toMatchObject({
+		chapterNumber: 12,
+		path: ["summary"],
+		baseUpdatedAt: new Date(1000).toISOString(),
+		value: input.value,
+	});
+	expect(
+		sent.some(
+			(item) =>
+				item.type === "executeAiPrompt" || item.type === "claimChapterContext",
+		),
+	).toBe(false);
+	clearChapterContext();
+	syncChapterContext(coverChapter());
+	await tick();
+	expect(
+		document.getElementById("storylens-chapter-context")?.shadowRoot
+			?.textContent,
+	).toContain("The scout escapes across the bridge.");
+});
 test("automatic context publishes structured JSON using earlier-only history", async () => {
 	await fakeBrowser.storage.local.set({ [AUTO_CHAPTER_CONTEXT_KEY]: true });
 	syncChapterContext(coverChapter());

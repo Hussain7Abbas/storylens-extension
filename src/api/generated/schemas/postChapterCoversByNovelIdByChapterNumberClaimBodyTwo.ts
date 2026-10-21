@@ -8,4 +8,5 @@
 
 export type PostChapterCoversByNovelIdByChapterNumberClaimBodyTwo = {
 	regenerate?: boolean;
+	restartIfUpdatedAt?: string;
 };

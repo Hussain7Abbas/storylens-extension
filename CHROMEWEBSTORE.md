@@ -77,6 +77,10 @@ Publisher identity, contact email, visibility and regions must match the owner a
 
 ## Version history and review notes
 
+- Pending: context publishers and moderators can edit individual chapter-context properties using inline pencil, Save and Cancel controls without generating new AI output.
+
+- Pending: after refreshing during chapter cover generation, the same reader can restart their interrupted attempt immediately while other readers continue waiting.
+
 - Pending: chapter covers retain their image descriptions after reload and provide a collapsible editor for copying, saving tweaks and regenerating artwork.
 
 - Pending: aliases inherit newer chapter-version values while keeping their own values first; saved and copied AI image prompts contain visual descriptions.

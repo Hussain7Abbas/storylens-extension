@@ -48,6 +48,8 @@ const words = {
 		actions: "Chapter cover actions",
 		working: "Generating chapter cover…",
 		waiting: "Another reader is generating this chapter’s cover…",
+		restart:
+			"You have an unfinished cover generation. You can generate again to restart it here.",
 		waitingContext:
 			"Waiting for the current chapter context to finish generating…",
 		missingContext:
@@ -85,6 +87,8 @@ const words = {
 		actions: "إجراءات غلاف الفصل",
 		working: "جارٍ توليد غلاف الفصل…",
 		waiting: "قارئ آخر يولّد غلاف هذا الفصل…",
+		restart:
+			"لديك عملية توليد غلاف غير مكتملة. يمكنك التوليد مجدداً لإعادة بدئها هنا.",
 		waitingContext: "بانتظار اكتمال توليد سياق الفصل الحالي…",
 		missingContext: "بانتظار سياق الفصل. ولّد سياق الفصل الحالي أدناه للمتابعة.",
 		missing: "لم يُولّد غلاف لهذا الفصل بعد.",
@@ -126,6 +130,8 @@ type Session = {
 	promptUpdatedAt?: string | null;
 	canEditPrompt: boolean;
 	canRegenerate: boolean;
+	canRestart: boolean;
+	leaseUpdatedAt?: string | null;
 	savingPrompt: boolean;
 	pendingPublication: boolean;
 	token?: string;
@@ -180,6 +186,7 @@ export function clearChapterCover() {
 	context = undefined;
 }
 function updatePromptControls(session: Session) {
+	const waitingForOther = session.waiting && !session.canRestart;
 	const locked =
 		session.working ||
 		session.waiting ||
@@ -188,11 +195,11 @@ function updatePromptControls(session: Session) {
 	session.promptInput.readOnly = locked || !session.canEditPrompt;
 	session.regenerate.disabled =
 		session.working ||
-		session.waiting ||
+		waitingForOther ||
 		session.savingPrompt ||
 		!session.canRegenerate;
 	session.generate.disabled =
-		session.working || session.waiting || session.savingPrompt;
+		session.working || waitingForOther || session.savingPrompt;
 	session.copy.disabled = !session.prompt.trim();
 	session.promptCopy.disabled = session.copy.disabled;
 	const dirty = session.prompt !== session.savedPrompt;
@@ -256,6 +263,8 @@ function showCover(
 ) {
 	const text = words[session.locale];
 	session.waiting = cover.generating;
+	session.canRestart = cover.canRestart === true && !!cover.promptUpdatedAt;
+	session.leaseUpdatedAt = cover.promptUpdatedAt;
 	const dirty = session.prompt !== session.savedPrompt;
 	if (
 		cover.imagePrompt !== undefined &&
@@ -281,16 +290,20 @@ function showCover(
 		session.regenerate.hidden = false;
 		session.regenerate.disabled =
 			session.working ||
-			session.waiting ||
+			(session.waiting && !session.canRestart) ||
 			session.savingPrompt ||
 			!session.canRegenerate;
-		session.status.textContent = "";
+		session.status.textContent =
+			cover.generating && session.canRestart ? text.restart : "";
 		attachCover(session);
 		return true;
 	}
 	if (!session.automatic) attachCover(session);
-	session.status.textContent = cover.generating ? text.waiting : text.missing;
-	session.generate.disabled = cover.generating;
+	session.status.textContent = cover.generating
+		? session.canRestart
+			? text.restart
+			: text.waiting
+		: text.missing;
 	return false;
 }
 function waitForCover(session: Session) {
@@ -301,7 +314,7 @@ function waitForCover(session: Session) {
 				...session.key,
 				action: "read",
 			});
-			if (!alive(session)) return;
+			if (!alive(session) || session.working) return;
 			showCover(session, result);
 			if (!result.generating) {
 				if (!result.image && context) {
@@ -345,7 +358,12 @@ async function generate(
 	regenerate = false,
 ) {
 	if (session.working || session.savingPrompt) return;
+	if (session.waiting && !session.canRestart) return;
 	const text = words[session.locale];
+	const restartIfUpdatedAt = session.canRestart
+		? (session.leaseUpdatedAt ?? undefined)
+		: undefined;
+	clearTimeout(session.poll);
 	session.controller = new AbortController();
 	const { signal } = session.controller;
 	const description = session.prompt.trim() ? session.prompt : undefined;
@@ -421,6 +439,7 @@ async function generate(
 						...session.key,
 						action: "claim",
 						regenerate,
+						...(restartIfUpdatedAt ? { restartIfUpdatedAt } : {}),
 					});
 					if (claim.token) session.token = claim.token;
 					if (!alive(session) || signal.aborted) {
@@ -433,6 +452,8 @@ async function generate(
 						if (claim.generating) waitForCover(session);
 						return;
 					}
+					session.waiting = false;
+					session.canRestart = false;
 					pageAiTasks.apply({
 						id: session.id,
 						state: "working",
@@ -516,7 +537,9 @@ async function mount(data: NovelContentData, manual: boolean) {
 		if (manual) {
 			current.automatic = false;
 			if (current.waiting) attachCover(current);
-			if (
+			if (current.waiting && current.canRestart && !current.working) {
+				void generate(current, data, !current.image.hidden);
+			} else if (
 				current.image.hidden &&
 				!current.working &&
 				!current.generate.disabled
@@ -542,6 +565,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 		savedPrompt: "",
 		canEditPrompt: false,
 		canRegenerate: true,
+		canRestart: false,
 		savingPrompt: false,
 		pendingPublication: false,
 		working: false,
@@ -557,7 +581,7 @@ async function mount(data: NovelContentData, manual: boolean) {
 	regenerate.addEventListener("click", () => {
 		if (
 			session.working ||
-			session.waiting ||
+			(session.waiting && !session.canRestart) ||
 			session.savingPrompt ||
 			!session.canRegenerate
 		)
@@ -671,7 +695,9 @@ async function mount(data: NovelContentData, manual: boolean) {
 		const ready = showCover(session, cover);
 		if (ready && !cover.generating) return;
 		if (cover.generating) {
-			waitForCover(session);
+			if (manual && session.canRestart)
+				await generate(session, data, !!cover.image);
+			else waitForCover(session);
 			return;
 		}
 		if (

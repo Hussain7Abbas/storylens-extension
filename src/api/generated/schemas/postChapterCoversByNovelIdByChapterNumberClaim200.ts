@@ -19,6 +19,7 @@ export type PostChapterCoversByNovelIdByChapterNumberClaim200 = {
 	/** @nullable */
 	promptUpdatedAt: PostChapterCoversByNovelIdByChapterNumberClaim200PromptUpdatedAt;
 	canEditPrompt: boolean;
+	canRestart: boolean;
 	/** @nullable */
 	token: PostChapterCoversByNovelIdByChapterNumberClaim200Token;
 };

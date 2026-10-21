@@ -18,4 +18,5 @@ export type PutChapterCoversByNovelIdByChapterNumber200 = {
 	/** @nullable */
 	promptUpdatedAt: PutChapterCoversByNovelIdByChapterNumber200PromptUpdatedAt;
 	canEditPrompt: boolean;
+	canRestart: boolean;
 };

@@ -37,6 +37,11 @@ import type {
 	GetChapterContextByNovelIdByChapterNumberContinuity500,
 	GetChapterContextByNovelIdByChapterNumberContinuityParams,
 	GetChapterContextByNovelIdByChapterNumberParams,
+	PatchChapterContextByNovelIdByChapterNumber404,
+	PatchChapterContextByNovelIdByChapterNumber500,
+	PatchChapterContextByNovelIdByChapterNumberBodyOne,
+	PatchChapterContextByNovelIdByChapterNumberBodyThree,
+	PatchChapterContextByNovelIdByChapterNumberBodyTwo,
 	PostChapterContextByNovelIdByChapterNumberBulk404,
 	PostChapterContextByNovelIdByChapterNumberBulk500,
 	PostChapterContextByNovelIdByChapterNumberBulkBodyOne,
@@ -290,6 +295,154 @@ export function useGetChapterContextByNovelIdByChapterNumber<
 	return query;
 }
 
+/**
+ * @summary Manually edit one chapter context property and refresh its continuity index
+ */
+export const patchChapterContextByNovelIdByChapterNumber = (
+	novelId: string,
+	chapterNumber: string | number,
+	patchChapterContextByNovelIdByChapterNumberBody:
+		| PatchChapterContextByNovelIdByChapterNumberBodyOne
+		| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+		| PatchChapterContextByNovelIdByChapterNumberBodyThree,
+	options?: SecondParameter<typeof customInstance>,
+) => {
+	return customInstance<unknown>(
+		{
+			url: `http://localhost:3031/api/user/chapter-context/${novelId}/${chapterNumber}`,
+			method: "PATCH",
+			data: patchChapterContextByNovelIdByChapterNumberBody,
+		},
+		options,
+	);
+};
+
+export const getPatchChapterContextByNovelIdByChapterNumberMutationOptions = <
+	TError = ErrorType<
+		| PatchChapterContextByNovelIdByChapterNumber404
+		| PatchChapterContextByNovelIdByChapterNumber500
+	>,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof patchChapterContextByNovelIdByChapterNumber>>,
+		TError,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PatchChapterContextByNovelIdByChapterNumberBodyOne
+				| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+				| PatchChapterContextByNovelIdByChapterNumberBodyThree;
+		},
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof patchChapterContextByNovelIdByChapterNumber>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PatchChapterContextByNovelIdByChapterNumberBodyOne
+			| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+			| PatchChapterContextByNovelIdByChapterNumberBodyThree;
+	},
+	TContext
+> => {
+	const mutationKey = ["patchChapterContextByNovelIdByChapterNumber"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof patchChapterContextByNovelIdByChapterNumber>>,
+		{
+			novelId: string;
+			chapterNumber: string | number;
+			data:
+				| PatchChapterContextByNovelIdByChapterNumberBodyOne
+				| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+				| PatchChapterContextByNovelIdByChapterNumberBodyThree;
+		}
+	> = (props) => {
+		const { novelId, chapterNumber, data } = props ?? {};
+
+		return patchChapterContextByNovelIdByChapterNumber(
+			novelId,
+			chapterNumber,
+			data,
+			requestOptions,
+		);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type PatchChapterContextByNovelIdByChapterNumberMutationResult =
+	NonNullable<
+		Awaited<ReturnType<typeof patchChapterContextByNovelIdByChapterNumber>>
+	>;
+export type PatchChapterContextByNovelIdByChapterNumberMutationBody =
+	| PatchChapterContextByNovelIdByChapterNumberBodyOne
+	| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+	| PatchChapterContextByNovelIdByChapterNumberBodyThree;
+export type PatchChapterContextByNovelIdByChapterNumberMutationError =
+	ErrorType<
+		| PatchChapterContextByNovelIdByChapterNumber404
+		| PatchChapterContextByNovelIdByChapterNumber500
+	>;
+
+/**
+ * @summary Manually edit one chapter context property and refresh its continuity index
+ */
+export const usePatchChapterContextByNovelIdByChapterNumber = <
+	TError = ErrorType<
+		| PatchChapterContextByNovelIdByChapterNumber404
+		| PatchChapterContextByNovelIdByChapterNumber500
+	>,
+	TContext = unknown,
+>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof patchChapterContextByNovelIdByChapterNumber>>,
+			TError,
+			{
+				novelId: string;
+				chapterNumber: string | number;
+				data:
+					| PatchChapterContextByNovelIdByChapterNumberBodyOne
+					| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+					| PatchChapterContextByNovelIdByChapterNumberBodyThree;
+			},
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof patchChapterContextByNovelIdByChapterNumber>>,
+	TError,
+	{
+		novelId: string;
+		chapterNumber: string | number;
+		data:
+			| PatchChapterContextByNovelIdByChapterNumberBodyOne
+			| PatchChapterContextByNovelIdByChapterNumberBodyTwo
+			| PatchChapterContextByNovelIdByChapterNumberBodyThree;
+	},
+	TContext
+> => {
+	const mutationOptions =
+		getPatchChapterContextByNovelIdByChapterNumberMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
 /**
  * @summary Publish a validated chapter context and its continuity index
  */

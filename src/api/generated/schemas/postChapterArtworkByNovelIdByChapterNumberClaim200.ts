@@ -19,6 +19,7 @@ export type PostChapterArtworkByNovelIdByChapterNumberClaim200 = {
 	/** @nullable */
 	promptUpdatedAt: PostChapterArtworkByNovelIdByChapterNumberClaim200PromptUpdatedAt;
 	canEditPrompt: boolean;
+	canRestart: boolean;
 	/** @nullable */
 	token: PostChapterArtworkByNovelIdByChapterNumberClaim200Token;
 };

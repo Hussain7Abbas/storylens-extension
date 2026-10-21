@@ -133,6 +133,8 @@ export type ChapterContextRecord = {
 	contentHash: string | null;
 	generating: boolean;
 	inactiveEntities: InactiveEntity[];
+	updatedAt?: string | null;
+	canEdit?: boolean;
 };
 export type ContinuityContext = {
 	chapters: { chapterNumber: number; context: ChapterContext }[];

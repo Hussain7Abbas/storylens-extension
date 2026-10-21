@@ -89,6 +89,7 @@ export function clearChapterContext() {
 	session.jobController?.abort();
 	clearTimeout(session.poll);
 	void release(session, session.token);
+	session.view.dispose();
 	session.view.host.remove();
 	pageAiTasks.apply({ id: session.id, state: "released", source: "page" });
 }
@@ -117,7 +118,8 @@ async function generate(session: Session, automatic: boolean) {
 	if (
 		current !== session ||
 		session.url !== window.location.href ||
-		session.running
+		session.running ||
+		session.view.editing()
 	)
 		return;
 	const controller = new AbortController();
@@ -355,6 +357,23 @@ export function syncChapterContext(data: NovelContentData) {
 			session.view.stopped();
 			pageAiTasks.apply({ id: session.id, state: "released", source: "page" });
 			trackEvent("ai_chapter_context_stopped");
+		},
+		async (change) => {
+			if (!alive(session)) throw new Error("Chapter changed");
+			try {
+				const record = await sendMessage("editChapterContext", {
+					...key(session),
+					...change,
+				});
+				if (!alive(session)) throw new Error("Chapter changed");
+				session.record = record;
+				trackEvent("chapter_context_edited");
+				return record;
+			} catch (error) {
+				// Queue the latest version without replacing an open editor or its draft.
+				if (alive(session)) await read(session).catch(() => {});
+				throw error;
+			}
 		},
 	);
 	const session: Session = {
