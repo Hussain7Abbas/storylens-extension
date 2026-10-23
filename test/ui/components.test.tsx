@@ -3039,6 +3039,117 @@ describe("parallel selection suggestions and images", () => {
 			).toHaveLength(1);
 		});
 	}
+	it("ignores completion from a cancelled selection when it becomes ready again", async () => {
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		window.history.replaceState(
+			null,
+			"",
+			`?${new URLSearchParams({
+				create: "keyword",
+				search: "Rand",
+				aiContext: JSON.stringify({
+					before: "The red-haired ",
+					after: " carried a sword.",
+				}),
+			})}`,
+		);
+		const { useKeywordSuggestion } = await import(
+			"../../src/entrypoints/popup.home/tabs/coloring/use-keyword-suggestion"
+		);
+		const hook = renderHook(
+			({ enabled }) => useKeywordSuggestion(enabled, env.novel.id),
+			{ wrapper, initialProps: { enabled: true } },
+		);
+		await waitFor(() =>
+			expect(
+				requests.filter((item) => item.type === "executeAiPrompt"),
+			).toHaveLength(1),
+		);
+		hook.rerender({ enabled: false });
+		await act(async () => {
+			suggestion();
+		});
+		hook.rerender({ enabled: true });
+		await waitFor(() => expect(hook.result.current.state.status).toBe("ready"));
+		expect(
+			requests.filter((item) => item.type === "executeAiPrompt"),
+		).toHaveLength(2);
+	});
+
+	it("keeps text-only selection work running when translations refresh", async () => {
+		const { createInstance } = await import("i18next");
+		const { I18nextProvider } = await import("react-i18next");
+		const i18n = createInstance();
+		await i18n.init({
+			lng: "en",
+			resources: { en: { translation: {} } },
+			react: { useSuspense: false },
+		});
+		const parent = env.api.seedKeyword(
+			env.novel.id,
+			{
+				nameEn: "Parent",
+				categoryId: env.category.id,
+				natureId: env.nature.id,
+			},
+			env.user.id,
+		);
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		window.history.replaceState(
+			null,
+			"",
+			`?${new URLSearchParams({
+				create: "keyword",
+				search: "Rand",
+				parentId: parent.id,
+				aiContext: JSON.stringify({
+					before: "The red-haired ",
+					after: " carried a sword.",
+				}),
+			})}`,
+		);
+		const view = render(
+			React.createElement(
+				I18nextProvider,
+				{ i18n },
+				React.createElement(
+					PageContent,
+					null,
+					React.createElement(ColoringTab, {
+						selectedNovelId: env.novel.id,
+						currentChapter: 0,
+					}),
+				),
+			),
+			{ wrapper },
+		);
+		await waitFor(() =>
+			expect(
+				requests.filter((item) => item.type === "executeAiPrompt"),
+			).toHaveLength(1),
+		);
+		await act(async () => {
+			i18n.emit("languageChanged", "en");
+		});
+		expect(
+			requests.filter((item) => item.type === "cancelAiPrompt"),
+		).toHaveLength(0);
+		await act(async () => {
+			suggestion();
+		});
+		await waitFor(() =>
+			expect(view.getByRole("button", { name: "_.save" })).toBeTruthy(),
+		);
+		expect(
+			requests.filter((item) => item.type === "executeAiPrompt"),
+		).toHaveLength(1);
+		expect(
+			requests.filter((item) => item.type === "generateAiImage"),
+		).toHaveLength(0);
+	});
+
 	it("sends no image request with only Use AI enabled", async () => {
 		const view = await open("keyword", false);
 		await waitFor(() =>

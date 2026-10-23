@@ -64,6 +64,10 @@ export function useKeywordSuggestion(
 	clear: () => void;
 } {
 	const { t, i18n } = useTranslation();
+	// Resource loading can replace t without changing the requested AI language.
+	// Keep that UI refresh from cancelling/replaying an in-flight AI action.
+	const translate = useRef(t);
+	translate.current = t;
 	const request = useMemo(() => {
 		const params = new URLSearchParams(window.location.search);
 		const name = params.get("search")?.trim();
@@ -157,6 +161,7 @@ export function useKeywordSuggestion(
 	useEffect(() => {
 		if (!request || !loaded || !enabled || !lookupsReady || finished.current)
 			return;
+		const t = translate.current;
 		const controller = new AbortController();
 		requestController.current = controller;
 		const drawing = new AbortController();
@@ -293,7 +298,7 @@ export function useKeywordSuggestion(
 			};
 			// Both requests start from the picked text; neither waits for the other.
 			await Promise.all([suggest(), draw()]);
-			finished.current = true;
+			if (!controller.signal.aborted) finished.current = true;
 		})().catch(async (error: unknown) => {
 			if (controller.signal.aborted) return;
 			finished.current = true;
@@ -318,7 +323,7 @@ export function useKeywordSuggestion(
 				requestController.current = null;
 			if (imageController.current === drawing) imageController.current = null;
 		};
-	}, [request, enabled, loaded, lookupsReady, language, novelId, t]);
+	}, [request, enabled, loaded, lookupsReady, language, novelId]);
 	// The launcher keeps the popup and shows progress while the suggestion is written.
 	useLauncherWork({
 		working: state.status === "loading" || image.status === "loading",
