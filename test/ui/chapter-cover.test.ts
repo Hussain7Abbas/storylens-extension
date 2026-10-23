@@ -1,6 +1,7 @@
 /// <reference types="bun" />
 import { afterAll, afterEach, beforeEach, expect, test } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import { waitFor } from "@testing-library/dom";
 import type { ChapterContextRecord } from "../../src/lib/chapter-context/schema";
 import { coverChapter } from "../helpers/chapter-cover";
 import { readyCoverContext } from "../helpers/cover-context";
@@ -515,8 +516,9 @@ test("failed cover generation retries automatically and succeeds", async () => {
 	};
 	await fakeBrowser.storage.local.set({ "storylens-auto-chapter-cover": true });
 	syncChapterCover(coverChapter());
-	await tick();
-	expect(root()?.textContent).toContain("Retrying automatically");
+	await waitFor(() =>
+		expect(root()?.textContent).toContain("Retrying automatically"),
+	);
 	const details = root()?.querySelector<HTMLDetailsElement>(".error-details");
 	expect(details?.hidden).toBe(false);
 	expect(details?.open).toBe(false);

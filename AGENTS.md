@@ -133,7 +133,7 @@ Every event also carries `session_id`, `engagement_time_msec`, and `extension_ve
 
 ## Commands
 
-Publishing CI pins Bun 1.4.3, installs with `--frozen-lockfile`, and runs `bun run test:ci`. That command uses `bun test --isolate` with `test/helpers/fake-browser.ts` preloaded for every file, so DOM/module state and browser mocks never depend on file discovery order. Use Bun 1.4.3 for this CI-equivalent command; `bun run test` remains available for the shared-process local suite. Do not remove isolation or depend on another file registering `#imports`.
+Publishing CI pins Bun 1.4.3, installs with `--frozen-lockfile`, and runs `bun run test:ci`. That command uses `bun test --isolate` with `test/helpers/fake-browser.ts` preloaded for every file, so DOM/module state and browser mocks never depend on file discovery order. Use Bun 1.4.3 for this CI-equivalent command; `bun run test` remains available for the shared-process local suite. Do not remove isolation or depend on another file registering `#imports`. Selection AI requests are consumed and cancelled when their form closes; readiness changes must never replay a cleared request. Async cover tests wait for the retry state rather than assuming it appears after a fixed delay.
 
 Tests share the full browser mock from `test/helpers/fake-browser.ts`. Override individual methods only within test hooks and restore them after each test; do not replace the shared `#imports` module with a partial browser, which leaks into later files in Bun's test process.
 

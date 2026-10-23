@@ -2846,6 +2846,46 @@ describe("parallel selection suggestions and images", () => {
 		});
 	}
 
+	it("does not restart a cleared selection when AI readiness changes", async () => {
+		await pullLookups({ db: env.db, token: "token-reader-1" });
+		await pullNovel(env.novel.id, { db: env.db, token: "token-reader-1" });
+		window.history.replaceState(
+			null,
+			"",
+			`?${new URLSearchParams({
+				create: "version",
+				search: "Rand",
+				generate: "image",
+				aiContext: JSON.stringify({
+					before: "The red-haired ",
+					after: " carried a sword.",
+				}),
+			})}`,
+		);
+		const { useKeywordSuggestion } = await import(
+			"../../src/entrypoints/popup.home/tabs/coloring/use-keyword-suggestion"
+		);
+		const hook = renderHook(
+			({ enabled }) => useKeywordSuggestion(enabled, env.novel.id),
+			{ wrapper, initialProps: { enabled: true } },
+		);
+		await bothStarted();
+		act(() => hook.result.current.clear());
+		hook.rerender({ enabled: false });
+		hook.rerender({ enabled: true });
+		expect(hook.result.current.state.status).toBe("idle");
+		expect(hook.result.current.image.status).toBe("idle");
+		await act(async () => {
+			suggestion();
+			image();
+		});
+		expect(hook.result.current.state.status).toBe("idle");
+		expect(hook.result.current.image.status).toBe("idle");
+		expect(
+			requests.filter((item) => item.type === "generateAiImage"),
+		).toHaveLength(1);
+	});
+
 	it("keeps the generated image when an AI translation link loads its inherited style", async () => {
 		env.api.seedKeyword(
 			env.novel.id,

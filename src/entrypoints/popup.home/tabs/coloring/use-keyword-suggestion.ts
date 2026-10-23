@@ -148,6 +148,7 @@ export function useKeywordSuggestion(
 	});
 	const [image, setImage] = useState<SelectionImageState>({ status: "idle" });
 	const finished = useRef(false);
+	const requestController = useRef<AbortController | null>(null);
 	const imageController = useRef<AbortController | null>(null);
 	const imageStopped = useRef(false);
 	const language = toAiLanguage(i18n.language);
@@ -157,6 +158,7 @@ export function useKeywordSuggestion(
 		if (!request || !loaded || !enabled || !lookupsReady || finished.current)
 			return;
 		const controller = new AbortController();
+		requestController.current = controller;
 		const drawing = new AbortController();
 		imageController.current = drawing;
 		if (imageStopped.current) drawing.abort();
@@ -312,6 +314,8 @@ export function useKeywordSuggestion(
 		return () => {
 			controller.abort();
 			drawing.abort();
+			if (requestController.current === controller)
+				requestController.current = null;
 			if (imageController.current === drawing) imageController.current = null;
 		};
 	}, [request, enabled, loaded, lookupsReady, language, novelId, t]);
@@ -349,6 +353,10 @@ export function useKeywordSuggestion(
 			trackEvent("ai_image_generation_stopped");
 		},
 		clear: () => {
+			// Closing the form consumes this selection, even before its last promise settles.
+			finished.current = true;
+			requestController.current?.abort();
+			imageController.current?.abort();
 			setState({ status: "idle" });
 			setImage({ status: "idle" });
 		},
