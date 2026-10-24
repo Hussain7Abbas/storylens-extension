@@ -15,6 +15,7 @@ import type { PostKeywordVersions200DescriptionAr } from "./postKeywordVersions2
 import type { PostKeywordVersions200DescriptionEn } from "./postKeywordVersions200DescriptionEn";
 import type { PostKeywordVersions200EndingChapter } from "./postKeywordVersions200EndingChapter";
 import type { PostKeywordVersions200Image } from "./postKeywordVersions200Image";
+import type { PostKeywordVersions200ImageDescription } from "./postKeywordVersions200ImageDescription";
 import type { PostKeywordVersions200ImageId } from "./postKeywordVersions200ImageId";
 import type { PostKeywordVersions200ImagePrompt } from "./postKeywordVersions200ImagePrompt";
 import type { PostKeywordVersions200Nature } from "./postKeywordVersions200Nature";
@@ -31,7 +32,13 @@ export type PostKeywordVersions200 = {
 	endingChapter: PostKeywordVersions200EndingChapter;
 	categoryId: PostKeywordVersions200CategoryId;
 	natureId: PostKeywordVersions200NatureId;
-	imagePrompt: PostKeywordVersions200ImagePrompt;
+	imageDescription: PostKeywordVersions200ImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PostKeywordVersions200ImagePrompt;
 	imageId: PostKeywordVersions200ImageId;
 	keywordId: string;
 	createdById: PostKeywordVersions200CreatedById;

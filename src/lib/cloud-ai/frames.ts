@@ -7,6 +7,7 @@ export type CloudFrame = ResultFrame & {
 	balance?: number;
 	lensesCharged?: number;
 	refunded?: boolean;
+	imageDescription?: string;
 	revisedPrompt?: string;
 };
 export async function readCloudFrame(

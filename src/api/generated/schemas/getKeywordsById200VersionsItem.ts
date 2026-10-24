@@ -15,6 +15,7 @@ import type { GetKeywordsById200VersionsItemDescriptionAr } from "./getKeywordsB
 import type { GetKeywordsById200VersionsItemDescriptionEn } from "./getKeywordsById200VersionsItemDescriptionEn";
 import type { GetKeywordsById200VersionsItemEndingChapter } from "./getKeywordsById200VersionsItemEndingChapter";
 import type { GetKeywordsById200VersionsItemImage } from "./getKeywordsById200VersionsItemImage";
+import type { GetKeywordsById200VersionsItemImageDescription } from "./getKeywordsById200VersionsItemImageDescription";
 import type { GetKeywordsById200VersionsItemImageId } from "./getKeywordsById200VersionsItemImageId";
 import type { GetKeywordsById200VersionsItemImagePrompt } from "./getKeywordsById200VersionsItemImagePrompt";
 import type { GetKeywordsById200VersionsItemNature } from "./getKeywordsById200VersionsItemNature";
@@ -31,7 +32,13 @@ export type GetKeywordsById200VersionsItem = {
 	endingChapter: GetKeywordsById200VersionsItemEndingChapter;
 	categoryId: GetKeywordsById200VersionsItemCategoryId;
 	natureId: GetKeywordsById200VersionsItemNatureId;
-	imagePrompt: GetKeywordsById200VersionsItemImagePrompt;
+	imageDescription: GetKeywordsById200VersionsItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetKeywordsById200VersionsItemImagePrompt;
 	imageId: GetKeywordsById200VersionsItemImageId;
 	keywordId: string;
 	createdById: GetKeywordsById200VersionsItemCreatedById;

@@ -15,6 +15,7 @@ import type { GetKeywordVersions200DataItemDescriptionAr } from "./getKeywordVer
 import type { GetKeywordVersions200DataItemDescriptionEn } from "./getKeywordVersions200DataItemDescriptionEn";
 import type { GetKeywordVersions200DataItemEndingChapter } from "./getKeywordVersions200DataItemEndingChapter";
 import type { GetKeywordVersions200DataItemImage } from "./getKeywordVersions200DataItemImage";
+import type { GetKeywordVersions200DataItemImageDescription } from "./getKeywordVersions200DataItemImageDescription";
 import type { GetKeywordVersions200DataItemImageId } from "./getKeywordVersions200DataItemImageId";
 import type { GetKeywordVersions200DataItemImagePrompt } from "./getKeywordVersions200DataItemImagePrompt";
 import type { GetKeywordVersions200DataItemNature } from "./getKeywordVersions200DataItemNature";
@@ -31,7 +32,13 @@ export type GetKeywordVersions200DataItem = {
 	endingChapter: GetKeywordVersions200DataItemEndingChapter;
 	categoryId: GetKeywordVersions200DataItemCategoryId;
 	natureId: GetKeywordVersions200DataItemNatureId;
-	imagePrompt: GetKeywordVersions200DataItemImagePrompt;
+	imageDescription: GetKeywordVersions200DataItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetKeywordVersions200DataItemImagePrompt;
 	imageId: GetKeywordVersions200DataItemImageId;
 	keywordId: string;
 	createdById: GetKeywordVersions200DataItemCreatedById;

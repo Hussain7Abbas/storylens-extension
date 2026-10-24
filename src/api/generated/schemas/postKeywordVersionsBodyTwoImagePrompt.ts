@@ -7,6 +7,8 @@
  */
 
 /**
+ * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+ * @deprecated
  * @nullable
  */
 export type PostKeywordVersionsBodyTwoImagePrompt = string | null | null;

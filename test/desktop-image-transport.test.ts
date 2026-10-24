@@ -50,62 +50,38 @@ test("Stop during the reference capability check cannot start a later image job"
 	expect(signal.aborted).toBe(true);
 });
 for (const supported of [false, true])
-	test(`references are ${supported ? "attached for supported" : "omitted for older"} desktop companions`, async () => {
-		let body: Record<string, unknown> = {};
+	test(`structured descriptions ${supported ? "allow" : "block"} desktop image requests`, async () => {
+		let body: Record<string, unknown> | undefined;
 		globalThis.fetch = (async (url, init) => {
 			if (String(url).endsWith("/capabilities"))
 				return Response.json({
 					protocolVersion: 2,
 					models: [],
 					limits: { promptBytes: 500000 },
-					features: { imageGeneration: true, imageReferences: supported },
+					features: {
+						imageGeneration: true,
+						imageReferences: true,
+						structuredImageDescriptions: supported,
+					},
 				});
 			body = JSON.parse(String(init?.body)) as Record<string, unknown>;
 			return new Response(
-				`${JSON.stringify({
-					type: "result",
-					mimeType: "image/png",
-					data: "aW1hZ2U=",
-				})}\n`,
+				`${JSON.stringify({ type: "result", mimeType: "image/png", data: "AA==", imageDescription: "A silver-haired scout." })}\n`,
 			);
 		}) as typeof fetch;
-		expect((await generateDesktopImage(input, 5)).mimeType).toBe("image/png");
-		expect(body.referenceImageUrls).toEqual(
-			supported ? input.referenceImageUrls : undefined,
-		);
-	});
-
-for (const supported of [false, true])
-	test(`saved-description input is ${supported ? "forwarded to updated" : "omitted for legacy"} desktop companions`, async () => {
-		let body: Record<string, unknown> = {};
-		globalThis.fetch = (async (url, init) => {
-			if (String(url).endsWith("/capabilities"))
-				return Response.json({
-					protocolVersion: 2,
-					models: [],
-					limits: { promptBytes: 500000 },
-					features: { imageGeneration: true, imagePromptInput: supported },
-				});
-			body = JSON.parse(String(init?.body)) as Record<string, unknown>;
-			return new Response(
-				`${JSON.stringify({
-					type: "result",
-					mimeType: "image/png",
-					data: "AA==",
-					revisedPrompt: "An edited description",
-				})}\n`,
-			);
-		}) as typeof fetch;
-		const result = await generateDesktopImage(
-			{
-				...input,
-				referenceImageUrls: undefined,
-				prompt: "An edited description",
-				promptIsDescription: true,
-			},
+		const request = generateDesktopImage(
+			{ ...input, promptIsDescription: true },
 			5,
 		);
-		expect(result.revisedPrompt).toBe("An edited description");
-		expect(body.prompt).toBe("An edited description");
-		expect(body.promptIsDescription).toBe(supported ? true : undefined);
+		if (!supported) {
+			await expect(request).rejects.toThrow(
+				"Update the Story Lens desktop companion",
+			);
+			expect(body).toBeUndefined();
+		} else {
+			const result = await request;
+			expect(result.imageDescription).toBe("A silver-haired scout.");
+			expect(body?.referenceImageUrls).toEqual(input.referenceImageUrls);
+			expect(body?.promptIsDescription).toBeUndefined();
+		}
 	});

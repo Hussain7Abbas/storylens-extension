@@ -14,6 +14,7 @@ import type { PutKeywordAliasesById409CurrentDescription } from "./putKeywordAli
 import type { PutKeywordAliasesById409CurrentDescriptionAr } from "./putKeywordAliasesById409CurrentDescriptionAr";
 import type { PutKeywordAliasesById409CurrentDescriptionEn } from "./putKeywordAliasesById409CurrentDescriptionEn";
 import type { PutKeywordAliasesById409CurrentImage } from "./putKeywordAliasesById409CurrentImage";
+import type { PutKeywordAliasesById409CurrentImageDescription } from "./putKeywordAliasesById409CurrentImageDescription";
 import type { PutKeywordAliasesById409CurrentImageId } from "./putKeywordAliasesById409CurrentImageId";
 import type { PutKeywordAliasesById409CurrentImagePrompt } from "./putKeywordAliasesById409CurrentImagePrompt";
 import type { PutKeywordAliasesById409CurrentMainThemeColor } from "./putKeywordAliasesById409CurrentMainThemeColor";
@@ -41,7 +42,13 @@ export type PutKeywordAliasesById409Current = {
 	overrideStyle: boolean;
 	categoryId: PutKeywordAliasesById409CurrentCategoryId;
 	natureId: PutKeywordAliasesById409CurrentNatureId;
-	imagePrompt: PutKeywordAliasesById409CurrentImagePrompt;
+	imageDescription: PutKeywordAliasesById409CurrentImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PutKeywordAliasesById409CurrentImagePrompt;
 	imageId: PutKeywordAliasesById409CurrentImageId;
 	keywordId: string;
 	createdById: PutKeywordAliasesById409CurrentCreatedById;

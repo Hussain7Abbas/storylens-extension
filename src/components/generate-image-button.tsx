@@ -63,7 +63,7 @@ export function GenerateImageButton({
 	autoStart = false,
 	initialError,
 	initialRevisedPrompt,
-	imagePrompt,
+	imageDescription,
 	onPromptChange,
 	initialStopped = false,
 }: {
@@ -81,7 +81,7 @@ export function GenerateImageButton({
 	autoStart?: boolean;
 	initialError?: string;
 	initialRevisedPrompt?: string;
-	imagePrompt: string;
+	imageDescription: string;
 	onPromptChange: (prompt: string) => void;
 	initialStopped?: boolean;
 }) {
@@ -117,7 +117,7 @@ export function GenerateImageButton({
 					?.lenses ?? 0)
 			: 0;
 	const researchPrice =
-		textSource === "cloud" && needsContext && !imagePrompt.trim()
+		textSource === "cloud" && needsContext
 			? (pricing?.features.find(
 					(row) => row.key === "novel_context" && row.enabled,
 				)?.lenses ?? 0)
@@ -131,7 +131,7 @@ export function GenerateImageButton({
 	const [needsPrompt, setNeedsPrompt] = useState(false);
 	const [focusRequest, setFocusRequest] = useState(0);
 	const generateButton = useRef<HTMLButtonElement>(null);
-	const prompt = imagePrompt;
+	const prompt = imageDescription;
 	const hasPrompt = !!prompt.trim();
 	const setPrompt = onPromptChange;
 	const [stopped, setStopped] = useState(initialStopped);
@@ -186,23 +186,24 @@ export function GenerateImageButton({
 		setStopped(false);
 		setRevisedPrompt(undefined);
 		setBusyState(true);
-		// A saved or edited prompt is the exact source for every subsequent image.
+		// Every generation resolves art instructions and source context through text AI.
 		const existingPrompt = prompt.trim() ? prompt : undefined;
 		try {
 			const ai = await aiState("character_image");
 			if (abort.signal.aborted) return;
 			if (!ai.availability.ok)
 				throw new Error(t(availabilityKey(ai.availability)));
-			let submittedPrompt = existingPrompt;
+			let submittedPrompt: string;
 			let hasNovelContext: boolean | undefined;
-			if (!submittedPrompt) {
+			{
 				const language = toAiLanguage(i18n.language);
 				const [textAi, prompts, chapterText] = await Promise.all([
 					aiState("novel_context"),
 					aiPrompts(),
 					activeChapterText(),
 				]);
-				if (!chapterText.trim()) throw new Error(t("coloring.imageNoChapter"));
+				if (!chapterText.trim() && !existingPrompt)
+					throw new Error(t("coloring.imageNoChapter"));
 				const novelContext = await ensureNovelContext({
 					novelId,
 					language,
@@ -216,7 +217,11 @@ export function GenerateImageButton({
 				submittedPrompt = await withImageContinuity({
 					novelId,
 					names: [name, ...otherNames],
-					prompt: build(prompts.imagePrompt, chapterText, novelContext),
+					prompt:
+						build(prompts.imagePrompt, chapterText, novelContext) +
+						(existingPrompt
+							? `\n\nReader-edited image description (preserve the requested visual choices):\n${JSON.stringify(existingPrompt)}`
+							: ""),
 				});
 				if (abort.signal.aborted) return;
 			}
@@ -230,7 +235,7 @@ export function GenerateImageButton({
 				source: ai.source,
 				settings: ai.desktop,
 				prompt: submittedPrompt,
-				promptIsDescription: !!existingPrompt,
+
 				name,
 				signal: abort.signal,
 			});

@@ -62,8 +62,8 @@ describe("parseChapterExtraction", () => {
 		]}`;
 		expect(
 			parseChapterExtraction(output, categories, natures, ["lin"]).map(
-				({ imagePrompt, ...item }) => {
-					expect(imagePrompt).toBeUndefined();
+				({ imageDescription, ...item }) => {
+					expect(imageDescription).toBeUndefined();
 					return item;
 				},
 			),
@@ -151,12 +151,12 @@ test("keeps a visual prompt for each AI extraction draft", () => {
 					{
 						name: "Mira",
 						description: "A scout.",
-						imagePrompt: " Silver hair, blue cloak. ",
+						imageDescription: " Silver hair, blue cloak. ",
 					},
 				],
 			}),
 			categories,
 			natures,
-		)[0]?.imagePrompt,
+		)[0]?.imageDescription,
 	).toBe("Silver hair, blue cloak.");
 });

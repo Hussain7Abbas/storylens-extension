@@ -26,7 +26,7 @@ export async function chapterCoverRequest(
 				url: `${path}/prompt`,
 				method: "PUT",
 				data: {
-					imagePrompt: input.imagePrompt,
+					imageDescription: input.imageDescription,
 					baseUpdatedAt: input.baseUpdatedAt,
 				},
 			})
@@ -63,8 +63,8 @@ export async function chapterCoverRequest(
 			data: {
 				token: input.token,
 				imageId: input.imageId,
-				...(input.imagePrompt !== undefined
-					? { imagePrompt: input.imagePrompt }
+				...(input.imageDescription !== undefined
+					? { imageDescription: input.imageDescription }
 					: {}),
 			},
 		})

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 import type { PostChapterCoversByNovelIdByChapterNumberClaim200Image } from "./postChapterCoversByNovelIdByChapterNumberClaim200Image";
+import type { PostChapterCoversByNovelIdByChapterNumberClaim200ImageDescription } from "./postChapterCoversByNovelIdByChapterNumberClaim200ImageDescription";
 import type { PostChapterCoversByNovelIdByChapterNumberClaim200ImagePrompt } from "./postChapterCoversByNovelIdByChapterNumberClaim200ImagePrompt";
 import type { PostChapterCoversByNovelIdByChapterNumberClaim200PromptUpdatedAt } from "./postChapterCoversByNovelIdByChapterNumberClaim200PromptUpdatedAt";
 import type { PostChapterCoversByNovelIdByChapterNumberClaim200Token } from "./postChapterCoversByNovelIdByChapterNumberClaim200Token";
@@ -14,8 +15,14 @@ export type PostChapterCoversByNovelIdByChapterNumberClaim200 = {
 	/** @nullable */
 	image: PostChapterCoversByNovelIdByChapterNumberClaim200Image;
 	generating: boolean;
-	/** @nullable */
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
 	imagePrompt: PostChapterCoversByNovelIdByChapterNumberClaim200ImagePrompt;
+	/** @nullable */
+	imageDescription: PostChapterCoversByNovelIdByChapterNumberClaim200ImageDescription;
 	/** @nullable */
 	promptUpdatedAt: PostChapterCoversByNovelIdByChapterNumberClaim200PromptUpdatedAt;
 	canEditPrompt: boolean;

@@ -10,6 +10,7 @@ import type { PostKeywordAliasesBodyOneCategoryId } from "./postKeywordAliasesBo
 import type { PostKeywordAliasesBodyOneDescription } from "./postKeywordAliasesBodyOneDescription";
 import type { PostKeywordAliasesBodyOneDescriptionAr } from "./postKeywordAliasesBodyOneDescriptionAr";
 import type { PostKeywordAliasesBodyOneDescriptionEn } from "./postKeywordAliasesBodyOneDescriptionEn";
+import type { PostKeywordAliasesBodyOneImageDescription } from "./postKeywordAliasesBodyOneImageDescription";
 import type { PostKeywordAliasesBodyOneImageId } from "./postKeywordAliasesBodyOneImageId";
 import type { PostKeywordAliasesBodyOneImagePrompt } from "./postKeywordAliasesBodyOneImagePrompt";
 import type { PostKeywordAliasesBodyOneMainThemeColor } from "./postKeywordAliasesBodyOneMainThemeColor";
@@ -45,6 +46,12 @@ export type PostKeywordAliasesBodyOne = {
 	/** @nullable */
 	natureId?: PostKeywordAliasesBodyOneNatureId;
 	/** @nullable */
+	imageDescription?: PostKeywordAliasesBodyOneImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
 	imagePrompt?: PostKeywordAliasesBodyOneImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordAliasesBodyOneImageId;

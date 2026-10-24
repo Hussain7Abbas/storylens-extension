@@ -44,7 +44,7 @@ export type KeywordFormFields = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
-	imagePrompt?: string | null;
+	imageDescription?: string | null;
 	imageId?: string | null;
 };
 
@@ -109,17 +109,17 @@ export function keywordFormChanges(
 				...descriptions(initial),
 				categoryId: initial.categoryId,
 				natureId: initial.natureId,
-				imagePrompt: optionalText(initial.imagePrompt),
+				imageDescription: optionalText(initial.imageDescription),
 				imageId: initial.imageId ?? null,
 			},
 			{
 				...descriptions(values),
 				categoryId: values.categoryId,
 				natureId: values.natureId,
-				imagePrompt:
-					values.imagePrompt === undefined
+				imageDescription:
+					values.imageDescription === undefined
 						? undefined
-						: optionalText(values.imagePrompt),
+						: optionalText(values.imageDescription),
 				imageId:
 					values.imageId === undefined ? undefined : (values.imageId ?? null),
 			},
@@ -141,7 +141,7 @@ export type AliasFormFields = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
-	imagePrompt?: string | null;
+	imageDescription?: string | null;
 	imageId?: string | null;
 };
 
@@ -161,9 +161,9 @@ export function aliasFormChanges(
 		categoryId: fields.categoryId || null,
 		natureId: fields.natureId || null,
 		...descriptions(fields),
-		...(fields.imagePrompt === undefined
+		...(fields.imageDescription === undefined
 			? {}
-			: { imagePrompt: optionalText(fields.imagePrompt) }),
+			: { imageDescription: optionalText(fields.imageDescription) }),
 		...(fields.imageId === undefined
 			? {}
 			: { imageId: fields.imageId ?? null }),
@@ -177,7 +177,7 @@ export type VersionFormFields = {
 	description?: string | null;
 	descriptionAr?: string | null;
 	descriptionEn?: string | null;
-	imagePrompt?: string | null;
+	imageDescription?: string | null;
 	imageId?: string | null;
 	startingChapter?: number | null;
 	endingChapter?: number | null;
@@ -191,9 +191,9 @@ export function versionFormChanges(
 		categoryId: fields.categoryId || undefined,
 		natureId: fields.natureId || undefined,
 		...descriptions(fields),
-		...(fields.imagePrompt === undefined
+		...(fields.imageDescription === undefined
 			? {}
-			: { imagePrompt: optionalText(fields.imagePrompt) }),
+			: { imageDescription: optionalText(fields.imageDescription) }),
 		...(fields.imageId === undefined
 			? {}
 			: { imageId: fields.imageId ?? null }),

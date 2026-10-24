@@ -14,6 +14,7 @@ import type { GetSyncNovelsByIdChanges200AliasesItemDescription } from "./getSyn
 import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionAr } from "./getSyncNovelsByIdChanges200AliasesItemDescriptionAr";
 import type { GetSyncNovelsByIdChanges200AliasesItemDescriptionEn } from "./getSyncNovelsByIdChanges200AliasesItemDescriptionEn";
 import type { GetSyncNovelsByIdChanges200AliasesItemImage } from "./getSyncNovelsByIdChanges200AliasesItemImage";
+import type { GetSyncNovelsByIdChanges200AliasesItemImageDescription } from "./getSyncNovelsByIdChanges200AliasesItemImageDescription";
 import type { GetSyncNovelsByIdChanges200AliasesItemImageId } from "./getSyncNovelsByIdChanges200AliasesItemImageId";
 import type { GetSyncNovelsByIdChanges200AliasesItemImagePrompt } from "./getSyncNovelsByIdChanges200AliasesItemImagePrompt";
 import type { GetSyncNovelsByIdChanges200AliasesItemMainThemeColor } from "./getSyncNovelsByIdChanges200AliasesItemMainThemeColor";
@@ -41,7 +42,13 @@ export type GetSyncNovelsByIdChanges200AliasesItem = {
 	overrideStyle: boolean;
 	categoryId: GetSyncNovelsByIdChanges200AliasesItemCategoryId;
 	natureId: GetSyncNovelsByIdChanges200AliasesItemNatureId;
-	imagePrompt: GetSyncNovelsByIdChanges200AliasesItemImagePrompt;
+	imageDescription: GetSyncNovelsByIdChanges200AliasesItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetSyncNovelsByIdChanges200AliasesItemImagePrompt;
 	imageId: GetSyncNovelsByIdChanges200AliasesItemImageId;
 	keywordId: string;
 	createdById: GetSyncNovelsByIdChanges200AliasesItemCreatedById;

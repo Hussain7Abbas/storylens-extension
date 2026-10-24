@@ -34,7 +34,7 @@ export async function generateCharacterImage(input: {
 	settings: DesktopSettings;
 	prompt: string;
 	name: string;
-	/** Reuse a saved/edited description directly on sources that support it. */
+	/** Legacy hint accepted by transports; text preparation is still mandatory. */
 	promptIsDescription?: boolean;
 	signal: AbortSignal;
 }): Promise<GeneratedCharacterImage> {
@@ -63,8 +63,7 @@ export async function generateCharacterImage(input: {
 		);
 		input.signal.throwIfAborted();
 		const prompt =
-			image.revisedPrompt?.trim() ||
-			(input.promptIsDescription ? input.prompt : undefined);
+			image.imageDescription?.trim() || image.revisedPrompt?.trim();
 		return {
 			prompt,
 			file: base64File(image.data, image.mimeType, input.name),

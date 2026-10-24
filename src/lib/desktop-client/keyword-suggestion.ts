@@ -7,7 +7,7 @@ export type KeywordContext = { before: string; after: string };
 
 export type KeywordSuggestion = {
 	description: string;
-	imagePrompt?: string;
+	imageDescription?: string;
 	categoryId?: string;
 	natureId?: string;
 	/**
@@ -128,13 +128,13 @@ export function buildKeywordSuggestionPrompt(input: {
 	return `You help a reader tag a named entity in a web novel. The picked text is "${name}"; in the excerpt it is wrapped in <<< >>>. Using the excerpt, with the novel context as background, work out who or what it is.
 
 ${instructionSection(input.instructions)}
-${input.imageInstructions?.trim() ? `\nArt instructions for imagePrompt only:\n${input.imageInstructions.trim()}\nWrite the resulting visual description in imagePrompt; do not copy these instructions or chapter/context source blocks into it.` : ""}
+${input.imageInstructions?.trim() ? `\nArt instructions for imageDescription only:\n${input.imageInstructions.trim()}\nWrite the resulting visual description in imageDescription; do not copy these instructions or chapter/context source blocks into it.` : ""}
 
 Return only one JSON object, without Markdown fences:
-{"description": string, "imagePrompt": string, "category": number, "nature": number${hasTranslations ? ', "translation": number' : ""}}
+{"description": string, "imageDescription": string, "category": number, "nature": number${hasTranslations ? ', "translation": number' : ""}}
 
 - description: the entity description, written as the AI instructions ask.
-- imagePrompt: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
+- imageDescription: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
 - category: the number of the best matching category below.
 - nature: the number of the best matching nature below.
 ${translationSection(input.translations)}
@@ -179,7 +179,7 @@ export function parseKeywordSuggestion(
 		throw new Error("The AI answer did not contain a suggestion.");
 	let data: {
 		description?: unknown;
-		imagePrompt?: unknown;
+		imageDescription?: unknown;
 		category?: unknown;
 		nature?: unknown;
 		translation?: unknown;
@@ -196,9 +196,9 @@ export function parseKeywordSuggestion(
 	return {
 		description:
 			typeof data.description === "string" ? data.description.trim() : "",
-		imagePrompt:
-			typeof data.imagePrompt === "string" && data.imagePrompt.trim()
-				? data.imagePrompt.trim().slice(0, 180000)
+		imageDescription:
+			typeof data.imageDescription === "string" && data.imageDescription.trim()
+				? data.imageDescription.trim().slice(0, 180000)
 				: undefined,
 		categoryId: pickOption(categories, data.category),
 		natureId: pickOption(natures, data.nature),

@@ -12,6 +12,7 @@ import type { DeleteKeywordAliasesById200CreatedById } from "./deleteKeywordAlia
 import type { DeleteKeywordAliasesById200Description } from "./deleteKeywordAliasesById200Description";
 import type { DeleteKeywordAliasesById200DescriptionAr } from "./deleteKeywordAliasesById200DescriptionAr";
 import type { DeleteKeywordAliasesById200DescriptionEn } from "./deleteKeywordAliasesById200DescriptionEn";
+import type { DeleteKeywordAliasesById200ImageDescription } from "./deleteKeywordAliasesById200ImageDescription";
 import type { DeleteKeywordAliasesById200ImageId } from "./deleteKeywordAliasesById200ImageId";
 import type { DeleteKeywordAliasesById200ImagePrompt } from "./deleteKeywordAliasesById200ImagePrompt";
 import type { DeleteKeywordAliasesById200MainThemeColor } from "./deleteKeywordAliasesById200MainThemeColor";
@@ -38,7 +39,13 @@ export type DeleteKeywordAliasesById200 = {
 	overrideStyle: boolean;
 	categoryId: DeleteKeywordAliasesById200CategoryId;
 	natureId: DeleteKeywordAliasesById200NatureId;
-	imagePrompt: DeleteKeywordAliasesById200ImagePrompt;
+	imageDescription: DeleteKeywordAliasesById200ImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: DeleteKeywordAliasesById200ImagePrompt;
 	imageId: DeleteKeywordAliasesById200ImageId;
 	keywordId: string;
 	createdById: DeleteKeywordAliasesById200CreatedById;

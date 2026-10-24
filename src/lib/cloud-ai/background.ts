@@ -153,6 +153,7 @@ export async function generateCloudImage(
 	return {
 		data: result.data,
 		mimeType: result.mimeType,
+		imageDescription: result.imageDescription,
 		revisedPrompt: result.revisedPrompt,
 	};
 }

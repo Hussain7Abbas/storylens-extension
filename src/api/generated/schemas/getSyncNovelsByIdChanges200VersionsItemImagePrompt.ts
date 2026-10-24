@@ -6,4 +6,12 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type GetSyncNovelsByIdChanges200VersionsItemImagePrompt = null | string;
+/**
+ * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+ * @deprecated
+ * @nullable
+ */
+export type GetSyncNovelsByIdChanges200VersionsItemImagePrompt =
+	| string
+	| null
+	| null;

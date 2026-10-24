@@ -34,6 +34,38 @@ test("normal tracking reads a single previous context and no bulk when elements 
 	expect(bulk).toBe(0);
 });
 
+test("newest returning elements are prioritized before the 80-element history cap", async () => {
+	const lastSeen: ContextTracking["lastSeen"] = Array.from(
+		{ length: 80 },
+		(_, index) => ({
+			entityKey: `name:older${index}`,
+			name: `Older ${index}`,
+			keywordId: null,
+			lastSeenChapter: 1,
+		}),
+	);
+	lastSeen.push({
+		entityKey: "name:shield",
+		name: "Shield",
+		keywordId: null,
+		lastSeenChapter: 19,
+	});
+	const requests: string[][] = [];
+	await loadContextHistory(
+		{ ...input, entityKeys: lastSeen.map((row) => row.entityKey) },
+		{
+			tracking: async () => ({ previous: null, lastSeen }),
+			bulk: async ({ entityKeys }) => {
+				requests.push(entityKeys);
+				return [];
+			},
+		},
+	);
+	expect(requests[0]).toHaveLength(80);
+	expect(requests[0]?.[0]).toBe("name:shield");
+	expect(lastSeen.at(-1)?.entityKey).toBe("name:shield");
+});
+
 test("returning registered and unregistered elements are fetched once by deduplicated chapter numbers", async () => {
 	const lastSeen: ContextTracking["lastSeen"] = [
 		{
@@ -86,11 +118,11 @@ test("returning registered and unregistered elements are fetched once by dedupli
 			},
 		},
 	);
-	expect(calls).toEqual([[2, 3]]);
+	expect(calls).toEqual([[3, 2]]);
 	expect(result.lastMentions.map((entity) => entity.entityKey)).toEqual([
+		"name:محمد",
 		"name:mira",
 		"name:leo",
-		"name:محمد",
 	]);
 	expect(result.chapters).toHaveLength(1);
 	expect(JSON.stringify(result)).not.toContain('"chapterNumber":21');

@@ -4,7 +4,7 @@ import { novelContextSection } from "./novel-context-prompt";
 
 /** Characters kept around each mention of the entity in the chapter. */
 const MENTION_RADIUS = 600;
-/** Upper bound for all chapter excerpts in one image prompt. */
+/** Upper bound for all chapter excerpts in one image description. */
 const MENTIONS_CHARS = 8_000;
 
 /**
@@ -48,7 +48,7 @@ export function buildCharacterImagePrompt(input: {
 	otherNames: string[];
 	description: string;
 	category?: string;
-	/** Reader's image prompt from Settings → AI; it takes priority over the context. */
+	/** Reader's image description from Settings → AI; it takes priority over the context. */
 	instructions: string;
 	chapterExcerpts: string[];
 	novelContext: string;

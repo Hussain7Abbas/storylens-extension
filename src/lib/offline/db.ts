@@ -13,14 +13,14 @@ import type {
 	SyncMetaRow,
 	VersionRow,
 } from "@/lib/offline/types";
+import { migrateImageDescription } from "./image-description";
 
 export const OFFLINE_DB_NAME = "storylens";
 
 /**
  * The extension's local store, shared by every extension context (IndexedDB
  * transactions are atomic across them). Snapshot tables hold server rows only;
- * `mutations` is the outbox. One schema, no upgrade chain: a schema change that
- * needs a data change gets its own, explicitly planned migration.
+ * `mutations` is the outbox. Version 2 migrates saved image descriptions and queued edits without changing indexes.
  */
 export class StoryLensDatabase extends Dexie {
 	novels!: EntityTable<CatalogNovel, "id">;
@@ -55,6 +55,27 @@ export class StoryLensDatabase extends Dexie {
 			syncMeta: "key",
 			files: "id, mutationId",
 		});
+		this.version(2)
+			.stores({})
+			.upgrade(async (transaction) => {
+				for (const table of [
+					"keywordAliases",
+					"keywordVersions",
+					"mutations",
+				]) {
+					await transaction
+						.table(table)
+						.toCollection()
+						.modify((row: Record<string, unknown>) => {
+							const migrated = migrateImageDescription(row) as Record<
+								string,
+								unknown
+							>;
+							for (const key of Object.keys(row)) delete row[key];
+							Object.assign(row, migrated);
+						});
+				}
+			});
 	}
 }
 

@@ -14,6 +14,7 @@ import type { GetKeywordAliases200DataItemDescription } from "./getKeywordAliase
 import type { GetKeywordAliases200DataItemDescriptionAr } from "./getKeywordAliases200DataItemDescriptionAr";
 import type { GetKeywordAliases200DataItemDescriptionEn } from "./getKeywordAliases200DataItemDescriptionEn";
 import type { GetKeywordAliases200DataItemImage } from "./getKeywordAliases200DataItemImage";
+import type { GetKeywordAliases200DataItemImageDescription } from "./getKeywordAliases200DataItemImageDescription";
 import type { GetKeywordAliases200DataItemImageId } from "./getKeywordAliases200DataItemImageId";
 import type { GetKeywordAliases200DataItemImagePrompt } from "./getKeywordAliases200DataItemImagePrompt";
 import type { GetKeywordAliases200DataItemMainThemeColor } from "./getKeywordAliases200DataItemMainThemeColor";
@@ -41,7 +42,13 @@ export type GetKeywordAliases200DataItem = {
 	overrideStyle: boolean;
 	categoryId: GetKeywordAliases200DataItemCategoryId;
 	natureId: GetKeywordAliases200DataItemNatureId;
-	imagePrompt: GetKeywordAliases200DataItemImagePrompt;
+	imageDescription: GetKeywordAliases200DataItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetKeywordAliases200DataItemImagePrompt;
 	imageId: GetKeywordAliases200DataItemImageId;
 	keywordId: string;
 	createdById: GetKeywordAliases200DataItemCreatedById;

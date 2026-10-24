@@ -1,7 +1,7 @@
 import { Copy, createElement } from "lucide";
 
 export type CoverPromptLabels = {
-	imagePrompt: string;
+	imageDescription: string;
 	savePrompt: string;
 	reloadPrompt: string;
 	expandPrompt: string;
@@ -36,7 +36,7 @@ export function createCoverPromptEditor(text: CoverPromptLabels) {
 	const section = document.createElement("details");
 	section.className = "prompt-section";
 	const summary = document.createElement("summary");
-	summary.textContent = text.imagePrompt;
+	summary.textContent = text.imageDescription;
 	summary.id = `storylens-cover-prompt-label-${crypto.randomUUID()}`;
 	const editor = document.createElement("div");
 	editor.className = "prompt-editor";

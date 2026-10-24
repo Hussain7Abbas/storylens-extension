@@ -15,6 +15,7 @@ import type { GetSyncNovelsByIdChanges200VersionsItemDescriptionAr } from "./get
 import type { GetSyncNovelsByIdChanges200VersionsItemDescriptionEn } from "./getSyncNovelsByIdChanges200VersionsItemDescriptionEn";
 import type { GetSyncNovelsByIdChanges200VersionsItemEndingChapter } from "./getSyncNovelsByIdChanges200VersionsItemEndingChapter";
 import type { GetSyncNovelsByIdChanges200VersionsItemImage } from "./getSyncNovelsByIdChanges200VersionsItemImage";
+import type { GetSyncNovelsByIdChanges200VersionsItemImageDescription } from "./getSyncNovelsByIdChanges200VersionsItemImageDescription";
 import type { GetSyncNovelsByIdChanges200VersionsItemImageId } from "./getSyncNovelsByIdChanges200VersionsItemImageId";
 import type { GetSyncNovelsByIdChanges200VersionsItemImagePrompt } from "./getSyncNovelsByIdChanges200VersionsItemImagePrompt";
 import type { GetSyncNovelsByIdChanges200VersionsItemNature } from "./getSyncNovelsByIdChanges200VersionsItemNature";
@@ -31,7 +32,13 @@ export type GetSyncNovelsByIdChanges200VersionsItem = {
 	endingChapter: GetSyncNovelsByIdChanges200VersionsItemEndingChapter;
 	categoryId: GetSyncNovelsByIdChanges200VersionsItemCategoryId;
 	natureId: GetSyncNovelsByIdChanges200VersionsItemNatureId;
-	imagePrompt: GetSyncNovelsByIdChanges200VersionsItemImagePrompt;
+	imageDescription: GetSyncNovelsByIdChanges200VersionsItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetSyncNovelsByIdChanges200VersionsItemImagePrompt;
 	imageId: GetSyncNovelsByIdChanges200VersionsItemImageId;
 	keywordId: string;
 	createdById: GetSyncNovelsByIdChanges200VersionsItemCreatedById;

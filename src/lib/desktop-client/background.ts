@@ -252,30 +252,23 @@ export async function generateDesktopImage(
 		data.requestId,
 		tabId,
 		async (settings, signal) => {
-			let references: string[] | undefined;
-			let promptIsDescription = false;
-			if (data.referenceImageUrls?.length || data.promptIsDescription) {
-				const response = await request("/capabilities", settings, {
-					signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]),
-				});
-				const capabilities: unknown = await response.json();
-				if (
-					isCapabilities(capabilities) &&
-					capabilities.features?.imageReferences
-				)
-					references = data.referenceImageUrls;
-				if (
-					isCapabilities(capabilities) &&
-					capabilities.features?.imagePromptInput
-				)
-					promptIsDescription = data.promptIsDescription === true;
-			}
+			const response = await request("/capabilities", settings, {
+				signal: AbortSignal.any([signal, AbortSignal.timeout(20_000)]),
+			});
+			const capabilities: unknown = await response.json();
+			if (
+				!isCapabilities(capabilities) ||
+				!capabilities.features?.structuredImageDescriptions
+			)
+				throw new Error(
+					"Update the Story Lens desktop companion to generate images with structured image descriptions.",
+				);
+			const references = data.referenceImageUrls;
 			return {
 				prompt: data.prompt,
 				model: data.model,
 				effort: data.effort,
 				...(references ? { referenceImageUrls: references } : {}),
-				...(promptIsDescription ? { promptIsDescription: true } : {}),
 			};
 		},
 		{ timeoutMs: 360_000, maxBytes: 12_000_000 },
@@ -289,6 +282,9 @@ export async function generateDesktopImage(
 			return {
 				mimeType: frame.mimeType,
 				data: frame.data,
+				...(typeof frame.imageDescription === "string"
+					? { imageDescription: frame.imageDescription }
+					: {}),
 				...(typeof frame.revisedPrompt === "string"
 					? { revisedPrompt: frame.revisedPrompt }
 					: {}),

@@ -16,7 +16,7 @@ export type SuggestedParent = { name: string; relation: ParentRelation };
 export type ExtractedKeyword = {
 	name: string;
 	description: string;
-	imagePrompt?: string;
+	imageDescription?: string;
 	categoryId?: string;
 	natureId?: string;
 	/** Set when the AI suspects the name is an alias or version of a known name or of another listed item. */
@@ -55,14 +55,14 @@ export function buildChapterExtractionPrompt(input: {
 	return `You help a reader build a character list for a web novel. Read the chapter below and list the named entities in it that fit one of the categories: people, places, skills, items, and similar named things.
 
 ${instructionSection(input.instructions)}
-${input.imageInstructions?.trim() ? `\nArt instructions for imagePrompt only:\n${input.imageInstructions.trim()}\nWrite the resulting visual description in imagePrompt; do not copy these instructions or chapter/context source blocks into it.` : ""}
+${input.imageInstructions?.trim() ? `\nArt instructions for imageDescription only:\n${input.imageInstructions.trim()}\nWrite the resulting visual description in imageDescription; do not copy these instructions or chapter/context source blocks into it.` : ""}
 
 Return only one JSON object, without Markdown fences:
-{"items": [{"name": string, "description": string, "imagePrompt": string, "category": number, "nature": number, "parent": string | null, "relation": "alias" | "version" | null}]}
+{"items": [{"name": string, "description": string, "imageDescription": string, "category": number, "nature": number, "parent": string | null, "relation": "alias" | "version" | null}]}
 
 - name: exactly as it is written in the chapter.
 - description: the entity description, written as the AI instructions ask.
-- imagePrompt: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
+- imageDescription: a self-contained illustration prompt describing this entity’s appearance, clothing, pose, setting and style from the available details. Do not invent unsupported identity details.
 - category: the number of the best matching category below.
 - nature: the number of the best matching nature below.
 - List each entity once. Skip these names, which are already known: ${knownNameList(input.knownNames)}
@@ -130,9 +130,10 @@ export function parseChapterExtraction(
 			name,
 			description:
 				typeof entry.description === "string" ? entry.description.trim() : "",
-			imagePrompt:
-				typeof entry.imagePrompt === "string" && entry.imagePrompt.trim()
-					? entry.imagePrompt.trim().slice(0, 180000)
+			imageDescription:
+				typeof entry.imageDescription === "string" &&
+				entry.imageDescription.trim()
+					? entry.imageDescription.trim().slice(0, 180000)
 					: undefined,
 			categoryId: pickOption(categories, entry.category),
 			natureId: pickOption(natures, entry.nature),

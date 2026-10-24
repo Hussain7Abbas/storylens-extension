@@ -31,12 +31,17 @@ export async function loadContextHistory(
 			? tracking.previous
 			: null;
 	const keys = new Set(input.entityKeys);
-	const returning = tracking.lastSeen
+	const returning = [...tracking.lastSeen]
+		.sort((a, b) => b.lastSeenChapter - a.lastSeenChapter)
 		.filter(
 			(entity) =>
 				entity.lastSeenChapter < input.chapterNumber &&
 				(keys.has(entity.entityKey) ||
 					(!!input.text && mentioned(input.text, entity.name))),
+		)
+		.filter(
+			(entity, index, all) =>
+				all.findIndex((row) => row.entityKey === entity.entityKey) === index,
 		)
 		.slice(0, 80);
 	// A predecessor older than ten chapters is used only for elements explicitly returning now.

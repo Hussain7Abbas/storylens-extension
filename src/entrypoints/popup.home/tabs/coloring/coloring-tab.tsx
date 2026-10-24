@@ -72,7 +72,7 @@ type StackFrame = (
 ) & {
 	generatedImage?: GeneratedCharacterImage;
 	imageError?: string;
-	imagePrompt?: string;
+	imageDescription?: string;
 	imageStopped?: boolean;
 	suggestionError?: string;
 };
@@ -158,7 +158,7 @@ export function ColoringTab({
 		const suggestion =
 			aiSuggestion.status === "ready" ? aiSuggestion.suggestion : undefined;
 		const imageResult = {
-			imagePrompt: aiImage.prompt,
+			imageDescription: aiImage.prompt,
 			imageStopped: aiImage.status === "stopped",
 			generatedImage: aiImage.status === "ready" ? aiImage : undefined,
 			imageError: aiImage.status === "error" ? aiImage.message : undefined,

@@ -6,4 +6,9 @@
  * OpenAPI spec version: 0.0.0
  */
 
-export type PutKeywordAliasesById409CurrentImagePrompt = null | string;
+/**
+ * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+ * @deprecated
+ * @nullable
+ */
+export type PutKeywordAliasesById409CurrentImagePrompt = string | null | null;

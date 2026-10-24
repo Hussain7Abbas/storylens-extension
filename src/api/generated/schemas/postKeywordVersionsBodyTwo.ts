@@ -9,6 +9,7 @@ import type { PostKeywordVersionsBodyTwoDescription } from "./postKeywordVersion
 import type { PostKeywordVersionsBodyTwoDescriptionAr } from "./postKeywordVersionsBodyTwoDescriptionAr";
 import type { PostKeywordVersionsBodyTwoDescriptionEn } from "./postKeywordVersionsBodyTwoDescriptionEn";
 import type { PostKeywordVersionsBodyTwoEndingChapter } from "./postKeywordVersionsBodyTwoEndingChapter";
+import type { PostKeywordVersionsBodyTwoImageDescription } from "./postKeywordVersionsBodyTwoImageDescription";
 import type { PostKeywordVersionsBodyTwoImageId } from "./postKeywordVersionsBodyTwoImageId";
 import type { PostKeywordVersionsBodyTwoImagePrompt } from "./postKeywordVersionsBodyTwoImagePrompt";
 
@@ -24,6 +25,12 @@ export type PostKeywordVersionsBodyTwo = {
 	/** @nullable */
 	descriptionEn?: PostKeywordVersionsBodyTwoDescriptionEn;
 	/** @nullable */
+	imageDescription?: PostKeywordVersionsBodyTwoImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
 	imagePrompt?: PostKeywordVersionsBodyTwoImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordVersionsBodyTwoImageId;

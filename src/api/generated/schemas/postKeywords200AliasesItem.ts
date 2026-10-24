@@ -14,6 +14,7 @@ import type { PostKeywords200AliasesItemDescription } from "./postKeywords200Ali
 import type { PostKeywords200AliasesItemDescriptionAr } from "./postKeywords200AliasesItemDescriptionAr";
 import type { PostKeywords200AliasesItemDescriptionEn } from "./postKeywords200AliasesItemDescriptionEn";
 import type { PostKeywords200AliasesItemImage } from "./postKeywords200AliasesItemImage";
+import type { PostKeywords200AliasesItemImageDescription } from "./postKeywords200AliasesItemImageDescription";
 import type { PostKeywords200AliasesItemImageId } from "./postKeywords200AliasesItemImageId";
 import type { PostKeywords200AliasesItemImagePrompt } from "./postKeywords200AliasesItemImagePrompt";
 import type { PostKeywords200AliasesItemMainThemeColor } from "./postKeywords200AliasesItemMainThemeColor";
@@ -41,7 +42,13 @@ export type PostKeywords200AliasesItem = {
 	overrideStyle: boolean;
 	categoryId: PostKeywords200AliasesItemCategoryId;
 	natureId: PostKeywords200AliasesItemNatureId;
-	imagePrompt: PostKeywords200AliasesItemImagePrompt;
+	imageDescription: PostKeywords200AliasesItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PostKeywords200AliasesItemImagePrompt;
 	imageId: PostKeywords200AliasesItemImageId;
 	keywordId: string;
 	createdById: PostKeywords200AliasesItemCreatedById;

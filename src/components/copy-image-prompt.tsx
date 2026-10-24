@@ -37,13 +37,13 @@ export function CopyImagePrompt({
 	}, [focusRequest]);
 	return (
 		<details ref={details}>
-			<summary>{t("desktop.imagePrompt")}</summary>
+			<summary>{t("desktop.imageDescription")}</summary>
 			<Stack gap={4} maw="100%" mt="xs">
 				<div className={classes.editor} data-expanded={expanded}>
 					<Textarea
 						id={id}
 						ref={input}
-						aria-label={t("desktop.imagePrompt")}
+						aria-label={t("desktop.imageDescription")}
 						dir="auto"
 						value={value}
 						onChange={(event) => onChange(event.currentTarget.value)}
@@ -121,8 +121,8 @@ export function CopyImagePrompt({
 					<Text size="xs" role="status">
 						{t(
 							current.copied
-								? "coloring.imagePromptCopied"
-								: "coloring.imagePromptCopyFailed",
+								? "coloring.imageDescriptionCopied"
+								: "coloring.imageDescriptionCopyFailed",
 						)}
 					</Text>
 				)}

@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-21
+Last updated: 2026-10-24
 
 ## Store listing
 
@@ -130,3 +130,9 @@ For release steps see [the publishing runbook](../../docs/publishing.md). New li
 2026-10-18 image prompt controls — Empty-prompt image requests ask the reader to Extract With AI at the normal generation price or provide a prompt manually. Prompt editors use a 100px expandable preview and a hover/focus copy icon (always visible on touch). Copying no longer prepares an empty prompt. Refresh editor screenshots for the compact layout.
 
 2026-10-18 dropdown recovery — Category and nature menus recover from display errors with a basic list while keeping the rest of the form and its unsaved work available. Unexpected view errors show a localized explanation and Reload action instead of an empty popup. Refresh error-state/editor screenshots if showing these recovery states. Package version, browser permissions and submission status are unchanged.
+
+
+2026-10-24 image descriptions — Renamed per-image editors to Image Description, separate from shared art instructions. Every generation and regeneration first resolves a visual description and selects relevant reference images. Saved artwork retains that description; source chapter/context stays transient. Existing descriptions and unsynced edits migrate without data loss. Desktop image generation requires an updated companion. Refresh character and chapter-cover editor screenshots before submission. Package version, permissions and submission status are unchanged.
+
+
+2026-10-24 scene-aware equipment continuity — Chapter context and image descriptions prioritize the current scene and latest earlier element state. Battle-only gear is reassessed after changes of activity or setting, while supported continuing outfits, identity and lasting injuries remain consistent. This applies to all keywords/elements. Saved contexts are not automatically regenerated and no new background AI action or permission is added.

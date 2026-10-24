@@ -10,6 +10,7 @@ import type { PostKeywordsBodyThreeDescription } from "./postKeywordsBodyThreeDe
 import type { PostKeywordsBodyThreeDescriptionAr } from "./postKeywordsBodyThreeDescriptionAr";
 import type { PostKeywordsBodyThreeDescriptionEn } from "./postKeywordsBodyThreeDescriptionEn";
 import type { PostKeywordsBodyThreeEndingChapter } from "./postKeywordsBodyThreeEndingChapter";
+import type { PostKeywordsBodyThreeImageDescription } from "./postKeywordsBodyThreeImageDescription";
 import type { PostKeywordsBodyThreeImageId } from "./postKeywordsBodyThreeImageId";
 import type { PostKeywordsBodyThreeImagePrompt } from "./postKeywordsBodyThreeImagePrompt";
 import type { PostKeywordsBodyThreeMainThemeColor } from "./postKeywordsBodyThreeMainThemeColor";
@@ -51,6 +52,12 @@ export type PostKeywordsBodyThree = {
 	categoryId: string;
 	natureId: string;
 	/** @nullable */
+	imageDescription?: PostKeywordsBodyThreeImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
 	imagePrompt?: PostKeywordsBodyThreeImagePrompt;
 	/** @nullable */
 	imageId?: PostKeywordsBodyThreeImageId;

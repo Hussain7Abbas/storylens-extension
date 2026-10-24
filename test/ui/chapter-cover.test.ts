@@ -95,7 +95,7 @@ beforeEach(async () => {
 					? { id: "cover", url: "https://images.example.invalid/cover.png" }
 					: null,
 				generating: waiting,
-				imagePrompt: storedPrompt,
+				imageDescription: storedPrompt,
 				promptUpdatedAt:
 					hasCover || waiting
 						? new Date(promptRevision * 1000).toISOString()
@@ -114,15 +114,15 @@ beforeEach(async () => {
 					},
 				};
 			if (action === "savePrompt") {
-				storedPrompt = String(data.data?.imagePrompt).trim() || null;
+				storedPrompt = String(data.data?.imageDescription).trim() || null;
 				promptRevision++;
 				return { res: cover() };
 			}
 			if (action === "publish") {
 				hasCover = true;
 				storedPrompt =
-					typeof data.data?.imagePrompt === "string"
-						? data.data.imagePrompt
+					typeof data.data?.imageDescription === "string"
+						? data.data.imageDescription
 						: null;
 				promptRevision++;
 				return { res: cover() };
@@ -233,7 +233,7 @@ test("a saved cover is a bare image with its actions inside the corner disclosur
 	expect(menu?.querySelector("summary")?.getAttribute("aria-label")).toBe(
 		"Chapter cover actions",
 	);
-	expect(menu?.contains(button("Copy image prompt") ?? null)).toBe(true);
+	expect(menu?.contains(button("Copy image description") ?? null)).toBe(true);
 	expect(menu?.querySelector("a")?.textContent).toBe("Download image");
 });
 test("cover actions dismiss with Escape or an outside pointer, returning keyboard focus on Escape", async () => {
@@ -244,7 +244,7 @@ test("cover actions dismiss with Escape or an outside pointer, returning keyboar
 	const trigger = menu?.querySelector("summary");
 	if (!menu || !trigger) throw new Error("Cover actions missing");
 	menu.open = true;
-	button("Copy image prompt")?.dispatchEvent(
+	button("Copy image description")?.dispatchEvent(
 		new KeyboardEvent("keydown", {
 			key: "Escape",
 			bubbles: true,
@@ -295,7 +295,7 @@ test("auto mode generates once, includes references, saves shared artwork and th
 		"https://images.example.invalid/armored-mira.png",
 	]);
 	expect(sent.some((item) => item.data?.action === "publish")).toBe(true);
-	expect(button("Copy image prompt")?.disabled).toBe(false);
+	expect(button("Copy image description")?.disabled).toBe(false);
 	clearChapterCover();
 	syncChapterCover(coverChapter());
 	await tick();
@@ -376,7 +376,7 @@ test("a stale restart claim waits without starting an image request or automatic
 					image: null,
 					generating: true,
 					canRestart: true,
-					imagePrompt: null,
+					imageDescription: null,
 					promptUpdatedAt: new Date(promptRevision * 1000).toISOString(),
 					token: null,
 				},
@@ -431,7 +431,7 @@ test("restart uses the latest lease revision while retaining a locally edited im
 	button("Regenerate background image")?.click();
 	await tick();
 	await tick();
-	expect(input.value).toBe("A scout in green robes.");
+	expect(input.value).toContain("A scout in green robes.");
 	button("Regenerate background image")?.click();
 	await tick();
 	await tick();
@@ -441,7 +441,7 @@ test("restart uses the latest lease revision while retaining a locally edited im
 	).toBe(new Date(2000).toISOString());
 	expect(
 		sent.find((item) => item.type === "generateAiImage")?.data?.prompt,
-	).toBe("A scout in green robes.");
+	).toContain("A scout in green robes.");
 	button("Stop")?.click();
 });
 test("Stop cancels the image request, releases the lease and ignores a late result", async () => {
@@ -692,7 +692,7 @@ test("cover Copy uses the AI visual description without rebuilding the chapter b
 		const contextRequests = sent.filter(
 			(item) => item.type === "readChapterContext",
 		).length;
-		button("Copy image prompt")?.click();
+		button("Copy image description")?.click();
 		await tick();
 		expect(copied).toEqual(["A scout raises her sword on a moonlit bridge."]);
 		expect(
@@ -720,17 +720,17 @@ test("saved cover descriptions load after reload, can be edited and saved withou
 	if (!input) throw new Error("Missing prompt editor");
 	input.value = "A scout under two blue moons.";
 	input.dispatchEvent(new Event("input", { bubbles: true }));
-	expect(button("Save prompt")?.disabled).toBe(false);
-	button("Save prompt")?.click();
+	expect(button("Save description")?.disabled).toBe(false);
+	button("Save description")?.click();
 	await tick();
 	expect(storedPrompt).toBe(input.value);
 	expect(
 		sent.find((item) => item.data?.action === "savePrompt")?.data,
 	).toMatchObject({
-		imagePrompt: input.value,
+		imageDescription: input.value,
 		baseUpdatedAt: new Date(1000).toISOString(),
 	});
-	expect(root()?.textContent).toContain("Image prompt saved.");
+	expect(root()?.textContent).toContain("Image description saved.");
 	clearChapterCover();
 	syncChapterCover(coverChapter());
 	await tick();
@@ -741,28 +741,39 @@ test("saved cover descriptions load after reload, can be edited and saved withou
 	expect(sent.some((item) => item.type === "executeAiPrompt")).toBe(false);
 });
 
-test("regeneration sends the edited description exactly, without waiting for chapter context, and publishes it with the image", async () => {
+test("regeneration waits for context and resolves the edited description with source material", async () => {
 	hasCover = true;
 	storedPrompt = "A scout on a bridge.";
-	contextRecord = { ...contextRecord, generating: true, context: null };
+	const ready = contextRecord;
+	contextRecord = { ...ready, generating: true, context: null };
 	syncChapterCover(coverChapter());
 	await tick();
 	const input = root()?.querySelector("textarea");
-	if (!input) throw new Error("Missing prompt editor");
+	if (!input) throw new Error("Missing description editor");
 	const edited = "A scout on an empty bridge at dawn. Add a green cloak.";
 	input.value = edited;
 	input.dispatchEvent(new Event("input", { bubbles: true }));
 	button("Regenerate background image")?.click();
 	await tick();
-	await tick();
+	expect(sent.some((item) => item.type === "generateAiImage")).toBe(false);
+	expect(sent.some((item) => item.type === "readChapterContext")).toBe(true);
+	contextRecord = ready;
+	await waitFor(
+		() =>
+			expect(sent.some((item) => item.type === "generateAiImage")).toBe(true),
+		{ timeout: 4000 },
+	);
+	const request = sent.find((item) => item.type === "generateAiImage")?.data;
+	expect(request?.prompt).toContain(edited);
+	expect(request?.prompt).toContain("<CURRENT_CHAPTER_CONTEXT>");
+	expect(request?.promptIsDescription).toBeUndefined();
+	await waitFor(() =>
+		expect(storedPrompt).toBe("A scout raises her sword on a moonlit bridge."),
+	);
 	expect(
-		sent.find((item) => item.type === "generateAiImage")?.data,
-	).toMatchObject({ prompt: edited, promptIsDescription: true });
-	expect(sent.some((item) => item.type === "readChapterContext")).toBe(false);
-	expect(
-		sent.find((item) => item.data?.action === "publish")?.data?.imagePrompt,
-	).toBe(edited);
-	expect(storedPrompt).toBe(edited);
+		sent.find((item) => item.data?.action === "publish")?.data
+			?.imageDescription,
+	).toBe(storedPrompt);
 });
 
 test("failed prompt saves preserve the draft and discarding reloads the latest saved description", async () => {
@@ -781,7 +792,7 @@ test("failed prompt saves preserve the draft and discarding reloads the latest s
 	if (!input) throw new Error("Missing prompt editor");
 	input.value = "My unsaved tweak";
 	input.dispatchEvent(new Event("input", { bubbles: true }));
-	button("Save prompt")?.click();
+	button("Save description")?.click();
 	await tick();
 	expect(input.value).toBe("My unsaved tweak");
 	expect(input.readOnly).toBe(false);
@@ -793,7 +804,7 @@ test("failed prompt saves preserve the draft and discarding reloads the latest s
 	button("Discard changes")?.click();
 	await tick();
 	expect(input.value).toBe(storedPrompt);
-	expect(button("Save prompt")?.disabled).toBe(true);
+	expect(button("Save description")?.disabled).toBe(true);
 	expect(sent.some((item) => item.type === "generateAiImage")).toBe(false);
 });
 
@@ -805,6 +816,6 @@ test("other readers can view and copy saved prompts but cannot edit them", async
 	await tick();
 	expect(root()?.querySelector("textarea")?.value).toBe(storedPrompt);
 	expect(root()?.querySelector("textarea")?.readOnly).toBe(true);
-	expect(button("Save prompt")?.disabled).toBe(true);
-	expect(button("Copy image prompt")?.disabled).toBe(false);
+	expect(button("Save description")?.disabled).toBe(true);
+	expect(button("Copy image description")?.disabled).toBe(false);
 });

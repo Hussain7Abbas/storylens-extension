@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.0.0
  */
 import type { PutChapterArtworkByNovelIdByChapterNumberPrompt200Image } from "./putChapterArtworkByNovelIdByChapterNumberPrompt200Image";
+import type { PutChapterArtworkByNovelIdByChapterNumberPrompt200ImageDescription } from "./putChapterArtworkByNovelIdByChapterNumberPrompt200ImageDescription";
 import type { PutChapterArtworkByNovelIdByChapterNumberPrompt200ImagePrompt } from "./putChapterArtworkByNovelIdByChapterNumberPrompt200ImagePrompt";
 import type { PutChapterArtworkByNovelIdByChapterNumberPrompt200PromptUpdatedAt } from "./putChapterArtworkByNovelIdByChapterNumberPrompt200PromptUpdatedAt";
 
@@ -13,8 +14,14 @@ export type PutChapterArtworkByNovelIdByChapterNumberPrompt200 = {
 	/** @nullable */
 	image: PutChapterArtworkByNovelIdByChapterNumberPrompt200Image;
 	generating: boolean;
-	/** @nullable */
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
 	imagePrompt: PutChapterArtworkByNovelIdByChapterNumberPrompt200ImagePrompt;
+	/** @nullable */
+	imageDescription: PutChapterArtworkByNovelIdByChapterNumberPrompt200ImageDescription;
 	/** @nullable */
 	promptUpdatedAt: PutChapterArtworkByNovelIdByChapterNumberPrompt200PromptUpdatedAt;
 	canEditPrompt: boolean;

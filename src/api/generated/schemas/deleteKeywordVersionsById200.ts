@@ -15,6 +15,7 @@ import type { DeleteKeywordVersionsById200DescriptionAr } from "./deleteKeywordV
 import type { DeleteKeywordVersionsById200DescriptionEn } from "./deleteKeywordVersionsById200DescriptionEn";
 import type { DeleteKeywordVersionsById200EndingChapter } from "./deleteKeywordVersionsById200EndingChapter";
 import type { DeleteKeywordVersionsById200Image } from "./deleteKeywordVersionsById200Image";
+import type { DeleteKeywordVersionsById200ImageDescription } from "./deleteKeywordVersionsById200ImageDescription";
 import type { DeleteKeywordVersionsById200ImageId } from "./deleteKeywordVersionsById200ImageId";
 import type { DeleteKeywordVersionsById200ImagePrompt } from "./deleteKeywordVersionsById200ImagePrompt";
 import type { DeleteKeywordVersionsById200Nature } from "./deleteKeywordVersionsById200Nature";
@@ -31,7 +32,13 @@ export type DeleteKeywordVersionsById200 = {
 	endingChapter: DeleteKeywordVersionsById200EndingChapter;
 	categoryId: DeleteKeywordVersionsById200CategoryId;
 	natureId: DeleteKeywordVersionsById200NatureId;
-	imagePrompt: DeleteKeywordVersionsById200ImagePrompt;
+	imageDescription: DeleteKeywordVersionsById200ImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: DeleteKeywordVersionsById200ImagePrompt;
 	imageId: DeleteKeywordVersionsById200ImageId;
 	keywordId: string;
 	createdById: DeleteKeywordVersionsById200CreatedById;

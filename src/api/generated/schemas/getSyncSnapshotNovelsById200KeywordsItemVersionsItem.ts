@@ -15,6 +15,7 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionAr 
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionEn } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemDescriptionEn";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImage } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImage";
+import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageDescription } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImageDescription";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt";
 import type { GetSyncSnapshotNovelsById200KeywordsItemVersionsItemNature } from "./getSyncSnapshotNovelsById200KeywordsItemVersionsItemNature";
@@ -31,7 +32,13 @@ export type GetSyncSnapshotNovelsById200KeywordsItemVersionsItem = {
 	endingChapter: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemEndingChapter;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCategoryId;
 	natureId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemNatureId;
-	imagePrompt: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt;
+	imageDescription: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImagePrompt;
 	imageId: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemImageId;
 	keywordId: string;
 	createdById: GetSyncSnapshotNovelsById200KeywordsItemVersionsItemCreatedById;

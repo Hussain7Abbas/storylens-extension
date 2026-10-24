@@ -14,6 +14,7 @@ import type { PutKeywordsById409CurrentAliasesItemDescription } from "./putKeywo
 import type { PutKeywordsById409CurrentAliasesItemDescriptionAr } from "./putKeywordsById409CurrentAliasesItemDescriptionAr";
 import type { PutKeywordsById409CurrentAliasesItemDescriptionEn } from "./putKeywordsById409CurrentAliasesItemDescriptionEn";
 import type { PutKeywordsById409CurrentAliasesItemImage } from "./putKeywordsById409CurrentAliasesItemImage";
+import type { PutKeywordsById409CurrentAliasesItemImageDescription } from "./putKeywordsById409CurrentAliasesItemImageDescription";
 import type { PutKeywordsById409CurrentAliasesItemImageId } from "./putKeywordsById409CurrentAliasesItemImageId";
 import type { PutKeywordsById409CurrentAliasesItemImagePrompt } from "./putKeywordsById409CurrentAliasesItemImagePrompt";
 import type { PutKeywordsById409CurrentAliasesItemMainThemeColor } from "./putKeywordsById409CurrentAliasesItemMainThemeColor";
@@ -41,7 +42,13 @@ export type PutKeywordsById409CurrentAliasesItem = {
 	overrideStyle: boolean;
 	categoryId: PutKeywordsById409CurrentAliasesItemCategoryId;
 	natureId: PutKeywordsById409CurrentAliasesItemNatureId;
-	imagePrompt: PutKeywordsById409CurrentAliasesItemImagePrompt;
+	imageDescription: PutKeywordsById409CurrentAliasesItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PutKeywordsById409CurrentAliasesItemImagePrompt;
 	imageId: PutKeywordsById409CurrentAliasesItemImageId;
 	keywordId: string;
 	createdById: PutKeywordsById409CurrentAliasesItemCreatedById;

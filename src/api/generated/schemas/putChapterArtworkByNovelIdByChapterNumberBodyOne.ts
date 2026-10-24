@@ -5,11 +5,18 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+import type { PutChapterArtworkByNovelIdByChapterNumberBodyOneImageDescription } from "./putChapterArtworkByNovelIdByChapterNumberBodyOneImageDescription";
 import type { PutChapterArtworkByNovelIdByChapterNumberBodyOneImagePrompt } from "./putChapterArtworkByNovelIdByChapterNumberBodyOneImagePrompt";
 
 export type PutChapterArtworkByNovelIdByChapterNumberBodyOne = {
 	token: string;
 	imageId: string;
 	/** @nullable */
+	imageDescription?: PutChapterArtworkByNovelIdByChapterNumberBodyOneImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
 	imagePrompt?: PutChapterArtworkByNovelIdByChapterNumberBodyOneImagePrompt;
 };

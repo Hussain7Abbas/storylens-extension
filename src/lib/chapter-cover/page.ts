@@ -15,7 +15,7 @@ import type { NovelContentData } from "@/types/content-data";
 import { findContentRoot } from "@/utils/content-processor";
 import { readPageText } from "@/utils/page-text";
 import { waitForChapterCoverContext } from "./context";
-import { buildChapterCoverPrompt, chapterCoverReferences } from "./prompt";
+import { buildChapterCoverPrompt } from "./prompt";
 import {
 	AUTO_CHAPTER_COVER_KEY,
 	type ChapterCover,
@@ -26,23 +26,23 @@ import { createCoverView } from "./view";
 const words = {
 	en: {
 		title: "Chapter cover",
-		imagePrompt: "Image Prompt",
-		savePrompt: "Save prompt",
+		imageDescription: "Image Description",
+		savePrompt: "Save description",
 		reloadPrompt: "Discard changes",
 		expandPrompt: "Expand",
 		collapsePrompt: "Collapse",
 		promptHelp:
-			"Edit the description to tweak the next cover. Save prompt keeps your changes with this chapter without generating an image.",
-		promptSaved: "Image prompt saved.",
-		promptSaving: "Saving image prompt…",
+			"Edit the description to tweak the next cover. Save description keeps your changes with this chapter without generating an image.",
+		promptSaved: "Image description saved.",
+		promptSaving: "Saving image description…",
 		promptReadOnly:
-			"Only the cover publisher or a moderator can edit this prompt.",
+			"Only the cover publisher or a moderator can edit this description.",
 		generate: "Generate Chapter Cover Image",
 		regenerate: "Regenerate background image",
 		retrying: "Could not complete the chapter cover. Retrying automatically…",
-		copy: "Copy image prompt",
-		copied: "Prompt copied",
-		copyFailed: "Could not copy the prompt. Try again.",
+		copy: "Copy image description",
+		copied: "Description copied",
+		copyFailed: "Could not copy the description. Try again.",
 		stop: "Stop",
 		stopped: "Image generation stopped.",
 		actions: "Chapter cover actions",
@@ -66,7 +66,7 @@ const words = {
 	},
 	ar: {
 		title: "غلاف الفصل",
-		imagePrompt: "وصف الصورة",
+		imageDescription: "وصف الصورة",
 		savePrompt: "حفظ الوصف",
 		reloadPrompt: "تجاهل التغييرات",
 		expandPrompt: "توسيع",
@@ -221,7 +221,7 @@ async function savePrompt(session: Session) {
 		const result = await sendMessage("chapterCover", {
 			...session.key,
 			action: "savePrompt",
-			imagePrompt: session.prompt,
+			imageDescription: session.prompt,
 			baseUpdatedAt: session.promptUpdatedAt,
 		});
 		if (!alive(session)) return;
@@ -267,10 +267,10 @@ function showCover(
 	session.leaseUpdatedAt = cover.promptUpdatedAt;
 	const dirty = session.prompt !== session.savedPrompt;
 	if (
-		cover.imagePrompt !== undefined &&
+		cover.imageDescription !== undefined &&
 		(acceptPrompt || (!dirty && !session.pendingPublication))
 	) {
-		session.savedPrompt = cover.imagePrompt ?? "";
+		session.savedPrompt = cover.imageDescription ?? "";
 		session.promptUpdatedAt = cover.promptUpdatedAt;
 		setPrompt(session, session.savedPrompt);
 	}
@@ -344,7 +344,7 @@ async function publish(session: Session) {
 		imageId: session.imageId,
 		data: session.generated.data,
 		mimeType: session.generated.mimeType,
-		imagePrompt: session.generated.prompt,
+		imageDescription: session.generated.prompt,
 	});
 	session.token = undefined;
 	if (!alive(session) || session.controller.signal.aborted) return;
@@ -393,7 +393,7 @@ async function generate(
 							),
 						);
 					let prepared: Awaited<ReturnType<typeof preparePrompt>> | undefined;
-					if (!session.generated && !description) {
+					if (!session.generated) {
 						const chapterContext = await waitForChapterCoverContext({
 							read: () => sendMessage("readChapterContext", session.key),
 							signal,
@@ -412,27 +412,8 @@ async function generate(
 						session.clearError();
 						session.status.textContent = text.working;
 					}
-					if (description && !session.generated) {
-						const keywords = await sendMessage(
-							"chapterCoverKeywords",
-							data.novel.id,
-						).catch(() => data.keywords);
-						prepared = {
-							prompt: description,
-							referenceImageUrls: [
-								...new Set(
-									chapterCoverReferences(
-										{
-											...data,
-											keywords: Array.isArray(keywords)
-												? keywords
-												: data.keywords,
-										},
-										readPageText(findContentRoot(), 120_000),
-									).flatMap((row) => (row.imageUrl ? [row.imageUrl] : [])),
-								),
-							].slice(0, 8),
-						};
+					if (description && prepared) {
+						prepared.prompt += `\n\nReader-edited image description (preserve the requested visual choices):\n${JSON.stringify(description)}`;
 					}
 					if (signal.aborted || !alive(session)) return;
 					const claim = await sendMessage("chapterCover", {
@@ -472,7 +453,7 @@ async function generate(
 							settings: state.desktop,
 							feature: "chapter_cover",
 							prompt: prepared?.prompt ?? "",
-							promptIsDescription: !!description,
+
 							referenceImageUrls: prepared?.referenceImageUrls,
 							name: `chapter-${session.key.chapterNumber}-cover`,
 							signal,

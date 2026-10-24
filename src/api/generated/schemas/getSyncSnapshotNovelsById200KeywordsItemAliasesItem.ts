@@ -14,6 +14,7 @@ import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescription } f
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionAr } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionAr";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionEn } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemDescriptionEn";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImage } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemImage";
+import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImageDescription } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemImageDescription";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImageId } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemImageId";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImagePrompt } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemImagePrompt";
 import type { GetSyncSnapshotNovelsById200KeywordsItemAliasesItemMainThemeColor } from "./getSyncSnapshotNovelsById200KeywordsItemAliasesItemMainThemeColor";
@@ -41,7 +42,13 @@ export type GetSyncSnapshotNovelsById200KeywordsItemAliasesItem = {
 	overrideStyle: boolean;
 	categoryId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCategoryId;
 	natureId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemNatureId;
-	imagePrompt: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImagePrompt;
+	imageDescription: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImagePrompt;
 	imageId: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemImageId;
 	keywordId: string;
 	createdById: GetSyncSnapshotNovelsById200KeywordsItemAliasesItemCreatedById;

@@ -15,6 +15,7 @@ import type {
 	VersionRow,
 } from "@/lib/offline/types";
 import { keywordDescriptionIn } from "@/utils/translation";
+import { migrateImageDescription } from "./image-description";
 import { lookupMigration } from "./lookup-migration";
 
 export type NovelSnapshot = {
@@ -75,7 +76,8 @@ function pick(patch: Row, fields: readonly string[]): Row {
 	return out;
 }
 
-function localizedPatch(patch: Row): Row {
+function localizedPatch(input: Row): Row {
+	const patch = migrateImageDescription(input) as Row;
 	if (
 		patch.description === undefined ||
 		patch.descriptionAr !== undefined ||
@@ -105,7 +107,7 @@ const BASE_VERSION_FIELDS = [
 	"descriptionEn",
 	"categoryId",
 	"natureId",
-	"imagePrompt",
+	"imageDescription",
 	"imageId",
 ] as const;
 const ALIAS_FIELDS = [
@@ -122,7 +124,7 @@ const ALIAS_FIELDS = [
 	"overrideStyle",
 	"categoryId",
 	"natureId",
-	"imagePrompt",
+	"imageDescription",
 	"imageId",
 ] as const;
 const VERSION_FIELDS = [
@@ -131,7 +133,7 @@ const VERSION_FIELDS = [
 	"descriptionEn",
 	"categoryId",
 	"natureId",
-	"imagePrompt",
+	"imageDescription",
 	"imageId",
 ] as const;
 const REPLACEMENT_FIELDS = ["from", "to", "matchingType"] as const;
@@ -448,7 +450,7 @@ function applyKeyword(
 			descriptionEn: null,
 			categoryId: null,
 			natureId: null,
-			imagePrompt: null,
+			imageDescription: null,
 			imageId: null,
 			image: null,
 			category: null,
@@ -510,7 +512,7 @@ function applyAlias(work: Working, mutation: Mutation): boolean {
 		overrideStyle: false,
 		categoryId: null,
 		natureId: null,
-		imagePrompt: null,
+		imageDescription: null,
 		imageId: null,
 		keywordId,
 		createdById: mutation.userId,
@@ -592,7 +594,7 @@ function applyVersion(work: Working, mutation: Mutation): boolean {
 		endingChapter,
 		categoryId: null,
 		natureId: null,
-		imagePrompt: null,
+		imageDescription: null,
 		imageId: null,
 		keywordId,
 		createdById: mutation.userId,

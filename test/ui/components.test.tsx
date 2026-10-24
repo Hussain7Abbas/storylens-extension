@@ -2285,7 +2285,7 @@ describe("Cloud and lens UI", async () => {
 	it("switches source panels and stores the explicit choice", async () => {
 		const view = render(React.createElement(AiTab), { wrapper });
 		expect(view.queryByLabelText("desktop.keywordPrompt")).toBeNull();
-		expect(view.queryByLabelText("desktop.imagePrompt")).toBeNull();
+		expect(view.queryByLabelText("desktop.imageDescription")).toBeNull();
 		expect(view.queryByLabelText("desktop.chapterCoverPrompt")).toBeNull();
 		expect(
 			view.queryByRole("button", { name: "desktop.savePrompts" }),
@@ -2743,7 +2743,7 @@ describe("parallel selection suggestions and images", () => {
 				ok: true,
 				value: JSON.stringify({
 					description: "A shepherd.",
-					imagePrompt: "A shepherd in a blue coat, watercolor.",
+					imageDescription: "A shepherd in a blue coat, watercolor.",
 					category: 1,
 					nature: 1,
 				}),
@@ -2815,7 +2815,9 @@ describe("parallel selection suggestions and images", () => {
 					expect(copied).toEqual(["A red-haired swordsman."]),
 				);
 				await waitFor(() =>
-					expect(view.getByText("coloring.imagePromptCopied")).toBeTruthy(),
+					expect(
+						view.getByText("coloring.imageDescriptionCopied"),
+					).toBeTruthy(),
 				);
 			} finally {
 				if (clipboard) Object.defineProperty(navigator, "clipboard", clipboard);
@@ -2837,7 +2839,7 @@ describe("parallel selection suggestions and images", () => {
 			expect(
 				(await env.db.mutations.toArray()).some(
 					(mutation) =>
-						mutation.patch.imagePrompt === "A red-haired swordsman.",
+						mutation.patch.imageDescription === "A red-haired swordsman.",
 				),
 			).toBe(true);
 			expect(
@@ -2937,7 +2939,7 @@ describe("parallel selection suggestions and images", () => {
 		expect(
 			(await env.db.mutations.toArray()).find(
 				(item) => item.entity === "keyword",
-			)?.patch.imagePrompt,
+			)?.patch.imageDescription,
 		).toBe("A red-haired swordsman.");
 	});
 
@@ -3163,7 +3165,7 @@ describe("parallel selection suggestions and images", () => {
 		);
 		expect(
 			(
-				view.getByLabelText("desktop.imagePrompt", {
+				view.getByLabelText("desktop.imageDescription", {
 					selector: "textarea",
 				}) as HTMLTextAreaElement
 			).value,
@@ -3547,15 +3549,15 @@ describe("manual image prompts", () => {
 			React.ComponentProps<
 				typeof import("../../src/components/generate-image-button").GenerateImageButton
 			>,
-			"imagePrompt" | "onPromptChange"
+			"imageDescription" | "onPromptChange"
 		>,
 	) {
-		const [imagePrompt, onPromptChange] = React.useState("");
+		const [imageDescription, onPromptChange] = React.useState("");
 		const { GenerateImageButton } =
 			require("../../src/components/generate-image-button") as typeof import("../../src/components/generate-image-button");
 		return React.createElement(GenerateImageButton, {
 			...props,
-			imagePrompt,
+			imageDescription,
 			onPromptChange,
 		});
 	}
@@ -3577,9 +3579,9 @@ describe("manual image prompts", () => {
 		};
 		const view = render(React.createElement(PromptHarness, props), { wrapper });
 		fireEvent.click(
-			view.getByText("desktop.imagePrompt", { selector: "summary" }),
+			view.getByText("desktop.imageDescription", { selector: "summary" }),
 		);
-		const textarea = view.getByLabelText("desktop.imagePrompt");
+		const textarea = view.getByLabelText("desktop.imageDescription");
 		fireEvent.change(textarea, {
 			target: { value: "Ink wash portrait. A red-haired scout." },
 		});
@@ -3648,7 +3650,7 @@ describe("manual image prompts", () => {
 				),
 			).toBe(false);
 			expect(
-				(view.getByLabelText("desktop.imagePrompt") as HTMLTextAreaElement)
+				(view.getByLabelText("desktop.imageDescription") as HTMLTextAreaElement)
 					.value,
 			).toBe("");
 			fireEvent.click(
@@ -3656,10 +3658,10 @@ describe("manual image prompts", () => {
 			);
 			await waitFor(() =>
 				expect(document.activeElement).toBe(
-					view.getByLabelText("desktop.imagePrompt"),
+					view.getByLabelText("desktop.imageDescription"),
 				),
 			);
-			const textarea = view.getByLabelText("desktop.imagePrompt");
+			const textarea = view.getByLabelText("desktop.imageDescription");
 			expect(textarea.closest("details")?.open).toBe(true);
 			fireEvent.change(textarea, { target: { value: "My own prompt." } });
 			fireEvent.click(
@@ -3672,12 +3674,12 @@ describe("manual image prompts", () => {
 			);
 			expect(
 				requests.find((item) => item.type === "generateAiImage")?.data.prompt,
-			).toBe("My own prompt.");
+			).toContain("My own prompt.");
 		});
 	}
 
 	for (const source of ["desktop", "cloud"] as const) {
-		it(`sends the edited prompt unchanged to ${source} and preserves it on failure`, async () => {
+		it(`includes the edited description in source for ${source} and preserves it on failure`, async () => {
 			await fakeBrowser.storage.local.set({
 				"storylens-ai-image-source": source,
 				"storylens-ai-pricing": {
@@ -3697,9 +3699,9 @@ describe("manual image prompts", () => {
 				{ wrapper },
 			);
 			fireEvent.click(
-				view.getByText("desktop.imagePrompt", { selector: "summary" }),
+				view.getByText("desktop.imageDescription", { selector: "summary" }),
 			);
-			const textarea = view.getByLabelText("desktop.imagePrompt");
+			const textarea = view.getByLabelText("desktop.imageDescription");
 			for (const prompt of [
 				"Silver-haired scout in a blue cloak.",
 				"Silver-haired scout in a RED cloak.",
@@ -3714,8 +3716,8 @@ describe("manual image prompts", () => {
 				expect(
 					requests.filter((item) => item.type === "generateAiImage").at(-1)
 						?.data.prompt,
-				).toBe(prompt);
-				expect((textarea as HTMLTextAreaElement).value).toBe(prompt);
+				).toContain(prompt);
+				expect((textarea as HTMLTextAreaElement).value).toContain(prompt);
 			}
 			expect(requests.some((item) => item.type === "executeAiPrompt")).toBe(
 				false,
@@ -3761,7 +3763,7 @@ describe("manual image prompts", () => {
 			);
 			try {
 				fireEvent.click(
-					view.getByText("desktop.imagePrompt", { selector: "summary" }),
+					view.getByText("desktop.imageDescription", { selector: "summary" }),
 				);
 				await confirmExtraction(view);
 				await waitFor(() => expect(pending).toHaveLength(1));
@@ -3842,7 +3844,7 @@ describe("manual image prompts", () => {
 		);
 		try {
 			fireEvent.click(
-				view.getByText("desktop.imagePrompt", { selector: "summary" }),
+				view.getByText("desktop.imageDescription", { selector: "summary" }),
 			);
 			fireEvent.click(
 				view.getByRole("button", { name: /coloring.generateImage$/ }),
@@ -3889,7 +3891,7 @@ describe("manual image prompts", () => {
 			{ wrapper },
 		);
 		fireEvent.click(
-			view.getByText("desktop.imagePrompt", { selector: "summary" }),
+			view.getByText("desktop.imageDescription", { selector: "summary" }),
 		);
 		fireEvent.click(
 			view.getByRole("button", { name: /coloring.generateImage$/ }),
@@ -3907,7 +3909,7 @@ describe("manual image prompts", () => {
 		expect(imageRequest?.prompt).toContain("A red-haired scout.");
 		expect(
 			(
-				view.getByLabelText("desktop.imagePrompt", {
+				view.getByLabelText("desktop.imageDescription", {
 					selector: "textarea",
 				}) as HTMLTextAreaElement
 			).value,
@@ -3935,7 +3937,8 @@ describe("manual image prompts", () => {
 			expect(view.getByText(/coloring.imageNoChapter/)).toBeTruthy(),
 		);
 		expect(
-			(view.getByLabelText("desktop.imagePrompt") as HTMLTextAreaElement).value,
+			(view.getByLabelText("desktop.imageDescription") as HTMLTextAreaElement)
+				.value,
 		).toBe("");
 		expect(
 			requests.some(
@@ -3956,7 +3959,7 @@ describe("manual image prompts", () => {
 			{ wrapper },
 		);
 		fireEvent.click(
-			view.getByText("desktop.imagePrompt", { selector: "summary" }),
+			view.getByText("desktop.imageDescription", { selector: "summary" }),
 		);
 		const copy = view.getByRole("button", {
 			name: "coloring.copyImagePrompt",

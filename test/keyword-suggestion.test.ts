@@ -143,10 +143,10 @@ test("keeps an AI visual prompt for the suggestion form", () => {
 		parseKeywordSuggestion(
 			JSON.stringify({
 				description: "A scout.",
-				imagePrompt: "  Silver hair, blue cloak.  ",
+				imageDescription: "  Silver hair, blue cloak.  ",
 			}),
 			categories,
 			natures,
-		).imagePrompt,
+		).imageDescription,
 	).toBe("Silver hair, blue cloak.");
 });

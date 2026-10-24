@@ -392,7 +392,7 @@ export function ExtractionView() {
 					categoryId: row.categoryId as string,
 					natureId: row.natureId as string,
 					[descriptionKey(language)]: description || null,
-					imagePrompt: row.imagePrompt || null,
+					imageDescription: row.imageDescription || null,
 				});
 				setRows((current) =>
 					current.map((item) =>
@@ -411,7 +411,7 @@ export function ExtractionView() {
 					keywordId: parent.id,
 					...nameFields(language, row.name),
 					[descriptionKey(language)]: description || null,
-					imagePrompt: row.imagePrompt || null,
+					imageDescription: row.imageDescription || null,
 					matchingType: "FULL",
 					categoryId: row.categoryId ?? null,
 					natureId: row.natureId ?? null,
@@ -423,7 +423,7 @@ export function ExtractionView() {
 					categoryId: row.categoryId,
 					natureId: row.natureId,
 					[descriptionKey(language)]: description || null,
-					imagePrompt: row.imagePrompt || null,
+					imageDescription: row.imageDescription || null,
 					currentChapter: chapter,
 				});
 			updateRow(row.key, { saving: undefined, saved: action });
@@ -575,9 +575,9 @@ export function ExtractionView() {
 												}
 											/>
 											<CopyImagePrompt
-												value={row.imagePrompt ?? ""}
-												onChange={(imagePrompt) =>
-													updateRow(row.key, { imagePrompt })
+												value={row.imageDescription ?? ""}
+												onChange={(imageDescription) =>
+													updateRow(row.key, { imageDescription })
 												}
 												disabled={locked}
 											/>

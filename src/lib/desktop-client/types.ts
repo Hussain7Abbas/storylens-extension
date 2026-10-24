@@ -25,6 +25,7 @@ export type DesktopCapabilities = {
 	features?: {
 		webSearch: boolean;
 		imageGeneration: boolean;
+		structuredImageDescriptions?: boolean;
 		imageReferences?: boolean;
 		imagePromptInput?: boolean;
 	};
@@ -49,6 +50,7 @@ export type GenerateImageInput = {
 export type GeneratedImage = {
 	mimeType: string;
 	data: string;
+	imageDescription?: string;
 	revisedPrompt?: string;
 };
 export type DesktopSettings = {

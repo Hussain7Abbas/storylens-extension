@@ -14,6 +14,7 @@ import type { GetKeywordsById200AliasesItemDescription } from "./getKeywordsById
 import type { GetKeywordsById200AliasesItemDescriptionAr } from "./getKeywordsById200AliasesItemDescriptionAr";
 import type { GetKeywordsById200AliasesItemDescriptionEn } from "./getKeywordsById200AliasesItemDescriptionEn";
 import type { GetKeywordsById200AliasesItemImage } from "./getKeywordsById200AliasesItemImage";
+import type { GetKeywordsById200AliasesItemImageDescription } from "./getKeywordsById200AliasesItemImageDescription";
 import type { GetKeywordsById200AliasesItemImageId } from "./getKeywordsById200AliasesItemImageId";
 import type { GetKeywordsById200AliasesItemImagePrompt } from "./getKeywordsById200AliasesItemImagePrompt";
 import type { GetKeywordsById200AliasesItemMainThemeColor } from "./getKeywordsById200AliasesItemMainThemeColor";
@@ -41,7 +42,13 @@ export type GetKeywordsById200AliasesItem = {
 	overrideStyle: boolean;
 	categoryId: GetKeywordsById200AliasesItemCategoryId;
 	natureId: GetKeywordsById200AliasesItemNatureId;
-	imagePrompt: GetKeywordsById200AliasesItemImagePrompt;
+	imageDescription: GetKeywordsById200AliasesItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: GetKeywordsById200AliasesItemImagePrompt;
 	imageId: GetKeywordsById200AliasesItemImageId;
 	keywordId: string;
 	createdById: GetKeywordsById200AliasesItemCreatedById;

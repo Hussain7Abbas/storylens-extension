@@ -5,9 +5,17 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+import type { PutChapterArtworkByNovelIdByChapterNumberPromptBodyThreeImageDescription } from "./putChapterArtworkByNovelIdByChapterNumberPromptBodyThreeImageDescription";
+import type { PutChapterArtworkByNovelIdByChapterNumberPromptBodyThreeImagePrompt } from "./putChapterArtworkByNovelIdByChapterNumberPromptBodyThreeImagePrompt";
 
 export type PutChapterArtworkByNovelIdByChapterNumberPromptBodyThree = {
-	/** @maxLength 180000 */
-	imagePrompt: string;
+	/** @nullable */
+	imageDescription?: PutChapterArtworkByNovelIdByChapterNumberPromptBodyThreeImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PutChapterArtworkByNovelIdByChapterNumberPromptBodyThreeImagePrompt;
 	baseUpdatedAt: string;
 };

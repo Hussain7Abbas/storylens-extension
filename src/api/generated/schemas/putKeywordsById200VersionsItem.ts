@@ -15,6 +15,7 @@ import type { PutKeywordsById200VersionsItemDescriptionAr } from "./putKeywordsB
 import type { PutKeywordsById200VersionsItemDescriptionEn } from "./putKeywordsById200VersionsItemDescriptionEn";
 import type { PutKeywordsById200VersionsItemEndingChapter } from "./putKeywordsById200VersionsItemEndingChapter";
 import type { PutKeywordsById200VersionsItemImage } from "./putKeywordsById200VersionsItemImage";
+import type { PutKeywordsById200VersionsItemImageDescription } from "./putKeywordsById200VersionsItemImageDescription";
 import type { PutKeywordsById200VersionsItemImageId } from "./putKeywordsById200VersionsItemImageId";
 import type { PutKeywordsById200VersionsItemImagePrompt } from "./putKeywordsById200VersionsItemImagePrompt";
 import type { PutKeywordsById200VersionsItemNature } from "./putKeywordsById200VersionsItemNature";
@@ -31,7 +32,13 @@ export type PutKeywordsById200VersionsItem = {
 	endingChapter: PutKeywordsById200VersionsItemEndingChapter;
 	categoryId: PutKeywordsById200VersionsItemCategoryId;
 	natureId: PutKeywordsById200VersionsItemNatureId;
-	imagePrompt: PutKeywordsById200VersionsItemImagePrompt;
+	imageDescription: PutKeywordsById200VersionsItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PutKeywordsById200VersionsItemImagePrompt;
 	imageId: PutKeywordsById200VersionsItemImageId;
 	keywordId: string;
 	createdById: PutKeywordsById200VersionsItemCreatedById;

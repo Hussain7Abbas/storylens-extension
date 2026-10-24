@@ -14,6 +14,7 @@ import type { PutKeywordsById200AliasesItemDescription } from "./putKeywordsById
 import type { PutKeywordsById200AliasesItemDescriptionAr } from "./putKeywordsById200AliasesItemDescriptionAr";
 import type { PutKeywordsById200AliasesItemDescriptionEn } from "./putKeywordsById200AliasesItemDescriptionEn";
 import type { PutKeywordsById200AliasesItemImage } from "./putKeywordsById200AliasesItemImage";
+import type { PutKeywordsById200AliasesItemImageDescription } from "./putKeywordsById200AliasesItemImageDescription";
 import type { PutKeywordsById200AliasesItemImageId } from "./putKeywordsById200AliasesItemImageId";
 import type { PutKeywordsById200AliasesItemImagePrompt } from "./putKeywordsById200AliasesItemImagePrompt";
 import type { PutKeywordsById200AliasesItemMainThemeColor } from "./putKeywordsById200AliasesItemMainThemeColor";
@@ -41,7 +42,13 @@ export type PutKeywordsById200AliasesItem = {
 	overrideStyle: boolean;
 	categoryId: PutKeywordsById200AliasesItemCategoryId;
 	natureId: PutKeywordsById200AliasesItemNatureId;
-	imagePrompt: PutKeywordsById200AliasesItemImagePrompt;
+	imageDescription: PutKeywordsById200AliasesItemImageDescription;
+	/**
+	 * Deprecated since 2026-10-24; removed after 2027-04-30. Use imageDescription instead.
+	 * @deprecated
+	 * @nullable
+	 */
+	imagePrompt?: PutKeywordsById200AliasesItemImagePrompt;
 	imageId: PutKeywordsById200AliasesItemImageId;
 	keywordId: string;
 	createdById: PutKeywordsById200AliasesItemCreatedById;

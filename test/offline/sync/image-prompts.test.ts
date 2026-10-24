@@ -19,7 +19,7 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 				nameEn: "Mira",
 				categoryId: env.category.id,
 				natureId: env.nature.id,
-				imagePrompt: prompt,
+				imageDescription: prompt,
 			},
 		},
 		{ db: env.db },
@@ -29,7 +29,7 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 			entity: "keywordAlias",
 			op: "create",
 			keywordId: keyword.entityId,
-			values: { nameEn: "Scout", imagePrompt: `${prompt} Hood up.` },
+			values: { nameEn: "Scout", imageDescription: `${prompt} Hood up.` },
 		},
 		{ db: env.db },
 	);
@@ -38,7 +38,7 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 			entity: "keywordVersion",
 			op: "create",
 			keywordId: keyword.entityId,
-			values: { currentChapter: 10, imagePrompt: `${prompt} Older.` },
+			values: { currentChapter: 10, imageDescription: `${prompt} Older.` },
 		},
 		{ db: env.db },
 	);
@@ -49,13 +49,15 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 	const assertPrompts = async () => {
 		const row = await view();
 		expect(
-			row?.versions.find((item) => item.id === keyword.versionId)?.imagePrompt,
+			row?.versions.find((item) => item.id === keyword.versionId)
+				?.imageDescription,
 		).toBe(prompt);
 		expect(
-			row?.aliases.find((item) => item.id === alias.entityId)?.imagePrompt,
+			row?.aliases.find((item) => item.id === alias.entityId)?.imageDescription,
 		).toBe(`${prompt} Hood up.`);
 		expect(
-			row?.versions.find((item) => item.id === version.entityId)?.imagePrompt,
+			row?.versions.find((item) => item.id === version.entityId)
+				?.imageDescription,
 		).toBe(`${prompt} Older.`);
 	};
 	await assertPrompts();
@@ -70,7 +72,7 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 			entity: "keywordVersion",
 			op: "update",
 			id: keyword.versionId as string,
-			changes: { imagePrompt: "Red cloak instead." },
+			changes: { imageDescription: "Red cloak instead." },
 		},
 		{ db: env.db },
 	);
@@ -79,7 +81,7 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 			entity: "keywordAlias",
 			op: "update",
 			id: alias.entityId,
-			changes: { imagePrompt: null },
+			changes: { imageDescription: null },
 		},
 		{ db: env.db },
 	);
@@ -88,7 +90,7 @@ it("keeps image prompts with keywords, aliases and versions offline, through syn
 	expect(await env.db.mutations.count()).toBe(0);
 	expect(
 		(await view())?.versions.find((item) => item.id === keyword.versionId)
-			?.imagePrompt,
+			?.imageDescription,
 	).toBe("Red cloak instead.");
-	expect((await view())?.aliases[0]?.imagePrompt).toBeNull();
+	expect((await view())?.aliases[0]?.imageDescription).toBeNull();
 });
