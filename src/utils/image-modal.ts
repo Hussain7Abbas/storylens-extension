@@ -18,7 +18,7 @@ export function openImageModal(
 	src: string,
 	alt: string,
 	closeLabel: string,
-): void {
+): HTMLDialogElement {
 	closeImageModal();
 
 	const dialog = document.createElement("dialog");
@@ -91,4 +91,5 @@ export function openImageModal(
 	dialog.append(image, close);
 	(document.body ?? document.documentElement).append(dialog);
 	dialog.showModal();
+	return dialog;
 }

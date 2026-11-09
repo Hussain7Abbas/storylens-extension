@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { getStoredAuth } from "@/lib/auth/auth-storage";
+import { assertImageChapter, type CoverKey } from "@/lib/chapter-cover/types";
 import {
 	DesktopBusyError,
 	type ResultFrame,
@@ -247,6 +248,7 @@ export async function generateDesktopImage(
 			"Prompt is too large for the desktop client (500 KB limit).",
 		);
 
+	let chapter: CoverKey | undefined;
 	return runDesktopJob(
 		"/GenerateImage",
 		data.requestId,
@@ -264,15 +266,20 @@ export async function generateDesktopImage(
 					"Update the Story Lens desktop companion to generate images with structured image descriptions.",
 				);
 			const references = data.referenceImageUrls;
+			chapter = capabilities.features.chapterImageIdentity
+				? data.chapter
+				: undefined;
 			return {
 				prompt: data.prompt,
 				model: data.model,
 				effort: data.effort,
 				...(references ? { referenceImageUrls: references } : {}),
+				...(chapter ? { chapter } : {}),
 			};
 		},
 		{ timeoutMs: 360_000, maxBytes: 12_000_000 },
 		(frame) => {
+			if (chapter) assertImageChapter(chapter, frame.chapter);
 			if (
 				typeof frame.data !== "string" ||
 				typeof frame.mimeType !== "string" ||

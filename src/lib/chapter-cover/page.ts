@@ -63,6 +63,8 @@ const words = {
 			"The cover could not be saved. You can download it and try saving again.",
 		save: "Save cover",
 		download: "Download image",
+		viewImage: "View full-size chapter cover",
+		close: "Close",
 	},
 	ar: {
 		title: "غلاف الفصل",
@@ -98,6 +100,8 @@ const words = {
 		saveFailed: "تعذر حفظ الغلاف. يمكنك تنزيله والمحاولة مجدداً.",
 		save: "حفظ الغلاف",
 		download: "تنزيل الصورة",
+		viewImage: "عرض غلاف الفصل بالحجم الكامل",
+		close: "إغلاق",
 	},
 };
 
@@ -107,7 +111,8 @@ type Session = {
 	id: string;
 	host: HTMLElement;
 	mounted: boolean;
-	disposeMenu: () => void;
+	disposeView: () => void;
+	showImage: (src: string) => void;
 	showError: (error: unknown) => void;
 	clearError: () => void;
 	status: HTMLElement;
@@ -173,7 +178,7 @@ async function release(session: Session) {
 }
 function dispose(session: Session) {
 	session.controller.abort();
-	session.disposeMenu();
+	session.disposeView();
 	clearTimeout(session.poll);
 	void release(session);
 	pageAiTasks.apply({ id: session.id, state: "released", source: "page" });
@@ -281,8 +286,7 @@ function showCover(
 	updatePromptControls(session);
 	if (cover.image) {
 		if (!cover.generating) session.clearError();
-		session.image.src = cover.image.url;
-		session.image.hidden = false;
+		session.showImage(cover.image.url);
 		session.host.setAttribute("data-ready", "");
 		session.download.href = cover.image.url;
 		session.download.hidden = false;
@@ -452,6 +456,7 @@ async function generate(
 							source: state.source,
 							settings: state.desktop,
 							feature: "chapter_cover",
+							chapter: session.key,
 							prompt: prepared?.prompt ?? "",
 
 							referenceImageUrls: prepared?.referenceImageUrls,
@@ -465,8 +470,7 @@ async function generate(
 						session.imageId = crypto.randomUUID();
 						if (session.objectUrl) URL.revokeObjectURL(session.objectUrl);
 						session.objectUrl = URL.createObjectURL(result.file);
-						session.image.src = session.objectUrl;
-						session.image.hidden = false;
+						session.showImage(session.objectUrl);
 						session.host.setAttribute("data-ready", "");
 						session.download.href = session.objectUrl;
 						session.download.download = result.file.name;

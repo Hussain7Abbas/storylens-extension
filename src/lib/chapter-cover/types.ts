@@ -8,6 +8,24 @@ export type ChapterCover = {
 	canRestart?: boolean;
 };
 export type CoverKey = { novelId: string; chapterNumber: number };
+
+export function assertImageChapter(
+	expected: CoverKey | undefined,
+	received: unknown,
+) {
+	if (
+		!expected ||
+		!received ||
+		typeof received !== "object" ||
+		!("novelId" in received) ||
+		!("chapterNumber" in received) ||
+		received.novelId !== expected.novelId ||
+		received.chapterNumber !== expected.chapterNumber
+	)
+		throw new Error(
+			"Image generation returned a result for a different chapter.",
+		);
+}
 export type CoverRequest = CoverKey &
 	(
 		| { action: "read" }

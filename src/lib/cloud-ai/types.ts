@@ -1,4 +1,5 @@
 import type { AiFeature, AiImageFeature, AiSource } from "../ai-source/source";
+import type { CoverKey } from "../chapter-cover/types";
 export type AiPromptInput = {
 	source: AiSource;
 	requestId: string;
@@ -13,6 +14,7 @@ export type AiPromptInput = {
 	webSearch?: boolean;
 };
 export type AiImageInput = {
+	chapter?: CoverKey;
 	promptIsDescription?: boolean;
 	feature?: AiImageFeature;
 	referenceImageUrls?: string[];

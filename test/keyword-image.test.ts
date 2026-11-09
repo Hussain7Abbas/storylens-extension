@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	enrichKeywords,
+	pickActiveVersion,
 	resolveKeywordInfo,
 } from "../src/utils/resolve-keyword-version";
 import {
@@ -14,6 +15,43 @@ import {
 const keywordImage = image("keyword-image");
 const aliasImage = image("alias-image");
 const versionImage = image("version-image");
+
+test("gaps and chapters after the last finite version use the base keyword", () => {
+	const base = baseVersion({
+		startingChapter: 1,
+		endingChapter: 4,
+		image: keywordImage,
+	});
+	const middle = version({
+		id: "middle",
+		startingChapter: 5,
+		endingChapter: 9,
+		image: versionImage,
+	});
+	const last = version({ id: "last", startingChapter: 15, endingChapter: 20 });
+	const versions = [middle, last, base];
+	const raw = keyword({ versions });
+	expect(
+		[0, 4, 5, 9, 10, 14, 15, 20, 21].map(
+			(chapter) => pickActiveVersion(versions, chapter)?.id,
+		),
+	).toEqual([
+		base.id,
+		base.id,
+		middle.id,
+		middle.id,
+		base.id,
+		base.id,
+		last.id,
+		last.id,
+		base.id,
+	]);
+	expect(pickActiveVersion([], 10)).toBeUndefined();
+	expect(resolveKeywordInfo(raw, null, 10, "en").image.value?.url).toBe(
+		keywordImage.url,
+	);
+	expect(enrichKeywords([raw], 10, "en")[0]?.image?.url).toBe(keywordImage.url);
+});
 
 describe("tooltip image of an alias", () => {
 	test("shows the alias's own image without needing the style override", () => {

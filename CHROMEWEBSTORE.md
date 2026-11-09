@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — StoryLens
 
-Last updated: 2026-10-24
+Last updated: 2026-11-10
 
 ## Store listing
 
@@ -76,6 +76,8 @@ Do not claim that all data stays local: account, shared catalogue, analytics, im
 Publisher identity, contact email, visibility and regions must match the owner account's dashboard settings; this task did not change them.
 
 ## Version history and review notes
+
+- 3.12.0: Chapter covers open at full size. Multiple chapters can generate separate covers, and character details return to their original version between chapter ranges.
 
 - Pending: context publishers and moderators can edit individual chapter-context properties using inline pencil, Save and Cancel controls without generating new AI output.
 

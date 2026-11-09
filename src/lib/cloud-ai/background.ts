@@ -12,6 +12,7 @@ import {
 	updateFrameBalance,
 } from "@/lib/billing/background";
 import { type BalanceCache, LENS_BALANCE_KEY } from "@/lib/billing/cache";
+import { assertImageChapter } from "@/lib/chapter-cover/types";
 import { getStoredLanguage } from "@/utils/stored-language";
 import type { GeneratedImage } from "../desktop-client/types";
 import { CloudAiError } from "./errors";
@@ -83,6 +84,7 @@ async function run(
 			});
 		}
 		const prompt = data as AiPromptInput;
+		const chapter = image ? (data as AiImageInput).chapter : undefined;
 		const userId = auth.user.id;
 		return await cloudRequest(
 			{
@@ -90,6 +92,7 @@ async function run(
 				body: {
 					actionId: data.actionId,
 					feature,
+					...(chapter ? { chapter } : {}),
 					...(image && (data as AiImageInput).referenceImageUrls
 						? { referenceImageUrls: (data as AiImageInput).referenceImageUrls }
 						: {}),
@@ -144,6 +147,8 @@ export async function generateCloudImage(
 	owner: number,
 ): Promise<GeneratedImage> {
 	const result = await run(data, owner, true);
+	if (result.chapter !== undefined)
+		assertImageChapter(data.chapter, result.chapter);
 	if (
 		typeof result.data !== "string" ||
 		typeof result.mimeType !== "string" ||

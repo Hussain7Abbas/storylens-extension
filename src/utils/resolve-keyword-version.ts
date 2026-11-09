@@ -41,12 +41,7 @@ export function pickActiveVersion(
 			(end === null || end === undefined || Number(end) >= currentChapter)
 		);
 	});
-	if (active) return active;
-
-	return (
-		newestFirst.find((v) => Number(v.startingChapter) <= currentChapter) ??
-		newestFirst.at(-1)
-	);
+	return active ?? newestFirst.at(-1);
 }
 
 /**

@@ -5,6 +5,7 @@ import {
 } from "@/lib/ai-source/chapter-error-details";
 import { LENS_COIN_MOTION_CSS } from "@/lib/lens-coin";
 import { contentThemeCss } from "@/styles/palette";
+import { openImageModal } from "@/utils/image-modal";
 
 import {
 	COVER_PROMPT_EDITOR_CSS,
@@ -21,6 +22,8 @@ type CoverLabels = CoverPromptLabels & {
 	stop: string;
 	save: string;
 	download: string;
+	viewImage: string;
+	close: string;
 };
 
 /** A bare image with a hover/focus disclosure, isolated from novel-site styles. */
@@ -51,6 +54,7 @@ img{display:block;inline-size:100%;block-size:auto;max-block-size:none;pointer-e
 .actions{position:absolute;inset-block-start:52px;inset-inline-end:0;display:grid;gap:4px;box-sizing:border-box;inline-size:max-content;max-inline-size:calc(100vw - 48px);padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px color-mix(in srgb,var(--ink) 16%,transparent)}
 button,a{display:flex;align-items:center;gap:6px;box-sizing:border-box;min-block-size:44px;padding:8px 12px;border:0;border-radius:6px;background:var(--surface);color:var(--ink);font:500 14px/1.6 system-ui,sans-serif;text-align:start;white-space:normal;overflow-wrap:anywhere;cursor:pointer;text-decoration:none}
 button:hover,a:hover,summary:hover{background:var(--soft)}
+button.preview,button.preview:hover{display:block;inline-size:100%;min-block-size:0;padding:0;border-radius:0;background:none;cursor:zoom-in}
 button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button:disabled{opacity:.6;cursor:not-allowed}
 [hidden]{display:none!important}
@@ -61,6 +65,17 @@ button:disabled{opacity:.6;cursor:not-allowed}
 	const image = document.createElement("img");
 	image.alt = `${text.ready} ${chapterNumber}`;
 	image.hidden = true;
+	const preview = document.createElement("button");
+	preview.type = "button";
+	preview.className = "preview";
+	preview.hidden = true;
+	preview.setAttribute("aria-haspopup", "dialog");
+	preview.setAttribute("aria-label", text.viewImage);
+	preview.append(image);
+	let previewDialog: HTMLDialogElement | undefined;
+	preview.addEventListener("click", () => {
+		previewDialog = openImageModal(image.src, image.alt, text.close);
+	});
 	const status = document.createElement("p");
 	status.className = "status";
 	status.setAttribute("role", "status");
@@ -101,7 +116,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 	const promptEditor = createCoverPromptEditor(text);
 	shadow.append(
 		style,
-		image,
+		preview,
 		status,
 		menu,
 		promptEditor.promptSection,
@@ -137,6 +152,11 @@ button:disabled{opacity:.6;cursor:not-allowed}
 		...promptEditor,
 		status,
 		image,
+		showImage(src: string) {
+			image.src = src;
+			image.hidden = false;
+			preview.hidden = false;
+		},
 		generate,
 		regenerate,
 		copy,
@@ -151,6 +171,9 @@ button:disabled{opacity:.6;cursor:not-allowed}
 			errorDetails.clear();
 			host.removeAttribute("data-error");
 		},
-		disposeMenu: () => listeners.abort(),
+		disposeView() {
+			listeners.abort();
+			if (previewDialog?.open) previewDialog.close();
+		},
 	};
 }

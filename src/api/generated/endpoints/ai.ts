@@ -451,7 +451,7 @@ export const usePostAiPrompts = <
 	return useMutation(mutationOptions, queryClient);
 };
 /**
- * Streams NDJSON frames like `/ai/prompts`; the `result` frame carries `mimeType`, base64 `data` and `revisedPrompt`.
+ * Submit each chapter cover as a separate action. Its result echoes the optional `chapter` key and carries `mimeType`, base64 `data` and `revisedPrompt`. Streams NDJSON frames like `/ai/prompts`.
  * @summary Draw a character image or chapter cover with Story Lens Cloud AI
  */
 export const postAiImages = (

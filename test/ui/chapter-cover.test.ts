@@ -226,7 +226,9 @@ test("a saved cover is a bare image with its actions inside the corner disclosur
 	const shadow = root();
 	expect(shadow?.querySelector("header,section,h1,h2,figure")).toBeNull();
 	expect(button("Close")).toBeUndefined();
-	expect(shadow?.querySelector("img")?.parentNode).toBe(shadow);
+	expect(
+		shadow?.querySelector("img")?.parentElement?.getAttribute("aria-haspopup"),
+	).toBe("dialog");
 	expect(shadow?.querySelector('[role="status"]')?.textContent).toBe("");
 	const menu = shadow?.querySelector("details");
 	expect(menu?.open).toBe(false);
@@ -235,6 +237,25 @@ test("a saved cover is a bare image with its actions inside the corner disclosur
 	);
 	expect(menu?.contains(button("Copy image description") ?? null)).toBe(true);
 	expect(menu?.querySelector("a")?.textContent).toBe("Download image");
+});
+test("clicking the saved cover opens the shared viewer and clearing the chapter closes it", async () => {
+	hasCover = true;
+	syncChapterCover(coverChapter());
+	await waitFor(() => expect(root()?.querySelector("img")?.hidden).toBe(false));
+	const preview = root()?.querySelector<HTMLButtonElement>(
+		"button[aria-haspopup=dialog]",
+	);
+	expect(preview?.hidden).toBe(false);
+	preview?.click();
+	const dialog = document.querySelector<HTMLDialogElement>(
+		"dialog.storylens-image-modal",
+	);
+	expect(dialog?.open).toBe(true);
+	expect(dialog?.querySelector("img")?.src).toBe(
+		"https://images.example.invalid/cover.png",
+	);
+	clearChapterCover();
+	expect(dialog?.open).toBe(false);
 });
 test("cover actions dismiss with Escape or an outside pointer, returning keyboard focus on Escape", async () => {
 	hasCover = true;

@@ -1,5 +1,6 @@
 import { sendMessage } from "@/entrypoints/background/messaging";
 import type { AiImageFeature, AiSource } from "@/lib/ai-source/source";
+import type { CoverKey } from "@/lib/chapter-cover/types";
 import { unwrapAiReply } from "@/lib/cloud-ai/errors";
 import type { DesktopSettings } from "./types";
 
@@ -30,6 +31,7 @@ export type GeneratedCharacterImage = {
 export async function generateCharacterImage(input: {
 	source: AiSource;
 	feature?: AiImageFeature;
+	chapter?: CoverKey;
 	referenceImageUrls?: string[];
 	settings: DesktopSettings;
 	prompt: string;
@@ -49,6 +51,7 @@ export async function generateCharacterImage(input: {
 			await sendMessage("generateAiImage", {
 				source: input.source,
 				...(input.feature ? { feature: input.feature } : {}),
+				...(input.chapter ? { chapter: input.chapter } : {}),
 				...(input.referenceImageUrls?.length
 					? { referenceImageUrls: input.referenceImageUrls }
 					: {}),

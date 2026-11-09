@@ -54,6 +54,7 @@ export async function retryWhileBusy<T>(
 
 export type ResultFrame = {
 	type?: string;
+	chapter?: unknown;
 	output?: string;
 	mimeType?: string;
 	imageDescription?: string;

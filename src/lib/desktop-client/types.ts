@@ -1,3 +1,5 @@
+import type { CoverKey } from "@/lib/chapter-cover/types";
+
 export type DesktopModel = {
 	id: string;
 	provider: "claude" | "codex" | "gemini";
@@ -26,6 +28,7 @@ export type DesktopCapabilities = {
 		webSearch: boolean;
 		imageGeneration: boolean;
 		structuredImageDescriptions?: boolean;
+		chapterImageIdentity?: boolean;
 		imageReferences?: boolean;
 		imagePromptInput?: boolean;
 	};
@@ -40,6 +43,7 @@ export type ExecutePromptInput = {
 	webSearch?: boolean;
 };
 export type GenerateImageInput = {
+	chapter?: CoverKey;
 	promptIsDescription?: boolean;
 	referenceImageUrls?: string[];
 	requestId: string;

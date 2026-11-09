@@ -5,11 +5,14 @@
  * Development documentation
  * OpenAPI spec version: 0.0.0
  */
+
+import type { PostAiImagesBodyOneChapter } from "./postAiImagesBodyOneChapter";
 import type { PostAiImagesBodyOneFeature } from "./postAiImagesBodyOneFeature";
 
 export type PostAiImagesBodyOne = {
 	actionId: string;
 	feature: PostAiImagesBodyOneFeature;
+	chapter?: PostAiImagesBodyOneChapter;
 	promptIsDescription?: boolean;
 	/** @maxItems 8 */
 	referenceImageUrls?: string[];
